@@ -31,10 +31,17 @@ class VisitDayForm(forms.ModelForm):
 class MentorGradeForm(forms.ModelForm):
     class Meta:
         model = AssignedCompetence
-        fields = ['mentor_grade', 'remarks']
+        fields = ['mentor_grade', 'mentor_remarks']
         widgets = {
-            'mentor_grade': forms.Select(choices=[('', '---'), ('Excellent', 'Excellent'), ('Good', 'Good'), ('Fair', 'Fair'), ('Poor', 'Poor')])
+            'mentor_grade': forms.Select(choices=[
+                ('', '---'),
+                ('Excellent', 'Excellent'),
+                ('Good', 'Good'),
+                ('Fair', 'Fair'),
+                ('Poor', 'Poor')
+            ])
         }
+
 
 class MenteeSelfAssessmentForm(forms.ModelForm):
     class Meta:

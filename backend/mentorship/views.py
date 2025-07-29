@@ -135,47 +135,86 @@ class AssignedCompetenceUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
 
 
+# class MentorGradeView(LoginRequiredMixin, UpdateView):
+#     model = AssignedCompetence
+#     form_class = MentorGradeForm
+#     template_name = 'mentorship/mentor_grade.html'
+#     context_object_name = 'assignment'
+
+#     def get_queryset(self):
+#         # Only allow mentor to grade
+#         return AssignedCompetence.objects.filter(visit_day__visit__mentor=self.request.user)
+
+#     def dispatch(self, request, *args, **kwargs):
+#         assignment = self.get_object()
+
+#         # Restrict access if self-assessment isn't done
+#         if not assignment.is_self_assessed:
+#             messages.warning(request, "Mentee must complete self-assessment before mentor grading.")
+#             return redirect('visit_day_detail', visit_day_id=assignment.visit_day.id)
+
+#         return super().dispatch(request, *args, **kwargs)
+    
+#     def get_success_url(self):
+#         return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
+    
+    
+    
 class MentorGradeView(LoginRequiredMixin, UpdateView):
     model = AssignedCompetence
     form_class = MentorGradeForm
-    template_name = 'mentorship/mentor_grade.html'
+    template_name = 'mentorship/mentor_grade_form.html'
     context_object_name = 'assignment'
 
-    def get_queryset(self):
-        # Only allow mentor to grade
-        return AssignedCompetence.objects.filter(visit_day__visit__mentor=self.request.user)
-
     def dispatch(self, request, *args, **kwargs):
-        assignment = self.get_object()
-
-        # Restrict access if self-assessment isn't done
-        if not assignment.is_self_assessed:
-            messages.warning(request, "Mentee must complete self-assessment before mentor grading.")
-            return redirect('visit_day_detail', visit_day_id=assignment.visit_day.id)
-
+        obj = self.get_object()
+        if obj.visit_day.visit.mentor != request.user:
+            return HttpResponseForbidden("You are not authorized to grade this assignment.")
         return super().dispatch(request, *args, **kwargs)
-    
+
     def get_success_url(self):
         return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
     
+    
+# class MenteeSelfAssessmentView(LoginRequiredMixin, UpdateView):
+#     model = AssignedCompetence
+#     form_class = MenteeSelfAssessmentForm
+#     template_name = 'mentorship/mentee_self_assess.html'
+
+#     def get_queryset(self):
+#         # Only allow mentee to self-assess
+#         return AssignedCompetence.objects.filter(mentee=self.request.user)
+
+#     def form_valid(self, form):
+#         form.instance.is_self_assessed = True  # ✅ Mark as self-assessed
+#         return super().form_valid(form)
+
+#     def dispatch(self, request, *args, **kwargs):
+#         assignment = self.get_object()
+#         if assignment.is_self_assessed:
+#             return HttpResponseForbidden("Self-assessment already submitted.")
+#         return super().dispatch(request, *args, **kwargs)
+
+#     def get_success_url(self):
+#         return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
+
 class MenteeSelfAssessmentView(LoginRequiredMixin, UpdateView):
     model = AssignedCompetence
     form_class = MenteeSelfAssessmentForm
     template_name = 'mentorship/mentee_self_assess.html'
-
-    def get_queryset(self):
-        # Only allow mentee to self-assess
-        return AssignedCompetence.objects.filter(mentee=self.request.user)
-
-    def form_valid(self, form):
-        form.instance.is_self_assessed = True  # ✅ Mark as self-assessed
-        return super().form_valid(form)
+    context_object_name = 'assignment'
 
     def dispatch(self, request, *args, **kwargs):
-        assignment = self.get_object()
-        if assignment.is_self_assessed:
-            return HttpResponseForbidden("Self-assessment already submitted.")
+        obj = self.get_object()
+        if obj.mentee != request.user:
+            return HttpResponseForbidden("You are not allowed to assess this competence.")
+        if obj.mentee_self_grade:  # prevent re-submission if already graded
+            return HttpResponseForbidden("You have already submitted your self-assessment.")
         return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        # Optionally add a flag or timestamp
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})

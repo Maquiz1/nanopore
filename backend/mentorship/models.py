@@ -99,6 +99,7 @@ class AssignedCompetence(models.Model):
     mentor_grade = models.CharField(max_length=20, blank=True, null=True)  # e.g. Excellent, Good, Fair
     mentee_self_grade = models.CharField(max_length=20, blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
+    mentor_remarks = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
