@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Site: {{ object.name }}</h2>
+
+<p>District: <a href="{% url 'locations:district-detail' district.id %}">{{ district.name }}</a></p>
+<p>Region: <a href="{% url 'locations:region-detail' region.id %}">{{ region.name }}</a></p>
+<p>Country: <a href="{% url 'locations:country-detail' country.id %}">{{ country.name }}</a></p>
+
+<a href="{% url 'locations:district-detail' district.id %}">← Back to {{ district.name }}</a>
+{% endblock %}

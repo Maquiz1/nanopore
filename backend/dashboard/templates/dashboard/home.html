@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Welcome, {{ user.username }}!</h2>
+<p>This is your dashboard.</p>
+<!-- templates/home.html -->
+<h1>Welcome to the Mentorship Logbook</h1>
+<ul>
+  <li><a href="{% url 'locations:country-list' %}">View Countries</a></li>
+  <li><a href="{% url 'clinical:disease-list' %}">View Diseases</a></li>
+
+
+  <p><a href="{% url 'visit_list' %}">📅 View All Mentorship Visits</a></p>
+
+  <li><a href="{% url 'logout' %}">Logout</a></li>
+</ul>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Assign Competence for {{ visit_day.date }}</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Assign</button>
+</form>
+
+<h3>Existing Assignments</h3>
+<ul>
+  {% for assignment in assignments %}
+    <li>{{ assignment.mentee }} — {{ assignment.competence }} ({{ assignment.get_is_completed_display|default:"Pending" }})</li>
+  {% empty %}
+    <li>No assignments yet.</li>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'visit_day_detail' visit_day.id %}">Back to Visit Day</a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Assessment Review: {{ assignment.competence.name }}</h2>
+
+<p><strong>Mentee:</strong> {{ assignment.mentee.get_full_name|default:assignment.mentee.username }}</p>
+<p><strong>Mentor:</strong> {{ assignment.visit_day.visit.mentor.get_full_name|default:assignment.visit_day.visit.mentor.username }}</p>
+
+<h3>Grading</h3>
+<ul>
+  <li><strong>Mentor Grade:</strong> {{ assignment.mentor_grade|default:"Not graded" }}</li>
+  <li><strong>Self Assessment:</strong> {{ assignment.mentee_grade|default:"Not self-assessed" }}</li>
+</ul>
+
+<a href="{% url 'visit_day_detail' assignment.visit_day.id %}">🔙 Back to Visit Day</a>
+{% endblock %}

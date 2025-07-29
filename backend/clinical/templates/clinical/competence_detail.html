@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Competence: {{ competence.name }}</h2>
+<p>{{ competence.description }}</p>
+
+<p>Related to disease: <a href="{% url 'clinical:disease-detail' competence.disease.id %}">{{ competence.disease.name }}</a></p>
+
+<a href="{% url 'clinical:disease-detail' competence.disease.id %}">← Back to Disease</a> |
+<a href="{% url 'clinical:disease-list' %}">Diseases</a> |
+<a href="{% url 'dashboard:dashboard' %}">Home</a>
+{% endblock %}

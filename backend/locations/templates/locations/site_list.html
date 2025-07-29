@@ -1,0 +1,7 @@
+<h2>Sites in {{ district.name }}</h2>
+<ul>
+  {% for site in sites %}
+  <li><a href="{% url 'locations:site-detail' site.id %}">{{ site.name }}</a></li>
+  {% endfor %}
+</ul>
+<a href="{% url 'district-list' district.region.id %}">← Back to districts</a>

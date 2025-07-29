@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Country: {{ object.name }}</h2>
+
+<h3>Regions</h3>
+<ul>
+  {% for region in regions %}
+    <li><a href="{% url 'locations:region-detail' region.id %}">{{ region.name }}</a></li>
+  {% empty %}
+    <li>No regions found.</li>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'locations:country-list' %}">← Back to Countries</a>
+{% endblock %}
