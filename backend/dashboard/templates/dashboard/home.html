@@ -39,7 +39,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 <p class="card-text fs-4">5 Active</p>
             </div>
             <div class="card-footer bg-transparent border-0">
-                <a href="{% url 'visit_list' %}" class="text-white text-decoration-underline">View visits</a>
+                <a href="{% url 'mentorship:visit_list' %}" class="text-white text-decoration-underline">View visits</a>
             </div>
         </div>
     </div>

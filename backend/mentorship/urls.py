@@ -3,6 +3,7 @@ from . import views
 from .views import VisitListView, VisitDetailView,VisitCreateView,VisitDeleteView,VisitDayUpdateView, VisitDayDeleteView
 from .views import AssignCompetenceView, VisitDayDetailView,AssignedCompetenceUpdateView,MentorGradeView,MenteeSelfAssessmentView
 
+app_name = 'mentorship'
 
 urlpatterns = [
     path("", views.index, name="index"),

@@ -108,13 +108,13 @@
         <a href="{% url 'dashboard:dashboard' %}"><i class="fas fa-home"></i><span> Dashboard</span></a>
         <a href="{% url 'locations:country-list' %}"><i class="fas fa-globe-africa"></i><span> Countries</span></a>
         <a href="{% url 'clinical:disease-list' %}"><i class="fas fa-virus"></i><span> Diseases</span></a>
-        <a href="{% url 'visit_list' %}"><i class="fas fa-calendar-alt"></i><span> Visits</span></a>
+        <a href="{% url 'mentorship:visit_list' %}"><i class="fas fa-calendar-alt"></i><span> Visits</span></a>
         <a href="{% url 'reports:index' %}"><i class="fas fa-chart-line"></i><span> Reports</span></a>
 
         {% if user.is_authenticated %}
-            <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i><span> Logout</span></a>
+            <a href="{% url 'users:logout' %}"><i class="fas fa-sign-out-alt"></i><span> Logout</span></a>
         {% else %}
-            <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i><span> Login</span></a>
+            <a href="{% url 'users:login' %}"><i class="fas fa-sign-in-alt"></i><span> Login</span></a>
         {% endif %}
     </div>
 
