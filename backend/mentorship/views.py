@@ -47,7 +47,7 @@ class VisitDeleteView(DeleteView):
         return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse_lazy('visit_list')
+        return reverse_lazy('mentorship:visit-list')
     
 
 class VisitDayDetailView(LoginRequiredMixin, DetailView):
@@ -73,7 +73,7 @@ class VisitDayUpdateView(UpdateView):
 
     def get_success_url(self):
         messages.success(self.request, "Visit Day updated successfully.")
-        return reverse_lazy('visit_detail', kwargs={'pk': self.object.visit.pk})
+        return reverse_lazy('mentorship:visit-detail', kwargs={'pk': self.object.visit.pk})
 
 
 class VisitDayDeleteView(DeleteView):
@@ -89,7 +89,7 @@ class VisitDayDeleteView(DeleteView):
 
     def get_success_url(self):
         messages.success(self.request, "Visit Day deleted successfully.")
-        return reverse_lazy('visit_detail', kwargs={'pk': self.object.visit.pk})
+        return reverse_lazy('mentorship:visit-detail', kwargs={'pk': self.object.visit.pk})
     
     
 class AssignCompetenceView(LoginRequiredMixin, CreateView):
@@ -117,7 +117,7 @@ class AssignCompetenceView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
+        return reverse('mentorship:visit-day-detail', kwargs={'visit_day_id': self.object.visit_day.id})
 
 class AssignedCompetenceDetailView(LoginRequiredMixin, DetailView):
     model = AssignedCompetence
@@ -132,7 +132,7 @@ class AssignedCompetenceUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         # After update, redirect to the visit day detail page
-        return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
+        return reverse('mentorship:visit-day-detail', kwargs={'visit_day_id': self.object.visit_day.id})
 
 
 # class MentorGradeView(LoginRequiredMixin, UpdateView):
@@ -173,7 +173,7 @@ class MentorGradeView(LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
+        return reverse('mentorship:visit-day-detail', kwargs={'visit_day_id': self.object.visit_day.id})
     
     
 # class MenteeSelfAssessmentView(LoginRequiredMixin, UpdateView):
@@ -217,4 +217,4 @@ class MenteeSelfAssessmentView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
+        return reverse('mentorship:visit-day-detail', kwargs={'visit_day_id': self.object.visit_day.id})

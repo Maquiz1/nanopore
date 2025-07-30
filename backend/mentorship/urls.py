@@ -27,7 +27,7 @@ urlpatterns += [
 
 urlpatterns += [
     path('visit_day/<int:visit_day_id>/', VisitDayDetailView.as_view(), name='visit-day-detail'),
-    path('visit_day/<int:visit_day_id>/assign/', AssignCompetenceView.as_view(), name='assign-ompetence'),
+    path('visit_day/<int:visit_day_id>/assign/', AssignCompetenceView.as_view(), name='assign-competence'),
     path('assigned_competence/<int:pk>/edit/', AssignedCompetenceUpdateView.as_view(), name='assigned-competence-edit'),
     path('assignment/<int:pk>/mentor-grade/', MentorGradeView.as_view(), name='mentor-grade'),
     path('assignment/<int:pk>/self-assess/', MenteeSelfAssessmentView.as_view(), name='mentee-self-assess'),

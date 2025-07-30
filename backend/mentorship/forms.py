@@ -57,14 +57,17 @@ class AssignedCompetenceForm(forms.ModelForm):
     class Meta:
         model = AssignedCompetence
         fields = ['visit_day', 'mentee', 'disease', 'competence', 'remarks']
-        # exclude = ['visit_day']  # Remove from editable fields
+        widgets = {
+            'visit_day': forms.Select(attrs={'class': 'form-select'}),
+            'mentee': forms.Select(attrs={'class': 'form-select'}),
+            'disease': forms.Select(attrs={'class': 'form-select'}),
+            'competence': forms.Select(attrs={'class': 'form-select'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Optional: limit competence choices by disease if you want (dynamic in the view or via JS)
+        # Optional dynamic queryset filtering can stay here
         # self.fields['competence'].queryset = Competence.objects.none()
-
-        # Optional: if visit_day is known, you can limit mentee choices to site mentees or exclude mentor
         # self.fields['mentee'].queryset = User.objects.exclude(pk=self.instance.visit_day.visit.mentor.pk)
-
