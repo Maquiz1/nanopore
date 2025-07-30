@@ -1,26 +1,6 @@
-<!-- templates/partials/navbar.html -->
-<style>
-    .navbar {
-        background-color: #ecf0f1;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .toggle-btn {
-        background: none;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        color: #2c3e50;
-    }
-</style>
-
-<div class="navbar">
-    <button class="toggle-btn" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
-    <strong>{% block titlebar %}Welcome, {{ user.get_full_name|default:user.username }}{% endblock %}</strong>
-</div>
+        <div class="navbar">
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <strong>{% block titlebar %}Welcome, {{ user.get_full_name|default:user.username }}{% endblock %}</strong>
+        </div>
