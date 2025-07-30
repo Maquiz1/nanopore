@@ -1,10 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Site: {{ object.name }}</h2>
+<h2 class="mb-3">Site: {{ object.name }}</h2>
 
-<p>District: <a href="{% url 'locations:district-detail' district.id %}">{{ district.name }}</a></p>
-<p>Region: <a href="{% url 'locations:region-detail' region.id %}">{{ region.name }}</a></p>
-<p>Country: <a href="{% url 'locations:country-detail' country.id %}">{{ country.name }}</a></p>
+<div class="mb-3">
+  <p><strong>District:</strong> <a href="{% url 'locations:district-detail' district.id %}">{{ district.name }}</a></p>
+  <p><strong>Region:</strong> <a href="{% url 'locations:region-detail' region.id %}">{{ region.name }}</a></p>
+  <p><strong>Country:</strong> <a href="{% url 'locations:country-detail' country.id %}">{{ country.name }}</a></p>
+</div>
 
-<a href="{% url 'locations:district-detail' district.id %}">← Back to {{ district.name }}</a>
+<div class="card bg-light border-primary mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Mentorships</h5>
+    <p class="card-text">
+      This site has 
+      <span class="badge bg-primary">{{ mentorship_count }}</span>
+      mentorship{{ mentorship_count|pluralize }}.
+    </p>
+  </div>
+</div>
+
+<a href="{% url 'locations:district-detail' district.id %}" class="btn btn-secondary">← Back to {{ district.name }}</a>
 {% endblock %}

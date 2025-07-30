@@ -7,8 +7,10 @@ class VisitForm(forms.ModelForm):
         model = Visit
         fields = ['site', 'mentor', 'start_date', 'end_date']
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'site': forms.Select(attrs={'class': 'form-select'}),
+            'mentor': forms.Select(attrs={'class': 'form-select'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
 

@@ -12,3 +12,4 @@ class UserManual(models.Model):
     def clean(self):
         if UserManual.objects.exclude(pk=self.pk).filter(title__iexact=self.title).exists():
             raise ValidationError({'title': 'A manual with this title already exists.'})
+      

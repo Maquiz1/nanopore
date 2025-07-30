@@ -1,11 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Competence: {{ competence.name }}</h2>
+<h2 class="mb-3">Competence: {{ competence.name }}</h2>
 <p>{{ competence.description }}</p>
 
-<p>Related to disease: <a href="{% url 'clinical:disease-detail' competence.disease.id %}">{{ competence.disease.name }}</a></p>
+<p><strong>Related to disease:</strong>
+  <a href="{% url 'clinical:disease-detail' competence.disease.id %}">
+    {{ competence.disease.name }}
+  </a>
+</p>
 
-<a href="{% url 'clinical:disease-detail' competence.disease.id %}">← Back to Disease</a> |
-<a href="{% url 'clinical:disease-list' %}">Diseases</a> |
-<a href="{% url 'dashboard:dashboard' %}">Home</a>
+<div class="card bg-light border-success my-4">
+  <div class="card-body">
+    <h5 class="card-title">Assessment Count</h5>
+    <p class="card-text">
+      This competence has been evaluated
+      <span class="badge bg-success">{{ assessment_count }}</span>
+      time{{ assessment_count|pluralize }}.
+    </p>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a href="{% url 'clinical:disease-detail' competence.disease.id %}" class="btn btn-secondary">← Back to Disease</a>
+  <a href="{% url 'clinical:disease-list' %}" class="btn btn-outline-primary">Diseases</a>
+  <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-dark">Home</a>
+</div>
 {% endblock %}

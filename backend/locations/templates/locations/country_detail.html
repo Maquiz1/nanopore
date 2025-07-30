@@ -3,13 +3,40 @@
 <h2>Country: {{ object.name }}</h2>
 
 <h3>Regions</h3>
-<ul>
-  {% for region in regions %}
-    <li><a href="{% url 'locations:region-detail' region.id %}">{{ region.name }}</a></li>
-  {% empty %}
-    <li>No regions found.</li>
-  {% endfor %}
-</ul>
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Region Name</th>
+      <th>Districts Count</th>
+      <th>Sites Count</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for region in regions %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>
+        <a href="{% url 'locations:region-detail' region.id %}">
+          {{ region.name }}
+        </a>
+      </td>
+      <td>{{ region.district_count }}</td>
+      <td>{{ region.site_count }}</td>
+      <td>
+        <a href="{% url 'locations:region-detail' region.id %}" class="btn btn-sm btn-primary">
+          View Details
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="5" class="text-center">No regions found.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-<a href="{% url 'locations:country-list' %}">← Back to Countries</a>
+<a href="{% url 'locations:country-list' %}" class="btn btn-secondary mt-3">← Back to Countries</a>
 {% endblock %}

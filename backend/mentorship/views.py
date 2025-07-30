@@ -35,7 +35,7 @@ class VisitCreateView(CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('visit_detail', kwargs={'pk': self.object.pk})
+        return reverse_lazy('mentorship:visit-detail', kwargs={'pk': self.object.pk})
 
 
 class VisitDeleteView(DeleteView):

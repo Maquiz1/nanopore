@@ -3,9 +3,6 @@ from clinical.models import Disease
 from mentorship.models import Visit
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from .models import UserManual
-from django.shortcuts import render
-from django.views.generic import ListView
 
 
 class DashboardHomeView(LoginRequiredMixin, TemplateView):
@@ -23,8 +20,3 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
 
         return context
     
-
-class UserManualListView(ListView):
-    model = UserManual
-    template_name = 'manuals/manual_list.html'  # Create this template
-    context_object_name = 'manuals'

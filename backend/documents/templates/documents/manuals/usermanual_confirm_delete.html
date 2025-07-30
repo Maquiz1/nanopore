@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Delete Manual</h2>
+  <p>Are you sure you want to delete the manual titled: <strong>{{ object.title }}</strong>?</p>
+  <p><strong>Uploaded at:</strong> {{ object.uploaded_at|date:"Y-m-d H:i" }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <a href="{% url 'documents:usermanual-list' %}" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+  </form>
+{% endblock %}

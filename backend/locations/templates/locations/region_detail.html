@@ -4,13 +4,34 @@
 <p>Country: <a href="{% url 'locations:country-detail' object.country.id %}">{{ object.country.name }}</a></p>
 
 <h3>Districts</h3>
-<ul>
-  {% for district in districts %}
-    <li><a href="{% url 'locations:district-detail' district.id %}">{{ district.name }}</a></li>
-  {% empty %}
-    <li>No districts found.</li>
-  {% endfor %}
-</ul>
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>District Name</th>
+      <th>Sites Count</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for district in districts %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ district.name }}</td>
+      <td>{{ district.site_count }}</td>
+      <td>
+        <a href="{% url 'locations:district-detail' district.id %}" class="btn btn-sm btn-primary">
+          View Details
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4" class="text-center">No districts found.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-<a href="{% url 'locations:country-detail' object.country.id %}">← Back to {{ object.country.name }}</a>
+<a href="{% url 'locations:country-detail' object.country.id %}" class="btn btn-secondary mt-3">← Back to {{ object.country.name }}</a>
 {% endblock %}
