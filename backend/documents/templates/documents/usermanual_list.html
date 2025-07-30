@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>User Manuals</h2>
+<a href="{% url 'documents:usermanual-create' %}" class="btn btn-success mb-3">Upload New Manual</a>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Date Uploaded</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for manual in manuals %}
+      <tr>
+        <td>{{ manual.title }}</td>
+        <td>{{ manual.uploaded_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <a href="{% url 'documents:usermanual-detail' manual.pk %}" class="btn btn-secondary btn-sm">View</a>
+          <a href="{{ manual.file.url }}" class="btn btn-info btn-sm" target="_blank">Download</a>
+          <a href="{% url 'documents:usermanual-update' manual.pk %}" class="btn btn-warning btn-sm">Edit</a>
+          <a href="{% url 'documents:usermanual-delete' manual.pk %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3">No manuals available.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if is_paginated %}
+  <nav aria-label="Page navigation">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo;</span>
+        </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&raquo;</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

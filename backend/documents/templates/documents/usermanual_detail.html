@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ object.title }}</h2>
+<p>Uploaded at: {{ object.uploaded_at|date:"Y-m-d H:i" }}</p>
+{% if object.file %}
+  <a href="{{ object.file.url }}" class="btn btn-info" target="_blank">Download Manual</a>
+{% else %}
+  <p class="text-danger">No file uploaded.</p>
+{% endif %}
+<a href="{% url 'documents:manual-list' %}" class="btn btn-secondary">Back to list</a>
+{% endblock %}

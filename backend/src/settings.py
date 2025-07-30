@@ -23,6 +23,7 @@ ALLOWED_HOSTS = ast.literal_eval(env("ALLOWED_HOSTS", default="[]"))
 # Application definition
 
 INSTALLED_APPS = [
+    "documents.apps.DocumentsConfig",
     "reports.apps.ReportsConfig",
     "clinical.apps.ClinicalConfig",
     "dashboard.apps.DashboardConfig",
