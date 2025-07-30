@@ -1,10 +1,36 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h2>Diseases</h2>
-<ul>
-  {% for disease in diseases %}
-    <li><a href="{% url 'clinical:disease-detail' disease.id %}">{{ disease.name }}</a></li>
-  {% endfor %}
-</ul>
-<a href="{% url 'dashboard:dashboard' %}">Home</a>
+<h2 class="mb-4">Diseases</h2>
+
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Disease Name</th>
+      <th scope="col">Number of Competencies</th>
+      <th scope="col">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for disease in diseases %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td>{{ disease.name }}</td>
+      <td>{{ disease.competence_set.count }}</td>
+      <td>
+        <a href="{% url 'clinical:disease-detail' disease.id %}" class="btn btn-sm btn-primary">
+          View Details
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4" class="text-center">No diseases available.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
 {% endblock %}

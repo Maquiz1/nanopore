@@ -2,7 +2,7 @@
 {% block content %}
   <h2>Visit Schedule</h2>
 
-  <p><a href="{% url 'add_visit' %}" class="btn btn-primary">+ Add New Visit</a></p>
+  <p><a href="{% url 'mentorship:add_visit' %}" class="btn btn-primary">+ Add New Visit</a></p>
 
   {% if visits %}
     <table class="table table-striped">
@@ -20,7 +20,7 @@
             <td>{{ visit.mentor.get_full_name|default:visit.mentor.username }}</td>
             <td>{{ visit.site.name }}</td>
             <td>{{ visit.start_date|date:"M d, Y" }} – {{ visit.end_date|date:"M d, Y" }}</td>
-            <td><a href="{% url 'visit_detail' visit.pk %}">View Details</a></td>  <!-- Link -->
+            <td><a href="{% url 'mentorship:visit_detail' visit.pk %}">View Details</a></td>  <!-- Link -->
           </tr>
         {% endfor %}
       </tbody>

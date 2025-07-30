@@ -14,15 +14,15 @@
     <strong>Competence:</strong> {{ assignment.competence }}<br>
     <strong>Status:</strong> {% if assignment.is_completed %}✅ Completed{% else %}⏳ Pending{% endif %}<br>
 
-    <a href="{% url 'assigned_competence_edit' assignment.id %}">Edit</a> |
+    <a href="{% url 'mentorship:assigned_competence_edit' assignment.id %}">Edit</a> |
     {% if assignment.is_self_assessed %}
-    <a href="{% url 'mentor_grade' assignment.id %}">Mentor Grade</a> |
+    <a href="{% url 'mentorship:mentor_grade' assignment.id %}">Mentor Grade</a> |
     {% else %}
     <span style="color:gray;">Mentor Grade (awaiting self-assessment)</span> |
     {% endif %}
 
-    <a href="{% url 'mentee_self_assess' assignment.id %}">Self Assess</a> |
-    <a href="{% url 'assigned_competence_view' assignment.id %}">View Assessment</a>
+    <a href="{% url 'mentorship:mentee_self_assess' assignment.id %}">Self Assess</a> |
+    <a href="{% url 'mentorship:assigned_competence_view' assignment.id %}">View Assessment</a>
   </li>
   <hr>
   {% empty %}
@@ -30,7 +30,7 @@
   {% endfor %}
 </ul>
 
-<a href="{% url 'assign_competence' visit_day.id %}">➕ Assign Competence</a><br>
-<a href="{% url 'visit_detail' visit_day.visit.id %}">🔙 Back to Visit</a>
+<a href="{% url 'mentorship:assign_competence' visit_day.id %}">➕ Assign Competence</a><br>
+<a href="{% url 'mentorship:visit_detail' visit_day.visit.id %}">🔙 Back to Visit</a>
 
 {% endblock %}

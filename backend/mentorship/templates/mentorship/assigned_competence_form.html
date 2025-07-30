@@ -11,5 +11,5 @@
   <button type="submit">Save changes</button>
 </form>
 
-<a href="{% url 'visit_day_detail' form.instance.visit_day.id %}">Cancel</a>
+<a href="{% url 'mentorship:visit_day_detail' form.instance.visit_day.id %}">Cancel</a>
 {% endblock %}
