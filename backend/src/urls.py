@@ -4,6 +4,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
+from django.contrib import admin
+
+admin.site.site_header = "Digital Mentorship LogBook Admin"
+admin.site.site_title = "Mentorship Admin Portal"
+admin.site.index_title = "Welcome to the LogBook Admin Panel"
 
 def root_redirect(request):
     if request.user.is_authenticated:
