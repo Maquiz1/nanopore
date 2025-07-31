@@ -12,7 +12,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div class="card text-white bg-primary h-100">
             <div class="card-body">
                 <h5 class="card-title"><i class="fas fa-globe-africa me-2"></i>Countries</h5>
-                <p class="card-text fs-4">12</p>
+                <p class="card-text fs-4">{{ country_count }}</p>
             </div>
             <div class="card-footer bg-transparent border-0">
                 <a href="{% url 'locations:country-list' %}" class="text-white text-decoration-underline">View all</a>
@@ -24,7 +24,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div class="card text-white bg-success h-100">
             <div class="card-body">
                 <h5 class="card-title"><i class="fas fa-virus me-2"></i>Diseases</h5>
-                <p class="card-text fs-4">18</p>
+                <p class="card-text fs-4">{{ disease_count }}</p>
             </div>
             <div class="card-footer bg-transparent border-0">
                 <a href="{% url 'clinical:disease-list' %}" class="text-white text-decoration-underline">View all</a>
@@ -36,7 +36,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div class="card text-white bg-warning h-100">
             <div class="card-body">
                 <h5 class="card-title"><i class="fas fa-calendar-alt me-2"></i>Mentorship Visits</h5>
-                <p class="card-text fs-4">5 Active</p>
+                <p class="card-text fs-4">{{ visit_count }} Active</p>
             </div>
             <div class="card-footer bg-transparent border-0">
                 <a href="{% url 'mentorship:visit-list' %}" class="text-white text-decoration-underline">View visits</a>
