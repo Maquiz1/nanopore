@@ -5,6 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
 from django.contrib.auth import authenticate
+from django.contrib.auth.forms import PasswordResetForm
 
 User = get_user_model()
 
@@ -85,3 +86,9 @@ class ResendActivationEmailForm(forms.Form):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'})
     )
+    
+class CustomPasswordResetForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})

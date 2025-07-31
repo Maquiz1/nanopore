@@ -1,13 +1,20 @@
 from pathlib import Path
 import environ
 import ast
-
+import os
 
 # Set the base directory using pathlib
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Initialize environ and read from .env using pathlib
 env = environ.Env()
+
+# env = environ.Env(
+#     DEBUG=(bool, False),
+#     EMAIL_PORT=(int, 25),
+#     EMAIL_USE_TLS=(bool, False),
+# )
+
 env.read_env(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -15,6 +22,10 @@ SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
+
+
+# Debug flag, True in dev, False in prod
+# DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 # Allowed hosts from environment
 ALLOWED_HOSTS = ast.literal_eval(env("ALLOWED_HOSTS", default="[]"))
@@ -174,6 +185,31 @@ MESSAGE_TAGS = {
 # DEFAULT_FROM_EMAIL = 'admin@example.com'
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+# if DEBUG:
+#     # Development email backend: writes emails to files for inspection
+#     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+#     EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+# else:
+#     # Production email backend: for example, SMTP or Mailgun
+#     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#     EMAIL_HOST = 'smtp.mailgun.org'  # or your SMTP host
+#     EMAIL_PORT = 587
+#     EMAIL_USE_TLS = True
+#     EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # Your SMTP user from env vars
+#     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Your SMTP password
+#     DEFAULT_FROM_EMAIL = 'YourSite <no-reply@yoursite.com>'
 
+if DEBUG:
+    # EMAIL_BACKEND = env('DEV_EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+    # EMAIL_FILE_PATH = env('EMAIL_FILE_PATH', default=str(BASE_DIR / 'sent_emails'))
+    
+    # Development email backend: writes emails to files for inspection
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+else:
+    EMAIL_BACKEND = env('EMAIL_BACKEND')
+    EMAIL_HOST = env('EMAIL_HOST')
+    EMAIL_PORT = env('EMAIL_PORT')
+    EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
