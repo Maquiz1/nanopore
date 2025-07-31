@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+
+
+{% block title %}User Manuals{% endblock %}
+
+
 {% block content %}
 <h2>User Manuals</h2>
 <a href="{% url 'documents:usermanual-create' %}" class="btn btn-success mb-3">Upload New Manual</a>
