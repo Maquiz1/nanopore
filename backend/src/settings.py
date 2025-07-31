@@ -141,21 +141,21 @@ LOGIN_REDIRECT_URL = '/dashboard/'  # where to go after login success
 LOGOUT_REDIRECT_URL = '/users/login/'  # after logout
 
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'loggers': {
-#         'logbook.models': {
-#             'handlers': ['console'],
-#             'level': 'WARNING',
-#         },
-#     },
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'logbook.models': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+        },
+    },
+}
 
 
 # Optional: Customize message tags for Bootstrap
@@ -169,4 +169,11 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'admin@example.com'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 

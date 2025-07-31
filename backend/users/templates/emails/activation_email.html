@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Activate your account</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px;">
+    <div style="max-width: 600px; margin: auto; background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+        <h2 style="color: #333;">Hi {{ username }},</h2>
+        <p>Thank you for signing up. Please click the button below to activate your account:</p>
+        <p style="text-align: center; margin: 30px 0;">
+            <a href="{{ activation_url }}" style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 25px; border-radius: 5px;">Activate My Account</a>
+        </p>
+        <p>If the button above doesn't work, copy and paste this link into your browser:</p>
+        <p><a href="{{ activation_url }}">{{ activation_url }}</a></p>
+        <p style="color: #666;">If you didn’t create an account, no further action is required.</p>
+    </div>
+</body>
+</html>
