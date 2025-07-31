@@ -19,8 +19,11 @@
         <td>
           <a href="{% url 'documents:usermanual-detail' manual.pk %}" class="btn btn-secondary btn-sm">View</a>
           <a href="{{ manual.file.url }}" class="btn btn-info btn-sm" target="_blank">Download</a>
-          <a href="{% url 'documents:usermanual-update' manual.pk %}" class="btn btn-warning btn-sm">Edit</a>
-          <a href="{% url 'documents:usermanual-delete' manual.pk %}" class="btn btn-danger btn-sm">Delete</a>
+          
+          {% if request.user.is_superuser %}
+            <a href="{% url 'documents:usermanual-update' manual.pk %}" class="btn btn-warning btn-sm">Edit</a>
+            <a href="{% url 'documents:usermanual-delete' manual.pk %}" class="btn btn-danger btn-sm">Delete</a>
+          {% endif %}
         </td>
       </tr>
     {% empty %}
