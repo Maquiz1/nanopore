@@ -1,7 +1,41 @@
-.env
-
 # Virtual environments
 venv/
 env/
 .venv/
 venv-logbook/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+# Ignore Python bytecode
+*.pyc
+
+# Django migrations (optional – only ignore if you regenerate them often)
+# **Uncomment if needed**
+# */migrations/
+# !*/migrations/__init__.py
+
+# Environment variables or secrets
+.env
+*.env
+
+# SQLite DB (optional)
+#*.sqlite3
+
+# VSCode/IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Static and media files (if they are generated or served externally)
+#staticfiles/
+#uploads/
+#media/
+
+# MacOS/Windows clutter
+.DS_Store
+Thumbs.db
+
