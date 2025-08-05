@@ -21,7 +21,7 @@ __pycache__/
 *.env
 
 # SQLite DB (optional)
-#*.sqlite3
+*.sqlite3
 db.sqlite3
 
 # VSCode/IDE files
@@ -31,10 +31,16 @@ db.sqlite3
 # Logs
 *.log
 
-# Static and media files (if they are generated or served externally)
-#staticfiles/
-#uploads/
-#media/
+# Ignore collected static files
+staticfiles/
+
+# Ignore user uploads
+uploads/
+media/
+
+# Ignore locally saved sent emails
+sent_emails/
+
 
 # MacOS/Windows clutter
 .DS_Store
