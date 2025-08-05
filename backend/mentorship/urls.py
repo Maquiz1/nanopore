@@ -19,6 +19,7 @@ urlpatterns += [
     path('visit/<int:pk>/delete/', VisitDeleteView.as_view(), name='delete-visit'),
 ]
 
+
 urlpatterns += [
     path('visits/', VisitListView.as_view(), name='visit-list'),
     path('visit/<int:pk>/', VisitDetailView.as_view(), name='visit-detail'),
@@ -32,6 +33,7 @@ urlpatterns += [
     path('assignment/<int:pk>/mentor-grade/', MentorGradeView.as_view(), name='mentor-grade'),
     path('assignment/<int:pk>/self-assess/', MenteeSelfAssessmentView.as_view(), name='mentee-self-assess'),
     path('assignment/<int:pk>/view/', views.AssignedCompetenceDetailView.as_view(), name='assigned-competence-view'),
+    path('assessments/', views.AllAssessmentsListView.as_view(), name='all-assessments'),
 ]
 
 

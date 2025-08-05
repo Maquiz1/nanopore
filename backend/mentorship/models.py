@@ -96,9 +96,9 @@ class AssignedCompetence(models.Model):
     assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='competences_assigned')
     is_completed = models.BooleanField(default=False)
     is_self_assessed = models.BooleanField(default=False)
+    mentee_grade = models.CharField(max_length=20, blank=True, null=True)
+    mentee_remarks = models.TextField(blank=True, null=True)
     mentor_grade = models.CharField(max_length=20, blank=True, null=True)  # e.g. Excellent, Good, Fair
-    mentee_self_grade = models.CharField(max_length=20, blank=True, null=True)
-    remarks = models.TextField(blank=True, null=True)
     mentor_remarks = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -113,10 +113,17 @@ class AssignedCompetence(models.Model):
         if self.mentor_grade and self.mentor_grade not in ['Excellent', 'Good', 'Fair', 'Poor']:
             raise ValidationError("Mentor grade must be one of: Excellent, Good, Fair, Poor.")
 
-        if self.mentee_self_grade and self.mentee_self_grade not in ['Excellent', 'Good', 'Fair', 'Poor']:
+        if self.mentee_grade and self.mentee_grade not in ['Excellent', 'Good', 'Fair', 'Poor']:
             raise ValidationError("Mentee self-grade must be one of: Excellent, Good, Fair, Poor.")
 
     def __str__(self):
         return f"{self.mentee} - {self.competence} ({'Done' if self.is_completed else 'Pending'})"
+    
+    
+    def is_mentor_graded(self):
+        return bool(self.mentor_grade)
+
+    def is_self_assessed(self):
+        return bool(self.mentee_grade)
 
 

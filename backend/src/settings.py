@@ -2,6 +2,9 @@ from pathlib import Path
 import environ
 import ast
 import os
+# Optional: Customize message tags for Bootstrap
+from django.contrib.messages import constants as messages
+
 
 # Set the base directory using pathlib
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +33,7 @@ DEBUG = env.bool("DEBUG", default=False)
 # Allowed hosts from environment
 ALLOWED_HOSTS = ast.literal_eval(env("ALLOWED_HOSTS", default="[]"))
 
-
+# AUTH_USER_MODEL = 'users.CustomUser'
 # Application definition
 
 INSTALLED_APPS = [
@@ -168,10 +171,6 @@ LOGGING = {
     },
 }
 
-
-# Optional: Customize message tags for Bootstrap
-from django.contrib.messages import constants as messages
-
 MESSAGE_TAGS = {
     messages.DEBUG: 'secondary',
     messages.INFO: 'info',
@@ -217,3 +216,8 @@ else:
     EMAIL_HOST_USER = env("EMAIL_HOST_USER")
     EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
     DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+    
+    
+
+AT_USERNAME = env("AT_USERNAME")
+AT_API_KEY = env("AT_API_KEY")

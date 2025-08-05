@@ -14,11 +14,14 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.views.generic import FormView
 from django.contrib import messages
-from .forms import CustomLoginForm,CustomUserCreationForm,ResendActivationEmailForm
+from .forms import CustomLoginForm,CustomUserCreationForm,ResendActivationEmailForm,PhoneVerificationForm
 from django.contrib.auth.views import LoginView
 from django.utils.html import format_html
 from django.contrib.auth import authenticate
 import binascii
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from .sms_utils import send_verification_sms
 
 User = get_user_model()
 
@@ -136,3 +139,54 @@ class ResendActivationEmailView(FormView):
         email = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
         email.attach_alternative(html_content, "text/html")
         email.send()
+        
+class SendPhoneVerificationView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'registration/send_phone_verification.html')
+    
+    def post(self, request):
+        form = PhoneVerificationForm(request.POST)
+        if form.is_valid():
+            phone_number = form.cleaned_data['phone_number']
+            # send SMS logic here
+        else:
+            messages.error(request, "Invalid phone number format.")
+            return redirect('users:send_phone_verification')
+
+    # def post(self, request):
+    #     phone_number = request.POST.get('phone_number')
+    #     user = request.user
+    #     if not phone_number:
+    #         messages.error(request, "Please enter a phone number.")
+    #         return redirect('users:send_phone_verification')
+
+    #     user.phone_number = phone_number
+    #     code = send_verification_sms(phone_number)
+
+    #     if code:
+    #         user.phone_verification_code = code
+    #         user.is_phone_verified = False
+    #         user.save()
+    #         messages.success(request, "Verification code sent to your phone.")
+    #         return redirect('users:verify_phone')
+    #     else:
+    #         messages.error(request, "Failed to send verification SMS. Try again.")
+    #         return redirect('users:send_phone_verification')
+
+
+class VerifyPhoneView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'registration/verify_phone.html')
+
+    def post(self, request):
+        code = request.POST.get('code')
+        user = request.user
+        if code == user.phone_verification_code:
+            user.is_phone_verified = True
+            user.phone_verification_code = None
+            user.save()
+            messages.success(request, "Phone number verified successfully.")
+            return redirect('dashboard:dashboard')  # Or wherever you want to go
+        else:
+            messages.error(request, "Invalid verification code.")
+            return redirect('users:verify_phone')

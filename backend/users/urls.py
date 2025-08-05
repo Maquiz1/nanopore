@@ -7,7 +7,9 @@ from .views import (
     CustomLoginView,
     SignUpView,
     ActivateAccount,
-    ResendActivationEmailView
+    ResendActivationEmailView,
+    VerifyPhoneView,
+    SendPhoneVerificationView
 )
 from .forms import CustomPasswordResetForm
 
@@ -56,4 +58,8 @@ urlpatterns = [
         ),
         name='password_reset_complete'
     ),
+    
+    path('send-phone-verification/', SendPhoneVerificationView.as_view(), name='send_phone_verification'),
+    path('verify-phone/', VerifyPhoneView.as_view(), name='verify_phone'),
+
 ]

@@ -48,21 +48,21 @@ class MentorGradeForm(forms.ModelForm):
 class MenteeSelfAssessmentForm(forms.ModelForm):
     class Meta:
         model = AssignedCompetence
-        fields = ['mentee_self_grade', 'remarks']
+        fields = ['mentee_grade', 'mentee_remarks']
         widgets = {
-            'mentee_self_grade': forms.Select(choices=[('', '---'), ('Excellent', 'Excellent'), ('Good', 'Good'), ('Fair', 'Fair'), ('Poor', 'Poor')])
+            'mentee_grade': forms.Select(choices=[('', '---'), ('Excellent', 'Excellent'), ('Good', 'Good'), ('Fair', 'Fair'), ('Poor', 'Poor')])
         }
         
 class AssignedCompetenceForm(forms.ModelForm):
     class Meta:
         model = AssignedCompetence
-        fields = ['visit_day', 'mentee', 'disease', 'competence', 'remarks']
+        fields = ['visit_day', 'mentee', 'disease', 'competence', 'mentor_remarks']
         widgets = {
             'visit_day': forms.Select(attrs={'class': 'form-select'}),
             'mentee': forms.Select(attrs={'class': 'form-select'}),
             'disease': forms.Select(attrs={'class': 'form-select'}),
             'competence': forms.Select(attrs={'class': 'form-select'}),
-            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'mentor_remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):

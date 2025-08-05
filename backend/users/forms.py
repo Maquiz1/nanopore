@@ -6,6 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
+from phonenumber_field.formfields import PhoneNumberField
 
 User = get_user_model()
 
@@ -66,6 +67,7 @@ class CustomLoginForm(AuthenticationForm):
     
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    phone_number = forms.CharField(max_length=15)
 
     class Meta:
         model = User
@@ -92,3 +94,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+        
+
+class PhoneVerificationForm(forms.Form):
+    phone_number = PhoneNumberField(region="TZ")  # or your default region code

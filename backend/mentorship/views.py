@@ -135,30 +135,6 @@ class AssignedCompetenceUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('mentorship:visit-day-detail', kwargs={'visit_day_id': self.object.visit_day.id})
 
 
-# class MentorGradeView(LoginRequiredMixin, UpdateView):
-#     model = AssignedCompetence
-#     form_class = MentorGradeForm
-#     template_name = 'mentorship/mentor_grade.html'
-#     context_object_name = 'assignment'
-
-#     def get_queryset(self):
-#         # Only allow mentor to grade
-#         return AssignedCompetence.objects.filter(visit_day__visit__mentor=self.request.user)
-
-#     def dispatch(self, request, *args, **kwargs):
-#         assignment = self.get_object()
-
-#         # Restrict access if self-assessment isn't done
-#         if not assignment.is_self_assessed:
-#             messages.warning(request, "Mentee must complete self-assessment before mentor grading.")
-#             return redirect('visit_day_detail', visit_day_id=assignment.visit_day.id)
-
-#         return super().dispatch(request, *args, **kwargs)
-    
-#     def get_success_url(self):
-#         return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
-    
-    
     
 class MentorGradeView(LoginRequiredMixin, UpdateView):
     model = AssignedCompetence
@@ -176,27 +152,6 @@ class MentorGradeView(LoginRequiredMixin, UpdateView):
         return reverse('mentorship:visit-day-detail', kwargs={'visit_day_id': self.object.visit_day.id})
     
     
-# class MenteeSelfAssessmentView(LoginRequiredMixin, UpdateView):
-#     model = AssignedCompetence
-#     form_class = MenteeSelfAssessmentForm
-#     template_name = 'mentorship/mentee_self_assess.html'
-
-#     def get_queryset(self):
-#         # Only allow mentee to self-assess
-#         return AssignedCompetence.objects.filter(mentee=self.request.user)
-
-#     def form_valid(self, form):
-#         form.instance.is_self_assessed = True  # ✅ Mark as self-assessed
-#         return super().form_valid(form)
-
-#     def dispatch(self, request, *args, **kwargs):
-#         assignment = self.get_object()
-#         if assignment.is_self_assessed:
-#             return HttpResponseForbidden("Self-assessment already submitted.")
-#         return super().dispatch(request, *args, **kwargs)
-
-#     def get_success_url(self):
-#         return reverse('visit_day_detail', kwargs={'visit_day_id': self.object.visit_day.id})
 
 class MenteeSelfAssessmentView(LoginRequiredMixin, UpdateView):
     model = AssignedCompetence
@@ -208,13 +163,33 @@ class MenteeSelfAssessmentView(LoginRequiredMixin, UpdateView):
         obj = self.get_object()
         if obj.mentee != request.user:
             return HttpResponseForbidden("You are not allowed to assess this competence.")
-        if obj.mentee_self_grade:  # prevent re-submission if already graded
-            return HttpResponseForbidden("You have already submitted your self-assessment.")
-        return super().dispatch(request, *args, **kwargs)
+        
+        if obj.mentee != request.user:
+            return HttpResponseForbidden("You are not allowed to assess this competence.")
 
+        if obj.mentor_grade:
+            return HttpResponseForbidden("You cannot edit self-assessment after mentor has graded.")
+        
+        return super().dispatch(request, *args, **kwargs)
+    
     def form_valid(self, form):
-        # Optionally add a flag or timestamp
+        form.instance.is_self_assessed = True  # ✅ mark as assessed
         return super().form_valid(form)
+
 
     def get_success_url(self):
         return reverse('mentorship:visit-day-detail', kwargs={'visit_day_id': self.object.visit_day.id})
+
+    
+class AllAssessmentsListView(LoginRequiredMixin, ListView):
+    model = AssignedCompetence
+    template_name = 'mentorship/all_assessments.html'
+    context_object_name = 'assessments'
+    ordering = ['-visit_day__date']
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.groups.filter(name='Mentor').exists():
+            return AssignedCompetence.objects.all()
+        # If mentee, only see own assessments
+        return AssignedCompetence.objects.filter(mentee=user)
