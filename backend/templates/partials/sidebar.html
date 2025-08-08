@@ -1,9 +1,10 @@
 {% load static %}
 
 <div class="sidebar" id="sidebar">
-    <h2>📘 LogBook</h2>
+    <h2>📘 MRC-MIS</h2>
 
     <a href="{% url 'dashboard:dashboard' %}"><i class="fas fa-home"></i><span> Dashboard</span></a>
+    <a href="{% url 'users:sign_up' %}"><i class="fas fa-globe-africa"></i><span> Staffs</span></a>
     <a href="{% url 'locations:country-list' %}"><i class="fas fa-globe-africa"></i><span> Countries</span></a>
     <a href="{% url 'clinical:disease-list' %}"><i class="fas fa-virus"></i><span> Diseases</span></a>
     <a href="{% url 'mentorship:visit-list' %}"><i class="fas fa-calendar-alt"></i><span> Visits</span></a>
