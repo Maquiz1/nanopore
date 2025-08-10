@@ -2,7 +2,7 @@
 venv/
 env/
 .venv/
-venv-logbook/
+venv-mrc-mis/
 
 # Python cache and compiled files
 __pycache__/
@@ -32,7 +32,7 @@ db.sqlite3
 *.log
 
 # Ignore collected static files
-staticfiles/
+# staticfiles/
 
 # Ignore user uploads
 uploads/

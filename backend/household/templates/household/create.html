@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Household</title>
+</head>
+<body>
+    <h1>Create Household</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Household</button>
+    </form>
+</body>
+</html>

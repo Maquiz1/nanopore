@@ -18,6 +18,7 @@ def root_redirect(request):
 
 urlpatterns = [
     path('', root_redirect, name='root_redirect'),
+    path('household/', include('household.urls')),
     path('manuals/', include('documents.urls', namespace='documents')),
     path("clinical/", include("clinical.urls")),
     path("dashboard/", include("dashboard.urls")),

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Households</title>
+</head>
+<body>
+    <h1>Your Households</h1>
+
+    <a href="{% url 'create_household' %}">Add New Household</a>
+
+    {% if households %}
+        <ul>
+            {% for household in households %}
+                <li>
+                    <strong>{{ household.household_head_name }}</strong> — Men: {{ household.number_of_men }}, Women: {{ household.number_of_women }}, 
+                    Phone: {{ household.household_head_phone_number }}, Total: {{ household.total_members }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No households found.</p>
+    {% endif %}
+</body>
+</html>
