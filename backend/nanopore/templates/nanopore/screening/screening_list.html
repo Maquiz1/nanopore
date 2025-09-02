@@ -3,10 +3,15 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Screenings</h2>
-        <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Add New Screening
-        </a>
+        <div>
+            <!-- Back to Dashboard button -->
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+        <div>
+            <h2 class="d-inline-block me-3">Screenings</h2>
+        </div>
     </div>
 
     <!-- Filters -->
@@ -51,6 +56,15 @@
         </div>
     </form>
 
+     <div>
+        <!-- Add New Screening button -->
+        <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Add New Screening
+        </a>
+    </div>
+
+    <hr class="my-3">
+
     <!-- Screening Table -->
     <div class="table-responsive">
         <table class="table table-striped table-bordered align-middle">
@@ -81,33 +95,10 @@
                 <tr>
                     <td>{{ screening.screening_date|date:"M d, Y" }}</td>
                     <td>{{ screening.pid }}</td>
-
-                    <td>
-                        {% if screening.site %}
-                            {{ screening.site.name }}
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if screening.site and screening.site.zone %}
-                            {{ screening.site.zone.name }}
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </td>
-
+                    <td>{% if screening.site %}{{ screening.site.name }}{% else %}N/A{% endif %}</td>
+                    <td>{% if screening.site and screening.site.zone %}{{ screening.site.zone.name }}{% else %}N/A{% endif %}</td>
                     <td>{{ screening.age }}</td>
-
-                    <td>
-                        {% if screening.sex %}
-                            {{ screening.sex.name }}
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </td>
-
+                    <td>{% if screening.sex %}{{ screening.sex.name }}{% else %}N/A{% endif %}</td>
                     <td>
                         {% if screening.eligible %}
                             <span class="badge bg-success">Yes</span>
@@ -115,7 +106,6 @@
                             <span class="badge bg-secondary">No</span>
                         {% endif %}
                     </td>
-
                     <td>
                         {% if screening.enrolled and screening.enrolled.value == "Yes" %}
                             <span class="badge bg-success">Yes</span>
@@ -123,7 +113,6 @@
                             <span class="badge bg-secondary">No</span>
                         {% endif %}
                     </td>
-
                     <td>
                         <a href="{% url 'nanopore:screening-detail' screening.pk %}" class="btn btn-sm btn-primary">View</a>
                         <a href="{% url 'nanopore:screening-update' screening.pk %}" class="btn btn-sm btn-warning">Edit</a>

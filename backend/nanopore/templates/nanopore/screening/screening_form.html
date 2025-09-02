@@ -4,6 +4,17 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
+
+            <!-- Top navigation buttons (same row, full width of form) -->
+            <div class="d-flex justify-content-between mb-3 gap-2">
+                <a href="{% url 'nanopore:screening-list' %}" class="btn btn-secondary flex-grow-1">
+                    🔙 Back to List
+                </a>
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">{{ view.object|default:"New" }} Screening</h4>
@@ -12,7 +23,7 @@
                     <form method="post" novalidate>
                         {% csrf_token %}
 
-                        <!-- Show non-field errors (like PID duplicate) -->
+                        <!-- Show non-field errors -->
                         {% if form.non_field_errors %}
                         <div class="alert alert-warning">
                             {% for error in form.non_field_errors %}
@@ -31,7 +42,6 @@
                                     <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-
                             <div class="col-md-4">
                                 <label for="{{ form.pid1.id_for_label }}" class="form-label">PID1</label>
                                 {{ form.pid1 }}
@@ -39,7 +49,6 @@
                                     <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-
                             <div class="col-md-4">
                                 <label for="{{ form.pid2.id_for_label }}" class="form-label">PID2</label>
                                 {{ form.pid2 }}
@@ -66,7 +75,7 @@
 
                         <hr class="my-3">
 
-                        <!-- INCLUSIONS SECTION -->
+                        <!-- INCLUSIONS -->
                         <h5 class="mb-3">Inclusions</h5>
                         <div class="row mb-3">
                             <div class="col-md-3">
@@ -95,7 +104,7 @@
 
                         <hr class="my-3">
 
-                        <!-- EXCLUSIONS SECTION -->
+                        <!-- EXCLUSIONS -->
                         <h5 class="mb-3">Exclusions</h5>
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -116,7 +125,7 @@
 
                         <hr class="my-3">
 
-                        <!-- ENROLLMENT SECTION -->
+                        <!-- ENROLLMENT -->
                         <h5 class="mb-3">Enrollment</h5>
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -142,10 +151,12 @@
 
                         <hr class="my-3">
 
+                        <!-- Bottom buttons -->
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'nanopore:screening-list' %}" class="btn btn-secondary">🔙 Back to List</a>
+                            <a href="{% url 'nanopore:screening-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
                             <button type="submit" class="btn btn-success">💾 Save Screening</button>
                         </div>
+
                     </form>
                 </div>
             </div>
@@ -153,12 +164,13 @@
     </div>
 </div>
 {% endblock %}
+
 {% block extra_scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const pid1 = document.getElementById("id_pid1");
     const pid2 = document.getElementById("id_pid2");
-    const siteSelect = document.getElementById("id_site"); // optional if site affects PID
+    const siteSelect = document.getElementById("id_site");
     const pidWarning = document.createElement("div");
     pidWarning.className = "text-danger mt-1";
     pid1.parentNode.appendChild(pidWarning);
@@ -188,10 +200,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             if (data.exists) {
                 pidWarning.innerText = `⚠ PID "${data.pid}" already exists! Please choose another.`;
-                saveButton.disabled = true; // disable submit
+                saveButton.disabled = true;
             } else {
                 pidWarning.innerText = '';
-                saveButton.disabled = false; // enable submit
+                saveButton.disabled = false;
             }
         } catch (error) {
             console.error("Error checking PID:", error);
