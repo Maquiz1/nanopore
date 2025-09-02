@@ -1,22 +1,66 @@
 {% load static %}
 
 <div class="sidebar" id="sidebar">
-    <h2>📘 MRC-MIS</h2>
+    <h2>📘 DREAM-NANOPORE</h2>
 
-    <a href="{% url 'dashboard:dashboard' %}"><i class="fas fa-home"></i><span> Dashboard</span></a>
-    <a href="{% url 'users:sign_up' %}"><i class="fas fa-globe-africa"></i><span> Staffs</span></a>
-    <a href="{% url 'locations:country-list' %}"><i class="fas fa-globe-africa"></i><span> Countries</span></a>
-    <a href="{% url 'clinical:disease-list' %}"><i class="fas fa-virus"></i><span> Diseases</span></a>
-    <a href="{% url 'mentorship:visit-list' %}"><i class="fas fa-calendar-alt"></i><span> Visits</span></a>
-    <a href="{% url 'reports:index' %}"><i class="fas fa-chart-line"></i><span> Reports</span></a>
-    <a href="{% url 'household:household-list' %}"><i class="fas fa-calendar-alt"></i><span> Household</span></a>
+    <!-- Dashboard -->
+    <a href="{% url 'dashboard:dashboard' %}">
+        <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
+    </a>
 
-    <!-- Link to view all uploaded user manuals -->
-    <a href="{% url 'documents:usermanual-list' %}"><i class="fas fa-book"></i><span> User Manuals</span></a>
+    <!-- Staffs -->
+    <a href="{% url 'users:staff_list' %}">
+        <i class="fas fa-users"></i><span> Staffs</span>
+    </a>
 
+    <!-- Countries -->
+    <a href="{% url 'locations:country-list' %}">
+        <i class="fas fa-flag"></i><span> Countries</span>
+    </a>
+
+    <!-- Diseases -->
+    <a href="{% url 'clinical:disease-list' %}">
+        <i class="fas fa-dna"></i><span> Diseases</span>
+    </a>
+
+    <!-- Visits -->
+    <a href="{% url 'mentorship:visit-list' %}">
+        <i class="fas fa-calendar-check"></i><span> Visits</span>
+    </a>
+
+    <!-- Reports -->
+    <a href="{% url 'reports:index' %}">
+        <i class="fas fa-chart-bar"></i><span> Reports</span>
+    </a>
+
+    <!-- Household -->
+    <a href="{% url 'household:household-list' %}">
+        <i class="fas fa-home"></i><span> Household</span>
+    </a>
+
+    <!-- Screening -->
+    <a href="{% url 'nanopore:screening-list' %}">
+        <i class="fas fa-notes-medical"></i><span> Screened</span>
+    </a>
+
+    <!-- Forms (Models Status) -->
+    <a href="{% url 'nanopore:status-list' %}">
+        <i class="fas fa-tasks"></i><span> Forms</span>
+    </a>
+
+    <!-- User Manuals -->
+    <a href="{% url 'documents:usermanual-list' %}">
+        <i class="fas fa-book-open"></i><span> User Manuals</span>
+    </a>
+
+    <!-- Auth -->
     {% if user.is_authenticated %}
-        <a href="{% url 'users:logout' %}"><i class="fas fa-sign-out-alt"></i><span> Logout</span></a>
+        <a href="{% url 'users:logout' %}">
+            <i class="fas fa-sign-out-alt"></i><span> Logout</span>
+        </a>
     {% else %}
-        <a href="{% url 'users:login' %}"><i class="fas fa-sign-in-alt"></i><span> Login</span></a>
+        <a href="{% url 'users:login' %}">
+            <i class="fas fa-sign-in-alt"></i><span> Login</span>
+        </a>
     {% endif %}
 </div>

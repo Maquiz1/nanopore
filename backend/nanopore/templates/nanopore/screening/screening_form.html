@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ view.object|default:"New" }} Screening</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- DEMOGRAPHIC SECTION -->
+                        <h5 class="mb-3">Demographic Information</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.screening_date.id_for_label }}" class="form-label">Screening
+                                    Date</label>
+                                {{ form.screening_date }}
+                                {% for error in form.screening_date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.pid1.id_for_label }}" class="form-label">PID1</label>
+                                {{ form.pid1 }}
+                                {% for error in form.pid1.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.pid2.id_for_label }}" class="form-label">PID2</label>
+                                {{ form.pid2 }}
+                                {% for error in form.pid2.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.sex.id_for_label }}" class="form-label">Sex</label>
+                                {{ form.sex }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.dob.id_for_label }}" class="form-label">Date of Birth</label>
+                                {{ form.dob }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.age.id_for_label }}" class="form-label">Age</label>
+                                {{ form.age }}
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- INCLUSIONS SECTION -->
+                        <h5 class="mb-3">Inclusions</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ form.present_symptoms.label }}</label>
+                                {{ form.present_symptoms }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ form.produce_resp_sample.label }}</label>
+                                {{ form.produce_resp_sample }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ form.age18years.label }}</label>
+                                {{ form.age18years }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ form.consent.label }}</label>
+                                {{ form.consent }}
+                                <label for="{{ form.consent_date.id_for_label }}" class="form-label">Date of
+                                    Consent</label>
+                                {{ form.consent_date }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label>{{ form.genexpert_confirmation.label }}</label>
+                            {{ form.genexpert_confirmation }}
+                            {% for error in form.genexpert_confirmation.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+
+                        <hr class="my-3">
+
+                        <!-- EXCLUSIONS SECTION -->
+                        <h5 class="mb-3">Exclusions</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.not_willing.label }}</label>
+                                {{ form.not_willing }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.unable_understand.label }}</label>
+                                {{ form.unable_understand }}
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- ENROLLMENT SECTION -->
+                        <h5 class="mb-3">Enrollment</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.enrolled.label }}</label>
+                                {{ form.enrolled }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.reasons.label }}</label>
+                                {{ form.reasons }}
+                                <label class="form-label">{{ form.reasons_other.label }}</label>
+                                {{ form.reasons_other }}
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- GENERAL COMMENTS -->
+                        <h5 class="mb-3">General Comments</h5>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.remarks.label }}</label>
+                            {{ form.remarks }}
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'nanopore:screening-list' %}" class="btn btn-secondary">🔙 Back to List</a>
+                            <button type="submit" class="btn btn-success">💾 Save Screening</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const pid1 = document.getElementById("id_pid1");
+        const pid2 = document.getElementById("id_pid2");
+
+        function allowThreeDigitsOnly(input) {
+            input.addEventListener("input", function () {
+                this.value = this.value.replace(/\D/g, '').slice(0, 3);
+            });
+        }
+
+        allowThreeDigitsOnly(pid1);
+        allowThreeDigitsOnly(pid2);
+    });
+</script>
+{% endblock %}

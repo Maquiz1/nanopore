@@ -1,5 +1,17 @@
 from django.contrib import admin
-from .models import Disease, Competence
+from .models import Disease, Competence,YesNo,YesNoNA
+
+
+@admin.register(YesNo)
+class YesNoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
+    search_fields = ['name']
+
+
+@admin.register(YesNoNA)
+class YesNoNAAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
+    search_fields = ['name']
 
 class CompetenceInline(admin.TabularInline):
     model = Competence

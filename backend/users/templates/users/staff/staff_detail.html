@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Staff Details</h2>
+
+<div class="card">
+  <div class="card-body">
+    <p><strong>Username:</strong> {{ staff_member.username }}</p>
+    <p><strong>Full Name:</strong> {{ staff_member.get_full_name }}</p>
+    <p><strong>Email:</strong> {{ staff_member.email }}</p>
+    <p><strong>Is Staff:</strong> {{ staff_member.is_staff|yesno:"Yes,No" }}</p>
+    <p><strong>Date Joined:</strong> {{ staff_member.date_joined|date:"F j, Y" }}</p>
+    <p><strong>Last Login:</strong> {{ staff_member.last_login|date:"F j, Y, g:i a" }}</p>
+  </div>
+</div>
+
+<a href="{% url 'users:staff_list' %}" class="btn btn-secondary mt-3">Back to Staff List</a>
+{% endblock %}

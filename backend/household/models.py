@@ -6,6 +6,7 @@ class Household(models.Model):
     number_of_men = models.PositiveIntegerField()
     number_of_women = models.PositiveIntegerField()
     household_head_phone_number = models.CharField(max_length=15)
+    village_street = models.CharField(max_length=150)  # New column
     veo = models.ForeignKey(User, on_delete=models.CASCADE)  # link to logged-in user
 
     @property

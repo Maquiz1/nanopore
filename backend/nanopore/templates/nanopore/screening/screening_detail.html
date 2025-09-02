@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Screening Detail</h2>
+<p><strong>PID:</strong> {{ screening.pid }}</p>
+<p><strong>Zone:</strong> {{ screening.zone }}</p>
+<p><strong>Facility:</strong> {{ screening.facility_id }}</p>
+<p><strong>Screening Date:</strong> {{ screening.screening_date }}</p>
+<p><strong>Consent:</strong> {{ screening.consent }}</p>
+<p><strong>Status:</strong> {{ screening.status }}</p>
+
+<a href="{% url 'nanopore:screening-update' screening.pk %}">✏️ Edit</a> |
+<a href="{% url 'nanopore:screening-delete' screening.pk %}">🗑️ Delete</a> |
+<a href="{% url 'nanopore:screening-list' %}">🔙 Back to List</a>
+{% endblock %}

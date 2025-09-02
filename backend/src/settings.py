@@ -38,6 +38,10 @@ DATABASES = {
 
 # Installed apps
 INSTALLED_APPS = [
+    'demographic.apps.DemographicConfig',
+    'status.apps.StatusConfig',
+    'reasons.apps.ReasonsConfig',
+    "nanopore.apps.NanoporeConfig",
     "household.apps.HouseholdConfig",
     "documents.apps.DocumentsConfig",
     "reports.apps.ReportsConfig",
@@ -101,7 +105,7 @@ USE_I18N = True
 USE_TZ = True
 
 # Static and media files
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_URL = '/media/'

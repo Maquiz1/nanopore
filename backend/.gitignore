@@ -3,6 +3,10 @@ venv/
 env/
 .venv/
 venv-mrc-mis/
+venv-mrcmis/
+venv-dream/
+venv-nanopore/
+
 
 # Python cache and compiled files
 __pycache__/

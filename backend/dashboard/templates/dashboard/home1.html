@@ -1,0 +1,1118 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from bootstrapget.com/demos/admini-admin-template/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 29 Mar 2025 02:40:36 GMT -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MRC-MIS</title>
+
+    <!-- Meta -->
+    <meta name="description" content="Marketplace for Bootstrap Admin Dashboards">
+    <meta name="author" content="Bootstrap Gallery">
+    <link rel="canonical" href="https://www.bootstrap.gallery/">
+    <meta property="og:url" content="https://www.bootstrap.gallery/">
+    <meta property="og:title" content="Admin Templates - Dashboard Templates | Bootstrap Gallery">
+    <meta property="og:description" content="Marketplace for Bootstrap Admin Dashboards">
+    <meta property="og:type" content="Website">
+    <meta property="og:site_name" content="Bootstrap Gallery">
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.svg' %}">
+
+    <!-- *************
+			************ CSS Files *************
+		************* -->
+    <link rel="stylesheet" href="{% static 'assets/fonts/bootstrap/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/main.min.css' }">
+
+    <!-- *************
+			************ Vendor Css Files *************
+		************ -->
+
+    <!-- Scrollbar CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/overlay-scroll/OverlayScrollbars.min.css' %}">
+  </head>
+
+  <body>
+
+    <!-- Page wrapper starts -->
+    <div class="page-wrapper">
+
+      <!-- Main container starts -->
+      <div class="main-container">
+
+        <!-- Sidebar wrapper starts -->
+        <nav id="sidebar" class="sidebar-wrapper">
+
+          <!-- App brand starts -->
+          <div class="app-brand p-3 mb-3">
+            <a href="index-2.html">
+              <img src="{% static 'assets/images/logo.svg' %}" class="logo" alt="Bootstrap Gallery">
+            </a>
+          </div>
+          <!-- App brand ends -->
+
+          <!-- Sidebar menu starts -->
+          <div class="sidebarMenuScroll">
+            <ul class="sidebar-menu">
+              <li class="active current-page">
+                <a href="{% url 'dashboard:index' %}">
+                  <i class="bi bi-pie-chart"></i>
+                  <span class="menu-text">Dashboard</span>
+                </a>
+              </li>
+              <li>
+                <a href="crm.html">
+                  <i class="bi bi-bar-chart-line"></i>
+                  <span class="menu-text">CRM</span>
+                </a>
+              </li>
+              <li>
+                <a href="customers.html">
+                  <i class="bi bi-globe"></i>
+                  <span class="menu-text">Customers</span>
+                </a>
+              </li>
+              <li>
+                <a href="contracts.html">
+                  <i class="bi bi-shop-window"></i>
+                  <span class="menu-text">Contracts</span>
+                </a>
+              </li>
+              <li>
+                <a href="projects.html">
+                  <i class="bi bi-terminal-split"></i>
+                  <span class="menu-text">Projects</span>
+                </a>
+              </li>
+              <li>
+                <a href="expenses.html">
+                  <i class="bi bi-send"></i>
+                  <span class="menu-text">Expenses</span>
+                </a>
+              </li>
+              <li>
+                <a href="subscriptions.html">
+                  <i class="bi bi-mouse3"></i>
+                  <span class="menu-text">Subscriptions</span>
+                </a>
+              </li>
+              <li>
+                <a href="tasks.html">
+                  <i class="bi bi-clipboard-check"></i>
+                  <span class="menu-text">Tasks</span>
+                </a>
+              </li>
+              <li>
+                <a href="support.html">
+                  <i class="bi bi-headphones"></i>
+                  <span class="menu-text">Support</span>
+                </a>
+              </li>
+              <li class="treeview">
+                <a href="#!">
+                  <i class="bi bi-stickies"></i>
+                  <span class="menu-text">UI Elements</span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="accordions.html">Accordions</a>
+                  </li>
+                  <li>
+                    <a href="alerts.html">Alerts</a>
+                  </li>
+                  <li>
+                    <a href="buttons.html">Buttons</a>
+                  </li>
+                  <li>
+                    <a href="badges.html">Badges</a>
+                  </li>
+                  <li>
+                    <a href="cards.html">Cards</a>
+                  </li>
+                  <li>
+                    <a href="advanced-cards.html">Advanced Cards</a>
+                  </li>
+                  <li>
+                    <a href="carousel.html">Carousel</a>
+                  </li>
+                  <li>
+                    <a href="dropdowns.html">Dropdowns</a>
+                  </li>
+                  <li>
+                    <a href="icons.html">Icons</a>
+                  </li>
+                  <li>
+                    <a href="list-items.html">List Items</a>
+                  </li>
+                  <li>
+                    <a href="modals.html">Modals</a>
+                  </li>
+                  <li>
+                    <a href="progress.html">Progress Bars</a>
+                  </li>
+                  <li>
+                    <a href="popovers.html">Popovers</a>
+                  </li>
+                  <li>
+                    <a href="placeholders.html">Placeholders</a>
+                  </li>
+                  <li>
+                    <a href="tabs.html">Tabs</a>
+                  </li>
+                  <li>
+                    <a href="tooltips.html">Tooltips</a>
+                  </li>
+                  <li>
+                    <a href="typography.html">Typography</a>
+                  </li>
+                </ul>
+              </li>
+              <li class="treeview">
+                <a href="#!">
+                  <i class="bi bi-ui-checks-grid"></i>
+                  <span class="menu-text">Forms</span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="form-inputs.html">Form Inputs</a>
+                  </li>
+                  <li>
+                    <a href="form-checkbox-radio.html">Checkbox &amp; Radio</a>
+                  </li>
+                  <li>
+                    <a href="form-file-input.html">File Input</a>
+                  </li>
+                  <li>
+                    <a href="form-validations.html">Validations</a>
+                  </li>
+                  <li>
+                    <a href="date-time-pickers.html">Date Time Pickers</a>
+                  </li>
+                  <li>
+                    <a href="form-layouts.html">Form Layouts</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="tables.html">
+                  <i class="bi bi-border-all"></i>
+                  <span class="menu-text">Tables</span>
+                </a>
+              </li>
+              <li>
+                <a href="calendar.html">
+                  <i class="bi bi-calendar2"></i>
+                  <span class="menu-text">Calendar</span>
+                </a>
+              </li>
+              <li>
+                <a href="contacts.html">
+                  <i class="bi bi-wallet2"></i>
+                  <span class="menu-text">Contacts</span>
+                </a>
+              </li>
+              <li class="treeview">
+                <a href="#!">
+                  <i class="bi bi-pie-chart"></i>
+                  <span class="menu-text">Graphs</span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="apex.html">Apex</a>
+                  </li>
+                  <li>
+                    <a href="morris.html">Morris</a>
+                  </li>
+                </ul>
+              </li>
+              <li class="treeview">
+                <a href="#!">
+                  <i class="bi bi-window-sidebar"></i>
+                  <span class="menu-text">Invoices</span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="create-invoice.html">Create Invoice</a>
+                  </li>
+                  <li>
+                    <a href="view-invoice.html">View Invoice</a>
+                  </li>
+                  <li>
+                    <a href="invoice-list.html">Invoice List</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="maps.html">
+                  <i class="bi bi-pin-map"></i>
+                  <span class="menu-text">Maps</span>
+                </a>
+              </li>
+              <li>
+                <a href="profile.html">
+                  <i class="bi bi-filter-circle"></i>
+                  <span class="menu-text">User Profile</span>
+                </a>
+              </li>
+              <li class="treeview">
+                <a href="#!">
+                  <i class="bi bi-upc-scan"></i>
+                  <span class="menu-text">Login/Signup</span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="login.html">Login</a>
+                  </li>
+                  <li>
+                    <a href="signup.html">Signup</a>
+                  </li>
+                  <li>
+                    <a href="forgot-password.html">Forgot Password</a>
+                  </li>
+                  <li>
+                    <a href="reset-password.html">Reset Password</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="page-not-found.html">
+                  <i class="bi bi-exclamation-diamond"></i>
+                  <span class="menu-text">404</span>
+                </a>
+              </li>
+              <li>
+                <a href="comingsoon.html">
+                  <i class="bi bi-exclamation-octagon"></i>
+                  <span class="menu-text">Coming Soon</span>
+                </a>
+              </li>
+              <li>
+                <a href="widgets.html">
+                  <i class="bi bi-box"></i>
+                  <span class="menu-text">Widgets</span>
+                </a>
+              </li>
+              <li>
+                <a href="settings.html">
+                  <i class="bi bi-gear"></i>
+                  <span class="menu-text">Settings</span>
+                </a>
+              </li>
+              <li>
+                <a href="faq.html">
+                  <i class="bi bi-chat"></i>
+                  <span class="menu-text">Faq's</span>
+                </a>
+              </li>
+              <li>
+                <a href="contact-us.html">
+                  <i class="bi bi-phone-vibrate"></i>
+                  <span class="menu-text">Contact Us</span>
+                </a>
+              </li>
+              <li class="treeview">
+                <a href="#!">
+                  <i class="bi bi-code-square"></i>
+                  <span class="menu-text">Menu Level</span>
+                </a>
+                <ul class="treeview-menu">
+                  <li>
+                    <a href="#!">Level One Link</a>
+                  </li>
+                  <li>
+                    <a href="#!">
+                      Level One Menu
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <ul class="treeview-menu">
+                      <li>
+                        <a href="#!">Level Two Link</a>
+                      </li>
+                      <li>
+                        <a href="#!">Level Two Menu
+                          <i class="bi bi-chevron-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                          <li>
+                            <a href="#!">Level Three</a>
+                          </li>
+                          <li>
+                            <a href="#!">Level Three</a>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <a href="#!">Level One Link</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <!-- Sidebar menu ends -->
+
+          <!-- Sidebar settings starts -->
+          <div class="sidebar-settings gap-1 d-lg-flex d-none">
+            <a href="profile.html" class="settings-icon bg-dark" data-bs-toggle="tooltip" data-bs-placement="top"
+              aria-label="Profile" data-bs-original-title="Profile">
+              <i class="bi bi-person"></i>
+            </a><a href="login.html" class="settings-icon bg-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+              aria-label="Logout" data-bs-original-title="Logout">
+              <i class="bi bi-power"></i>
+            </a><a href="contracts.html" class="settings-icon bg-info" data-bs-toggle="tooltip" data-bs-placement="top"
+              aria-label="Alerts" data-bs-original-title="Alerts">
+              <i class="bi bi-exclamation-triangle"></i>
+            </a><a href="settings.html" class="settings-icon bg-success" data-bs-toggle="tooltip"
+              data-bs-placement="top" aria-label="Settings" data-bs-original-title="Settings">
+              <i class="bi bi-gear"></i>
+            </a>
+            <a href="crm.html" class="settings-icon bg-warning" data-bs-toggle="tooltip" data-bs-placement="top"
+              aria-label="Bills" data-bs-original-title="Bills">
+              <i class="bi bi-receipt"></i>
+            </a>
+          </div>
+          <!-- Sidebar settings ends -->
+
+        </nav>
+        <!-- Sidebar wrapper ends -->
+
+        <!-- App container starts -->
+        <div class="app-container">
+
+          <!-- App header starts -->
+          <div class="app-header d-flex align-items-center">
+
+            <!-- Toggle buttons starts -->
+            <div class="d-flex">
+              <button class="pin-sidebar">
+                <i class="bi bi-list lh-1"></i>
+              </button>
+            </div>
+            <!-- Toggle buttons ends -->
+
+            <!-- App brand sm starts -->
+            <div class="app-brand-sm d-lg-none d-flex">
+
+              <!-- Logo sm starts -->
+              <a href="index-2.html">
+                <img src="{% static 'assets/images/logo.svg' %}" class="logo" alt="Bootstrap Gallery">
+              </a>
+              <!-- Logo sm end -->
+
+            </div>
+            <!-- App brand sm ends -->
+
+            <!-- Search container starts -->
+            <div class="search-container d-lg-block d-none mx-3">
+              <input type="text" class="form-control" id="searchAny" placeholder="Search">
+              <i class="bi bi-search"></i>
+            </div>
+            <!-- Search container ends -->
+
+            <!-- App header actions starts -->
+            <div class="header-actions">
+              <div class="d-sm-flex d-none gap-3">
+                <div class="dropdown">
+                  <a class="dropdown-toggle action-icon" href="#!" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <i class="bi bi-cart2 lh-1"></i>
+                    <span class="count-label">9</span>
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-end dropdown-300">
+                    <h5 class="fw-semibold px-3 py-2 text-primary">Orders</h5>
+                    <div class="scroll250">
+                      <div class="dropdown-item py-2 px-3">
+                        <div class="position-relative">
+                          <span class="badge bg-danger">Purchase</span>
+                          <p class="my-1">
+                            Item placed for purchase.
+                          </p>
+                          <p class="small m-0 text-secondary">Today, 06:30pm</p>
+                        </div>
+                      </div>
+                      <div class="dropdown-item py-2 px-3">
+                        <div class="position-relative">
+                          <span class="badge bg-success">Account</span>
+                          <p class="my-1">
+                            $180 deducted from your account.
+                          </p>
+                          <p class="small m-0 text-secondary">Today, 03:00pm</p>
+                        </div>
+                      </div>
+                      <div class="dropdown-item py-2 px-3">
+                        <div class="position-relative">
+                          <span class="badge bg-info">Team</span>
+                          <p class="my-1">
+                            Daniel joined today.
+                          </p>
+                          <p class="small m-0 text-secondary">Today, 03:15pm</p>
+                        </div>
+                      </div>
+                      <div class="dropdown-item py-2 px-3">
+                        <div class="position-relative">
+                          <span class="badge bg-danger">Orders</span>
+                          <p class="my-1">
+                            Item placed for purchase.
+                          </p>
+                          <p class="small m-0 text-secondary">Today, 03:30pm</p>
+                        </div>
+                      </div>
+                      <div class="dropdown-item py-2 px-3">
+                        <div class="position-relative">
+                          <span class="badge bg-success">Placed</span>
+                          <p class="my-1">
+                            New item sold.
+                          </p>
+                          <p class="small m-0 text-secondary">Today, 03:45pm</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-grid m-3">
+                      <a href="javascript:void(0)" class="btn btn-primary">View all</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="dropdown">
+                  <a class="dropdown-toggle action-icon" href="#!" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <i class="bi bi-exclamation-triangle lh-1"></i>
+                    <span class="count-label">5</span>
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-end dropdown-300">
+                    <h5 class="fw-semibold px-3 py-2 text-primary">Errors</h5>
+                    <div class="scroll250">
+                      <div class="alert alert-danger mx-3 my-2 p-2">
+                        <p class="mb-1">Solve critical error</p>
+                        <p class="small m-0 text-black">Today, 07:30pm</p>
+                      </div>
+                      <div class="alert alert-success mx-3 my-2 p-2">
+                        <p class="mb-1">Bug fix</p>
+                        <p class="small m-0 text-black">Today, 07:45pm</p>
+                      </div>
+                      <div class="alert alert-info mx-3 my-2 p-2">
+                        <p class="mb-1">Production issue</p>
+                        <p class="small m-0 text-black">Today, 07:45pm</p>
+                      </div>
+                      <div class="alert alert-warning mx-3 my-2 p-2">
+                        <p class="mb-1">New ticket</p>
+                        <p class="small m-0 text-black">Today, 09:30pm</p>
+                      </div>
+                    </div>
+                    <div class="d-grid m-3">
+                      <a href="javascript:void(0)" class="btn btn-primary">View all</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="dropdown">
+                  <a class="dropdown-toggle action-icon" href="#!" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <i class="bi bi-receipt lh-1"></i>
+                    <span class="count-label">6</span>
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-end dropdown-300">
+                    <h5 class="fw-semibold px-3 py-2 text-primary">Invoices</h5>
+                    <div class="scroll250">
+                      <div class="dropdown-item">
+                        <div class="d-flex align-items-center py-2">
+                          <img src="{% static 'assets/images/user1.png' %}" class="img-3x me-3 rounded-5" alt="Admin Theme">
+                          <div class="m-0">
+                            <h4 class="mb-2 text-primary">$450.00</h4>
+                            <h6 class="mb-1 fw-semibold">MSD Solutions</h6>
+                            <p class="m-0 text-secondary">
+                              Invoice #99885<span class="badge bg-info ms-2">Paid</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="dropdown-item">
+                        <div class="d-flex align-items-center py-2">
+                          <img src="{% static 'assets/images/user2.png' %}" class="img-3x me-3 rounded-5" alt="Admin Theme">
+                          <div class="m-0">
+                            <h4 class="mb-2 text-primary">$290.00</h4>
+                            <h6 class="mb-1 fw-semibold">VK Inc</h6>
+                            <p class="m-0 text-secondary">
+                              Invoice #99887<span class="badge bg-info ms-2">Paid</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="dropdown-item">
+                        <div class="d-flex align-items-center py-2">
+                          <img src="{% static 'assets/images/user3.png' %}" class="img-3x me-3 rounded-5" alt="Admin Theme">
+                          <div class="m-0">
+                            <h4 class="mb-2 text-primary">$330.00</h4>
+                            <h6 class="mb-1 fw-semibold">Sky Labs</h6>
+                            <p class="m-0 text-secondary">
+                              Invoice #99888<span class="badge bg-info ms-2">Paid</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="dropdown-item">
+                        <div class="d-flex align-items-center py-2">
+                          <img src="{% static 'assets/images/user4.png' %}" class="img-3x me-3 rounded-5" alt="Admin Theme">
+                          <div class="m-0">
+                            <h4 class="mb-2 text-primary">$380.00</h4>
+                            <h6 class="mb-1 fw-semibold">Good Works Inc</h6>
+                            <p class="m-0 text-secondary">
+                              Invoice #99889<span class="badge bg-info ms-2">Paid</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-grid m-3">
+                      <a href="javascript:void(0)" class="btn btn-primary">View all</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="dropdown ms-4">
+                <a id="userSettings" class="dropdown-toggle d-flex py-2 align-items-center" href="#!" role="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  <img src="{% static 'assets/images/user3.png' %}" class="rounded-4 img-3x" alt="Bootstrap Gallery">
+                  <span class="ms-2 text-truncate d-lg-block d-none">Tyron Moses</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg">
+                  <a class="dropdown-item d-flex align-items-center" href="profile.html"><i
+                      class="bi bi-person fs-4 me-2"></i>My Profile</a>
+                  <a class="dropdown-item d-flex align-items-center" href="settings.html"><i
+                      class="bi bi-gear fs-4 me-2"></i>Settings</a>
+                  <a class="dropdown-item d-flex align-items-center" href="reset-password.html"><i
+                      class="bi bi-slash-circle fs-4 me-2"></i>Reset Password</a>
+                  <div class="mx-3 mt-2 d-grid">
+                    <a href="login.html" class="btn btn-primary">Logout</a>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex">
+                <button class="toggle-sidebar">
+                  <i class="bi bi-list lh-1"></i>
+                </button>
+              </div>
+            </div>
+            <!-- App header actions ends -->
+
+          </div>
+          <!-- App header ends -->
+
+          <!-- App hero header starts -->
+          <div class="app-hero-header d-flex align-items-center">
+
+            <!-- Breadcrumb starts -->
+            <div class="d-flex align-items-center">
+              <div class="me-3 icon-box md bg-white rounded-4">
+                <i class="bi bi-pie-chart fs-3 text-primary"></i>
+              </div>
+              <div>
+                <h2 class="mb-1">Admin Dashboard</h2>
+                <h6 class="m-0 text-dark fw-light">
+                  Welcome to Admini Dashboard
+                </h6>
+              </div>
+            </div>
+            <!-- Breadcrumb ends -->
+
+            <!-- Sales stats starts -->
+            <div class="ms-auto d-lg-flex d-none flex-row">
+              <div class="d-flex flex-row gap-2">
+                <button class="btn btn-dark">
+                  <i class="bi bi-share me-1"></i> Share
+                </button>
+                <button class="btn btn-dark">
+                  <i class="bi bi-printer me-1"></i> Print
+                </button>
+                <button class="btn btn-primary">
+                  <i class="bi bi-download me-1"></i> Download
+                </button>
+              </div>
+            </div>
+            <!-- Sales stats ends -->
+
+          </div>
+          <!-- App Hero header ends -->
+
+          <!-- App body starts -->
+          <div class="app-body">
+
+            <!-- Stats BG starts -->
+            <div class="mx-n4 p-4 bg-light mb-4">
+
+              <!-- Row starts -->
+              <div class="row gx-4">
+                <div class="col-sm-4 col-12">
+                  <div class="card my-2 card-danger">
+                    <div class="card-header">
+                      <h5 class="card-title text-white">Clicks</h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between">
+                        <div class=" text-white">
+                          <h2 class="display-6 mb-2 fw-semibold">7900</h2>
+                          <h5 class="mb-3 fw-light opacity-75">9% higher than last week.</h5>
+                          <div class="progress small">
+                            <div class="progress-bar bg-white" role="progressbar" style="width: 75%" aria-valuenow="75"
+                              aria-valuemin="0" aria-valuemax="100"></div>
+                          </div>
+                        </div>
+                        <div class="ms-3 graph-mini" id="option1"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-4 col-12">
+                  <div class="card my-2 card-info">
+                    <div class="card-header">
+                      <h5 class="card-title text-white">Orders</h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between">
+                        <div class=" text-white">
+                          <h2 class="display-6 mb-2 fw-semibold">3500</h2>
+                          <h5 class="mb-3 fw-light opacity-75">5% higher than last week.</h5>
+                          <div class="progress small">
+                            <div class="progress-bar bg-white" role="progressbar" style="width: 75%" aria-valuenow="75"
+                              aria-valuemin="0" aria-valuemax="100"></div>
+                          </div>
+                        </div>
+                        <div class="ms-3 graph-mini" id="option2"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-4 col-12">
+                  <div class="card my-2 card-warning">
+                    <div class="card-header">
+                      <h5 class="card-title text-white">Income</h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between">
+                        <div class="text-white">
+                          <h2 class="display-6 mb-2 fw-semibold">$9500</h2>
+                          <h5 class="mb-3 fw-light opacity-75">2% lower than last week.</h5>
+                          <div class="progress small">
+                            <div class="progress-bar bg-white" role="progressbar" style="width: 75%" aria-valuenow="75"
+                              aria-valuemin="0" aria-valuemax="100"></div>
+                          </div>
+                        </div>
+                        <div class="ms-3 graph-mini" id="option3"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Row ends -->
+
+            </div>
+            <!-- Stats BG ends -->
+
+            <!-- Row starts -->
+            <div class="row gx-4">
+              <div class="col-xl-12">
+                <div class="card mb-4 card-light">
+                  <div class="card-header">
+                    <h5 class="card-title">Visits & Conversions</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex flex-wrap mt-4 gap-4">
+                      <div class="text-center">
+                        <h2>
+                          $75K
+                          <i class="bi bi-arrow-up-right-circle-fill text-success ms-2"></i>
+                        </h2>
+                        <p class="text-truncate">18% higher than last month.</p>
+                      </div>
+                      <div class="text-center">
+                        <h2>
+                          $48K
+                          <i class="bi bi-arrow-up-right-circle-fill text-dark ms-2"></i>
+                        </h2>
+                        <p class="text-truncate">2% higher than last month.</p>
+                      </div>
+                      <div class="text-center">
+                        <h2>
+                          $23K
+                          <i class="bi bi-arrow-down-left-circle-fill text-danger ms-2"></i>
+                        </h2>
+                        <p class="text-truncate">3% lower than last month.</p>
+                      </div>
+                      <div class="ms-auto">
+                        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                          <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off"
+                            checked>
+                          <label class="btn btn-outline-primary" for="btnradio1">2023</label>
+
+                          <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
+                          <label class="btn btn-outline-primary" for="btnradio2">2022</label>
+
+                          <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+                          <label class="btn btn-outline-primary" for="btnradio3">2021</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="graph-body">
+                      <div id="visits-conversions"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Row ends -->
+
+            <!-- Row starts -->
+            <div class="row gx-4">
+              <div class="col-xl-6 col-sm-12">
+                <div class="card mb-4 card-light">
+                  <div class="card-header">
+                    <h5 class="card-title">Sales</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="graph-body">
+                      <div id="sales"></div>
+                    </div>
+                    <div class="my-3 text-center">
+                      <h1>$95,82,500.00</h1>
+                      <h5 class="mb-2">
+                        Monthly Sales Growth
+                      </h5>
+                      <p class="m-0">
+                        Measure how fast you’re growing monthly recurring sales.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-6 col-sm-12">
+                <div class="card mb-4 card-light">
+                  <div class="card-header">
+                    <h5 class="card-title">Income</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="graph-body">
+                      <div id="income"></div>
+                    </div>
+                    <div class="my-3 text-center">
+                      <h1>$65,700</h1>
+                      <h5 class="mb-2">
+                        Monthly Income Growth
+                      </h5>
+                      <p class="m-0">
+                        Measure how fast you’re growing monthly recurring income.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-6 col-sm-12">
+                <div class="card mb-4 card-light">
+                  <div class="card-header">
+                    <h5 class="card-title">Revenue</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row gx-3">
+                      <div class="col-12">
+                        <div id="revenue"></div>
+                      </div>
+                      <div class="col-sm-4 col-12">
+                        <div class="d-flex py-3 px-2 mt-2 flex-column box-bdr-blue rounded-2">
+                          <h6 class="text-truncate">Sales - <span>$3000</span></h6>
+                          <div class="progress small">
+                            <div class="progress-bar" role="progressbar" style="width: 60%" aria-valuenow="60"
+                              aria-valuemin="0" aria-valuemax="100"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-4 col-12">
+                        <div class="d-flex py-3 px-2 mt-2 flex-column box-bdr-blue rounded-2">
+                          <h6 class="text-truncate">Revenue - <span>$7000</span></h6>
+                          <div class="progress small">
+                            <div class="progress-bar" role="progressbar" style="width: 70%" aria-valuenow="70"
+                              aria-valuemin="0" aria-valuemax="100"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-4 col-12">
+                        <div class="d-flex py-3 px-2 mt-2 flex-column box-bdr-blue rounded-2">
+                          <h6 class="text-truncate">Profit - <span>$4000</span></h6>
+                          <div class="progress small">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: 70%" aria-valuenow="70"
+                              aria-valuemin="0" aria-valuemax="100"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-6 col-sm-12">
+                <div class="card mb-4 card-light">
+                  <div class="card-header">
+                    <h5 class="card-title">Notifications</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="scroll350">
+                      <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-record-fill text-primary me-2"></i>
+                        <div class="icon-box md bg-primary rounded-circle me-3">
+                          <i class="bi bi-bag fs-5"></i>
+                        </div>
+                        <p class="m-0 me-2">
+                          You have spent about <b>65%</b> of your annual budget.
+                        </p>
+                        <div class="ms-auto badge bg-primary bg-opacity-10 text-primary small">
+                          24/04/2024
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-record-fill text-primary me-2"></i>
+                        <div class="icon-box md bg-primary rounded-circle me-3">
+                          <i class="bi bi-check-circle fs-5"></i>
+                        </div>
+                        <p class="m-0 me-2">
+                          New admin dashboard purchased, and payment paid
+                          through online.
+                        </p>
+                        <div class="ms-auto badge bg-primary bg-opacity-10 text-primary small">
+                          23/05/2024
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-record-fill text-primary me-2"></i>
+                        <div class="icon-box md bg-primary rounded-circle me-3">
+                          <i class="bi bi-clipboard-check fs-5"></i>
+                        </div>
+                        <p class="m-0 me-2">
+                          A new ticket opened and assigned to <b>Zion</b>.
+                        </p>
+                        <div class="ms-auto badge bg-primary bg-opacity-10 text-primary small">
+                          22/06/2024
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-record-fill text-secondary me-2"></i>
+                        <div class="icon-box md bg-primary rounded-circle me-3">
+                          <i class="bi bi-slash-circle fs-5"></i>
+                        </div>
+                        <p class="m-0 me-2">
+                          Thanks <b>Sarah</b>, I want you to share Jim's
+                          profile.
+                        </p>
+                        <div class="ms-auto badge bg-primary bg-opacity-10 text-primary small">
+                          21/06/2024
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-record-fill text-secondary me-2"></i>
+                        <div class="icon-box md bg-primary rounded-circle me-3">
+                          <i class="bi bi-envelope-open fs-5"></i>
+                        </div>
+                        <p class="m-0 me-2">
+                          <b>Ora Mahoney,</b> has completed the design of the
+                          CRM admin application.
+                        </p>
+                        <div class="ms-auto badge bg-secondary bg-opacity-10 text-dark small">
+                          20/05/2024
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-record-fill text-secondary me-2"></i>
+                        <div class="icon-box md bg-primary rounded-circle me-3">
+                          <i class="bi bi-filter-circle fs-5"></i>
+                        </div>
+                        <p class="m-0 me-2">
+                          <b>Daren Boyd,</b> received the order.
+                        </p>
+                        <div class="ms-auto badge bg-secondary bg-opacity-10 text-dark small">
+                          18/07/2024
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Row ends -->
+
+            <!-- Row start -->
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="card card-light">
+                  <div class="card-header">
+                    <h5 class="card-title">Recent Purchases</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-outer border">
+                      <div class="table-responsive">
+                        <table class="table m-0 align-middle">
+                          <thead>
+                            <tr>
+                              <th>Product</th>
+                              <th>Link</th>
+                              <th>Customer</th>
+                              <th>Category</th>
+                              <th>Orders</th>
+                              <th>Popularity</th>
+                              <th>Views</th>
+                              <th>Engagement</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <div class="d-flex flex-row align-items-center">
+                                  <img src="{% static 'assets/images/products/product3.png' %}" class="img-5x" alt="Google Admin">
+                                  <div class="d-flex flex-column ms-3">
+                                    <p class="fw-bold m-0">iPhone 14 Pro Max Leather Case</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <a href="#" class="text-danger">#L10010021</a>
+                              </td>
+                              <td>Rickey Singleton</td>
+                              <td>
+                                <span class="badge bg-danger">Mobiles</span>
+                              </td>
+                              <td>
+                                <span class="badge bg-info text-info bg-opacity-10 me-2">390</span>
+                              </td>
+                              <td>
+                                <div class="rate2 rating-stars"></div>
+                              </td>
+                              <td>
+                                <div class="graph-mini" id="option4"></div>
+                              </td>
+                              <td>
+                                <p class="m-0">
+                                  Higher than last week
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <div class="d-flex flex-row align-items-center">
+                                  <img src="{% static 'assets/images/products/product4.png' %}" class="img-5x" alt="Bootstrap Gallery">
+                                  <div class="d-flex flex-column ms-3">
+                                    <p class="fw-bold m-0">iPhone 15 Pro Max Leather Case</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <a href="#" class="text-danger">#L10010065</a>
+                              </td>
+                              <td>Warren Alvarez</td>
+                              <td>
+                                <span class="badge bg-danger">Mobiles</span>
+                              </td>
+                              <td>
+                                <span class="badge bg-info text-info bg-opacity-10 me-2">560</span>
+                              </td>
+                              <td>
+                                <div class="rate5 rating-stars"></div>
+                              </td>
+                              <td>
+                                <div class="graph-mini" id="option5"></div>
+                              </td>
+                              <td>
+                                <p class="m-0">
+                                  Higher than last week
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <div class="d-flex flex-row align-items-center">
+                                  <img src="{% static 'assets/images/products/product5.png' %}" class="img-5x" alt="Bootstrap Gallery">
+                                  <div class="d-flex flex-column ms-3">
+                                    <p class="fw-bold m-0">iPhone 16 Pro Max Leather Case</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <a href="#" class="text-danger">#L10010098</a>
+                              </td>
+                              <td>Christian Franklin</td>
+                              <td>
+                                <span class="badge bg-danger">Mobiles</span>
+                              </td>
+                              <td>
+                                <span class="badge bg-info text-info bg-opacity-10 me-2">620</span>
+                              </td>
+                              <td>
+                                <div class="rate4 rating-stars"></div>
+                              </td>
+                              <td>
+                                <div class="graph-mini" id="option6"></div>
+                              </td>
+                              <td>
+                                <p class="m-0">
+                                  Higher than last week
+                                </p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Row end -->
+
+          </div>
+          <!-- App body ends -->
+
+          <!-- App footer starts -->
+          <div class="app-footer">
+            <span class="small">© Bootstrap Gallery 2024</span>
+          </div>
+          <!-- App footer ends -->
+
+        </div>
+        <!-- App container ends -->
+
+      </div>
+      <!-- Main container ends -->
+
+    </div>
+    <!-- Page wrapper ends -->
+
+    <!-- *************
+			************ JavaScript Files *************
+		************* -->
+    <!-- Required jQuery first, then Bootstrap Bundle JS -->
+    <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/js/moment.min.js' %}"></script>
+
+    <!-- *************
+			************ Vendor Js Files *************
+		************* -->
+
+    <!-- Overlay Scroll JS -->
+    <script src="{% static 'assets/vendor/overlay-scroll/jquery.overlayScrollbars.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/overlay-scroll/custom-scrollbar.js' %}"></script>
+
+    <!-- Apex Charts -->
+    <script src="{% static 'assets/vendor/apex/apexcharts.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/apex/custom/home/sparkline.js' %}"></script>
+    <script src="{% static 'assets/vendor/apex/custom/home/revenue.js' %}"></script>
+    <script src="{% static 'assets/vendor/apex/custom/home/sales.js' %}"></script>
+    <script src="{% static 'assets/vendor/apex/custom/home/income.js' %}"></script>
+    <script src="{% static 'assets/vendor/apex/custom/home/visits-conversions.js' %}"></script>
+
+    <!-- Rating -->
+    <script src="{% static 'assets/vendor/rating/raty.js' %}"></script>
+    <script src="{% static 'assets/vendor/rating/raty-custom.js' %}"></script>
+
+    <!-- Custom JS files -->
+    <script src="{% static 'assets/js/custom.js' %}"></script>
+  </body>
+
+
+<!-- Mirrored from bootstrapget.com/demos/admini-admin-template/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 29 Mar 2025 02:41:54 GMT -->
+</html>
