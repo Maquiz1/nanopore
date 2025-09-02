@@ -7,7 +7,7 @@ class ScreeningListView(ListView):
     model = Screening
     template_name = 'nanopore/screening/screening_list.html'
     context_object_name = 'object_list'
-    paginate_by = 50  # optional pagination
+    paginate_by = 10  # optional pagination
 
     def get_queryset(self):
         qs = Screening.objects.select_related('site', 'sex', 'enrolled')
@@ -21,7 +21,7 @@ class ScreeningListView(ListView):
         order_by = self.request.GET.get('order_by', '-screening_date')
 
         if zone_id:
-            qs = qs.filter(site__zone_id=zone_id)
+            qs = qs.filter(site__district__region__zone_id=zone_id)
         if site_id:
             qs = qs.filter(site_id=site_id)
         if pid:

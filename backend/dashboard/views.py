@@ -6,7 +6,6 @@ from locations.models import Zone, Site
 from clinical.models import YesNo
 import json
 
-
 class DashboardHomeView(ListView):
     model = Screening
     template_name = 'dashboard/dashboard.html'
@@ -24,7 +23,7 @@ class DashboardHomeView(ListView):
         order_by = self.request.GET.get('order_by', '-screening_date')
 
         if zone_id:
-            qs = qs.filter(site__zone_id=zone_id)
+            qs = qs.filter(site__district__region__zone_id=zone_id)
         if site_id:
             qs = qs.filter(site_id=site_id)
         if start_date and end_date:
@@ -62,12 +61,13 @@ class DashboardHomeView(ListView):
 
         # 🔹 Chart 2: Time series (daily / weekly / monthly)
         grouping = self.request.GET.get('grouping', 'weekly')  # default weekly
+        context['current_grouping'] = grouping
 
         if grouping == "daily":
             qs_grouped = qs.annotate(period=TruncDay("screening_date"))
         elif grouping == "monthly":
             qs_grouped = qs.annotate(period=TruncMonth("screening_date"))
-        else:  # default weekly
+        else:  # weekly default
             qs_grouped = qs.annotate(period=TruncWeek("screening_date"))
 
         time_data = (
@@ -76,12 +76,11 @@ class DashboardHomeView(ListView):
                       .order_by("period")
         )
 
-        # Organize into datasets for Chart.js
-        zones = list({item["site__district__region__zone__name"] or "Unassigned" for item in time_data})
+        zones_list = list({item["site__district__region__zone__name"] or "Unassigned" for item in time_data})
         periods = sorted({item["period"].strftime("%Y-%m-%d") for item in time_data})
 
         datasets = []
-        for zone in zones:
+        for zone in zones_list:
             zone_counts = []
             for period in periods:
                 entry = next(
@@ -95,6 +94,5 @@ class DashboardHomeView(ListView):
 
         context['time_labels_json'] = json.dumps(periods)
         context['time_datasets_json'] = json.dumps(datasets)
-        context['current_grouping'] = grouping
 
         return context
