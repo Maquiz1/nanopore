@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import RegexValidator
-from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from datetime import date
 
@@ -74,8 +73,8 @@ class Screening(models.Model):
         return f"{self.pid} - {self.site}"
 
     def save(self, *args, **kwargs):
-        # Ensure PID is generated from prefix + pid1
-        pid_prefix = getattr(self, "pid_prefix", "")  # set in view or model
+        # Always generate PID from site prefix + pid1
+        pid_prefix = self.site.pid_prefix if self.site else ""
         if self.pid1:
             self.pid = f"{pid_prefix}{self.pid1}"
 
@@ -97,12 +96,12 @@ class Screening(models.Model):
 
         super().save(*args, **kwargs)
 
+
 class Enrollment(models.Model):
     screening = models.OneToOneField(
         Screening, on_delete=models.CASCADE, related_name="enrollment"
     )
-    enrollment_date = models.DateField()  # ✅ required
-
+    enrollment_date = models.DateField()
     remarks = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
