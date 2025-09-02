@@ -12,6 +12,15 @@
                     <form method="post" novalidate>
                         {% csrf_token %}
 
+                        <!-- Show non-field errors (like PID duplicate) -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-warning">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
                         <!-- DEMOGRAPHIC SECTION -->
                         <h5 class="mb-3">Demographic Information</h5>
                         <div class="row mb-3">
@@ -22,6 +31,7 @@
                                     <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
+
                             <div class="col-md-4">
                                 <label for="{{ form.pid1.id_for_label }}" class="form-label">PID1</label>
                                 {{ form.pid1 }}
@@ -29,10 +39,10 @@
                                     <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
+
                             <div class="col-md-4">
-                                <label for="{{ form.pid2.id_for_label }}" class="form-label">Confirm PID1</label>
+                                <label for="{{ form.pid2.id_for_label }}" class="form-label">PID2</label>
                                 {{ form.pid2 }}
-                                <small class="text-muted d-block">Must match PID1</small>
                                 {% for error in form.pid2.errors %}
                                     <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
@@ -60,31 +70,27 @@
                         <h5 class="mb-3">Inclusions</h5>
                         <div class="row mb-3">
                             <div class="col-md-3">
-                                <label class="form-label">{{ form.present_symptoms.label }}</label>
-                                {{ form.present_symptoms }}
+                                <label class="form-label">{{ form.consent.label }}</label>
+                                {{ form.consent }}
+                                {% for error in form.consent.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ form.produce_resp_sample.label }}</label>
-                                {{ form.produce_resp_sample }}
+                                <label>{{ form.genexpert_confirmation.label }}</label>
+                                {{ form.genexpert_confirmation }}
+                                {% for error in form.genexpert_confirmation.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">{{ form.age18years.label }}</label>
                                 {{ form.age18years }}
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ form.consent.label }}</label>
-                                {{ form.consent }}
-                                <label for="{{ form.consent_date.id_for_label }}" class="form-label">Date of Consent</label>
-                                {{ form.consent_date }}
+                                <label class="form-label">{{ form.produce_resp_sample.label }}</label>
+                                {{ form.produce_resp_sample }}
                             </div>
-                        </div>
-
-                        <div class="col-md-3 mb-3">
-                            <label>{{ form.genexpert_confirmation.label }}</label>
-                            {{ form.genexpert_confirmation }}
-                            {% for error in form.genexpert_confirmation.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
                         </div>
 
                         <hr class="my-3">
@@ -95,10 +101,16 @@
                             <div class="col-md-6">
                                 <label class="form-label">{{ form.not_willing.label }}</label>
                                 {{ form.not_willing }}
+                                {% for error in form.not_willing.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">{{ form.unable_understand.label }}</label>
                                 {{ form.unable_understand }}
+                                {% for error in form.unable_understand.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
 
@@ -141,14 +153,18 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const pid1 = document.getElementById("id_pid1");
     const pid2 = document.getElementById("id_pid2");
+    const siteSelect = document.getElementById("id_site"); // optional if site affects PID
+    const pidWarning = document.createElement("div");
+    pidWarning.className = "text-danger mt-1";
+    pid1.parentNode.appendChild(pidWarning);
 
-    // Allow only 3 digits
+    const saveButton = document.querySelector("button[type='submit']");
+
     function allowThreeDigitsOnly(input) {
         input.addEventListener("input", function () {
             this.value = this.value.replace(/\D/g, '').slice(0, 3);
@@ -158,17 +174,36 @@ document.addEventListener("DOMContentLoaded", function () {
     allowThreeDigitsOnly(pid1);
     allowThreeDigitsOnly(pid2);
 
-    // Live PID match validation
-    function validatePID() {
-        if (pid2.value && pid1.value !== pid2.value) {
-            pid2.setCustomValidity("PID2 must match PID1.");
-        } else {
-            pid2.setCustomValidity("");
+    async function checkPID() {
+        const pidVal = pid1.value;
+        const siteVal = siteSelect ? siteSelect.value : '';
+        if (!pidVal) {
+            pidWarning.innerText = '';
+            saveButton.disabled = false;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/nanopore/check-pid/?pid1=${pidVal}&site_id=${siteVal}`);
+            const data = await response.json();
+            if (data.exists) {
+                pidWarning.innerText = `⚠ PID "${data.pid}" already exists! Please choose another.`;
+                saveButton.disabled = true; // disable submit
+            } else {
+                pidWarning.innerText = '';
+                saveButton.disabled = false; // enable submit
+            }
+        } catch (error) {
+            console.error("Error checking PID:", error);
+            pidWarning.innerText = '';
+            saveButton.disabled = false;
         }
     }
 
-    pid1.addEventListener("input", validatePID);
-    pid2.addEventListener("input", validatePID);
+    pid1.addEventListener("input", checkPID);
+    if(siteSelect){
+        siteSelect.addEventListener("change", checkPID);
+    }
 });
 </script>
 {% endblock %}

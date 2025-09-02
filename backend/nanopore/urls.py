@@ -6,6 +6,7 @@ from .views import (
     ScreeningUpdateView,
     ScreeningDeleteView,
     StatusListView,
+    CheckPIDView
 )
 
 app_name = "nanopore"
@@ -21,4 +22,6 @@ urlpatterns = [
     path("status/completed/", ScreeningListView.as_view(), name="completed-list"),
     path("status/enrolled/", ScreeningListView.as_view(), name="enrolled-list"),
     path("status/eligible/", ScreeningListView.as_view(), name="eligible-list"),
+
+    path('check-pid/', CheckPIDView.as_view(), name='check_pid'),
 ]
