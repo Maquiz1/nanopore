@@ -1,12 +1,12 @@
 from django.db import models
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from datetime import date, timedelta
+from datetime import date
 
-# Import related models from apps
+# Related models
 from demographic.models import Sex
 from locations.models import Site
-from reasons.models import EnrolledReason
 from clinical.models import YesNo
 
 User = get_user_model()
@@ -18,12 +18,11 @@ three_digit_validator = RegexValidator(
 )
 
 
-
 class Screening(models.Model):
     screening_date = models.DateField()
     pid1 = models.CharField(max_length=3, validators=[three_digit_validator])
     pid2 = models.CharField(max_length=3, validators=[three_digit_validator])
-    pid = models.CharField(max_length=255, editable=False)
+    pid = models.CharField(max_length=255, unique=True, editable=False)
 
     sex = models.ForeignKey(Sex, on_delete=models.SET_NULL, null=True, blank=True)
     dob = models.DateField(blank=True, null=True)
@@ -75,21 +74,21 @@ class Screening(models.Model):
         return f"{self.pid} - {self.site}"
 
     def save(self, *args, **kwargs):
-        # Generate PID
-        if self.pid1 and self.pid2:
-            self.pid = f"{self.pid1}{self.pid2}"
+        # Ensure PID is generated from prefix + pid1
+        pid_prefix = getattr(self, "pid_prefix", "")  # set in view or model
+        if self.pid1:
+            self.pid = f"{pid_prefix}{self.pid1}"
 
+        # Auto-calculate Age <-> DOB
         today = date.today()
-
-        # Calculate age from DOB or vice versa
         if self.dob and not self.age:
             self.age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
         elif self.age and not self.dob:
-            self.dob = date(today.year - self.age, 7, 1)
+            self.dob = date(today.year - self.age, today.month, today.day)
         elif self.dob and self.age:
             self.age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
 
-        # Compute eligible
+        # Compute eligibility
         self.eligible = (
             (self.consent and self.consent.name == 'Yes') and
             (self.unable_understand and self.unable_understand.name == 'No') and
@@ -97,7 +96,6 @@ class Screening(models.Model):
         )
 
         super().save(*args, **kwargs)
-
 
 class Enrollment(models.Model):
     screening = models.OneToOneField(
