@@ -20,12 +20,26 @@ from django.utils.html import format_html
 from django.contrib.auth import authenticate
 import binascii
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView,DetailView
+from django.views.generic.edit import UpdateView
+from .models import Profile
+from .forms import ProfileForm
 
 from .sms_utils import send_verification_sms
 
 User = get_user_model()
 
 
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    form_class = ProfileForm
+    template_name = 'users/profile/edit_profile.html'
+    success_url = reverse_lazy('dashboard:dashboard')  # redirect after successful update
+
+    def get_object(self, queryset=None):
+        # Return the profile of the currently logged-in user
+        return self.request.user.profile
+    
 class CustomLoginView(LoginView):
     form_class = CustomLoginForm
     template_name = 'registration/login.html'
@@ -190,3 +204,17 @@ class VerifyPhoneView(LoginRequiredMixin, View):
         else:
             messages.error(request, "Invalid verification code.")
             return redirect('users:verify_phone')
+        
+class StaffListView(ListView):
+    model = User
+    template_name = 'users/staff/staff_list.html'
+    context_object_name = 'staff_list'
+
+    def get_queryset(self):
+        # If you only want users marked as staff
+        return User.objects.filter(is_staff=True).order_by('username')
+    
+class StaffDetailView(DetailView):
+    model = User
+    template_name = 'users/staff/staff_detail.html'
+    context_object_name = 'staff_member'

@@ -10,6 +10,25 @@ from phonenumber_field.formfields import PhoneNumberField
 
 User = get_user_model()
 
+# users/forms.py
+from django import forms
+from django.contrib.auth import get_user_model
+from .models import Profile, Prefix, Position
+
+User = get_user_model()
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['site', 'phone_number', 'prefix', 'position']
+        widgets = {
+            'site': forms.Select(attrs={'class': 'form-select'}),
+            'prefix': forms.Select(attrs={'class': 'form-select'}),
+            'position': forms.Select(attrs={'class': 'form-select'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(
         widget=forms.TextInput(attrs={

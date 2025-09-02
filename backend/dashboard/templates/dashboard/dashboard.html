@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- DASHBOARD CARDS -->
+   <!-- DASHBOARD CARDS -->
+<div class="row g-3 mb-4">
+    <!-- Screened Card -->
+    <div class="col-md-3">
+        <div class="card text-white bg-primary h-100 card-hover">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="card-title">Screened</h5>
+                    <p class="card-text fs-4">{{ screened_count }}</p>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <a href="{% url 'nanopore:screening-create' %}" class="btn btn-light btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-plus-lg"></i> Add
+                    </a>
+                    <a href="{% url 'nanopore:screening-list' %}" class="btn btn-light btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eligible Card -->
+    <div class="col-md-3">
+        <div class="card text-white bg-success h-100 card-hover">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="card-title">Eligible</h5>
+                    <p class="card-text fs-4">{{ eligible_count }}</p>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'nanopore:eligible-list' %}" class="btn btn-light btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrolled Card -->
+    <div class="col-md-3">
+        <div class="card text-white bg-warning h-100 card-hover">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="card-title">Enrolled</h5>
+                    <p class="card-text fs-4">{{ enrolled_count }}</p>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'nanopore:enrolled-list' %}" class="btn btn-light btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Card -->
+    <div class="col-md-3">
+        <div class="card text-white bg-info h-100 card-hover">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="card-title">Completed</h5>
+                    <p class="card-text fs-4">{{ completed_count }}</p>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'nanopore:completed-list' %}" class="btn btn-light btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card-hover:hover {
+    transform: scale(1.03);
+    transition: 0.2s;
+}
+</style>
+
+
+
+    <!-- Filters -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <select name="zone" class="form-select">
+                <option value="">-- Zone --</option>
+                {% for zone in zones %}
+                <option value="{{ zone.id }}" {% if request.GET.zone == zone.id|stringformat:"s" %}selected{% endif %}>
+                    {{ zone.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">-- Site --</option>
+                {% for site in sites %}
+                <option value="{{ site.id }}" {% if request.GET.site == site.id|stringformat:"s" %}selected{% endif %}>
+                    {{ site.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="period" class="form-select">
+                <option value="daily" {% if request.GET.period == "daily" %}selected{% endif %}>Daily</option>
+                <option value="weekly" {% if request.GET.period == "" or request.GET.period == "weekly" %}selected{% endif %}>Weekly</option>
+                <option value="monthly" {% if request.GET.period == "monthly" %}selected{% endif %}>Monthly</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+        </div>
+        <div class="col-md-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
+        </div>
+    </form>
+
+    <!-- CHARTS -->
+    <div class="row g-4">
+        <!-- Bar Chart per Zone -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Screenings by Zone</h5>
+                    <canvas id="zoneBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Series Chart -->
+        <div class="col-md-12">
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Screening Trends by Zone</h5>
+                    <canvas id="zoneTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-hover:hover {
+        transform: scale(1.03);
+        transition: 0.2s;
+    }
+</style>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Bar Chart per Zone
+    const zoneBarCtx = document.getElementById('zoneBarChart').getContext('2d');
+    new Chart(zoneBarCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ zone_labels_json| safe }},
+        datasets: [{
+            label: 'Screenings',
+            data: {{ zone_values_json| safe }},
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+            }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        return context.dataset.label + ": " + context.formattedValue;
+                    }
+                }
+            }
+        },
+        scales: { y: { beginAtZero: true } }
+    }
+    });
+
+    // Time Series Chart
+    const zoneTimeCtx = document.getElementById('zoneTimeChart').getContext('2d');
+    new Chart(zoneTimeCtx, {
+        type: 'line',
+        data: {
+            labels: {{ week_labels_json| safe }},
+        datasets: {{ week_datasets_json| safe }}
+        },
+        options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        elements: { line: { tension: 0.3 } },
+        plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Screening Trends per Zone' },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        return context.dataset.label + ": " + context.formattedValue;
+                    }
+                }
+            }
+        },
+        scales: { y: { beginAtZero: true } }
+    }
+    });
+</script>
+{% endblock %}

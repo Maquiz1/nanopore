@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Staff Members</h2>
+
+<a href="{% url 'users:sign_up' %}" class="btn btn-success mb-3">+ Add New Staff</a>
+
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Username</th>
+      <th>Full Name</th>
+      <th>Email</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in staff_list %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ user.username }}</td>
+      <td>{{ user.get_full_name }}</td>
+      <td>{{ user.email }}</td>
+      <td>
+        <a href="{% url 'users:staff_detail' user.id %}" class="btn btn-sm btn-primary">
+          View Details
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="5" class="text-center">No staff available.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+{% endblock %}

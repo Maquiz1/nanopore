@@ -18,6 +18,7 @@ def root_redirect(request):
 
 urlpatterns = [
     path('', root_redirect, name='root_redirect'),
+    path('nanopore/', include('nanopore.urls')),
     path('household/', include('household.urls')),
     path('manuals/', include('documents.urls', namespace='documents')),
     path("clinical/", include("clinical.urls")),
@@ -31,3 +32,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
