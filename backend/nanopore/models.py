@@ -36,7 +36,8 @@ class Screening(models.Model):
     age18years = models.ForeignKey(
         YesNo, on_delete=models.PROTECT, related_name="screening_age18years")
     present_symptoms = models.ForeignKey(
-        YesNo, on_delete=models.PROTECT, related_name="screening_present_symptoms")
+        YesNo, on_delete=models.PROTECT, related_name="screening_present_symptoms", blank=True, null=True
+    )
     produce_resp_sample = models.ForeignKey(
         YesNo, on_delete=models.PROTECT, related_name="screening_produce_resp_sample")
 
@@ -60,7 +61,7 @@ class Screening(models.Model):
 
     # Enrollment
     enrolled = models.ForeignKey(
-        YesNo, on_delete=models.PROTECT, related_name="screening_enrolled", null=True, blank=True
+        YesNo, on_delete=models.PROTECT, related_name="screening_enrolled"
     )
     reasons = models.ForeignKey(
         EnrolledReason, on_delete=models.PROTECT, related_name="screening_enrolled_reasons", null=True, blank=True
