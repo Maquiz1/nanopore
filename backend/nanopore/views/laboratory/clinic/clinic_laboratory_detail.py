@@ -9,5 +9,5 @@ from nanopore.models import ClinicLaboratory
 
 class ClinicLaboratoryDetailView(LoginRequiredMixin, DetailView):
     model = ClinicLaboratory
-    template_name = 'nanopore/laboratory/clinic/clinic_lab_detail.html'
+    template_name = 'nanopore/laboratory/clinic/clinic_laboratory_detail.html'
 

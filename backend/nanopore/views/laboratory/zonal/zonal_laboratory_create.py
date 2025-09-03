@@ -10,8 +10,8 @@ from nanopore.models import Enrollment, ClinicLaboratory, Diagnosis, ZonalLabora
 class ZonalLaboratoryCreateView(LoginRequiredMixin, CreateView):
     model = ZonalLaboratory
     form_class = ZonalLaboratoryForm
-    template_name = "nanopore/laboratory/zonal/zonal_lab_form.html"
-    success_url = reverse_lazy("nanopore:zonal-lab-list")
+    template_name = "nanopore/laboratory/zonal/zonal_laboratory_form.html"
+    success_url = reverse_lazy("nanopore:zonal-laboratory-list")
 
     def form_valid(self, form):
         obj = form.save(commit=False)

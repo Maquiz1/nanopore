@@ -9,5 +9,5 @@ from nanopore.models import ZonalLaboratory
 
 class ZonalLaboratoryDetailView(LoginRequiredMixin, DetailView):
     model = ZonalLaboratory
-    template_name = 'nanopore/laboratory/zonal/zonal_lab_detail.html'
+    template_name = 'nanopore/laboratory/zonal/zonal_laboratory_detail.html'
 

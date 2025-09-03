@@ -9,8 +9,8 @@ from nanopore.forms.laboratory.clinic.cliniclabform import ClinicLaboratoryForm
 class ClinicLaboratoryCreateView(LoginRequiredMixin, CreateView):
     model = ClinicLaboratory
     form_class = ClinicLaboratoryForm
-    template_name = "nanopore/laboratory/clinic/cliniclab_form.html"
-    success_url = reverse_lazy("nanopore:cliniclab-list")
+    template_name = "nanopore/laboratory/clinic/clinic_laboratory_form.html"
+    success_url = reverse_lazy("nanopore:clinic-laboratory-list")
 
     def form_valid(self, form):
         obj = form.save(commit=False)

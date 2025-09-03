@@ -11,5 +11,5 @@ from nanopore.forms.screening.screeningform import ScreeningForm
 
 class ClinicLaboratoryDeleteView(LoginRequiredMixin, DeleteView):
     model = ClinicLaboratory
-    template_name = 'nanopore/laboratory/clinic/clinic_lab_confirm_delete.html'
+    template_name = 'nanopore/laboratory/clinic/clinic_laboratory_confirm_delete.html'
     success_url = reverse_lazy('nanopore:clinic-laboratory-list')
