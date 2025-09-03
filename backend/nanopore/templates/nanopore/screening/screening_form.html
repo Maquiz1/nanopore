@@ -70,6 +70,31 @@
                                 {% endfor %}
                             </div>
                         </div>
+                        <hr class="my-4">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.sex.label_tag }}
+                                {{ form.sex }}
+                                {% for error in form.sex.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.dob.label_tag }}
+                                {{ form.dob }}
+                                {% for error in form.dob.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.age.label_tag }}
+                                {{ form.age }}
+                                {% for error in form.age.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
 
                         <!-- INCLUSION SECTION -->
                         <div class="p-2 mb-3 bg-success text-white rounded">
