@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Country, Zone, Region, District, Site
+from .models import Country, SiteLevel, SiteType, Zone, Region, District, Site
 
 # Inline for Site inside District
 class SiteInline(admin.TabularInline):
@@ -44,3 +44,11 @@ class DistrictAdmin(admin.ModelAdmin):
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
     list_display = ['name', 'district']
+
+@admin.register(SiteType)
+class SiteTypeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code']
+
+@admin.register(SiteLevel)
+class SiteLevelAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code']

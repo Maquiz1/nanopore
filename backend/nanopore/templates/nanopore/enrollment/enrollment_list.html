@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <h2>Enrollments</h2>
+    </div>
+
+    <!-- Filters -->
+    {% include "partials/filter_form.html" %}
+
+    <div>
+        <a href="{% url 'clinical:enrollment-create' %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Add Enrollment
+        </a>
+    </div>
+
+    <hr class="my-3">
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Enrollment Date</th>
+                    <th>PID</th>
+                    <th>Site</th>
+                    <th>Zone</th>
+                    <th>Remarks</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in object_list %}
+                <tr>
+                    <td>{{ enrollment.enrollment_date|date:"M d, Y" }}</td>
+                    <td>{{ enrollment.screening.pid }}</td>
+                    <td>{{ enrollment.screening.site.name }}</td>
+                    <td>{{ enrollment.screening.site.district.region.zone.name }}</td>
+                    <td>{{ enrollment.remarks|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'clinical:enrollment-detail' enrollment.pk %}" class="btn btn-sm btn-primary">View</a>
+                        <a href="{% url 'clinical:enrollment-update' enrollment.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'clinical:enrollment-delete' enrollment.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No enrollments found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/pagination.html" %}
+</div>
+{% endblock %}
