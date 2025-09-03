@@ -177,7 +177,7 @@ class Diagnosis(models.Model):
 
 class ZonalLaboratory(models.Model):
     # Zonal labs are for all patients in the zone, so link directly to screening
-    screening = models.ForeignKey(
+    screening = models.OneToOneField(
         "Screening", on_delete=models.CASCADE, related_name="zonal_laboratory"
     )
     test_name = models.CharField(max_length=100)

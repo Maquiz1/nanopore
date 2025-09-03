@@ -13,7 +13,7 @@
     {% include "partials/filter_form.html" %}
 
     <div>
-        <a href="{% url 'clinical:diagnosis-create' %}" class="btn btn-success">
+        <a href="{% url 'nanopore:diagnosis-create' %}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add Diagnosis
         </a>
     </div>
@@ -43,9 +43,9 @@
                     <td>{{ d.screening.site.district.region.zone.name }}</td>
                     <td>{{ d.remarks|default:"-" }}</td>
                     <td>
-                        <a href="{% url 'clinical:diagnosis-detail' d.pk %}" class="btn btn-sm btn-primary">View</a>
-                        <a href="{% url 'clinical:diagnosis-update' d.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="{% url 'clinical:diagnosis-delete' d.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                        <a href="{% url 'nanopore:diagnosis-detail' d.pk %}" class="btn btn-sm btn-primary">View</a>
+                        <a href="{% url 'nanopore:diagnosis-update' d.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'nanopore:diagnosis-delete' d.pk %}" class="btn btn-sm btn-danger">Delete</a>
                     </td>
                 </tr>
                 {% empty %}

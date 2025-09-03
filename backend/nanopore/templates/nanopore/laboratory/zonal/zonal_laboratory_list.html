@@ -13,7 +13,7 @@
     {% include "partials/filter_form.html" %}
 
     <div>
-        <a href="{% url 'clinical:zonal-laboratory-create' %}" class="btn btn-success">
+        <a href="{% url 'nanopore:zonal-laboratory-create' %}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add Zonal Lab Test
         </a>
     </div>
@@ -43,9 +43,9 @@
                     <td>{{ lab.screening.site.name }}</td>
                     <td>{{ lab.screening.site.district.region.zone.name }}</td>
                     <td>
-                        <a href="{% url 'clinical:zonal-laboratory-detail' lab.pk %}" class="btn btn-sm btn-primary">View</a>
-                        <a href="{% url 'clinical:zonal-laboratory-update' lab.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="{% url 'clinical:zonal-laboratory-delete' lab.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                        <a href="{% url 'nanopore:zonal-laboratory-detail' lab.pk %}" class="btn btn-sm btn-primary">View</a>
+                        <a href="{% url 'nanopore:zonal-laboratory-update' lab.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'nanopore:zonal-laboratory-delete' lab.pk %}" class="btn btn-sm btn-danger">Delete</a>
                     </td>
                 </tr>
                 {% empty %}

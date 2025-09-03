@@ -10,7 +10,7 @@
     </div>
 
     <!-- Filters -->
-    {% include "../partials/filter_form.html" %}
+    {% include "partials/filter_form.html" %}
 
     <div>
         <a href="{% url 'nanopore:enrollment-create' %}" class="btn btn-success">
@@ -55,6 +55,6 @@
         </table>
     </div>
 
-    {% include "../partials/pagination.html" %}
+    {% include "partials/pagination.html" %}
 </div>
 {% endblock %}
