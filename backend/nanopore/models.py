@@ -147,7 +147,7 @@ class ClinicLaboratory(models.Model):
         ordering = ["-test_date"]
 
     def __str__(self):
-        return f"{self.test_name} for {self.enrollment.screening.pid}"
+        return f"{self.test_name} for {self.screening.pid}"
 
 
 class Diagnosis(models.Model):
@@ -172,7 +172,7 @@ class Diagnosis(models.Model):
         ordering = ["-diagnosis_date"]
 
     def __str__(self):
-        return f"Diagnosis for {self.enrollment.screening.pid}: {self.diagnosis_name}"
+        return f"Diagnosis for {self.screening.pid}: {self.diagnosis_name}"
 
 
 class ZonalLaboratory(models.Model):

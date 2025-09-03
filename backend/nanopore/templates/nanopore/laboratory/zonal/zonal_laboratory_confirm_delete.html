@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Confirm Delete</h2>
+<p>Are you sure you want to delete zonal laboratory test <strong>{{ object.test_name }}</strong> for <strong>{{ object.screening.pid }}</strong>?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">✅ Yes, Delete</button>
+    <a href="{% url 'nanopore:zonal-laboratory-list' %}">❌ Cancel</a>
+</form>
+{% endblock %}

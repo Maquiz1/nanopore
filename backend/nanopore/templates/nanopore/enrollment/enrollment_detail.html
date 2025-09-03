@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Enrollment Detail</h2>
+<p><strong>PID:</strong> {{ enrollment.screening.pid }}</p>
+<p><strong>Screening Date:</strong> {{ enrollment.screening.screening_date }}</p>
+<p><strong>Enrollment Date:</strong> {{ enrollment.enrollment_date }}</p>
+<p><strong>Remarks:</strong> {{ enrollment.remarks }}</p>
+<p><strong>Created By:</strong> {{ enrollment.created_by }}</p>
+<p><strong>Updated By:</strong> {{ enrollment.updated_by }}</p>
+
+<a href="{% url 'nanopore:enrollment-update' enrollment.pk %}">✏️ Edit</a> |
+<a href="{% url 'nanopore:enrollment-delete' enrollment.pk %}">🗑️ Delete</a> |
+<a href="{% url 'nanopore:enrollment-list' %}">🔙 Back to List</a>
+{% endblock %}
