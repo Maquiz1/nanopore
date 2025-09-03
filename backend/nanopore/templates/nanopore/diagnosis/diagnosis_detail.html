@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Diagnosis Detail</h2>
+<p><strong>PID:</strong> {{ diagnosis.screening.pid }}</p>
+<p><strong>Screening Date:</strong> {{ diagnosis.screening.screening_date }}</p>
+<p><strong>Diagnosis Name:</strong> {{ diagnosis.diagnosis_name }}</p>
+<p><strong>Diagnosis Date:</strong> {{ diagnosis.diagnosis_date }}</p>
+<p><strong>Remarks:</strong> {{ diagnosis.remarks }}</p>
+<p><strong>Created By:</strong> {{ diagnosis.created_by }}</p>
+<p><strong>Updated By:</strong> {{ diagnosis.updated_by }}</p>
+
+<a href="{% url 'nanopore:diagnosis-update' diagnosis.pk %}">✏️ Edit</a> |
+<a href="{% url 'nanopore:diagnosis-delete' diagnosis.pk %}">🗑️ Delete</a> |
+<a href="{% url 'nanopore:diagnosis-list' %}">🔙 Back to List</a>
+{% endblock %}

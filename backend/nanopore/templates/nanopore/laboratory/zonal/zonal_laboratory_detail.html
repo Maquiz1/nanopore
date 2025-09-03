@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Zonal Laboratory Detail</h2>
+<p><strong>PID:</strong> {{ zonal_laboratory.screening.pid }}</p>
+<p><strong>Screening Date:</strong> {{ zonal_laboratory.screening.screening_date }}</p>
+<p><strong>Test Name:</strong> {{ zonal_laboratory.test_name }}</p>
+<p><strong>Result:</strong> {{ zonal_laboratory.result }}</p>
+<p><strong>Test Date:</strong> {{ zonal_laboratory.test_date }}</p>
+<p><strong>Remarks:</strong> {{ zonal_laboratory.remarks }}</p>
+<p><strong>Created By:</strong> {{ zonal_laboratory.created_by }}</p>
+<p><strong>Updated By:</strong> {{ zonal_laboratory.updated_by }}</p>
+
+<a href="{% url 'nanopore:zonal-laboratory-update' zonal_laboratory.pk %}">✏️ Edit</a> |
+<a href="{% url 'nanopore:zonal-laboratory-delete' zonal_laboratory.pk %}">🗑️ Delete</a> |
+<a href="{% url 'nanopore:zonal-laboratory-list' %}">🔙 Back to List</a>
+{% endblock %}
