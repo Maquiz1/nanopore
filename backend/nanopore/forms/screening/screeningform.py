@@ -2,13 +2,22 @@ from django import forms
 from datetime import date
 from nanopore.models import Screening
 from clinical.models import YesNo
+from demographic.models import Sex
 from django.core.exceptions import ValidationError
 from reasons.models import EnrolledReason
 
 class ScreeningForm(forms.ModelForm):
     # Consent / Eligibility fields
 
+    sex = forms.ModelChoiceField(
+        queryset=Sex.objects.all(),
+        empty_label="Select",
+        label="Sex",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    
     # INCLUSION fields
+
 
     present_symptoms = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
@@ -16,6 +25,15 @@ class ScreeningForm(forms.ModelForm):
         label="4. Does the patient present with signs and symptoms suggestive of pulmonary TB or another pulmonary infection of bacterial, viral, or fungal origin?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+    
+    genexpert_confirmation = forms.ModelChoiceField(
+        queryset=YesNo.objects.all(),
+        empty_label="Select",
+        label="4(a). Is the patient diagnosed with TB as confirmed by MTB detection using GeneXpert MTB/Rif (Ultra)?",
+        widget=forms.Select(attrs={"class": "form-select"}),
+        required=True
+    )
+    
     produce_resp_sample = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
@@ -30,19 +48,17 @@ class ScreeningForm(forms.ModelForm):
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     
-    genexpert_confirmation = forms.ModelChoiceField(
-        queryset=YesNo.objects.all(),
-        empty_label="Select",
-        label="Genexpert confirmation",
-        widget=forms.Select(attrs={"class": "form-select"}),
-        required=False
-    )
-    
     consent = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="7. Has the patient provided written informed consent to participate?",
         widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    
+    consent_date = forms.CharField(
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        label="8. Date of Consent",
+        required=False
     )
     
     # EXCLUSION fields
@@ -67,7 +83,7 @@ class ScreeningForm(forms.ModelForm):
         empty_label="Select",
         label="11(a). Was this patient enrolled?",
         widget=forms.Select(attrs={"class": "form-select"}),
-        required=False
+        required=True
     )
     reasons = forms.ModelChoiceField(
         queryset=EnrolledReason.objects.all(),
@@ -92,7 +108,6 @@ class ScreeningForm(forms.ModelForm):
             "screening_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "dob": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "age": forms.NumberInput(attrs={"class": "form-control"}),
-            "consent_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 
@@ -135,8 +150,10 @@ class ScreeningForm(forms.ModelForm):
         # cleaned_data["eligible"] = (
         #     consent.name == "Yes" and unable_understand.name == "No" and not_willing.name == "No"
         # ) if consent and unable_understand and not_willing else False
-        
-        
+
+
+        # enrolled = cleaned_data.get("enrolled")
+
         # Compute eligibility
         consent = cleaned_data.get("consent")
         unable_understand = cleaned_data.get("unable_understand")

@@ -25,143 +25,172 @@
                     <form method="post" novalidate>
                         {% csrf_token %}
 
+                        <!-- {% for field in form %}
+                        {% if field.errors %}
+                        <div class="text-danger">
+                            <strong>{{ field.label }}:</strong> {{ field.errors|striptags }}
+                        </div>
+                        {% endif %}
+                        {% endfor %} -->
+
+
                         <!-- Non-field errors -->
                         {% if form.non_field_errors %}
                         <div class="alert alert-warning">
                             {% for error in form.non_field_errors %}
-                            <div>{{ error }}</div>
+                            <div class="text-danger">{{ error }}</div>
                             {% endfor %}
                         </div>
                         {% endif %}
 
                         <!-- DEMOGRAPHIC SECTION -->
-                        <h5 class="mb-3">Demographic Information</h5>
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Demographic Information</h5>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 {{ form.screening_date.label_tag }}
                                 {{ form.screening_date }}
-                                {{ form.screening_date.errors }}
+                                {% for error in form.screening_date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-4">
                                 {{ form.pid1.label_tag }}
                                 {{ form.pid1 }}
-                                {{ form.pid1.errors }}
+                                {% for error in form.pid1.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-4">
                                 {{ form.pid2.label_tag }}
                                 {{ form.pid2 }}
-                                {{ form.pid2.errors }}
+                                {% for error in form.pid2.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
-                        <hr class="my-4">
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.sex.label_tag }}
-                                {{ form.sex }}
-                                {{ form.sex.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.dob.label_tag }}
-                                {{ form.dob }}
-                                {{ form.dob.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.age.label_tag }}
-                                {{ form.age }}
-                                {{ form.age.errors }}
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
 
                         <!-- INCLUSION SECTION -->
-                        <h5 class="mb-3">Inclusion Criteria</h5>
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">Inclusion Criteria</h5>
+                        </div>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.age18years.label_tag }}
-                                {{ form.age18years }}
-                                {{ form.age18years.errors }}
-                            </div>
+
                             <div class="col-md-4">
                                 {{ form.present_symptoms.label_tag }}
                                 {{ form.present_symptoms }}
-                                {{ form.present_symptoms.errors }}
+                                {% for error in form.present_symptoms.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.genexpert_confirmation.label_tag }}
+                                {{ form.genexpert_confirmation }}
+                                {% for error in form.genexpert_confirmation.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-4">
                                 {{ form.produce_resp_sample.label_tag }}
                                 {{ form.produce_resp_sample }}
-                                {{ form.produce_resp_sample.errors }}
+                                {% for error in form.produce_resp_sample.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                        </div>
 
+                        </div>
                         <hr class="my-4">
+
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                {{ form.genexpert_confirmation.label_tag }}
-                                {{ form.genexpert_confirmation }}
-                                {{ form.genexpert_confirmation.errors }}
+                                {{ form.age18years.label_tag }}
+                                {{ form.age18years }}
+                                {% for error in form.age18years.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-
                             <div class="col-md-4">
                                 {{ form.consent.label_tag }}
                                 {{ form.consent }}
-                                {{ form.consent.errors }}
+                                {% for error in form.consent.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="consent-date-wrapper">
                                 {{ form.consent_date.label_tag }}
                                 {{ form.consent_date }}
-                                {{ form.consent_date.errors }}
+                                {% for error in form.consent_date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
 
                         <hr class="my-4">
 
                         <!-- EXCLUSION SECTION -->
-                        <h5 class="mb-3">Exclusion Criteria</h5>
+                        <div class="p-2 mb-3 bg-danger text-white rounded">
+                            <h5 class="mb-0">Exclusion Criteria</h5>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 {{ form.not_willing.label_tag }}
                                 {{ form.not_willing }}
-                                {{ form.not_willing.errors }}
+                                {% for error in form.not_willing.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-6">
                                 {{ form.unable_understand.label_tag }}
                                 {{ form.unable_understand }}
-                                {{ form.unable_understand.errors }}
+                                {% for error in form.unable_understand.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
 
                         <hr class="my-4">
 
                         <!-- ENROLLMENT SECTION -->
-                        <h5 class="mb-3">Enrollment</h5>
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">Enrollment</h5>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 {{ form.enrolled.label_tag }}
                                 {{ form.enrolled }}
-                                {{ form.enrolled.errors }}
+                                {% for error in form.enrolled.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="reasons-wrapper">
                                 {{ form.reasons.label_tag }}
                                 {{ form.reasons }}
-                                {{ form.reasons.errors }}
+                                {% for error in form.reasons.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="reasons-other-wrapper">
                                 {{ form.reasons_other.label_tag }}
                                 {{ form.reasons_other }}
-                                {{ form.reasons_other.errors }}
+                                {% for error in form.reasons_other.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
 
                         <hr class="my-4">
 
                         <!-- GENERAL COMMENTS -->
-                        <h5 class="mb-3">General Comments</h5>
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">General Comments</h5>
+                        </div>
                         <div class="mb-3">
                             {{ form.remarks.label_tag }}
                             {{ form.remarks }}
-                            {{ form.remarks.errors }}
+                            {% for error in form.remarks.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
 
                         <!-- Form Buttons -->
@@ -185,13 +214,14 @@
 {% block extra_scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+
+        // PID validation
         const pid1 = document.getElementById("id_pid1");
         const pid2 = document.getElementById("id_pid2");
         const siteSelect = document.getElementById("id_site");
         const pidWarning = document.createElement("div");
         pidWarning.className = "text-danger mt-1";
         pid1.parentNode.appendChild(pidWarning);
-
         const saveButton = document.querySelector("button[type='submit']");
 
         function allowThreeDigitsOnly(input) {
@@ -206,33 +236,62 @@
         async function checkPID() {
             const pidVal = pid1.value;
             const siteVal = siteSelect ? siteSelect.value : '';
-            if (!pidVal) {
-                pidWarning.innerText = '';
-                saveButton.disabled = false;
-                return;
-            }
-
+            if (!pidVal) { pidWarning.innerText = ''; saveButton.disabled = false; return; }
             try {
                 const response = await fetch(`/nanopore/check-pid/?pid1=${pidVal}&site_id=${siteVal}`);
                 const data = await response.json();
                 if (data.exists) {
                     pidWarning.innerText = `⚠ PID "${data.pid}" already exists! Please choose another.`;
                     saveButton.disabled = true;
-                } else {
-                    pidWarning.innerText = '';
-                    saveButton.disabled = false;
-                }
-            } catch (error) {
-                console.error("Error checking PID:", error);
-                pidWarning.innerText = '';
-                saveButton.disabled = false;
-            }
+                } else { pidWarning.innerText = ''; saveButton.disabled = false; }
+            } catch (error) { console.error(error); pidWarning.innerText = ''; saveButton.disabled = false; }
         }
 
         pid1.addEventListener("input", checkPID);
-        if (siteSelect) {
-            siteSelect.addEventListener("change", checkPID);
+        if (siteSelect) siteSelect.addEventListener("change", checkPID);
+
+        // Consent date toggle
+        const consentField = document.getElementById("id_consent");
+        const consentDateWrapper = document.getElementById("consent-date-wrapper");
+        function toggleConsentDate() {
+            if (consentField.value === "1") {
+                consentDateWrapper.style.display = "block";
+            } else {
+                consentDateWrapper.style.display = "none";
+                document.getElementById("id_consent_date").value = "";
+            }
         }
+        consentField.addEventListener("change", toggleConsentDate);
+        toggleConsentDate();
+
+        // Enrollment reason toggles
+        const enrolledField = document.getElementById("id_enrolled");
+        const reasonsWrapper = document.getElementById("reasons-wrapper");
+        const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
+        const reasonsField = document.getElementById("id_reasons");
+
+        function toggleEnrollmentFields() {
+            if (enrolledField.value === "0") { // No
+                reasonsWrapper.style.display = "block";
+            } else {
+                reasonsWrapper.style.display = "none";
+                reasonsOtherWrapper.style.display = "none";
+                reasonsField.value = "";
+                document.getElementById("id_reasons_other").value = "";
+            }
+
+            if (reasonsField.value === "Other") {
+                reasonsOtherWrapper.style.display = "block";
+            } else {
+                reasonsOtherWrapper.style.display = "none";
+                document.getElementById("id_reasons_other").value = "";
+            }
+        }
+
+        enrolledField.addEventListener("change", toggleEnrollmentFields);
+        reasonsField.addEventListener("change", toggleEnrollmentFields);
+        toggleEnrollmentFields(); // initial check
+
     });
 </script>
 {% endblock %}
