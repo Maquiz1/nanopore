@@ -3,13 +3,34 @@ from datetime import date
 from nanopore.models import Screening
 from clinical.models import YesNo
 from django.core.exceptions import ValidationError
+from reasons.models import EnrolledReason
 
 class ScreeningForm(forms.ModelForm):
+    # Consent / Eligibility fields
+    age18years = forms.ModelChoiceField(
+        queryset=YesNo.objects.all(),
+        empty_label="Select",
+        label="Is the patient 18 years or older?",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    present_symptoms = forms.ModelChoiceField(
+        queryset=YesNo.objects.all(),
+        empty_label="Select",
+        label="Does the patient have present symptoms?",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    produce_resp_sample = forms.ModelChoiceField(
+        queryset=YesNo.objects.all(),
+        empty_label="Select",
+        label="Can the patient produce a respiratory sample?",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
     genexpert_confirmation = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="Genexpert confirmation",
         widget=forms.Select(attrs={"class": "form-select"}),
+        required=False
     )
     consent = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
@@ -29,11 +50,26 @@ class ScreeningForm(forms.ModelForm):
         label="Not willing to sign the informed consent form?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+    
+    # Enrollment fields
     enrolled = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="Was this patient enrolled?",
         widget=forms.Select(attrs={"class": "form-select"}),
+        required=False
+    )
+    reasons = forms.ModelChoiceField(
+        queryset=EnrolledReason.objects.all(),
+        empty_label="Select",
+        label="Reason for enrollment decision",
+        widget=forms.Select(attrs={"class": "form-select"}),
+        required=False
+    )
+    reasons_other = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+        label="Other reasons",
+        required=False
     )
 
     class Meta:
@@ -53,6 +89,7 @@ class ScreeningForm(forms.ModelForm):
         cleaned_data = super().clean()
         pid1 = cleaned_data.get("pid1")
         pid2 = cleaned_data.get("pid2")
+
         if not pid1 or not pid2:
             raise ValidationError("Both PID1 and PID2 are required.")
         if pid1 != pid2:
@@ -68,7 +105,7 @@ class ScreeningForm(forms.ModelForm):
         if Screening.objects.filter(pid=final_pid).exclude(pk=self.instance.pk).exists():
             raise ValidationError(f"The PID {final_pid} already exists. Please choose another PID1.")
 
-        # Auto-calculate Age <-> DOB
+        # Auto-calculate Age ↔ DOB
         dob = cleaned_data.get("dob")
         age = cleaned_data.get("age")
         today = date.today()
@@ -80,11 +117,33 @@ class ScreeningForm(forms.ModelForm):
             raise ValidationError("Provide either Date of Birth or Age.")
 
         # Compute eligibility
+        # consent = cleaned_data.get("consent")
+        # unable_understand = cleaned_data.get("unable_understand")
+        # not_willing = cleaned_data.get("not_willing")
+        
+        # cleaned_data["eligible"] = (
+        #     consent.name == "Yes" and unable_understand.name == "No" and not_willing.name == "No"
+        # ) if consent and unable_understand and not_willing else False
+        
+        
+        # Compute eligibility
         consent = cleaned_data.get("consent")
         unable_understand = cleaned_data.get("unable_understand")
         not_willing = cleaned_data.get("not_willing")
-        cleaned_data["eligible"] = (
+        age18years = cleaned_data.get("age18years")
+        present_symptoms = cleaned_data.get("present_symptoms")
+        produce_resp_sample = cleaned_data.get("produce_resp_sample")
+
+        consent_logic = (
+            consent and unable_understand and not_willing and
             consent.name == "Yes" and unable_understand.name == "No" and not_willing.name == "No"
-        ) if consent and unable_understand and not_willing else False
+        )
+
+        screening_criteria_logic = (
+            age18years and present_symptoms and produce_resp_sample and
+            age18years.name == "Yes" and present_symptoms.name == "Yes" and produce_resp_sample.name == "Yes"
+        )
+
+        cleaned_data["eligible"] = consent_logic and screening_criteria_logic
 
         return cleaned_data

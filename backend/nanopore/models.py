@@ -7,6 +7,7 @@ from datetime import date
 from demographic.models import Sex
 from locations.models import Site
 from clinical.models import YesNo
+from reasons.models import EnrolledReason
 
 User = get_user_model()
 
@@ -31,14 +32,23 @@ class Screening(models.Model):
     eligible = models.BooleanField(default=False)
 
     # Inclusion / Consent fields
+    
+    age18years = models.ForeignKey(
+        YesNo, on_delete=models.PROTECT, related_name="screening_age18years")
+    present_symptoms = models.ForeignKey(
+        YesNo, on_delete=models.PROTECT, related_name="screening_present_symptoms")
+    produce_resp_sample = models.ForeignKey(
+        YesNo, on_delete=models.PROTECT, related_name="screening_produce_resp_sample")
+
+    genexpert_confirmation = models.ForeignKey(
+        YesNo, on_delete=models.PROTECT, related_name="screening_genexpert_confirmation", blank=True, null=True
+    )
+    
+    
     consent = models.ForeignKey(
         YesNo, on_delete=models.PROTECT, related_name="screening_consent"
     )
     consent_date = models.DateField(blank=True, null=True)
-    
-    genexpert_confirmation = models.ForeignKey(
-        YesNo, on_delete=models.PROTECT, related_name="screening_genexpert_confirmation"
-    )
 
     # Exclusion fields
     unable_understand = models.ForeignKey(
@@ -52,6 +62,11 @@ class Screening(models.Model):
     enrolled = models.ForeignKey(
         YesNo, on_delete=models.PROTECT, related_name="screening_enrolled", null=True, blank=True
     )
+    reasons = models.ForeignKey(
+        EnrolledReason, on_delete=models.PROTECT, related_name="screening_enrolled_reasons", null=True, blank=True
+    )
+    reasons_other = models.TextField(blank=True, null=True)
+
 
     site = models.ForeignKey(Site, on_delete=models.SET_NULL, blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
@@ -88,11 +103,25 @@ class Screening(models.Model):
             self.age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
 
         # Compute eligibility
-        self.eligible = (
+        # self.eligible = (
+        #     (self.consent and self.consent.name == 'Yes') and
+        #     (self.unable_understand and self.unable_understand.name == 'No') and
+        #     (self.not_willing and self.not_willing.name == 'No')
+        # )
+        
+        consent_logic = (
             (self.consent and self.consent.name == 'Yes') and
             (self.unable_understand and self.unable_understand.name == 'No') and
             (self.not_willing and self.not_willing.name == 'No')
+            )
+        
+        screening_criteria_logic = (
+            (self.age18years and self.age18years.name == 'Yes') and
+            (self.present_symptoms and self.present_symptoms.name == 'Yes') and
+            (self.produce_resp_sample and self.produce_resp_sample.name == 'Yes')
         )
+
+        self.eligible = consent_logic and screening_criteria_logic
 
         super().save(*args, **kwargs)
 

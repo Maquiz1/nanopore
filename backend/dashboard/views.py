@@ -42,9 +42,12 @@ class DashboardHomeView(ListView):
 
         # Add counts
         context['screened_count'] = qs.count()  # Total screened
+        context['eligible_count'] = qs.filter(eligible=True).count()
         context['enrolled_count'] = qs.filter(enrollment__isnull=False).count()  # Enrolled patients
-        context['eligible_count'] = qs.filter(eligible__isnull=False).count()  # Eligible patients
         # context['completed_count'] = qs.filter(completed__isnull=False).count()  # Completed patients
+
+        # context['enrolled_count'] = qs.filter(enrolled__name="Yes").count()  # Enrolled patients
+        # context['completed_count'] = qs.filter(enrolled__name="Yes", screening_completed=True).count()  # Example if you have completed flag
 
         # You can add more counts, e.g., completed, eligible, etc.
         context['zones'] = Zone.objects.all()
