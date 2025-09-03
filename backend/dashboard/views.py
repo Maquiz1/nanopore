@@ -33,4 +33,20 @@ class DashboardHomeView(ListView):
             qs = qs.filter(screening_date__range=[start_date, end_date])
         if order_by:
             qs = qs.order_by(order_by)
+            
         return qs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        qs = self.get_queryset()
+
+        # Add counts
+        context['screened_count'] = qs.count()  # Total screened
+        context['enrolled_count'] = qs.filter(enrollment__isnull=False).count()  # Enrolled patients
+        context['eligible_count'] = qs.filter(eligible__isnull=False).count()  # Eligible patients
+        # context['completed_count'] = qs.filter(completed__isnull=False).count()  # Completed patients
+
+        # You can add more counts, e.g., completed, eligible, etc.
+        context['zones'] = Zone.objects.all()
+        context['sites'] = Site.objects.all()
+        return context
