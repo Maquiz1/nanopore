@@ -30,6 +30,10 @@ from .views import (
     ZonalLaboratoryUpdateView,
 )
 
+
+from .views.laboratory import *
+
+
 app_name = "nanopore"
 
 urlpatterns = [
