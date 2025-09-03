@@ -74,9 +74,10 @@ urlpatterns = [
 
     # ----------------- Status -----------------
     path("status/", StatusListView.as_view(), name="status-list"),
-    path("status/completed/", ScreeningListView.as_view(), name="completed-list"),
-    path("status/enrolled/", ScreeningListView.as_view(), name="enrolled-list"),
+    path("status/screened/", ScreeningListView.as_view(), name="screened-list"),
     path("status/eligible/", ScreeningListView.as_view(), name="eligible-list"),
+    path("status/enrolled/", ScreeningListView.as_view(), name="enrolled-list"),
+    path("status/completed/", ScreeningListView.as_view(), name="completed-list"),
 
     # ----------------- Utility -----------------
     path("check-pid/", CheckPIDView.as_view(), name="check_pid"),
