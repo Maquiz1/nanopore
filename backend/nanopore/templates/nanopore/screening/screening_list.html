@@ -96,7 +96,7 @@
                     <td>{{ screening.screening_date|date:"M d, Y" }}</td>
                     <td>{{ screening.pid }}</td>
                     <td>{% if screening.site %}{{ screening.site.name }}{% else %}N/A{% endif %}</td>
-                    <td>{% if screening.site and screening.site.zone %}{{ screening.site.zone.name }}{% else %}N/A{% endif %}</td>
+                    <td>{% if screening.site and screening.site.district.region.zone %}{{ screening.site.district.region.zone.name }}{% else %}N/A{% endif %}</td>
                     <td>{{ screening.age }}</td>
                     <td>{% if screening.sex %}{{ screening.sex.name }}{% else %}N/A{% endif %}</td>
                     <td>

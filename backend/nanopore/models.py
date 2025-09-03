@@ -66,7 +66,7 @@ class Screening(models.Model):
     )
 
     class Meta:
-        db_table = "screening"
+        # db_table = "screening"
         ordering = ["screening_date", "pid"]
 
     def __str__(self):
@@ -114,8 +114,89 @@ class Enrollment(models.Model):
     )
 
     class Meta:
-        db_table = "enrollment"
+        # db_table = "enrollment"
         ordering = ["screening"]
 
     def __str__(self):
         return f"Enrollment for {self.screening.pid}"
+    
+    
+class ClinicLaboratory(models.Model):
+    # enrollment = models.ForeignKey(
+    #     "Enrollment", on_delete=models.CASCADE, related_name="clinic_labs"
+    # )
+    screening = models.OneToOneField(
+        Screening, on_delete=models.CASCADE, related_name="clinic_laboratory"
+    )
+    test_name = models.CharField(max_length=100)
+    result = models.CharField(max_length=100, blank=True, null=True)
+    test_date = models.DateField()
+
+    remarks = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_labs_created"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_labs_updated"
+    )
+
+    class Meta:
+        ordering = ["-test_date"]
+
+    def __str__(self):
+        return f"{self.test_name} for {self.enrollment.screening.pid}"
+
+
+class Diagnosis(models.Model):
+    screening = models.OneToOneField(
+        Screening, on_delete=models.CASCADE, related_name="diagnosis"
+    )
+    diagnosis_name = models.CharField(max_length=200)
+    diagnosis_date = models.DateField()
+
+    remarks = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="diagnoses_created"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="diagnoses_updated"
+    )
+
+    class Meta:
+        ordering = ["-diagnosis_date"]
+
+    def __str__(self):
+        return f"Diagnosis for {self.enrollment.screening.pid}: {self.diagnosis_name}"
+
+
+class ZonalLaboratory(models.Model):
+    # Zonal labs are for all patients in the zone, so link directly to screening
+    screening = models.ForeignKey(
+        "Screening", on_delete=models.CASCADE, related_name="zonal_laboratory"
+    )
+    test_name = models.CharField(max_length=100)
+    result = models.CharField(max_length=100, blank=True, null=True)
+    test_date = models.DateField()
+
+    remarks = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_labs_created"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_labs_updated"
+    )
+
+    class Meta:
+        ordering = ["-test_date"]
+
+    def __str__(self):
+        return f"{self.test_name} for {self.screening.pid} (Zonal Lab)"

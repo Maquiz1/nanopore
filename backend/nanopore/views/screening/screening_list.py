@@ -1,18 +1,22 @@
 # views.py
 from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from nanopore.models import Screening
 from locations.models import Zone, Site
+from django.db.models import Q
+from utils.permissions import filter_queryset_by_user_role
 
 class ScreeningListView(ListView):
     model = Screening
     template_name = 'nanopore/screening/screening_list.html'
     context_object_name = 'object_list'
-    paginate_by = 10  # optional pagination
+    paginate_by = 10
 
     def get_queryset(self):
         qs = Screening.objects.select_related('site', 'sex', 'enrolled')
+        qs = filter_queryset_by_user_role(self.request.user, qs)
 
-        # Filters from GET params
+        # Additional filters
         zone_id = self.request.GET.get('zone')
         site_id = self.request.GET.get('site')
         pid = self.request.GET.get('pid')
@@ -28,16 +32,6 @@ class ScreeningListView(ListView):
             qs = qs.filter(pid__icontains=pid)
         if start_date and end_date:
             qs = qs.filter(screening_date__range=[start_date, end_date])
-
-        # Ordering
         if order_by:
             qs = qs.order_by(order_by)
-
         return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['zones'] = Zone.objects.all()
-        context['sites'] = Site.objects.all()
-        context['request'] = self.request  # to keep filters selected in template
-        return context

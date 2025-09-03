@@ -2,7 +2,6 @@
 
 from django.db import models
 
-
 class Country(models.Model):
     name = models.CharField(max_length=100)
 
@@ -19,7 +18,7 @@ class Zone(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = "zone"
+        # db_table = "zone"
         ordering = ["name"]
 
     def __str__(self):
@@ -40,10 +39,27 @@ class District(models.Model):
     def __str__(self):
         return f"{self.name}, {self.region.name}"
 
+
+class SiteType(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # Clinic, Laboratory
+    code = models.CharField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class SiteLevel(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # e.g., "Local", "Zonal", "National"
+    code = models.CharField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class Site(models.Model):
     name = models.CharField(max_length=100)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
-    pid_prefix = models.CharField(max_length=13, default="")  # e.g., "TZ01-"
+    pid_prefix = models.CharField(max_length=13, default="")  # e.g., TZ01-
+    site_type = models.ForeignKey(SiteType, on_delete=models.CASCADE, null=True, blank=True)
+    site_level = models.ForeignKey(SiteLevel, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} - {self.district.name}"
