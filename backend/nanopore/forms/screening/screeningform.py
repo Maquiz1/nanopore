@@ -7,24 +7,29 @@ from reasons.models import EnrolledReason
 
 class ScreeningForm(forms.ModelForm):
     # Consent / Eligibility fields
-    age18years = forms.ModelChoiceField(
-        queryset=YesNo.objects.all(),
-        empty_label="Select",
-        label="Is the patient 18 years or older?",
-        widget=forms.Select(attrs={"class": "form-select"}),
-    )
+
+    # INCLUSION fields
+
     present_symptoms = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="Does the patient have present symptoms?",
+        label="4. Does the patient present with signs and symptoms suggestive of pulmonary TB or another pulmonary infection of bacterial, viral, or fungal origin?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     produce_resp_sample = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="Can the patient produce a respiratory sample?",
+        label="5. Is the patient capable of producing a sputum sample?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+    
+    age18years = forms.ModelChoiceField(
+        queryset=YesNo.objects.all(),
+        empty_label="Select",
+        label="6. Is the Patient at least 18 years old?",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    
     genexpert_confirmation = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
@@ -32,22 +37,27 @@ class ScreeningForm(forms.ModelForm):
         widget=forms.Select(attrs={"class": "form-select"}),
         required=False
     )
+    
     consent = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="Has the patient provided written informed consent?",
+        label="7. Has the patient provided written informed consent to participate?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    unable_understand = forms.ModelChoiceField(
-        queryset=YesNo.objects.all(),
-        empty_label="Select",
-        label="Unable to understand the informed consent form?",
-        widget=forms.Select(attrs={"class": "form-select"}),
-    )
+    
+    # EXCLUSION fields
+
     not_willing = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="Not willing to sign the informed consent form?",
+        label="9. Not willing to sign the informed consent form?",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    
+    unable_understand = forms.ModelChoiceField(
+        queryset=YesNo.objects.all(),
+        empty_label="Select",
+        label="10. Unable to understand the informed consent form and/or the study procedures?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     
@@ -55,20 +65,20 @@ class ScreeningForm(forms.ModelForm):
     enrolled = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="Was this patient enrolled?",
+        label="11(a). Was this patient enrolled?",
         widget=forms.Select(attrs={"class": "form-select"}),
         required=False
     )
     reasons = forms.ModelChoiceField(
         queryset=EnrolledReason.objects.all(),
         empty_label="Select",
-        label="Reason for enrollment decision",
+        label="11(b).If not, what was the reason?",
         widget=forms.Select(attrs={"class": "form-select"}),
         required=False
     )
     reasons_other = forms.CharField(
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-        label="Other reasons",
+        label="11(b). Other, please explain:",
         required=False
     )
 
@@ -82,6 +92,7 @@ class ScreeningForm(forms.ModelForm):
             "screening_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "dob": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "age": forms.NumberInput(attrs={"class": "form-control"}),
+            "consent_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 

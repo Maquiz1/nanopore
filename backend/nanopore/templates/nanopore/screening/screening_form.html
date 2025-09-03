@@ -1,160 +1,177 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
 
-            <!-- Top navigation buttons (same row, full width of form) -->
-            <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:screening-list' %}" class="btn btn-secondary flex-grow-1">
+            <!-- Top navigation buttons -->
+            <div class="d-flex justify-content-between mb-4 gap-2">
+                <a href="{% url 'nanopore:screening-list' %}" class="btn btn-outline-secondary flex-grow-1">
                     🔙 Back to List
                 </a>
-                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary flex-grow-1">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
 
+            <!-- Card wrapper -->
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">{{ view.object|default:"New" }} Screening</h4>
                 </div>
                 <div class="card-body">
+
                     <form method="post" novalidate>
                         {% csrf_token %}
 
-                        <!-- Show non-field errors -->
+                        <!-- Non-field errors -->
                         {% if form.non_field_errors %}
                         <div class="alert alert-warning">
                             {% for error in form.non_field_errors %}
-                                <div>{{ error }}</div>
+                            <div>{{ error }}</div>
                             {% endfor %}
                         </div>
                         {% endif %}
 
                         <!-- DEMOGRAPHIC SECTION -->
                         <h5 class="mb-3">Demographic Information</h5>
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                <label for="{{ form.screening_date.id_for_label }}" class="form-label">Screening Date</label>
+                                {{ form.screening_date.label_tag }}
                                 {{ form.screening_date }}
-                                {% for error in form.screening_date.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.screening_date.errors }}
                             </div>
                             <div class="col-md-4">
-                                <label for="{{ form.pid1.id_for_label }}" class="form-label">PID1</label>
+                                {{ form.pid1.label_tag }}
                                 {{ form.pid1 }}
-                                {% for error in form.pid1.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.pid1.errors }}
                             </div>
                             <div class="col-md-4">
-                                <label for="{{ form.pid2.id_for_label }}" class="form-label">PID2</label>
+                                {{ form.pid2.label_tag }}
                                 {{ form.pid2 }}
-                                {% for error in form.pid2.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.pid2.errors }}
                             </div>
                         </div>
+                        <hr class="my-4">
 
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                <label for="{{ form.sex.id_for_label }}" class="form-label">Sex</label>
+                                {{ form.sex.label_tag }}
                                 {{ form.sex }}
+                                {{ form.sex.errors }}
                             </div>
                             <div class="col-md-4">
-                                <label for="{{ form.dob.id_for_label }}" class="form-label">Date of Birth</label>
+                                {{ form.dob.label_tag }}
                                 {{ form.dob }}
+                                {{ form.dob.errors }}
                             </div>
                             <div class="col-md-4">
-                                <label for="{{ form.age.id_for_label }}" class="form-label">Age</label>
+                                {{ form.age.label_tag }}
                                 {{ form.age }}
+                                {{ form.age.errors }}
                             </div>
                         </div>
 
-                        <hr class="my-3">
+                        <hr class="my-4">
 
-                        <!-- INCLUSIONS -->
-                        <h5 class="mb-3">Inclusions</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label class="form-label">{{ form.consent.label }}</label>
-                                {{ form.consent }}
-                                {% for error in form.consent.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-3">
-                                <label>{{ form.genexpert_confirmation.label }}</label>
-                                {{ form.genexpert_confirmation }}
-                                {% for error in form.genexpert_confirmation.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">{{ form.age18years.label }}</label>
+                        <!-- INCLUSION SECTION -->
+                        <h5 class="mb-3">Inclusion Criteria</h5>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.age18years.label_tag }}
                                 {{ form.age18years }}
+                                {{ form.age18years.errors }}
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">{{ form.produce_resp_sample.label }}</label>
+                            <div class="col-md-4">
+                                {{ form.present_symptoms.label_tag }}
+                                {{ form.present_symptoms }}
+                                {{ form.present_symptoms.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.produce_resp_sample.label_tag }}
                                 {{ form.produce_resp_sample }}
+                                {{ form.produce_resp_sample.errors }}
                             </div>
                         </div>
 
-                        <hr class="my-3">
+                        <hr class="my-4">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.genexpert_confirmation.label_tag }}
+                                {{ form.genexpert_confirmation }}
+                                {{ form.genexpert_confirmation.errors }}
+                            </div>
 
-                        <!-- EXCLUSIONS -->
-                        <h5 class="mb-3">Exclusions</h5>
-                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                {{ form.consent.label_tag }}
+                                {{ form.consent }}
+                                {{ form.consent.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.consent_date.label_tag }}
+                                {{ form.consent_date }}
+                                {{ form.consent_date.errors }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- EXCLUSION SECTION -->
+                        <h5 class="mb-3">Exclusion Criteria</h5>
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ form.not_willing.label }}</label>
+                                {{ form.not_willing.label_tag }}
                                 {{ form.not_willing }}
-                                {% for error in form.not_willing.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.not_willing.errors }}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ form.unable_understand.label }}</label>
+                                {{ form.unable_understand.label_tag }}
                                 {{ form.unable_understand }}
-                                {% for error in form.unable_understand.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.unable_understand.errors }}
                             </div>
                         </div>
 
-                        <hr class="my-3">
+                        <hr class="my-4">
 
-                        <!-- ENROLLMENT -->
+                        <!-- ENROLLMENT SECTION -->
                         <h5 class="mb-3">Enrollment</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">{{ form.enrolled.label }}</label>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.enrolled.label_tag }}
                                 {{ form.enrolled }}
+                                {{ form.enrolled.errors }}
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">{{ form.reasons.label }}</label>
+                            <div class="col-md-4">
+                                {{ form.reasons.label_tag }}
                                 {{ form.reasons }}
-                                <label class="form-label">{{ form.reasons_other.label }}</label>
+                                {{ form.reasons.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.reasons_other.label_tag }}
                                 {{ form.reasons_other }}
+                                {{ form.reasons_other.errors }}
                             </div>
                         </div>
 
-                        <hr class="my-3">
+                        <hr class="my-4">
 
                         <!-- GENERAL COMMENTS -->
                         <h5 class="mb-3">General Comments</h5>
                         <div class="mb-3">
-                            <label class="form-label">{{ form.remarks.label }}</label>
+                            {{ form.remarks.label_tag }}
                             {{ form.remarks }}
+                            {{ form.remarks.errors }}
                         </div>
 
-                        <hr class="my-3">
-
-                        <!-- Bottom buttons -->
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'nanopore:screening-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
-                            <button type="submit" class="btn btn-success">💾 Save Screening</button>
+                        <!-- Form Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'nanopore:screening-list' %}" class="btn btn-outline-danger">
+                                ❌ Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                💾 Save Screening
+                            </button>
                         </div>
 
                     </form>
@@ -167,55 +184,55 @@
 
 {% block extra_scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const pid1 = document.getElementById("id_pid1");
-    const pid2 = document.getElementById("id_pid2");
-    const siteSelect = document.getElementById("id_site");
-    const pidWarning = document.createElement("div");
-    pidWarning.className = "text-danger mt-1";
-    pid1.parentNode.appendChild(pidWarning);
+    document.addEventListener("DOMContentLoaded", function () {
+        const pid1 = document.getElementById("id_pid1");
+        const pid2 = document.getElementById("id_pid2");
+        const siteSelect = document.getElementById("id_site");
+        const pidWarning = document.createElement("div");
+        pidWarning.className = "text-danger mt-1";
+        pid1.parentNode.appendChild(pidWarning);
 
-    const saveButton = document.querySelector("button[type='submit']");
+        const saveButton = document.querySelector("button[type='submit']");
 
-    function allowThreeDigitsOnly(input) {
-        input.addEventListener("input", function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 3);
-        });
-    }
-
-    allowThreeDigitsOnly(pid1);
-    allowThreeDigitsOnly(pid2);
-
-    async function checkPID() {
-        const pidVal = pid1.value;
-        const siteVal = siteSelect ? siteSelect.value : '';
-        if (!pidVal) {
-            pidWarning.innerText = '';
-            saveButton.disabled = false;
-            return;
+        function allowThreeDigitsOnly(input) {
+            input.addEventListener("input", function () {
+                this.value = this.value.replace(/\D/g, '').slice(0, 3);
+            });
         }
 
-        try {
-            const response = await fetch(`/nanopore/check-pid/?pid1=${pidVal}&site_id=${siteVal}`);
-            const data = await response.json();
-            if (data.exists) {
-                pidWarning.innerText = `⚠ PID "${data.pid}" already exists! Please choose another.`;
-                saveButton.disabled = true;
-            } else {
+        allowThreeDigitsOnly(pid1);
+        allowThreeDigitsOnly(pid2);
+
+        async function checkPID() {
+            const pidVal = pid1.value;
+            const siteVal = siteSelect ? siteSelect.value : '';
+            if (!pidVal) {
+                pidWarning.innerText = '';
+                saveButton.disabled = false;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/nanopore/check-pid/?pid1=${pidVal}&site_id=${siteVal}`);
+                const data = await response.json();
+                if (data.exists) {
+                    pidWarning.innerText = `⚠ PID "${data.pid}" already exists! Please choose another.`;
+                    saveButton.disabled = true;
+                } else {
+                    pidWarning.innerText = '';
+                    saveButton.disabled = false;
+                }
+            } catch (error) {
+                console.error("Error checking PID:", error);
                 pidWarning.innerText = '';
                 saveButton.disabled = false;
             }
-        } catch (error) {
-            console.error("Error checking PID:", error);
-            pidWarning.innerText = '';
-            saveButton.disabled = false;
         }
-    }
 
-    pid1.addEventListener("input", checkPID);
-    if(siteSelect){
-        siteSelect.addEventListener("change", checkPID);
-    }
-});
+        pid1.addEventListener("input", checkPID);
+        if (siteSelect) {
+            siteSelect.addEventListener("change", checkPID);
+        }
+    });
 </script>
 {% endblock %}
