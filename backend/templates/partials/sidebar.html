@@ -3,77 +3,54 @@
 <div class="sidebar" id="sidebar">
     <h2>📘 DREAM-NANOPORE</h2>
 
-    <!-- Dashboard -->
+    <!-- Dashboard visible to all users -->
     <a href="{% url 'dashboard:dashboard' %}">
         <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
     </a>
 
-    <!-- Staffs -->
-    <a href="{% url 'users:staff_list' %}">
-        <i class="fas fa-users"></i><span> Staffs</span>
-    </a>
+    <!-- Superuser only links -->
+    {% if user.is_superuser %}
+        <a href="{% url 'users:staff_list' %}">
+            <i class="fas fa-users"></i><span> Users</span>
+        </a>
+        <a href="{% url 'clinical:disease-list' %}">
+            <i class="fas fa-dna"></i><span> Diseases</span>
+        </a>
+        <a href="{% url 'mentorship:visit-list' %}">
+            <i class="fas fa-calendar-check"></i><span> Visits</span>
+        </a>
+        <a href="{% url 'reports:index' %}">
+            <i class="fas fa-chart-bar"></i><span> Reports</span>
+        </a>
+        <a href="{% url 'household:household-list' %}">
+            <i class="fas fa-home"></i><span> Household</span>
+        </a>
+        <a href="{% url 'documents:usermanual-list' %}">
+            <i class="fas fa-book-open"></i><span> User Manuals</span>
+        </a>
+    {% endif %}
 
-    <!-- Countries -->
-    <a href="{% url 'locations:country-list' %}">
-        <i class="fas fa-flag"></i><span> Countries</span>
-    </a>
-
-    <!-- Diseases -->
-    <a href="{% url 'clinical:disease-list' %}">
-        <i class="fas fa-dna"></i><span> Diseases</span>
-    </a>
-
-    <!-- Visits -->
-    <a href="{% url 'mentorship:visit-list' %}">
-        <i class="fas fa-calendar-check"></i><span> Visits</span>
-    </a>
-
-    <!-- Reports -->
-    <a href="{% url 'reports:index' %}">
-        <i class="fas fa-chart-bar"></i><span> Reports</span>
-    </a>
-
-    <!-- Household -->
-    <a href="{% url 'household:household-list' %}">
-        <i class="fas fa-home"></i><span> Household</span>
-    </a>
-
-    <!-- Screening -->
+    <!-- Links for all users -->
     <a href="{% url 'nanopore:screening-list' %}">
-        <i class="fas fa-notes-medical"></i><span> Screened</span>
+        <i class="fas fa-notes-medical"></i><span> Screenings</span>
     </a>
-
-    <!-- Enrollment -->
     <a href="{% url 'nanopore:enrollment-list' %}">
         <i class="fas fa-notes-medical"></i><span> Enrollment</span>
     </a>
-
-    <!-- Enrollment -->
     <a href="{% url 'nanopore:clinic-laboratory-list' %}">
-        <i class="fas fa-notes-medical"></i><span> Clinic Laboratory</span>
+        <i class="fas fa-vials"></i><span> Clinic Laboratory</span>
     </a>
-
-    <!-- Enrollment -->
     <a href="{% url 'nanopore:zonal-laboratory-list' %}">
-        <i class="fas fa-notes-medical"></i><span> Zonal Laboratory</span>
+        <i class="fas fa-flask"></i><span> Zonal Laboratory</span>
     </a>
-
-    <!-- Enrollment -->
     <a href="{% url 'nanopore:diagnosis-list' %}">
-        <i class="fas fa-notes-medical"></i><span> Diagnosis</span>
+        <i class="fas fa-stethoscope"></i><span> Diagnosis</span>
     </a>
-
-    <!-- Forms (Models Status) -->
     <a href="{% url 'nanopore:status-list' %}">
         <i class="fas fa-tasks"></i><span> Forms</span>
     </a>
 
-    <!-- User Manuals -->
-    <a href="{% url 'documents:usermanual-list' %}">
-        <i class="fas fa-book-open"></i><span> User Manuals</span>
-    </a>
-
-    <!-- Auth -->
+    <!-- Authentication -->
     {% if user.is_authenticated %}
         <a href="{% url 'users:logout' %}">
             <i class="fas fa-sign-out-alt"></i><span> Logout</span>
@@ -84,3 +61,37 @@
         </a>
     {% endif %}
 </div>
+
+<style>
+.sidebar {
+    width: 220px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.sidebar h2 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+.sidebar a {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    color: #ecf0f1;
+    text-decoration: none;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    transition: 0.2s;
+}
+.sidebar a:hover {
+    background-color: #34495e;
+}
+.sidebar i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+</style>
