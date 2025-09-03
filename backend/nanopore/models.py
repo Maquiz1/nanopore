@@ -25,8 +25,8 @@ class Screening(models.Model):
     pid = models.CharField(max_length=255, unique=True, editable=False)
 
     sex = models.ForeignKey(Sex, on_delete=models.SET_NULL, null=True, blank=True)
-    dob = models.DateField(blank=True, null=True)
-    age = models.IntegerField(blank=True, null=True)
+    dob = models.DateField()
+    age = models.IntegerField()
 
     # Eligibility (hidden boolean)
     eligible = models.BooleanField(default=False)
