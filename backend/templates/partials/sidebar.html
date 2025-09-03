@@ -9,9 +9,10 @@
     </a>
 
     <a href="{% url 'locations:country-list' %}"
-        class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
+       class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
         <i class="fas fa-globe"></i> Countries
     </a>
+
     <!-- Superuser only links -->
     {% if user.is_superuser %}
         <a href="{% url 'users:staff_list' %}">
@@ -34,25 +35,33 @@
         </a>
     {% endif %}
 
-    <!-- Links for all users -->
-    <a href="{% url 'nanopore:screening-list' %}">
-        <i class="fas fa-notes-medical"></i><span> Screenings</span>
-    </a>
-    <a href="{% url 'nanopore:enrollment-list' %}">
-        <i class="fas fa-notes-medical"></i><span> Enrollment</span>
-    </a>
-    <a href="{% url 'nanopore:clinic-laboratory-list' %}">
-        <i class="fas fa-vials"></i><span> Clinic Laboratory</span>
-    </a>
-    <a href="{% url 'nanopore:zonal-laboratory-list' %}">
-        <i class="fas fa-flask"></i><span> Zonal Laboratory</span>
-    </a>
-    <a href="{% url 'nanopore:diagnosis-list' %}">
-        <i class="fas fa-stethoscope"></i><span> Diagnosis</span>
-    </a>
-    <a href="{% url 'nanopore:status-list' %}">
-        <i class="fas fa-tasks"></i><span> Forms</span>
-    </a>
+    <!-- All Forms grouped -->
+    <div class="menu-group">
+        <a href="javascript:void(0);" class="menu-toggle">
+            <i class="fas fa-tasks"></i><span> Forms</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+        </a>
+        <div class="submenu">
+            <a href="{% url 'nanopore:status-list' %}">
+                <i class="fas fa-list-check"></i><span> All</span>
+            </a>
+            <a href="{% url 'nanopore:screening-list' %}">
+                <i class="fas fa-notes-medical"></i><span> Screenings</span>
+            </a>
+            <a href="{% url 'nanopore:enrollment-list' %}">
+                <i class="fas fa-notes-medical"></i><span> Enrollment</span>
+            </a>
+            <a href="{% url 'nanopore:clinic-laboratory-list' %}">
+                <i class="fas fa-vials"></i><span> Clinic Laboratory</span>
+            </a>
+            <a href="{% url 'nanopore:zonal-laboratory-list' %}">
+                <i class="fas fa-flask"></i><span> Zonal Laboratory</span>
+            </a>
+            <a href="{% url 'nanopore:diagnosis-list' %}">
+                <i class="fas fa-stethoscope"></i><span> Diagnosis</span>
+            </a>
+        </div>
+    </div>
 
     <!-- Authentication -->
     {% if user.is_authenticated %}
@@ -98,4 +107,25 @@
     width: 20px;
     text-align: center;
 }
+.menu-group .submenu {
+    display: none;
+    margin-left: 15px;
+}
+.menu-group.open .submenu {
+    display: block;
+}
+.menu-toggle {
+    cursor: pointer;
+}
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const toggles = document.querySelectorAll(".menu-toggle");
+    toggles.forEach(toggle => {
+        toggle.addEventListener("click", function () {
+            this.parentElement.classList.toggle("open");
+        });
+    });
+});
+</script>
