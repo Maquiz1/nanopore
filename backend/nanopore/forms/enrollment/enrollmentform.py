@@ -1,7 +1,7 @@
+# nanopore/forms/enrollment/enrollmentform.py
 from django import forms
 from nanopore.models import Enrollment
 from django.core.exceptions import ValidationError
-from datetime import date
 
 class EnrollmentForm(forms.ModelForm):
     class Meta:
@@ -16,6 +16,8 @@ class EnrollmentForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         screening = cleaned_data.get("screening")
-        if hasattr(screening, "enrollment"):
+
+        # prevent duplicate enrollment
+        if screening and hasattr(screening, "enrollment") and not self.instance.pk:
             raise ValidationError(f"This screening {screening} is already enrolled.")
         return cleaned_data

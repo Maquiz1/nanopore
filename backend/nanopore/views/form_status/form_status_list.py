@@ -5,9 +5,9 @@ from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
-class StatusListView(ListView):
+class FormStatusListView(ListView):
     model = Screening
-    template_name = "nanopore/form_status/status_list.html"
+    template_name = "nanopore/form_status/form_status_list.html"
     context_object_name = "screenings"
     paginate_by = 25  # ✅ optional, for large datasets
 
