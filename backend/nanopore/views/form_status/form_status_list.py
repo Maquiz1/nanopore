@@ -31,6 +31,7 @@ class FormStatusListView(ListView):
         pid = self.request.GET.get("pid")
         start_date = self.request.GET.get("start_date")
         end_date = self.request.GET.get("end_date")
+        status = self.request.GET.get("status")  # 🔹 Status filter
 
         if zone_id:
             qs = qs.filter(site__district__region__zone_id=zone_id)
@@ -40,6 +41,12 @@ class FormStatusListView(ListView):
             qs = qs.filter(pid__icontains=pid)
         if start_date and end_date:
             qs = qs.filter(screening_date__range=[start_date, end_date])
+        
+        # 🔹 Filter by eligibility status using correct field
+        if status == "eligible":
+            qs = qs.filter(eligible=True)
+        elif status == "not_eligible":
+            qs = qs.filter(eligible=False)
 
         return qs.order_by("-screening_date")
 
@@ -56,5 +63,6 @@ class FormStatusListView(ListView):
         context['selected_pid'] = self.request.GET.get("pid", "")
         context['selected_start_date'] = self.request.GET.get("start_date", "")
         context['selected_end_date'] = self.request.GET.get("end_date", "")
+        context['selected_status'] = self.request.GET.get("status", "")  # 🔹 Pass status to template
 
         return context

@@ -5,7 +5,21 @@
 <div class="container mt-4">
     <h2 class="mb-4">Screening & Form Status</h2>
 
-    <!-- Filter Bar -->
+    <!-- 🔹 Top Buttons -->
+    <div class="d-flex justify-content-between mb-3">
+        {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+            <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
+                ➕ New Screening
+            </a>
+        {% else %}
+            <span></span>
+        {% endif %}
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
+            ⬅ Back to Dashboard
+        </a>
+    </div>
+
+    <!-- 🔹 Filter Bar -->
     <form method="get" class="row g-3 mb-4">
         {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
         <div class="col-md-3">
@@ -13,21 +27,16 @@
             <select name="zone" id="zone" class="form-select">
                 <option value="">-- All Zones --</option>
                 {% for zone in zones %}
-                    <option value="{{ zone.id }}" {% if request.GET.zone == zone.id|stringformat:"s" %}selected{% endif %}>
-                        {{ zone.name }}
-                    </option>
+                    <option value="{{ zone.id }}" {% if selected_zone == zone.id|stringformat:"s" %}selected{% endif %}>{{ zone.name }}</option>
                 {% endfor %}
             </select>
         </div>
-
         <div class="col-md-3">
             <label for="site" class="form-label">Site</label>
             <select name="site" id="site" class="form-select">
                 <option value="">-- All Sites --</option>
                 {% for site in sites %}
-                    <option value="{{ site.id }}" {% if request.GET.site == site.id|stringformat:"s" %}selected{% endif %}>
-                        {{ site.name }}
-                    </option>
+                    <option value="{{ site.id }}" {% if selected_site == site.id|stringformat:"s" %}selected{% endif %}>{{ site.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -35,17 +44,26 @@
 
         <div class="col-md-2">
             <label for="pid" class="form-label">PID</label>
-            <input type="text" name="pid" id="pid" class="form-control" value="{{ request.GET.pid }}">
+            <input type="text" name="pid" id="pid" class="form-control" value="{{ selected_pid }}">
         </div>
 
         <div class="col-md-2">
             <label for="start_date" class="form-label">From</label>
-            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.GET.start_date }}">
+            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ selected_start_date }}">
         </div>
 
         <div class="col-md-2">
             <label for="end_date" class="form-label">To</label>
-            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ selected_end_date }}">
+        </div>
+
+        <div class="col-md-2">
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-select">
+                <option value="">-- All --</option>
+                <option value="eligible" {% if selected_status == "eligible" %}selected{% endif %}>Eligible</option>
+                <option value="not_eligible" {% if selected_status == "not_eligible" %}selected{% endif %}>Not Eligible</option>
+            </select>
         </div>
 
         <div class="col-md-12 text-end">
@@ -54,7 +72,7 @@
         </div>
     </form>
 
-    <!-- Data Table -->
+    <!-- 🔹 Data Table -->
     <table class="table table-striped table-bordered">
         <thead>
             <tr>
@@ -62,13 +80,12 @@
                 <th>Screening Date</th>
                 <th>Facility</th>
                 <th>Zone</th>
-
+                <th>Eligibility</th> <!-- New column -->
                 {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
                 <th>Enrollment</th>
                 <th>Clinic Lab</th>
                 <th>Diagnosis</th>
                 {% endif %}
-
                 {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                 <th>Zonal Lab</th>
                 {% endif %}
@@ -77,51 +94,87 @@
         <tbody>
             {% for screening in object_list %}
             <tr>
-                <td>{{ screening.pid }}</td>
+                <!-- PID -->
+                <td>
+                    {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" or request.user.is_superuser %}
+                        <a href="{% url 'nanopore:screening-update' screening.pk %}">{{ screening.pid }}</a>
+                    {% else %}
+                        {{ screening.pid }}
+                    {% endif %}
+                </td>
                 <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
                 <td>{{ screening.site.name|default:"-" }}</td>
                 <td>{{ screening.site.district.region.zone.name|default:"-" }}</td>
+                
+                <!-- 🔹 Eligibility cell only highlighted -->
+                <td class="{% if screening.eligible %}table-success{% else %}table-danger{% endif %}">
+                    {% if screening.eligible %}
+                        ✅ Eligible
+                    {% else %}
+                        ❌ Not Eligible
+                    {% endif %}
+                </td>
 
                 {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+                <!-- Enrollment -->
                 <td>
                     {% if screening.enrollment %}
                         <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ Enrolled</a>
                         <br>{{ screening.enrollment.enrollment_date|date:"Y-m-d" }}
                     {% else %}
-                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ screening.pk }}">❌ Not Enrolled</a>
+                        {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            <a href="{% url 'nanopore:enrollment-create' %}?screening={{ screening.pk }}">❌ Not Enrolled</a>
+                        {% else %}
+                            ❌ Not Enrolled
+                        {% endif %}
                     {% endif %}
                 </td>
 
+                <!-- Clinic Lab -->
                 <td>
                     {% if screening.clinic_laboratory %}
                         <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ {{ screening.clinic_laboratory.test_name }}</a>
                     {% else %}
-                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                        {% if screening.eligible and request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                        {% else %}
+                            ❌ Add
+                        {% endif %}
                     {% endif %}
                 </td>
 
+                <!-- Diagnosis -->
                 <td>
                     {% if screening.diagnosis %}
                         <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ {{ screening.diagnosis.diagnosis_name }}</a>
                     {% else %}
-                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                        {% if screening.eligible and request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                        {% else %}
+                            ❌ Add
+                        {% endif %}
                     {% endif %}
                 </td>
                 {% endif %}
 
                 {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                <!-- Zonal Lab -->
                 <td>
                     {% if screening.zonal_laboratory %}
                         <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅ {{ screening.zonal_laboratory.test_name }}</a>
                     {% else %}
-                        <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                        {% if screening.eligible and request.user.groups.all.0.name in "LABORATORY_TECHNICIAN" %}
+                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                        {% else %}
+                            ❌ Add
+                        {% endif %}
                     {% endif %}
                 </td>
                 {% endif %}
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="text-center">No screenings found.</td>
+                <td colspan="9" class="text-center">No screenings found.</td>
             </tr>
             {% endfor %}
         </tbody>
