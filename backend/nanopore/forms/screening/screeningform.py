@@ -110,6 +110,12 @@ class ScreeningForm(forms.ModelForm):
             "age": forms.NumberInput(attrs={"class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Accept DD/MM/YYYY too
+        self.fields["screening_date"].input_formats = ["%d/%m/%Y", "%Y-%m-%d"]
+        self.fields["consent_date"].input_formats = ["%d/%m/%Y", "%Y-%m-%d"]
 
     def clean(self):
         cleaned_data = super().clean()
