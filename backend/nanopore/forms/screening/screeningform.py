@@ -7,6 +7,7 @@ from demographic.models import Sex
 from reasons.models import EnrolledReason
 from locations.models import Zone
 
+
 class ScreeningForm(forms.ModelForm):
     sex = forms.ModelChoiceField(
         queryset=Sex.objects.all(),
@@ -18,7 +19,7 @@ class ScreeningForm(forms.ModelForm):
     present_symptoms = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="4. Does the patient present with signs and symptoms suggestive of pulmonary TB or another pulmonary infection of bacterial, viral, or fungal origin?",
+        label="4. Does the patient present with signs and symptoms suggestive of pulmonary TB or another pulmonary infection?",
         widget=forms.Select(attrs={"class": "form-select"}),
         required=False,
     )
@@ -48,7 +49,7 @@ class ScreeningForm(forms.ModelForm):
     consent = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="7. Has the patient provided written informed consent to participate?",
+        label="7. Has the patient provided written informed consent?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
 
@@ -78,7 +79,7 @@ class ScreeningForm(forms.ModelForm):
         empty_label="Select",
         label="11(a). Was this patient enrolled?",
         widget=forms.Select(attrs={"class": "form-select"}),
-        required=True
+        required=False,  # ✅ handled in clean()
     )
 
     reasons = forms.ModelChoiceField(
@@ -86,13 +87,13 @@ class ScreeningForm(forms.ModelForm):
         empty_label="Select",
         label="11(b). If not, what was the reason?",
         widget=forms.Select(attrs={"class": "form-select"}),
-        required=False
+        required=False,  # ✅ handled in clean()
     )
 
     reasons_other = forms.CharField(
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         label="11(b). Other, please explain:",
-        required=False
+        required=False,  # ✅ handled in clean()
     )
 
     class Meta:
@@ -117,10 +118,12 @@ class ScreeningForm(forms.ModelForm):
         dob = self.initial.get("dob") or getattr(self.instance, "dob", None)
         screening_date = self.initial.get("screening_date") or getattr(self.instance, "screening_date", date.today())
         if dob:
-            age_at_screening = screening_date.year - dob.year - ((screening_date.month, screening_date.day) < (dob.month, dob.day))
+            age_at_screening = screening_date.year - dob.year - (
+                (screening_date.month, screening_date.day) < (dob.month, dob.day)
+            )
             self.initial["age"] = age_at_screening
 
-        # current_age relative to today for display
+        # current_age relative to today for display only
         if dob:
             today = date.today()
             self.current_age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
@@ -143,7 +146,7 @@ class ScreeningForm(forms.ModelForm):
         present_symptoms = cleaned_data.get("present_symptoms")
         genexpert_confirmation = cleaned_data.get("genexpert_confirmation")
 
-        # Conditional required based on Zone instance
+        # Conditional required based on Zone
         if zone and zone.name.lower() == "dar es salaam":
             if not present_symptoms:
                 self.add_error("present_symptoms", "This field is required for Dar es Salaam zone.")
@@ -165,18 +168,42 @@ class ScreeningForm(forms.ModelForm):
         if Screening.objects.filter(pid=final_pid).exclude(pk=self.instance.pk).exists():
             raise ValidationError(f"The PID {final_pid} already exists. Please choose another PID1.")
 
+        
+
         # Age calculation at screening
         dob = cleaned_data.get("dob")
-        screening_date = cleaned_data.get("screening_date") or date.today()
-        if dob:
-            age_at_screening = screening_date.year - dob.year - ((screening_date.month, screening_date.day) < (dob.month, dob.day))
-            if age_at_screening < 18:
-                raise ValidationError("Patient must be at least 18 years old at the time of screening.")
-            cleaned_data["age"] = age_at_screening
-        else:
+        screening_date = cleaned_data.get("screening_date")
+
+        if not dob:
             raise ValidationError("Date of Birth is required to calculate age.")
 
-        # Eligibility
+        if not screening_date:
+            raise ValidationError("Screening date is required.")
+
+        if screening_date < dob:
+            raise ValidationError("Screening date cannot be before Date of Birth.")
+
+
+        # Check if screening date is before dob
+        if screening_date < dob:
+            raise ValidationError("Screening date cannot be before Date of Birth.")
+
+        # Check if screening date is within allowed range
+        min_date = date(2025, 1, 20)
+        today = date.today()
+        if screening_date < min_date or screening_date > today:
+            raise ValidationError(f"Screening date must be between {min_date.strftime('%Y-%m-%d')} and today.")
+
+
+        age_at_screening = screening_date.year - dob.year - (
+            (screening_date.month, screening_date.day) < (dob.month, dob.day)
+        )
+        if age_at_screening < 18:
+            raise ValidationError("Patient must be at least 18 years old at the time of screening.")
+
+        cleaned_data["age"] = age_at_screening
+
+        # Eligibility logic
         consent = cleaned_data.get("consent")
         unable_understand = cleaned_data.get("unable_understand")
         not_willing = cleaned_data.get("not_willing")
@@ -192,7 +219,6 @@ class ScreeningForm(forms.ModelForm):
         if age_at_screening < 18 or not (age18years and age18years.name == "Yes"):
             eligible = False
 
-        # Conditional based on Zone
         if zone and zone.name.lower() == "dar es salaam":
             if not (present_symptoms and present_symptoms.name == "Yes"):
                 eligible = False
@@ -204,4 +230,20 @@ class ScreeningForm(forms.ModelForm):
             eligible = False
 
         cleaned_data["eligible"] = eligible
+
+        # ✅ Enrolled required only if eligible=True
+        enrolled = cleaned_data.get("enrolled")
+        reasons = cleaned_data.get("reasons")
+        reasons_other = cleaned_data.get("reasons_other")
+
+        if eligible:
+            if not enrolled:
+                self.add_error("enrolled", "This field is required because patient is eligible.")
+            elif enrolled.name == "No":
+                if not reasons:
+                    self.add_error("reasons", "This field is required if patient is not enrolled.")
+                elif reasons.name.lower().startswith("other"):
+                    if not reasons_other:
+                        self.add_error("reasons_other", "This field is required if 'Other' is selected as a reason.")
+
         return cleaned_data

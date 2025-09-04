@@ -22,7 +22,7 @@
                 </div>
                 <div class="card-body">
 
-                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ form.zone.id|default:'' }}">
+                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ form.instance.site.district.region.zone.id|default:'' }}">
                         {% csrf_token %}
 
                         <!-- Non-field errors -->
@@ -81,7 +81,7 @@
                                 {{ form.age.label_tag }}
                                 {{ form.age }}
                                 {% if form.instance.dob %}
-                                <small class="text-muted"> (Current age: {{ form.current_age }} yrs)</small>
+                                <small class="text-muted"> (Current age: {{ current_age }} yrs)</small>
                                 {% endif %}
                                 {% for error in form.age.errors %}
                                 <div class="text-danger">{{ error }}</div>
@@ -169,30 +169,32 @@
                         <hr class="my-4">
 
                         <!-- ENROLLMENT SECTION -->
-                        <div class="p-2 mb-3 bg-warning text-white rounded">
-                            <h5 class="mb-0">Enrollment</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.enrolled.label_tag }}
-                                {{ form.enrolled }}
-                                {% for error in form.enrolled.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                        <div id="enrollment-section">
+                            <div class="p-2 mb-3 bg-warning text-white rounded">
+                                <h5 class="mb-0">Enrollment</h5>
                             </div>
-                            <div class="col-md-4" id="reasons-wrapper">
-                                {{ form.reasons.label_tag }}
-                                {{ form.reasons }}
-                                {% for error in form.reasons.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4" id="reasons-other-wrapper">
-                                {{ form.reasons_other.label_tag }}
-                                {{ form.reasons_other }}
-                                {% for error in form.reasons_other.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    {{ form.enrolled.label_tag }}
+                                    {{ form.enrolled }}
+                                    {% for error in form.enrolled.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4" id="reasons-wrapper">
+                                    {{ form.reasons.label_tag }}
+                                    {{ form.reasons }}
+                                    {% for error in form.reasons.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4" id="reasons-other-wrapper">
+                                    {{ form.reasons_other.label_tag }}
+                                    {{ form.reasons_other }}
+                                    {% for error in form.reasons_other.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
 
@@ -278,41 +280,45 @@ document.addEventListener("DOMContentLoaded", function () {
     consentField.addEventListener("change", toggleConsentDate);
     toggleConsentDate();
 
-    // Enrollment reason toggles
-    const enrolledField = document.getElementById("id_enrolled");
-    const reasonsWrapper = document.getElementById("reasons-wrapper");
-    const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
-    const reasonsField = document.getElementById("id_reasons");
-
-    function toggleEnrollmentFields() {
-        if (enrolledField.value === "0") reasonsWrapper.style.display = "block";
-        else {
-            reasonsWrapper.style.display = "none";
-            reasonsOtherWrapper.style.display = "none";
-            reasonsField.value = "";
-            document.getElementById("id_reasons_other").value = "";
-        }
-        if (reasonsField.value === "Other") reasonsOtherWrapper.style.display = "block";
-        else reasonsOtherWrapper.style.display = "none";
-    }
-    enrolledField.addEventListener("change", toggleEnrollmentFields);
-    reasonsField.addEventListener("change", toggleEnrollmentFields);
-    toggleEnrollmentFields();
-
-    // Zone-dependent required fields
+    // Enrollment visibility toggle (based on eligibility + zone)
     const form = document.getElementById("screeningForm");
     const zoneId = parseInt(form.dataset.zoneId || 0);
     const darEsSalaamZoneId = {{ dar_es_salaam_zone.id|default:0 }};
     const presentSymptoms = document.getElementById("id_present_symptoms");
     const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
 
-    if (zoneId === darEsSalaamZoneId) {
-        presentSymptoms.required = true;
-        genexpertConfirmation.required = false;
-    } else {
-        presentSymptoms.required = false;
-        genexpertConfirmation.required = true;
+    const enrollmentSection = document.getElementById("enrollment-section");
+    const enrolledField = document.getElementById("id_enrolled");
+    const reasonsField = document.getElementById("id_reasons");
+    const reasonsOtherField = document.getElementById("id_reasons_other");
+
+    function toggleEnrollmentVisibility() {
+        let eligible = false;
+        if (zoneId === darEsSalaamZoneId) {
+            eligible = (presentSymptoms.value === "1"); // "Yes"
+        } else {
+            eligible = (genexpertConfirmation.value === "1"); // "Yes"
+        }
+
+        if (eligible) {
+            enrollmentSection.style.display = "block";
+            enrolledField.required = true;
+        } else {
+            enrollmentSection.style.display = "none";
+            enrolledField.required = false;
+            reasonsField.required = false;
+            reasonsOtherField.required = false;
+
+            enrolledField.value = "";
+            reasonsField.value = "";
+            reasonsOtherField.value = "";
+        }
     }
+
+    presentSymptoms.addEventListener("change", toggleEnrollmentVisibility);
+    genexpertConfirmation.addEventListener("change", toggleEnrollmentVisibility);
+
+    toggleEnrollmentVisibility(); // run on page load
 });
 </script>
 {% endblock %}
