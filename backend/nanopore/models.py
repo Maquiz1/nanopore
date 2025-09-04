@@ -3,6 +3,10 @@ from django.core.validators import RegexValidator
 from django.contrib.auth import get_user_model
 from datetime import date
 
+from django.utils import timezone
+import datetime
+from django.core.exceptions import ValidationError
+
 # Related models
 from demographic.models import Sex
 from locations.models import Site
@@ -125,8 +129,31 @@ class Screening(models.Model):
         self.eligible = consent_logic and screening_criteria_logic
 
         super().save(*args, **kwargs)
+        
+    def clean(self):
+        super().clean()
+        today = timezone.now().date()
+        min_date = datetime.date(2025, 1, 20)
 
+        # --- Screening date validation ---
+        if self.screening_date < min_date:
+            raise ValidationError({"screening_date": "Screening date cannot be before 20 Jan 2025."})
+        if self.screening_date > today:
+            raise ValidationError({"screening_date": "Screening date cannot be in the future."})
 
+        # --- Consent date validation ---
+        if self.consent and self.consent.name.lower() == "yes":
+            if not self.consent_date:
+                raise ValidationError({"consent_date": "Consent date is required when consent is Yes."})
+            if self.consent_date < self.screening_date:
+                raise ValidationError({"consent_date": "Consent date must be on or after the screening date."})
+            if self.consent_date > today:
+                raise ValidationError({"consent_date": "Consent date cannot be in the future."})
+        else:
+            # If consent is "No", make sure consent_date is empty
+            if self.consent_date:
+                raise ValidationError({"consent_date": "Consent date should be empty when consent is No."})
+            
 class Enrollment(models.Model):
     screening = models.OneToOneField(
         Screening, on_delete=models.CASCADE, related_name="enrollment"
