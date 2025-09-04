@@ -15,7 +15,11 @@
     </div>
 
     <!-- Filters -->
-    <form method="get" class="row g-3 mb-4">
+<!-- Filters -->
+<form method="get" class="row g-3 mb-4">
+
+    {% if is_admin or is_national_lab %}
+        <!-- Show Zone + Site -->
         <div class="col-md-3">
             <label for="zone" class="form-label">Zone</label>
             <select name="zone" id="zone" class="form-select">
@@ -38,23 +42,43 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
-            <label for="pid" class="form-label">PID</label>
-            <input type="text" name="pid" id="pid" value="{{ request.GET.pid }}" class="form-control" placeholder="Enter PID">
+    {% elif is_zonal_lab %}
+        <!-- Show Site only -->
+        <div class="col-md-3">
+            <label for="site" class="form-label">Site</label>
+            <select name="site" id="site" class="form-select">
+                <option value="">All Sites in Zone</option>
+                {% for s in sites %}
+                    <option value="{{ s.id }}" {% if request.GET.site == s.id|stringformat:"s" %}selected{% endif %}>
+                        {{ s.name }}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
-        <div class="col-md-2">
-            <label for="start_date" class="form-label">Start Date</label>
-            <input type="date" name="start_date" id="start_date" value="{{ request.GET.start_date }}" class="form-control">
-        </div>
-        <div class="col-md-2">
-            <label for="end_date" class="form-label">End Date</label>
-            <input type="date" name="end_date" id="end_date" value="{{ request.GET.end_date }}" class="form-control">
-        </div>
-        <div class="col-md-12 text-end mt-2">
-            <button type="submit" class="btn btn-primary">Filter</button>
-            <a href="{% url 'nanopore:screening-list' %}" class="btn btn-secondary">Reset</a>
-        </div>
-    </form>
+    {% else %}
+        <!-- Site-only users: no dropdown, auto-filter -->
+        <input type="hidden" name="site" value="{{ sites.0.id }}">
+    {% endif %}
+
+    <!-- PID + Date filters always visible -->
+    <div class="col-md-2">
+        <label for="pid" class="form-label">PID</label>
+        <input type="text" name="pid" id="pid" value="{{ request.GET.pid }}" class="form-control" placeholder="Enter PID">
+    </div>
+    <div class="col-md-2">
+        <label for="start_date" class="form-label">Start Date</label>
+        <input type="date" name="start_date" id="start_date" value="{{ request.GET.start_date }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+        <label for="end_date" class="form-label">End Date</label>
+        <input type="date" name="end_date" id="end_date" value="{{ request.GET.end_date }}" class="form-control">
+    </div>
+    <div class="col-md-12 text-end mt-2">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'nanopore:screening-list' %}" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
 
      <div>
         <!-- Add New Screening button -->
