@@ -12,7 +12,7 @@ class ScreeningUpdateView(LoginRequiredMixin, UpdateView):
     model = Screening
     form_class = ScreeningForm
     template_name = "nanopore/screening/screening_form.html"
-    success_url = reverse_lazy("nanopore:form-screening-list")
+    success_url = reverse_lazy("nanopore:form-status-list")
 
     def form_valid(self, form):
         obj = form.save(commit=False)
