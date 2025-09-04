@@ -1,6 +1,8 @@
 from django.views import View
 from django.http import JsonResponse
-from nanopore.models import Screening, Site
+from nanopore.models import Screening
+from locations.models import Site
+
 
 class CheckPIDView(View):
     def get(self, request, *args, **kwargs):
