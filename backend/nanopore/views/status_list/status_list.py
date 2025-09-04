@@ -2,23 +2,54 @@
 from django.views.generic import ListView
 from nanopore.models import Screening
 from utils.permissions import filter_queryset_by_user_role
+from utils.roles import get_role_context
+
 
 class StatusListView(ListView):
     model = Screening
     template_name = "nanopore/form_status/status_list.html"
     context_object_name = "screenings"
+    paginate_by = 25  # ✅ optional, for large datasets
 
     def get_queryset(self):
-        qs = Screening.objects.all().select_related(
-            "enrollment",
-            "clinic_laboratory",
-            "zonal_laboratory",
-            "diagnosis",
-            "site",
-            "site__district",
-            "site__district__region",
-            "site__district__region__zone"
+        qs = (
+            Screening.objects.all()
+            .select_related(
+                "enrollment",
+                "clinic_laboratory",
+                "zonal_laboratory",
+                "diagnosis",
+                "site",
+                "site__district",
+                "site__district__region",
+                "site__district__region__zone",
+            )
         )
-        # Filter based on user role & site
+
+        # 🔹 Role-based filtering
         qs = filter_queryset_by_user_role(self.request.user, qs)
-        return qs
+
+        # 🔹 Additional filters from GET params
+        zone_id = self.request.GET.get("zone")
+        site_id = self.request.GET.get("site")
+        pid = self.request.GET.get("pid")
+        start_date = self.request.GET.get("start_date")
+        end_date = self.request.GET.get("end_date")
+
+        if zone_id:
+            qs = qs.filter(site__district__region__zone_id=zone_id)
+        if site_id:
+            qs = qs.filter(site_id=site_id)
+        if pid:
+            qs = qs.filter(pid__icontains=pid)
+        if start_date and end_date:
+            qs = qs.filter(screening_date__range=[start_date, end_date])
+
+        return qs.order_by("-screening_date")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 🔹 inject role-based zone/site lists for filter dropdowns
+        context.update(get_role_context(self.request.user))
+        
+        return context

@@ -84,7 +84,8 @@
     </style>
 
     <!-- Filters -->
-    <form method="get" class="row g-3 mb-4">
+<form method="get" class="row g-3 mb-4">
+    {% if is_admin or is_national_lab %}
         <div class="col-md-3">
             <select name="zone" class="form-select">
                 <option value="">-- Zone --</option>
@@ -105,24 +106,42 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
-            <select name="period" class="form-select">
-                <option value="daily" {% if request.GET.period == "daily" %}selected{% endif %}>Daily</option>
-                <option value="weekly" {% if request.GET.period == "" or request.GET.period == "weekly" %}selected{% endif %}>Weekly</option>
-                <option value="monthly" {% if request.GET.period == "monthly" %}selected{% endif %}>Monthly</option>
+    {% elif is_zonal_lab %}
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">-- Site --</option>
+                {% for site in sites %}
+                <option value="{{ site.id }}" {% if request.GET.site == site.id|stringformat:"s" %}selected{% endif %}>
+                    {{ site.name }}
+                </option>
+                {% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
-            <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
-        </div>
-        <div class="col-md-2">
-            <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
-        </div>
-        <div class="col-md-12 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
-        </div>
-    </form>
+    {% else %}
+        <!-- site-only user -->
+        <input type="hidden" name="site" value="{{ sites.0.id }}">
+    {% endif %}
+
+    <!-- Period + dates always visible -->
+    <div class="col-md-2">
+        <select name="period" class="form-select">
+            <option value="daily" {% if request.GET.period == "daily" %}selected{% endif %}>Daily</option>
+            <option value="weekly" {% if request.GET.period == "" or request.GET.period == "weekly" %}selected{% endif %}>Weekly</option>
+            <option value="monthly" {% if request.GET.period == "monthly" %}selected{% endif %}>Monthly</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+        <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+    </div>
+    <div class="col-md-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
+    </div>
+</form>
+
 
     <!-- CHARTS -->
     <div class="row g-4">
