@@ -1,4 +1,3 @@
-# nanopore/views/enrollment_form.py
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import View
@@ -12,43 +11,38 @@ class EnrollmentFormView(LoginRequiredMixin, View):
     success_url = reverse_lazy("nanopore:form-status-list")
 
     def get_object(self):
-        """Return Enrollment if pk in URL, else None (new object)."""
         pk = self.kwargs.get("pk")
         if pk:
             return get_object_or_404(Enrollment, pk=pk)
         return None
 
+    def get_screening_instance(self):
+        if self.get_object():  # updating
+            return self.get_object().screening
+        screening_id = self.request.GET.get("screening")
+        if screening_id:
+            return get_object_or_404(Screening, pk=screening_id)
+        return None
+
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
-        initial = {}
-
-        # Pre-fill screening for create
-        if not obj:
-            screening_id = request.GET.get("screening")
-            if screening_id:
-                screening = get_object_or_404(Screening, pk=screening_id)
-                initial["screening"] = screening
-
-        form = EnrollmentForm(instance=obj, initial=initial)
-        form.fields["screening"].disabled = True  # Always read-only
-
+        screening_instance = self.get_screening_instance()
+        form = EnrollmentForm(instance=obj, screening_instance=screening_instance)
         return render(request, self.template_name, {"form": form, "object": obj})
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
-        form = EnrollmentForm(request.POST, instance=obj)
-        form.fields["screening"].disabled = True
+        screening_instance = self.get_screening_instance()
+        form = EnrollmentForm(request.POST, instance=obj, screening_instance=screening_instance)
 
         if form.is_valid():
             enrollment = form.save(commit=False)
             enrollment.updated_by = request.user
             enrollment.updated_at = timezone.now()
 
-            if not enrollment.pk:  # creating
+            if not enrollment.pk:
                 enrollment.created_by = request.user
-                screening_id = request.GET.get("screening")
-                if screening_id:
-                    enrollment.screening = get_object_or_404(Screening, pk=screening_id)
+                enrollment.screening = screening_instance  # assign manually
 
             enrollment.save()
             form.save_m2m()
