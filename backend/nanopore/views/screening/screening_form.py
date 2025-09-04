@@ -1,9 +1,9 @@
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import ModelFormMixin
 from django.views import View
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
+from django.core.exceptions import ValidationError
 
 from nanopore.models import Screening
 from nanopore.forms.screening.screeningform import ScreeningForm
@@ -22,45 +22,52 @@ class ScreeningFormView(LoginRequiredMixin, View):
 
     def get(self, request, pk=None):
         obj = self.get_object(pk)
-        form = self.form_class(instance=obj)
+        form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
         return render(request, self.template_name, {"form": form, "object": obj})
 
     def post(self, request, pk=None):
         obj = self.get_object(pk)
-        form = self.form_class(request.POST, instance=obj)
+        form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
 
         if form.is_valid():
             obj = form.save(commit=False)
 
-            # Assign site
+            # Assign site from user profile if not already set
             site = getattr(getattr(request.user, "profile", None), "site", None)
             if site:
                 obj.site = site
             elif not obj.site:
                 obj.site = Site.objects.first()
+
             if not obj.site:
                 form.add_error(None, "No site found. Please create a site first.")
                 return render(request, self.template_name, {"form": form, "object": obj})
 
             # Assign audit fields
-            if not obj.pk:  # new object
+            if not obj.pk:
                 obj.created_by = request.user
             obj.updated_by = request.user
             obj.updated_at = timezone.now()
 
-            # Recalculate eligible
-            if obj.consent and obj.unable_understand and obj.not_willing:
-                obj.eligible = (
-                    obj.consent.name == "Yes" and
-                    obj.unable_understand.name == "No" and
-                    obj.not_willing.name == "No"
+            # Age calculation at screening
+            if obj.dob and obj.screening_date:
+                age_at_screening = obj.screening_date.year - obj.dob.year - (
+                    (obj.screening_date.month, obj.screening_date.day) < (obj.dob.month, obj.dob.day)
                 )
+                obj.age = age_at_screening
             else:
-                obj.eligible = False
+                form.add_error(None, "Date of Birth and Screening Date are required to calculate age.")
+                return render(request, self.template_name, {"form": form, "object": obj})
+
+            # Eligibility recalculation
+            obj.eligible = self.calculate_eligibility(obj)
 
             try:
                 obj.save()
                 form.save_m2m()
+            except ValidationError as e:
+                form.add_error(None, e)
+                return render(request, self.template_name, {"form": form, "object": obj})
             except Exception as e:
                 form.add_error(None, str(e))
                 return render(request, self.template_name, {"form": form, "object": obj})
@@ -68,3 +75,49 @@ class ScreeningFormView(LoginRequiredMixin, View):
             return redirect(self.success_url)
 
         return render(request, self.template_name, {"form": form, "object": obj})
+
+    def get_initial(self, request, obj=None):
+        """
+        Pre-fill the site in the form if user has a profile with a site.
+        """
+        initial = {}
+        site = getattr(getattr(request.user, "profile", None), "site", None)
+        if site:
+            initial["site"] = site
+        elif obj and obj.site:
+            initial["site"] = obj.site
+        return initial
+
+    def calculate_eligibility(self, obj):
+        """
+        Recalculate eligibility based on zone, consent, understanding, willingness,
+        age, inclusion/exclusion criteria.
+        """
+        eligible = True
+
+        # Basic checks
+        if not (obj.consent and obj.unable_understand and obj.not_willing):
+            eligible = False
+        elif not (obj.consent.name == "Yes" and obj.unable_understand.name == "No" and obj.not_willing.name == "No"):
+            eligible = False
+
+        # Age ≥ 18 at screening
+        if obj.age < 18 or not (obj.age18years and obj.age18years.name == "Yes"):
+            eligible = False
+
+        # Zone-dependent inclusion
+        zone = getattr(getattr(obj.site, "district", None), "region", None)
+        zone = getattr(zone, "zone", None) if zone else None
+
+        if zone and zone.name.lower() == "dar es salaam":
+            if not (obj.present_symptoms and obj.present_symptoms.name == "Yes"):
+                eligible = False
+        elif zone:
+            if not (obj.genexpert_confirmation and obj.genexpert_confirmation.name == "Yes"):
+                eligible = False
+
+        # Must be able to produce sample
+        if not (obj.produce_resp_sample and obj.produce_resp_sample.name == "Yes"):
+            eligible = False
+
+        return eligible

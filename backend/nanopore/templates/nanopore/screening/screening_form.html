@@ -18,21 +18,12 @@
             <!-- Card wrapper -->
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">{{ view.object|default:"New" }} Screening</h4>
+                    <h4 class="mb-0">{{ object|default:"New" }} Screening</h4>
                 </div>
                 <div class="card-body">
 
-                    <form method="post" novalidate>
+                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ form.zone.id|default:'' }}">
                         {% csrf_token %}
-
-                        <!-- {% for field in form %}
-                        {% if field.errors %}
-                        <div class="text-danger">
-                            <strong>{{ field.label }}:</strong> {{ field.errors|striptags }}
-                        </div>
-                        {% endif %}
-                        {% endfor %} -->
-
 
                         <!-- Non-field errors -->
                         {% if form.non_field_errors %}
@@ -70,7 +61,6 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        <hr class="my-4">
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
@@ -90,18 +80,22 @@
                             <div class="col-md-4">
                                 {{ form.age.label_tag }}
                                 {{ form.age }}
+                                {% if form.instance.dob %}
+                                <small class="text-muted"> (Current age: {{ form.current_age }} yrs)</small>
+                                {% endif %}
                                 {% for error in form.age.errors %}
                                 <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
                         </div>
 
+                        <hr class="my-4">
+
                         <!-- INCLUSION SECTION -->
                         <div class="p-2 mb-3 bg-success text-white rounded">
                             <h5 class="mb-0">Inclusion Criteria</h5>
                         </div>
                         <div class="row g-3 mb-3">
-
                             <div class="col-md-4">
                                 {{ form.present_symptoms.label_tag }}
                                 {{ form.present_symptoms }}
@@ -123,9 +117,7 @@
                                 <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-
                         </div>
-                        <hr class="my-4">
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
@@ -238,85 +230,89 @@
 
 {% block extra_scripts %}
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
+    // PID validation logic
+    const pid1 = document.getElementById("id_pid1");
+    const pid2 = document.getElementById("id_pid2");
+    const siteSelect = document.getElementById("id_site");
+    const pidWarning = document.createElement("div");
+    pidWarning.className = "text-danger mt-1";
+    pid1.parentNode.appendChild(pidWarning);
+    const saveButton = document.querySelector("button[type='submit']");
 
-        // PID validation
-        const pid1 = document.getElementById("id_pid1");
-        const pid2 = document.getElementById("id_pid2");
-        const siteSelect = document.getElementById("id_site");
-        const pidWarning = document.createElement("div");
-        pidWarning.className = "text-danger mt-1";
-        pid1.parentNode.appendChild(pidWarning);
-        const saveButton = document.querySelector("button[type='submit']");
+    function allowThreeDigitsOnly(input) {
+        input.addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 3);
+        });
+    }
+    allowThreeDigitsOnly(pid1);
+    allowThreeDigitsOnly(pid2);
 
-        function allowThreeDigitsOnly(input) {
-            input.addEventListener("input", function () {
-                this.value = this.value.replace(/\D/g, '').slice(0, 3);
-            });
+    async function checkPID() {
+        const pidVal = pid1.value;
+        const siteVal = siteSelect ? siteSelect.value : '';
+        if (!pidVal) { pidWarning.innerText = ''; saveButton.disabled = false; return; }
+        try {
+            const response = await fetch(`/nanopore/check-pid/?pid1=${pidVal}&site_id=${siteVal}`);
+            const data = await response.json();
+            if (data.exists) {
+                pidWarning.innerText = `⚠ PID "${data.pid}" already exists!`;
+                saveButton.disabled = true;
+            } else { pidWarning.innerText = ''; saveButton.disabled = false; }
+        } catch (error) { console.error(error); pidWarning.innerText = ''; saveButton.disabled = false; }
+    }
+
+    pid1.addEventListener("input", checkPID);
+    if (siteSelect) siteSelect.addEventListener("change", checkPID);
+
+    // Consent date toggle
+    const consentField = document.getElementById("id_consent");
+    const consentDateWrapper = document.getElementById("consent-date-wrapper");
+    function toggleConsentDate() {
+        if (consentField.value === "1") consentDateWrapper.style.display = "block";
+        else {
+            consentDateWrapper.style.display = "none";
+            document.getElementById("id_consent_date").value = "";
         }
+    }
+    consentField.addEventListener("change", toggleConsentDate);
+    toggleConsentDate();
 
-        allowThreeDigitsOnly(pid1);
-        allowThreeDigitsOnly(pid2);
+    // Enrollment reason toggles
+    const enrolledField = document.getElementById("id_enrolled");
+    const reasonsWrapper = document.getElementById("reasons-wrapper");
+    const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
+    const reasonsField = document.getElementById("id_reasons");
 
-        async function checkPID() {
-            const pidVal = pid1.value;
-            const siteVal = siteSelect ? siteSelect.value : '';
-            if (!pidVal) { pidWarning.innerText = ''; saveButton.disabled = false; return; }
-            try {
-                const response = await fetch(`/nanopore/check-pid/?pid1=${pidVal}&site_id=${siteVal}`);
-                const data = await response.json();
-                if (data.exists) {
-                    pidWarning.innerText = `⚠ PID "${data.pid}" already exists! Please choose another.`;
-                    saveButton.disabled = true;
-                } else { pidWarning.innerText = ''; saveButton.disabled = false; }
-            } catch (error) { console.error(error); pidWarning.innerText = ''; saveButton.disabled = false; }
+    function toggleEnrollmentFields() {
+        if (enrolledField.value === "0") reasonsWrapper.style.display = "block";
+        else {
+            reasonsWrapper.style.display = "none";
+            reasonsOtherWrapper.style.display = "none";
+            reasonsField.value = "";
+            document.getElementById("id_reasons_other").value = "";
         }
+        if (reasonsField.value === "Other") reasonsOtherWrapper.style.display = "block";
+        else reasonsOtherWrapper.style.display = "none";
+    }
+    enrolledField.addEventListener("change", toggleEnrollmentFields);
+    reasonsField.addEventListener("change", toggleEnrollmentFields);
+    toggleEnrollmentFields();
 
-        pid1.addEventListener("input", checkPID);
-        if (siteSelect) siteSelect.addEventListener("change", checkPID);
+    // Zone-dependent required fields
+    const form = document.getElementById("screeningForm");
+    const zoneId = parseInt(form.dataset.zoneId || 0);
+    const darEsSalaamZoneId = {{ dar_es_salaam_zone.id|default:0 }};
+    const presentSymptoms = document.getElementById("id_present_symptoms");
+    const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
 
-        // Consent date toggle
-        const consentField = document.getElementById("id_consent");
-        const consentDateWrapper = document.getElementById("consent-date-wrapper");
-        function toggleConsentDate() {
-            if (consentField.value === "1") {
-                consentDateWrapper.style.display = "block";
-            } else {
-                consentDateWrapper.style.display = "none";
-                document.getElementById("id_consent_date").value = "";
-            }
-        }
-        consentField.addEventListener("change", toggleConsentDate);
-        toggleConsentDate();
-
-        // Enrollment reason toggles
-        const enrolledField = document.getElementById("id_enrolled");
-        const reasonsWrapper = document.getElementById("reasons-wrapper");
-        const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
-        const reasonsField = document.getElementById("id_reasons");
-
-        function toggleEnrollmentFields() {
-            if (enrolledField.value === "0") { // No
-                reasonsWrapper.style.display = "block";
-            } else {
-                reasonsWrapper.style.display = "none";
-                reasonsOtherWrapper.style.display = "none";
-                reasonsField.value = "";
-                document.getElementById("id_reasons_other").value = "";
-            }
-
-            if (reasonsField.value === "Other") {
-                reasonsOtherWrapper.style.display = "block";
-            } else {
-                reasonsOtherWrapper.style.display = "none";
-                document.getElementById("id_reasons_other").value = "";
-            }
-        }
-
-        enrolledField.addEventListener("change", toggleEnrollmentFields);
-        reasonsField.addEventListener("change", toggleEnrollmentFields);
-        toggleEnrollmentFields(); // initial check
-
-    });
+    if (zoneId === darEsSalaamZoneId) {
+        presentSymptoms.required = true;
+        genexpertConfirmation.required = false;
+    } else {
+        presentSymptoms.required = false;
+        genexpertConfirmation.required = true;
+    }
+});
 </script>
 {% endblock %}
