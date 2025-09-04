@@ -55,10 +55,12 @@ class ScreeningForm(forms.ModelForm):
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     
-    consent_date = forms.CharField(
+    # ✅ Use DateField instead of CharField
+    consent_date = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
         label="8. Date of Consent",
-        required=False
+        required=False,
+        input_formats=["%d/%m/%Y", "%Y-%m-%d"],
     )
     
     # EXCLUSION fields

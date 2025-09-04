@@ -3,7 +3,7 @@ from .screening_detail import ScreeningDetailView
 from .screening_create import ScreeningCreateView
 from .screening_update import ScreeningUpdateView
 from .screening_delete import ScreeningDeleteView
-
+from .screening_form import ScreeningFormView
 from .check_pid import CheckPIDView
 
 __all__ = [
@@ -13,4 +13,5 @@ __all__ = [
     "ScreeningCreateView",
     "ScreeningUpdateView",
     "ScreeningDeleteView",
+    "ScreeningFormView",
 ]
