@@ -53,7 +53,7 @@
 
     <div class="col-md-12 text-end">
         <button type="submit" class="btn btn-primary">Apply Filters</button>
-        <a href="{% url 'nanopore:status-list' %}" class="btn btn-secondary">Reset</a>
+        <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary">Reset</a>
     </div>
 </form>
 
@@ -66,10 +66,16 @@
                 <th>Screening Date</th>
                 <th>Facility</th>
                 <th>Zone</th>
+                                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
                 <th>Enrollment</th>
                 <th>Clinic Lab</th>
+                                <th>Diagnosis</th>
+                                                                    {% endif %}
+
+                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                 <th>Zonal Lab</th>
-                <th>Diagnosis</th>
+                                    {% endif %}
+
             </tr>
         </thead>
         <tbody>
@@ -79,6 +85,7 @@
                 <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
                 <td>{{ screening.site.name|default:"-" }}</td>
                 <td>{{ screening.site.district.region.zone.name|default:"-" }}</td>
+                                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
 
                 <!-- Enrollment -->
                 <td>
@@ -100,19 +107,7 @@
                         <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
                     {% endif %}
                 </td>
-
-                <!-- Zonal Lab -->
-                <td>
-                    {% if screening.zonal_laboratory %}
-                        <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">
-                            ✅ {{ screening.zonal_laboratory.test_name }}
-                        </a>
-                    {% else %}
-                        <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
-                    {% endif %}
-                </td>
-
-                <!-- Diagnosis -->
+                                <!-- Diagnosis -->
                 <td>
                     {% if screening.diagnosis %}
                         <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">
@@ -122,6 +117,21 @@
                         <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ Add</a>
                     {% endif %}
                 </td>
+                    {% endif %}
+
+                <!-- Zonal Lab -->
+                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                <td>
+                    {% if screening.zonal_laboratory %}
+                        <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">
+                            ✅ {{ screening.zonal_laboratory.test_name }}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                    {% endif %}
+                </td>
+                                    {% endif %}
+
             </tr>
             {% empty %}
             <tr>
