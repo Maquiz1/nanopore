@@ -1,69 +1,63 @@
 from django import forms
 from datetime import date
+from django.core.exceptions import ValidationError
 from nanopore.models import Screening
 from clinical.models import YesNo
 from demographic.models import Sex
-from django.core.exceptions import ValidationError
 from reasons.models import EnrolledReason
+from locations.models import Zone
 
 class ScreeningForm(forms.ModelForm):
-    # Consent / Eligibility fields
-
     sex = forms.ModelChoiceField(
         queryset=Sex.objects.all(),
         empty_label="Select",
         label="Sex",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    
-    # INCLUSION fields
-
 
     present_symptoms = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="4. Does the patient present with signs and symptoms suggestive of pulmonary TB or another pulmonary infection of bacterial, viral, or fungal origin?",
         widget=forms.Select(attrs={"class": "form-select"}),
+        required=False,
     )
-    
+
     genexpert_confirmation = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
-        label="4(a). Is the patient diagnosed with TB as confirmed by MTB detection using GeneXpert MTB/Rif (Ultra)?",
+        label="4(a). Is the patient diagnosed with TB as confirmed by GeneXpert MTB/Rif (Ultra)?",
         widget=forms.Select(attrs={"class": "form-select"}),
-        required=True
+        required=False,
     )
-    
+
     produce_resp_sample = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="5. Is the patient capable of producing a sputum sample?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    
+
     age18years = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="6. Is the Patient at least 18 years old?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    
+
     consent = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="7. Has the patient provided written informed consent to participate?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    
-    # ✅ Use DateField instead of CharField
+
     consent_date = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
         label="8. Date of Consent",
         required=False,
         input_formats=["%d/%m/%Y", "%Y-%m-%d"],
     )
-    
-    # EXCLUSION fields
 
     not_willing = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
@@ -71,15 +65,14 @@ class ScreeningForm(forms.ModelForm):
         label="9. Not willing to sign the informed consent form?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    
+
     unable_understand = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
         label="10. Unable to understand the informed consent form and/or the study procedures?",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    
-    # Enrollment fields
+
     enrolled = forms.ModelChoiceField(
         queryset=YesNo.objects.all(),
         empty_label="Select",
@@ -87,13 +80,15 @@ class ScreeningForm(forms.ModelForm):
         widget=forms.Select(attrs={"class": "form-select"}),
         required=True
     )
+
     reasons = forms.ModelChoiceField(
         queryset=EnrolledReason.objects.all(),
         empty_label="Select",
-        label="11(b).If not, what was the reason?",
+        label="11(b). If not, what was the reason?",
         widget=forms.Select(attrs={"class": "form-select"}),
         required=False
     )
+
     reasons_other = forms.CharField(
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         label="11(b). Other, please explain:",
@@ -109,77 +104,104 @@ class ScreeningForm(forms.ModelForm):
             "pid2": forms.TextInput(attrs={"class": "form-control", "maxlength": 3}),
             "screening_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "dob": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "age": forms.NumberInput(attrs={"class": "form-control"}),
+            "age": forms.NumberInput(attrs={"class": "form-control", "readonly": True}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
-        
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Accept DD/MM/YYYY too
         self.fields["screening_date"].input_formats = ["%d/%m/%Y", "%Y-%m-%d"]
-        self.fields["consent_date"].input_formats = ["%d/%m/%Y", "%Y-%m-%d"]
+        self.fields["dob"].input_formats = ["%d/%m/%Y", "%Y-%m-%d"]
+
+        # Auto-populate age at screening
+        dob = self.initial.get("dob") or getattr(self.instance, "dob", None)
+        screening_date = self.initial.get("screening_date") or getattr(self.instance, "screening_date", date.today())
+        if dob:
+            age_at_screening = screening_date.year - dob.year - ((screening_date.month, screening_date.day) < (dob.month, dob.day))
+            self.initial["age"] = age_at_screening
+
+        # current_age relative to today for display
+        if dob:
+            today = date.today()
+            self.current_age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        else:
+            self.current_age = None
+
+    @property
+    def zone(self):
+        site = self.initial.get("site") or getattr(self.instance, "site", None)
+        if site and site.district and site.district.region and site.district.region.zone:
+            return site.district.region.zone
+        return None
 
     def clean(self):
         cleaned_data = super().clean()
+
+        site = cleaned_data.get("site") or getattr(self.instance, "site", None)
+        zone = self.zone
+
+        present_symptoms = cleaned_data.get("present_symptoms")
+        genexpert_confirmation = cleaned_data.get("genexpert_confirmation")
+
+        # Conditional required based on Zone instance
+        if zone and zone.name.lower() == "dar es salaam":
+            if not present_symptoms:
+                self.add_error("present_symptoms", "This field is required for Dar es Salaam zone.")
+        elif zone:
+            if not genexpert_confirmation:
+                self.add_error("genexpert_confirmation", "This field is required for zones outside Dar es Salaam.")
+
+        # PID validation
         pid1 = cleaned_data.get("pid1")
         pid2 = cleaned_data.get("pid2")
-
         if not pid1 or not pid2:
             raise ValidationError("Both PID1 and PID2 are required.")
         if pid1 != pid2:
             raise ValidationError("PID2 must match PID1.")
 
-        # Generate final PID from site prefix
-        site = cleaned_data.get("site") or getattr(self.instance, "site", None)
         pid_prefix = site.pid_prefix if site else ""
         final_pid = f"{pid_prefix}{pid1}"
         cleaned_data["pid"] = final_pid
-
-        # Ensure unique PID
         if Screening.objects.filter(pid=final_pid).exclude(pk=self.instance.pk).exists():
             raise ValidationError(f"The PID {final_pid} already exists. Please choose another PID1.")
 
-        # Auto-calculate Age ↔ DOB
+        # Age calculation at screening
         dob = cleaned_data.get("dob")
-        age = cleaned_data.get("age")
-        today = date.today()
-        if dob and not age:
-            cleaned_data["age"] = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
-        elif age and not dob:
-            cleaned_data["dob"] = date(today.year - age, today.month, today.day)
-        elif not dob and not age:
-            raise ValidationError("Provide either Date of Birth or Age.")
+        screening_date = cleaned_data.get("screening_date") or date.today()
+        if dob:
+            age_at_screening = screening_date.year - dob.year - ((screening_date.month, screening_date.day) < (dob.month, dob.day))
+            if age_at_screening < 18:
+                raise ValidationError("Patient must be at least 18 years old at the time of screening.")
+            cleaned_data["age"] = age_at_screening
+        else:
+            raise ValidationError("Date of Birth is required to calculate age.")
 
-        # Compute eligibility
-        # consent = cleaned_data.get("consent")
-        # unable_understand = cleaned_data.get("unable_understand")
-        # not_willing = cleaned_data.get("not_willing")
-        
-        # cleaned_data["eligible"] = (
-        #     consent.name == "Yes" and unable_understand.name == "No" and not_willing.name == "No"
-        # ) if consent and unable_understand and not_willing else False
-
-
-        # enrolled = cleaned_data.get("enrolled")
-
-        # Compute eligibility
+        # Eligibility
         consent = cleaned_data.get("consent")
         unable_understand = cleaned_data.get("unable_understand")
         not_willing = cleaned_data.get("not_willing")
         age18years = cleaned_data.get("age18years")
-        present_symptoms = cleaned_data.get("present_symptoms")
         produce_resp_sample = cleaned_data.get("produce_resp_sample")
 
-        consent_logic = (
-            consent and unable_understand and not_willing and
-            consent.name == "Yes" and unable_understand.name == "No" and not_willing.name == "No"
-        )
+        eligible = True
+        if not (consent and unable_understand and not_willing):
+            eligible = False
+        elif not (consent.name == "Yes" and unable_understand.name == "No" and not_willing.name == "No"):
+            eligible = False
 
-        screening_criteria_logic = (
-            age18years and present_symptoms and produce_resp_sample and
-            age18years.name == "Yes" and present_symptoms.name == "Yes" and produce_resp_sample.name == "Yes"
-        )
+        if age_at_screening < 18 or not (age18years and age18years.name == "Yes"):
+            eligible = False
 
-        cleaned_data["eligible"] = consent_logic and screening_criteria_logic
+        # Conditional based on Zone
+        if zone and zone.name.lower() == "dar es salaam":
+            if not (present_symptoms and present_symptoms.name == "Yes"):
+                eligible = False
+        elif zone:
+            if not (genexpert_confirmation and genexpert_confirmation.name == "Yes"):
+                eligible = False
 
+        if not (produce_resp_sample and produce_resp_sample.name == "Yes"):
+            eligible = False
+
+        cleaned_data["eligible"] = eligible
         return cleaned_data
