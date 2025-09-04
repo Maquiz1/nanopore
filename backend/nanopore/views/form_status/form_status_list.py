@@ -4,32 +4,28 @@ from nanopore.models import Screening
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
-
 class FormStatusListView(ListView):
     model = Screening
     template_name = "nanopore/form_status/form_status_list.html"
     context_object_name = "screenings"
-    paginate_by = 25  # ✅ optional, for large datasets
+    paginate_by = 25  # optional for large datasets
 
     def get_queryset(self):
-        qs = (
-            Screening.objects.all()
-            .select_related(
-                "enrollment",
-                "clinic_laboratory",
-                "zonal_laboratory",
-                "diagnosis",
-                "site",
-                "site__district",
-                "site__district__region",
-                "site__district__region__zone",
-            )
+        qs = Screening.objects.select_related(
+            "enrollment",
+            "clinic_laboratory",
+            "zonal_laboratory",
+            "diagnosis",
+            "site",
+            "site__district",
+            "site__district__region",
+            "site__district__region__zone",
         )
 
-        # 🔹 Role-based filtering
+        # Role-based filtering
         qs = filter_queryset_by_user_role(self.request.user, qs)
 
-        # 🔹 Additional filters from GET params
+        # GET filters
         zone_id = self.request.GET.get("zone")
         site_id = self.request.GET.get("site")
         pid = self.request.GET.get("pid")
@@ -49,7 +45,16 @@ class FormStatusListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 🔹 inject role-based zone/site lists for filter dropdowns
-        context.update(get_role_context(self.request.user))
-        
+
+        # Add zones and sites for filter dropdowns
+        role_context = get_role_context(self.request.user)
+        context.update(role_context)
+
+        # Keep GET params for form persistence
+        context['selected_zone'] = self.request.GET.get("zone", "")
+        context['selected_site'] = self.request.GET.get("site", "")
+        context['selected_pid'] = self.request.GET.get("pid", "")
+        context['selected_start_date'] = self.request.GET.get("start_date", "")
+        context['selected_end_date'] = self.request.GET.get("end_date", "")
+
         return context

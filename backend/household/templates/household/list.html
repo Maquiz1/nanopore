@@ -6,7 +6,7 @@
 <body>
     <h1>Your Households</h1>
 
-    <a href="{% url 'create_household' %}">Add New Household</a>
+    <a href="{% url 'household:create_household' %}">Add New Household</a>
 
     {% if households %}
         <ul>

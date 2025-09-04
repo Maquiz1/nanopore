@@ -16,8 +16,7 @@ class EnrollmentForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         screening = cleaned_data.get("screening")
-
-        # prevent duplicate enrollment
+        # prevent duplicate enrollment when creating
         if screening and hasattr(screening, "enrollment") and not self.instance.pk:
             raise ValidationError(f"This screening {screening} is already enrolled.")
         return cleaned_data

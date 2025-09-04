@@ -3,7 +3,7 @@ from django.views.generic import ListView
 from nanopore.models import Screening
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
-
+from utils.roles import get_role_context
 
 class DashboardHomeView(ListView):
     model = Screening
