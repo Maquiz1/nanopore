@@ -1,64 +1,60 @@
+<!-- nanopore/templates/nanopore/form_status/status_list.html -->
 {% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">Screening & Form Status</h2>
 
-    <!-- 🔹 Filter Bar -->
-    <!-- 🔹 Filter Bar -->
-<form method="get" class="row g-3 mb-4">
+    <!-- Filter Bar -->
+    <form method="get" class="row g-3 mb-4">
+        {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+        <div class="col-md-3">
+            <label for="zone" class="form-label">Zone</label>
+            <select name="zone" id="zone" class="form-select">
+                <option value="">-- All Zones --</option>
+                {% for zone in zones %}
+                    <option value="{{ zone.id }}" {% if request.GET.zone == zone.id|stringformat:"s" %}selected{% endif %}>
+                        {{ zone.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
-    <div class="col-md-3">
-        <label for="zone" class="form-label">Zone</label>
-        <select name="zone" id="zone" class="form-select">
-            <option value="">-- All Zones --</option>
-            {% for zone in zones %}
-                <option value="{{ zone.id }}" {% if request.GET.zone == zone.id|stringformat:"s" %}selected{% endif %}>
-                    {{ zone.name }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+        <div class="col-md-3">
+            <label for="site" class="form-label">Site</label>
+            <select name="site" id="site" class="form-select">
+                <option value="">-- All Sites --</option>
+                {% for site in sites %}
+                    <option value="{{ site.id }}" {% if request.GET.site == site.id|stringformat:"s" %}selected{% endif %}>
+                        {{ site.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
 
-    <div class="col-md-3">
-        <label for="site" class="form-label">Site</label>
-        <select name="site" id="site" class="form-select">
-            <option value="">-- All Sites --</option>
-            {% for site in sites %}
-                <option value="{{ site.id }}" {% if request.GET.site == site.id|stringformat:"s" %}selected{% endif %}>
-                    {{ site.name }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
-    {% endif %}
+        <div class="col-md-2">
+            <label for="pid" class="form-label">PID</label>
+            <input type="text" name="pid" id="pid" class="form-control" value="{{ request.GET.pid }}">
+        </div>
 
-    <div class="col-md-2">
-        <label for="pid" class="form-label">PID</label>
-        <input type="text" name="pid" id="pid" class="form-control" value="{{ request.GET.pid }}">
-    </div>
+        <div class="col-md-2">
+            <label for="start_date" class="form-label">From</label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.GET.start_date }}">
+        </div>
 
-    <div class="col-md-2">
-        <label for="start_date" class="form-label">From</label>
-        <input type="date" name="start_date" id="start_date" class="form-control"
-               value="{{ request.GET.start_date }}">
-    </div>
+        <div class="col-md-2">
+            <label for="end_date" class="form-label">To</label>
+            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.GET.end_date }}">
+        </div>
 
-    <div class="col-md-2">
-        <label for="end_date" class="form-label">To</label>
-        <input type="date" name="end_date" id="end_date" class="form-control"
-               value="{{ request.GET.end_date }}">
-    </div>
+        <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
 
-    <div class="col-md-12 text-end">
-        <button type="submit" class="btn btn-primary">Apply Filters</button>
-        <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary">Reset</a>
-    </div>
-</form>
-
-
-    <!-- 🔹 Data Table -->
+    <!-- Data Table -->
     <table class="table table-striped table-bordered">
         <thead>
             <tr>
@@ -66,16 +62,16 @@
                 <th>Screening Date</th>
                 <th>Facility</th>
                 <th>Zone</th>
-                                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+
+                {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
                 <th>Enrollment</th>
                 <th>Clinic Lab</th>
-                                <th>Diagnosis</th>
-                                                                    {% endif %}
+                <th>Diagnosis</th>
+                {% endif %}
 
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                 <th>Zonal Lab</th>
-                                    {% endif %}
-
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -85,53 +81,43 @@
                 <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
                 <td>{{ screening.site.name|default:"-" }}</td>
                 <td>{{ screening.site.district.region.zone.name|default:"-" }}</td>
-                                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
 
-                <!-- Enrollment -->
+                {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
                 <td>
                     {% if screening.enrollment %}
-                        <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ Enrolled</a><br>
-                        {{ screening.enrollment.enrollment_date|date:"Y-m-d" }}
+                        <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ Enrolled</a>
+                        <br>{{ screening.enrollment.enrollment_date|date:"Y-m-d" }}
                     {% else %}
                         <a href="{% url 'nanopore:enrollment-create' %}?screening={{ screening.pk }}">❌ Not Enrolled</a>
                     {% endif %}
                 </td>
 
-                <!-- Clinic Lab -->
                 <td>
                     {% if screening.clinic_laboratory %}
-                        <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">
-                            ✅ {{ screening.clinic_laboratory.test_name }}
-                        </a>
+                        <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ {{ screening.clinic_laboratory.test_name }}</a>
                     {% else %}
                         <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
                     {% endif %}
                 </td>
-                                <!-- Diagnosis -->
+
                 <td>
                     {% if screening.diagnosis %}
-                        <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">
-                            ✅ {{ screening.diagnosis.diagnosis_name }}
-                        </a>
+                        <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ {{ screening.diagnosis.diagnosis_name }}</a>
                     {% else %}
                         <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ Add</a>
                     {% endif %}
                 </td>
-                    {% endif %}
+                {% endif %}
 
-                <!-- Zonal Lab -->
-                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                 <td>
                     {% if screening.zonal_laboratory %}
-                        <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">
-                            ✅ {{ screening.zonal_laboratory.test_name }}
-                        </a>
+                        <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅ {{ screening.zonal_laboratory.test_name }}</a>
                     {% else %}
                         <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
                     {% endif %}
                 </td>
-                                    {% endif %}
-
+                {% endif %}
             </tr>
             {% empty %}
             <tr>
