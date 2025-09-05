@@ -8,7 +8,7 @@ class FormStatusListView(ListView):
     model = Screening
     template_name = "nanopore/form_status/form_status_list.html"
     context_object_name = "screenings"
-    paginate_by = 25  # optional for large datasets
+    paginate_by = 10  # optional for large datasets
 
     def get_queryset(self):
         qs = Screening.objects.select_related(
