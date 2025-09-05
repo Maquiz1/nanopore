@@ -43,7 +43,7 @@ class DistrictAdmin(admin.ModelAdmin):
 
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ['name', 'district', 'pid_prefix', 'get_site_type', 'get_site_level']
+    list_display = ['id', 'name', 'district', 'pid_prefix', 'get_site_type', 'get_site_level']
 
     def get_site_type(self, obj):
         return obj.site_type.name if obj.site_type else "-"

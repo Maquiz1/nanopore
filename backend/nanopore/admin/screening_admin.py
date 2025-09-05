@@ -2,12 +2,14 @@ from django.contrib import admin
 from nanopore.models.screening import Screening
 from nanopore.models.enrollment import Enrollment
 
+
 class EnrollmentInline(admin.StackedInline):
     model = Enrollment
     extra = 0
     fields = ('enrollment_date', 'remarks', 'created_by', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
     can_delete = True
+
 
 @admin.register(Screening)
 class ScreeningAdmin(admin.ModelAdmin):
@@ -26,5 +28,6 @@ class ScreeningAdmin(admin.ModelAdmin):
     sex_name.short_description = 'Sex'
 
     def eligible_value(self, obj):
-        return obj.eligible.value if obj.eligible else 'N/A'
+        return obj.eligible
+    eligible_value.boolean = True        # ✅ shows checkmark in admin
     eligible_value.short_description = 'Eligible'
