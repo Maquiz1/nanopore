@@ -72,16 +72,63 @@
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
         <div class="submenu">
-            <a href="{% url 'nanopore:download-screenings' %}">
-                <i class="fas fa-list-check"></i><span> All</span>
+            <a href="{% url 'nanopore:download-all-csv' %}">
+                <i class="fas fa-list-check"></i><span> All CSV</span>
+            </a>
+        </div>
+        <div class="submenu">
+            <a href="{% url 'nanopore:download-all-xlsx' %}">
+                <i class="fas fa-list-check"></i><span> All XLSX</span>
             </a>
         </div>
         <div class="submenu">
             <a href="{% url 'nanopore:download-screenings-csv' %}">
                 <i class="fas fa-list-check"></i><span> Screenings CSV</span>
             </a>
-            <a href="{% url 'nanopore:download-screenings-excel' %}">
-                <i class="fas fa-list-check"></i><span> Screenings Excel</span>
+            <a href="{% url 'nanopore:download-screenings-xlsx' %}">
+                <i class="fas fa-list-check"></i><span> Screenings XLSX</span>
+            </a>
+        </div>
+        <div class="submenu">
+            <a href="{% url 'nanopore:download-enrollments-csv' %}">
+                <i class="fas fa-list-check"></i><span> Enrollments CSV</span>
+            </a>
+            <a href="{% url 'nanopore:download-enrollments-xlsx' %}">
+                <i class="fas fa-list-check"></i><span> Enrollments XLSX</span>
+            </a>
+        </div>
+    </div>
+
+        <!-- All Data Exports grouped -->
+    <div class="menu-group">
+        <a href="javascript:void(0);" class="menu-toggle">
+            <i class="fas fa-tasks"></i><span> Uploads</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+        </a>
+        <div class="submenu">
+            <a href="{% url 'nanopore:download-all-csv' %}">
+                <i class="fas fa-list-check"></i><span> All CSV</span>
+            </a>
+        </div>
+        <div class="submenu">
+            <a href="{% url 'nanopore:download-all-xlsx' %}">
+                <i class="fas fa-list-check"></i><span> All XLSX</span>
+            </a>
+        </div>
+        <div class="submenu">
+            <a href="{% url 'nanopore:screening-upload-csv' %}">
+                <i class="fas fa-list-check"></i><span> Screenings CSV Upload</span>
+            </a>
+            <a href="{% url 'nanopore:download-screenings-xlsx' %}">
+                <i class="fas fa-list-check"></i><span> Screenings XLSX</span>
+            </a>
+        </div>
+        <div class="submenu">
+            <a href="{% url 'nanopore:download-enrollments-csv' %}">
+                <i class="fas fa-list-check"></i><span> Enrollments CSV</span>
+            </a>
+            <a href="{% url 'nanopore:download-enrollments-xlsx' %}">
+                <i class="fas fa-list-check"></i><span> Enrollments XLSX</span>
             </a>
         </div>
     </div>

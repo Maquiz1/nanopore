@@ -5,6 +5,7 @@ from .screening_update import ScreeningUpdateView
 from .screening_delete import ScreeningDeleteView
 from .screening_form import ScreeningFormView
 from .check_pid import CheckPIDView
+from .screening_upload import ScreeningCsvUploadView
 
 __all__ = [
     "CheckPIDView",
@@ -14,4 +15,5 @@ __all__ = [
     "ScreeningUpdateView",
     "ScreeningDeleteView",
     "ScreeningFormView",
+    "ScreeningCsvUploadView",    
 ]

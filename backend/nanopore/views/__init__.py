@@ -5,10 +5,3 @@ from .laboratory import *
 from .enrollment import *
 from .exports import *
 
-# from .laboratory import ClinicLabView, ZonalLabView
-
-# __all__ = [
-#     "ClinicLabView",
-#     "ZonalLabView",
-# ]
-

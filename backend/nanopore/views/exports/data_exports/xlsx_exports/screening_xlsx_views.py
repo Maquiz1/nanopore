@@ -4,9 +4,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from nanopore.models import Screening
 
-class ScreeningExcelDownloadView(View):
+class ScreeningXlsxDownloadView(View):
     """
-    Download screening records as an Excel file, with formatting.
+    Download screening records as an XLSX file, with formatting.
     Filters based on user's allowed sites or zones.
     """
     def get(self, request, *args, **kwargs):
