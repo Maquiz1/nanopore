@@ -54,37 +54,37 @@ class ZonalLaboratory(models.Model):
     mgit_results = models.ForeignKey(MGITCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_results")
 
 
-    # #  culture isolate
+    #  culture isolate
 
-    # culture_isolate = models.ForeignKey(YesNoNA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_isolate")
-    # isolate_date = models.DateField(null=True,blank=True)
+    culture_isolate = models.ForeignKey(YesNoNA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_isolate")
+    isolate_date = models.DateField(null=True,blank=True)
 
-    # # phenotypic DST
-    # phenotypic_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_performed")
-    # phenotypic_date_performed = models.DateField(null=True,blank=True)
-    # phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_date_results")
+    # phenotypic DST
+    phenotypic_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_performed")
+    phenotypic_date_performed = models.DateField(null=True,blank=True)
+    phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_date_results")
 
-    # # phenotypic DST RESULTS
-    # rifampicin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_rifampicin_phenotypic_dst",db_index=False)
-    # isoniazid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_isoniazid_phenotypic_dst",db_index=False)
-    # levofloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_levofloxacin_phenotypic_dst",db_index=False)
-    # moxifloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_moxifloxacin_phenotypic_dst",db_index=False)
-    # bedaquiline = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_bedaquiline_phenotypic_dst",db_index=False)
-    # linezolid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_linezolid_phenotypic_dst",db_index=False)
-    # clofazimine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_clofazimine_phenotypic_dst",db_index=False)
-    # cycloserine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_cycloserine_phenotypic_dst",db_index=False)
-    # terizidone = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_terizidone_phenotypic_dst",db_index=False)
-    # ethambutol = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_ethambutol_phenotypic_dst",db_index=False)
-    # delamanid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_delamanid_phenotypic_dst",db_index=False)
-    # pyrazinamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_pyrazinamide_phenotypic_dst",db_index=False)
-    # imipenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_imipenem_phenotypic_dst",db_index=False)
-    # cilastatin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_cilastatin_phenotypic_dst",db_index=False)
-    # meropenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_meropenem_phenotypic_dst",db_index=False)
-    # amikacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_amikacin_phenotypic_dst",db_index=False)
-    # streptomycin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_streptomycin_phenotypic_dst",db_index=False)
-    # ethionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_ethionamide_phenotypic_dst",db_index=False)
-    # prothionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_prothionamide_phenotypic_dst",db_index=False)
-    # para_aminosalicylic_acid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_para_aminosalicylic_acid_phenotypic_dst",db_index=False)
+    # phenotypic DST RESULTS
+    rifampicin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_rifampicin_phenotypic_dst",db_index=False)
+    isoniazid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_isoniazid_phenotypic_dst",db_index=False)
+    levofloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_levofloxacin_phenotypic_dst",db_index=False)
+    moxifloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_moxifloxacin_phenotypic_dst",db_index=False)
+    bedaquiline = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_bedaquiline_phenotypic_dst",db_index=False)
+    linezolid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_linezolid_phenotypic_dst",db_index=False)
+    clofazimine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_clofazimine_phenotypic_dst",db_index=False)
+    cycloserine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_cycloserine_phenotypic_dst",db_index=False)
+    terizidone = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_terizidone_phenotypic_dst",db_index=False)
+    ethambutol = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_ethambutol_phenotypic_dst",db_index=False)
+    delamanid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_delamanid_phenotypic_dst",db_index=False)
+    pyrazinamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_pyrazinamide_phenotypic_dst",db_index=False)
+    imipenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_imipenem_phenotypic_dst",db_index=False)
+    cilastatin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_cilastatin_phenotypic_dst",db_index=False)
+    meropenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_meropenem_phenotypic_dst",db_index=False)
+    amikacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_amikacin_phenotypic_dst",db_index=False)
+    streptomycin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_streptomycin_phenotypic_dst",db_index=False)
+    ethionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_ethionamide_phenotypic_dst",db_index=False)
+    prothionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_prothionamide_phenotypic_dst",db_index=False)
+    para_aminosalicylic_acid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_para_aminosalicylic_acid_phenotypic_dst",db_index=False)
 
 
     # # Xpert XDR
