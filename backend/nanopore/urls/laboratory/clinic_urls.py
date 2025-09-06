@@ -1,16 +1,16 @@
+# nanopore/urls/clinic_laboratory_urls.py
 from django.urls import path
 from nanopore.views import (
     ClinicLaboratoryListView,
     ClinicLaboratoryDetailView,
-    ClinicLaboratoryCreateView,
-    ClinicLaboratoryUpdateView,
     ClinicLaboratoryDeleteView,
+    ClinicLaboratoryFormView,
 )
 
 urlpatterns = [
     path("", ClinicLaboratoryListView.as_view(), name="clinic-laboratory-list"),
-    path("<int:pk>/", ClinicLaboratoryDetailView.as_view(), name="clinic-laboratory-detail"),
-    path("create/", ClinicLaboratoryCreateView.as_view(), name="clinic-laboratory-create"),
-    path("<int:pk>/update/", ClinicLaboratoryUpdateView.as_view(), name="clinic-laboratory-update"),
-    path("<int:pk>/delete/", ClinicLaboratoryDeleteView.as_view(), name="clinic-laboratory-delete"),
+    path("clinic-laboratory/<int:pk>/", ClinicLaboratoryDetailView.as_view(), name="clinic-laboratory-detail"),
+    path("clinic-laboratory/form/", ClinicLaboratoryFormView.as_view(), name="clinic-laboratory-create"),
+    path("clinic-laboratory/form/<int:pk>/", ClinicLaboratoryFormView.as_view(), name="clinic-laboratory-update"),
+    path("clinic-laboratory/<int:pk>/delete/", ClinicLaboratoryDeleteView.as_view(), name="clinic-laboratory-delete"),
 ]

@@ -1,16 +1,16 @@
+# nanopore/urls/zonal_laboratory_urls.py
 from django.urls import path
 from nanopore.views import (
     ZonalLaboratoryListView,
     ZonalLaboratoryDetailView,
-    ZonalLaboratoryCreateView,
-    ZonalLaboratoryUpdateView,
     ZonalLaboratoryDeleteView,
+    ZonalLabFormView,
 )
 
 urlpatterns = [
     path("", ZonalLaboratoryListView.as_view(), name="zonal-laboratory-list"),
-    path("<int:pk>/", ZonalLaboratoryDetailView.as_view(), name="zonal-laboratory-detail"),
-    path("create/", ZonalLaboratoryCreateView.as_view(), name="zonal-laboratory-create"),
-    path("<int:pk>/update/", ZonalLaboratoryUpdateView.as_view(), name="zonal-laboratory-update"),
-    path("<int:pk>/delete/", ZonalLaboratoryDeleteView.as_view(), name="zonal-laboratory-delete"),
+    path("zonal-lab/<int:pk>/", ZonalLaboratoryDetailView.as_view(), name="zonal-laboratory-detail"),
+    path("zonal-lab/form/", ZonalLabFormView.as_view(), name="zonal-laboratory-create"),
+    path("zonal-lab/form/<int:pk>/", ZonalLabFormView.as_view(), name="zonal-laboratory-update"),
+    path("zonal-lab/<int:pk>/delete/", ZonalLaboratoryDeleteView.as_view(), name="zonal-laboratory-delete"),
 ]

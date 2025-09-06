@@ -10,7 +10,7 @@ class ClinicLaboratoryCreateView(LoginRequiredMixin, CreateView):
     model = ClinicLaboratory
     form_class = ClinicLaboratoryForm
     template_name = "nanopore/laboratory/clinic/clinic_laboratory_form.html"
-    success_url = reverse_lazy("nanopore:clinic-laboratory-list")
+    success_url = reverse_lazy("nanopore:form-status-list")
 
     def form_valid(self, form):
         obj = form.save(commit=False)

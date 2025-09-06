@@ -134,7 +134,7 @@
 
                         <td>
                             {% if screening.clinic_laboratory %}
-                                <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ {{ screening.clinic_laboratory.test_name }}</a>
+                                <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ DONE </a>
                             {% else %}
                                 {% if screening.eligible and request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
                                     <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
@@ -146,7 +146,7 @@
 
                         <td>
                             {% if screening.diagnosis %}
-                                <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ {{ screening.diagnosis.diagnosis_name }}</a>
+                                <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ DONE</a>
                             {% else %}
                                 {% if screening.eligible and request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
                                     <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ Add</a>
@@ -160,7 +160,7 @@
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                         <td>
                             {% if screening.zonal_laboratory %}
-                                <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅ {{ screening.zonal_laboratory.test_name }}</a>
+                                <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅ DONE</a>
                             {% else %}
                                 {% if screening.eligible and request.user.groups.all.0.name in "LABORATORY_TECHNICIAN" %}
                                     <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
