@@ -31,117 +31,115 @@ class ZonalLaboratory(models.Model):
     
     # NEW FIELDS
     # Specimen receipt
-    date_sputum_received = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    appearance = models.ForeignKey(SampleAppearance, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    sample_volume = models.DecimalField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    unique_lab_no = models.CharField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    date_sputum_received = models.DateField(null=True, blank=True)
+    appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL, related_name="zonal_laboratory_appearance")
+    sample_volume = models.DecimalField(null=True, blank=True, max_digits=10, decimal_places=2)
+    unique_lab_no = models.CharField(max_length=100, blank=True, null=True)
 
     # Culture
-    culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    culture_method = models.ForeignKey(CultureMethod, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    microscopy_type = models.ForeignKey(MicroscopyType, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    microscopy_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    microscopy_results = models.ForeignKey(CultureMicroscopyResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    culture_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_performed")
+    culture_method = models.ForeignKey(CultureMethod, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_method")
+    microscopy_type = models.ForeignKey(MicroscopyType, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_microscopy_type")
+    microscopy_date = models.DateField(null=True, blank=True)
+    microscopy_results = models.ForeignKey(CultureMicroscopyResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_microscopy_results")
 
     # LJ RESULTS
-    lj_inoculation_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lj_results_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lj_results = models.ForeignKey(LJCultureResult, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    
+    lj_inoculation_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_inoculation_date")
+    lj_results_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_results_date")
+    lj_results = models.ForeignKey(LJCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_results")
+
     # MGIT RESULTS
-    mgit_inoculation_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    mgit_results_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    mgit_results = models.ForeignKey(MGITCultureResult, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    mgit_inoculation_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_inoculation_date")
+    mgit_results_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_results_date")
+    mgit_results = models.ForeignKey(MGITCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_results")
 
 
     #  culture isolate
 
-    culture_isolate = models.ForeignKey(YesNoNA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    isolate_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    
+    culture_isolate = models.ForeignKey(YesNoNA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_isolate")
+    isolate_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_isolate_date")
+
     # phenotypic DST
-    phenotypic_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    phenotypic_date_performed = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    
+    phenotypic_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_performed")
+    phenotypic_date_performed = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_date_performed")
+    phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_date_results")
+
     # phenotypic DST RESULTS
-    rifampicin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    isoniazid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    levofloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    moxifloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    bedaquiline = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    linezolid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    clofazimine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    cycloserine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    terizidone = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    ethambutol = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    delamanid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    pyrazinamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    imipenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    cilastatin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    meropenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    amikacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    streptomycin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    ethionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    prothionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")   
-    para_aminosalicylic_acid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    
-    
+    rifampicin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_rifampicin")
+    isoniazid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_isoniazid")
+    levofloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_levofloxacin")
+    moxifloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_moxifloxacin")
+    bedaquiline = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_bedaquiline")
+    linezolid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_linezolid")
+    clofazimine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_clofazimine")
+    cycloserine = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_cycloserine")
+    terizidone = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_terizidone")
+    ethambutol = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_ethambutol")
+    delamanid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_delamanid")
+    pyrazinamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_pyrazinamide")
+    imipenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_imipenem")
+    cilastatin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_cilastatin")
+    meropenem = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_meropenem")
+    amikacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_amikacin")
+    streptomycin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_streptomycin")
+    ethionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_ethionamide")
+    prothionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_prothionamide")
+    para_aminosalicylic_acid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_para_aminosalicylic_acid")
+
+
     # Xpert XDR
-    xpert_xdr_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    xpert_xdr_date_performed = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    xpert_xdr_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_xpert_xdr_performed")
+    xpert_xdr_date_performed = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_xpert_xdr_date_performed")
 
     # Xpert XDR RESULTS    
-    isoniazid2 = models.ForeignKey(XpertXDRResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    fluoroquinolones = models.ForeignKey(XpertXDRResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    amikacin2 = models.ForeignKey(XpertXDRResultsThree, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    kanamycin = models.ForeignKey(XpertXDRResultsThree, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    capreomycin = models.ForeignKey(XpertXDRResultsThree, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    ethionamide2 = models.ForeignKey(XpertXDRResultsTwo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    
-    # First-Line LPA    
-    first_line_lpa = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    first_line_lpa_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    first_line_drugs = models.ForeignKey(FirstLineDrugs, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lpa1_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lpa1_rif = models.ForeignKey(RIFResultLPA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lpa1_inh = models.ForeignKey(INHResultLPA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    isoniazid2 = models.ForeignKey(XpertXDRResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_isoniazid2")
+    fluoroquinolones = models.ForeignKey(XpertXDRResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_fluoroquinolones")
+    amikacin2 = models.ForeignKey(XpertXDRResultsThree, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_amikacin2")
+    kanamycin = models.ForeignKey(XpertXDRResultsThree, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_kanamycin")
+    capreomycin = models.ForeignKey(XpertXDRResultsThree, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_capreomycin")
+    ethionamide2 = models.ForeignKey(XpertXDRResultsTwo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_ethionamide2")
 
-    
-    # FiSecondrst-Line LPA   
-    second_line_lpa = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    second_line_lpa_date = models.DateField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    second_line_drugs = models.ForeignKey(SecondLineDrugs, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lpa2_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lpa2_rfluoroquinolones = models.ForeignKey(RIFResultLPA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lpa2_aminoglycosides = models.ForeignKey(RIFResultLPA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    lpa2_kanamycin = models.ForeignKey(RIFResultLPA, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")    
+    # First-Line LPA
+    first_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_lpa")
+    first_line_lpa_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_lpa_date")
+    first_line_drugs = models.ForeignKey(FirstLineDrugs, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_drugs")
+    lpa1_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_mtb")
+    lpa1_rif = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_rif")
+    lpa1_inh = models.ForeignKey(INHResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_inh")
 
-    # Nanopore sequencing   
-    nanopore_done = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    sequencing_results = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    epi_to_me = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    epi_to_me_version = models.CharField(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    
- 
-     # Nanopore sequencing   Results
-     
-    nano_amikacin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_bedaquiline = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_capreomycin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_clofazimine = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_delamanid = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_ethambutol = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_ethionamide = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_isoniazid = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_kanamycin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_levofloxacin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_linezolid = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_moxifloxacin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_pretomanid = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_pyrazinamide = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_rifampicin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
-    nano_streptomycin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # Second-Line LPA
+    second_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_lpa")
+    second_line_lpa_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_lpa_date")
+    second_line_drugs = models.ForeignKey(SecondLineDrugs, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_drugs")
+    lpa2_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_mtb")
+    lpa2_rfluoroquinolones = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_rfluoroquinolones")
+    lpa2_aminoglycosides = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_aminoglycosides")
+    lpa2_kanamycin = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_kanamycin")
+
+    # Nanopore sequencing
+    nanopore_done = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_done")
+    sequencing_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_results")
+    epi_to_me = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_epi_to_me")
+    epi_to_me_version = models.CharField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_epi_to_me_version")
+
+    # Nanopore sequencing Results
+
+    nano_amikacin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_amikacin")
+    nano_bedaquiline = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_bedaquiline")
+    nano_capreomycin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_capreomycin")
+    nano_clofazimine = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_clofazimine")
+    nano_delamanid = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_delamanid")
+    nano_ethambutol = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_ethambutol")
+    nano_ethionamide = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_ethionamide")
+    nano_isoniazid = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_isoniazid")
+    nano_kanamycin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_kanamycin")
+    nano_levofloxacin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_levofloxacin")
+    nano_linezolid = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_linezolid")
+    nano_moxifloxacin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_moxifloxacin")
+    nano_pretomanid = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_pretomanid")
+    nano_pyrazinamide = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_pyrazinamide")
+    nano_rifampicin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_rifampicin")
+    nano_streptomycin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nano_streptomycin")
 
     # nano_cycloserine = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     # nano_terizidone = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
