@@ -38,6 +38,7 @@ DATABASES = {
 
 # Installed apps
 INSTALLED_APPS = [
+    'common.apps.CommonConfig',
     'options.apps.OptionsConfig',
     'demographic.apps.DemographicConfig',
     'status.apps.StatusConfig',
