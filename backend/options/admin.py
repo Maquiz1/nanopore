@@ -15,6 +15,14 @@ from .models import (
     PositiveNegativeNA,
     PositiveNegative,
     DiseasesMedicalConditions,
+    SampleReason,
+    SampleNumber,
+    SampleAppearance,
+    AFBTechnique,
+    AFBMicroscopyResult,
+    XpertMTB,
+    XpertRIF,
+    NoSPCResult
 )
 
 @admin.register(YesNo)
@@ -123,6 +131,68 @@ class PositiveNegativeAdmin(admin.ModelAdmin):
 
 @admin.register(DiseasesMedicalConditions)
 class DiseasesMedicalConditionsAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+@admin.register(SampleReason)
+class SampleReasonAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(SampleNumber)
+class SampleNumberAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+@admin.register(SampleAppearance)
+class SampleAppearanceAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(AFBTechnique)
+class AFBTechniqueAdmin(admin.ModelAdmin):      
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(AFBMicroscopyResult)
+class AFBMicroscopyResultAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(XpertMTB)
+class XpertMTBAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(XpertRIF)
+class XpertRIFAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+
+
+@admin.register(NoSPCResult)
+class NoSPCResultAdmin(admin.ModelAdmin):
     list_display = ('value', 'name', 'created_at')
     list_filter = ('value',)
     search_fields = ('name',)

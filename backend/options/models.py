@@ -283,3 +283,158 @@ class DiseasesMedicalConditions(models.Model):
     def __str__(self):
         return self.name
 
+
+class SampleReason(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Sample Reason Option"
+        verbose_name_plural = "Sample Reason Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
+
+class SampleNumber(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Sample Number Option"
+        verbose_name_plural = "Sample Number Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+    
+    
+class SampleAppearance(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Sample Appearance Option"
+        verbose_name_plural = "Sample Appearance Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+    
+    
+class AFBTechnique(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "AFB Technique Option"
+        verbose_name_plural = "AFB Technique Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+    
+
+class AFBMicroscopyResult(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "AFB Microscopy Result Option"
+        verbose_name_plural = "AFB Microscopy Result Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
+
+class XpertMTB(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Xpert MTB Result Option"
+        verbose_name_plural = "Xpert MTB Result Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
+
+class XpertRIF(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Xpert RIF Result Option"
+        verbose_name_plural = "Xpert RIF Result Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
+
+class NoSPCResult(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "No SPC Result Option"
+        verbose_name_plural = "No SPC Result Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+    
+    
+
+

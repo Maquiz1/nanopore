@@ -1,56 +1,63 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
 
-            <!-- Top navigation -->
-            <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:clinic-laboratory-list' %}" class="btn btn-secondary flex-grow-1">
+            <!-- Top navigation buttons -->
+            <div class="d-flex justify-content-between mb-4 gap-2">
+                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary flex-grow-1">
                     🔙 Back to List
                 </a>
-                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary flex-grow-1">
+                    🏠 Dashboard
                 </a>
             </div>
 
+            <!-- Card wrapper -->
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">{{ view.object|default:"New" }} Laboratory Test</h4>
+                    <h4 class="mb-0">{{ object|default:"New" }} Laboratory Test</h4>
                 </div>
                 <div class="card-body">
+
                     <form method="post" novalidate>
                         {% csrf_token %}
 
+                        <!-- Non-field errors -->
                         {% if form.non_field_errors %}
                         <div class="alert alert-warning">
                             {% for error in form.non_field_errors %}
-                                <div>{{ error }}</div>
+                                <div class="text-danger">{{ error }}</div>
                             {% endfor %}
                         </div>
                         {% endif %}
 
-                        <!-- Screening -->
-                        <div class="mb-3">
-                            <label for="{{ form.screening.id_for_label }}" class="form-label">Screening</label>
-                            {{ form.screening }}
-                            {% for error in form.screening.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
+                        <!-- SCREENING INFO (Read-only) -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Screening Information</h5>
                         </div>
+<div class="mb-3">
+    <label class="form-label">{{ form.screening.label }}</label>
+    <input type="text" class="form-control" value="{{ screening.pid }}" readonly>
+</div>
 
-                        <!-- Test Info -->
-                        <div class="row mb-3">
+
+                        <!-- TEST DETAILS -->
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">Test Details</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label for="{{ form.test_name.id_for_label }}" class="form-label">Test Name</label>
+                                {{ form.test_name.label_tag }}
                                 {{ form.test_name }}
                                 {% for error in form.test_name.errors %}
                                     <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.result.id_for_label }}" class="form-label">Result</label>
+                                {{ form.result.label_tag }}
                                 {{ form.result }}
                                 {% for error in form.result.errors %}
                                     <div class="text-danger">{{ error }}</div>
@@ -58,32 +65,109 @@
                             </div>
                         </div>
 
-                        <!-- Date -->
+                        <!-- TEST DATE -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Test Date</h5>
+                        </div>
                         <div class="mb-3">
-                            <label for="{{ form.test_date.id_for_label }}" class="form-label">Test Date</label>
+                            {{ form.test_date.label_tag }}
                             {{ form.test_date }}
                             {% for error in form.test_date.errors %}
                                 <div class="text-danger">{{ error }}</div>
                             {% endfor %}
                         </div>
 
-                        <!-- Remarks -->
+                        <!-- REMARKS -->
+                        <div class="p-2 mb-3 bg-dark text-white rounded">
+                            <h5 class="mb-0">Remarks / Comments</h5>
+                        </div>
                         <div class="mb-3">
-                            <label for="{{ form.remarks.id_for_label }}" class="form-label">Remarks</label>
+                            {{ form.remarks.label_tag }}
                             {{ form.remarks }}
                             {% for error in form.remarks.errors %}
                                 <div class="text-danger">{{ error }}</div>
                             {% endfor %}
                         </div>
 
-                        <!-- Bottom buttons -->
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'nanopore:clinic-laboratory-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
-                            <button type="submit" class="btn btn-success">💾 Save Laboratory</button>
+                        <!-- 🔹 Sputum Sample -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Sputum Sample</h5>
                         </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.sample_received.label_tag }}{{ form.sample_received }}{% for error in form.sample_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.date_sample1_received.label_tag }}{{ form.date_sample1_received }}{% for error in form.date_sample1_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.sample_reason.label_tag }}{{ form.sample_reason }}{% for error in form.sample_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.other_reason.label_tag }}{{ form.other_reason }}{% for error in form.other_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.new_sample.label_tag }}{{ form.new_sample }}{% for error in form.new_sample.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.new_reason.label_tag }}{{ form.new_reason }}{% for error in form.new_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.number_received.label_tag }}{{ form.number_received }}{% for error in form.number_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.date_sample1_collected.label_tag }}{{ form.date_sample1_collected }}{% for error in form.date_sample1_collected.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.date_sample2_collected.label_tag }}{{ form.date_sample2_collected }}{% for error in form.date_sample2_collected.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.date_sample2_received.label_tag }}{{ form.date_sample2_received }}{% for error in form.date_sample2_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.appearance_sample1.label_tag }}{{ form.appearance_sample1 }}{% for error in form.appearance_sample1.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.sample1_volume.label_tag }}{{ form.sample1_volume }}{% for error in form.sample1_volume.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">{{ form.appearance_sample2.label_tag }}{{ form.appearance_sample2 }}{% for error in form.appearance_sample2.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6">{{ form.sample2_volume.label_tag }}{{ form.sample2_volume }}{% for error in form.sample2_volume.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+
+                        <!-- 🔹 AFB Microscopy -->
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">AFB Microscopy</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.afb_microscopy_conducted.label_tag }}{{ form.afb_microscopy_conducted }}{% for error in form.afb_microscopy_conducted.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.afb_a_date.label_tag }}{{ form.afb_a_date }}{% for error in form.afb_a_date.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.technique_a.label_tag }}{{ form.technique_a }}{% for error in form.technique_a.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">{{ form.afb_a_results.label_tag }}{{ form.afb_a_results }}{% for error in form.afb_a_results.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6">{{ form.afb_b_date.label_tag }}{{ form.afb_b_date }}{% for error in form.afb_b_date.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.technique_b.label_tag }}{{ form.technique_b }}{% for error in form.technique_b.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.afb_b_results.label_tag }}{{ form.afb_b_results }}{% for error in form.afb_b_results.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+
+                        <!-- 🔹 Xpert MTB/RIF -->
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">Xpert MTB/RIF (Ultra)</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.xpert_mtb_rif_conducted.label_tag }}{{ form.xpert_mtb_rif_conducted }}{% for error in form.xpert_mtb_rif_conducted.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.xpert_date.label_tag }}{{ form.xpert_date }}{% for error in form.xpert_date.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.xpert_mtb.label_tag }}{{ form.xpert_mtb }}{% for error in form.xpert_mtb.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.error_code.label_tag }}{{ form.error_code }}{% for error in form.error_code.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.xpert_rif.label_tag }}{{ form.xpert_rif }}{% for error in form.xpert_rif.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4">{{ form.ct_value.label_tag }}{{ form.ct_value }}{% for error in form.ct_value.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.ct_na.label_tag }}{{ form.ct_na }}{% for error in form.ct_na.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">
+                                ❌ Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                💾 Save Laboratory
+                            </button>
+                        </div>
+
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
