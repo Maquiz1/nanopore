@@ -733,8 +733,8 @@ class XpertXDRResults(models.Model):
     # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
 
     class Meta:
-        verbose_name = "XpertXDR Result Option"
-        verbose_name_plural = "PhenXpertXDR Result Options"
+        verbose_name = "Xpert XDR Result Option"
+        verbose_name_plural = "Xpert XDR Results Options"
         ordering = ["id"]
 
     def __str__(self):
@@ -752,8 +752,8 @@ class XpertXDRResultsThree(models.Model):
     # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
 
     class Meta:
-        verbose_name = "XpertXDR Result Option 3"
-        verbose_name_plural = "PhenXpertXDR Result Options 3"
+        verbose_name = "Xpert XDR Result Option 3"
+        verbose_name_plural = "Xpert XDR Result Options 3"
         ordering = ["id"]
 
     def __str__(self):
@@ -773,7 +773,7 @@ class XpertXDRResultsTwo(models.Model):
 
     class Meta:
         verbose_name = "XpertXDR Result Option 2"
-        verbose_name_plural = "PhenXpertXDR Result Options 2"
+        verbose_name_plural = "Xpert XDR Result Options 2"
         ordering = ["id"]
 
     def __str__(self):
