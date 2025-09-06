@@ -22,7 +22,33 @@ from .models import (
     AFBMicroscopyResult,
     XpertMTB,
     XpertRIF,
-    NoSPCResult
+    NoSPCResult,
+    TBDiagnosisMade,
+    DiagnosisBacteriological,
+    DiagnosedClinically,
+    TBTreatmentStarted,
+    RegimenPrescribed,
+    RegimenTypeOfChange,
+    RegimenReasonForChange,
+    TBTreatmentOutcome,
+    
+    # ZONAL LABS
+    CultureMethod,
+    MicroscopyType,
+    CultureMicroscopyResults,
+    LJCultureResult,
+    MGITCultureResult,
+    PhenotypicDSTResults,
+    XpertXDRResults,
+    XpertXDRResultsThree,
+    XpertXDRResultsTwo,
+    FirstLineDrugs,
+    SecondLineDrugs,
+    MTBResultsLPA,
+    RIFResultLPA,
+    INHResultLPA,
+    NanoporeResults,
+    
 )
 
 @admin.register(YesNo)
@@ -197,3 +223,193 @@ class NoSPCResultAdmin(admin.ModelAdmin):
     list_filter = ('value',)
     search_fields = ('name',)
     ordering = ('value',)
+    
+@admin.register(TBDiagnosisMade)
+class TBDiagnosisMadeAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+
+@admin.register(DiagnosisBacteriological)
+class DiagnosisBacteriologicalAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(DiagnosedClinically)
+class DiagnosedClinicallyAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(TBTreatmentStarted)
+class TBTreatmentStartedAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(RegimenPrescribed)
+class RegimenPrescribedAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(RegimenTypeOfChange)
+class RegimenTypeOfChangeAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)   
+    
+    
+@admin.register(RegimenReasonForChange)
+class RegimenReasonForChangeAdmin(admin.ModelAdmin):    
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+    
+@admin.register(TBTreatmentOutcome)
+class TBTreatmentOutcomeAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+
+    
+    
+# ZONAL LAB MODELS  
+
+
+@admin.register(CultureMethod)
+class CultureMethodAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+      
+@admin.register(MicroscopyType)
+class MicroscopyTypeAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(CultureMicroscopyResults)
+class CultureMicroscopyResultsAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(LJCultureResult)
+class LJCultureResultAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+    
+@admin.register(MGITCultureResult)
+class MGITCultureResultAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(PhenotypicDSTResults)
+class PhenotypicDSTResultsAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(XpertXDRResults)
+class XpertXDRResultsAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(XpertXDRResultsThree)
+class XpertXDRResultsThreeAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(XpertXDRResultsTwo)
+class XpertXDRResultsTwoAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(FirstLineDrugs)
+class FirstLineDrugsAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(SecondLineDrugs)
+class SecondLineDrugsAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(MTBResultsLPA)
+class MTBResultsLPAAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(RIFResultLPA)
+class RIFResultLPAAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(INHResultLPA)
+class INHResultLPAAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+@admin.register(NanoporeResults)
+class NanoporeResultsAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+
