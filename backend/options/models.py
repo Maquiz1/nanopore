@@ -284,6 +284,8 @@ class DiseasesMedicalConditions(models.Model):
         return self.name
 
 
+
+#  CLINIC LABORATORY
 class SampleReason(models.Model):
     value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
