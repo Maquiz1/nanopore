@@ -36,22 +36,22 @@ class ZonalLaboratory(models.Model):
     sample_volume = models.DecimalField(null=True, blank=True, max_digits=3, decimal_places=1)
     unique_lab_no = models.CharField(max_length=100, blank=True, null=True)
 
-    # # Culture
-    # culture_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_performed")
-    # culture_method = models.ForeignKey(CultureMethod, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_method")
-    # microscopy_type = models.ForeignKey(MicroscopyType, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_microscopy_type")
-    # microscopy_date = models.DateField(null=True, blank=True)
-    # microscopy_results = models.ForeignKey(CultureMicroscopyResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_microscopy_results")
+    # Culture
+    culture_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_performed")
+    culture_method = models.ManyToManyField(CultureMethod, blank=True, related_name="zonal_laboratory_culture_method")
+    microscopy_type = models.ForeignKey(MicroscopyType, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_microscopy_type")
+    microscopy_date = models.DateField(null=True, blank=True)
+    microscopy_results = models.ForeignKey(CultureMicroscopyResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_microscopy_results")
 
-    # # LJ RESULTS
-    # lj_inoculation_date = models.DateField(null=True,blank=True)
-    # lj_results_date = models.DateField(null=True,blank=True)
-    # lj_results = models.ForeignKey(LJCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_results")
+    # LJ RESULTS
+    lj_inoculation_date = models.DateField(null=True,blank=True)
+    lj_results_date = models.DateField(null=True,blank=True)
+    lj_results = models.ForeignKey(LJCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_results")
 
-    # # MGIT RESULTS
-    # mgit_inoculation_date = models.DateField(null=True,blank=True)
-    # mgit_results_date = models.DateField(null=True,blank=True)
-    # mgit_results = models.ForeignKey(MGITCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_results")
+    # MGIT RESULTS
+    mgit_inoculation_date = models.DateField(null=True,blank=True)
+    mgit_results_date = models.DateField(null=True,blank=True)
+    mgit_results = models.ForeignKey(MGITCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_results")
 
 
     # #  culture isolate
