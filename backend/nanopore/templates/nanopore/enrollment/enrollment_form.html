@@ -1,70 +1,164 @@
-<!-- nanopore/templates/nanopore/enrollment/enrollment_form.html -->
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
 
-            <!-- Top navigation -->
-            <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">
-                    🔙 Back to Status
+            <!-- Top navigation buttons -->
+            <div class="d-flex justify-content-between mb-4 gap-2">
+                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary flex-grow-1">
+                    🔙 Back to List
                 </a>
-                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary flex-grow-1">
                     🏠 Dashboard
                 </a>
             </div>
 
+            <!-- Card wrapper -->
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">{{ object|default:"New" }} Enrollment</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" novalidate>
+
+                    <form method="post" novalidate id="enrollmentForm">
                         {% csrf_token %}
 
+                        <!-- Non-field errors -->
                         {% if form.non_field_errors %}
                         <div class="alert alert-warning">
                             {% for error in form.non_field_errors %}
-                                <div>{{ error }}</div>
+                            <div class="text-danger">{{ error }}</div>
                             {% endfor %}
                         </div>
                         {% endif %}
 
-                        <div class="row mb-3">
+                        <!-- BASIC INFO -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Details of enrolment and patient demographics</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label for="{{ form.screening.id_for_label }}" class="form-label">Screening / PID</label>
+                                {{ form.screening.label_tag }}
                                 {{ form.screening }}
                                 {% for error in form.screening.errors %}
-                                    <div class="text-danger">{{ error }}</div>
+                                <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-
                             <div class="col-md-6">
-                                <label for="{{ form.enrollment_date.id_for_label }}" class="form-label">Enrollment Date</label>
+                                {{ form.enrollment_date.label_tag }}
                                 {{ form.enrollment_date }}
                                 {% for error in form.enrollment_date.errors %}
-                                    <div class="text-danger">{{ error }}</div>
+                                <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.remarks.id_for_label }}" class="form-label">Remarks</label>
-                            {{ form.remarks }}
-                            {% for error in form.remarks.errors %}
-                                <div class="text-danger">{{ error }}</div>
+                        <hr class="my-4">
+
+                        <!-- REASONS / HISTORY -->
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">Reason(s) for being regarded as presumptive TB patient at initial assessment</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                                {% if field.name in "cough2weeks,poor_weight,coughing_blood,unexplained_fever,night_sweats,neck_lymph,date_information_collected"|cut:"," %}
+                                    <div class="col-md-6">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             {% endfor %}
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
-                            <button type="submit" class="btn btn-success">💾 Save Enrollment</button>
+                        <hr class="my-4">
+
+                        <!-- ENROLLMENT DECISION -->
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">History of TB and previous treatment</h5>
                         </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                                {% if field.name in "tx_previous,tb_category,tb_category_specify,tx_month,tx_unknown_month,tx_year,tx_unknown_year,dr_ds,ltf_months,ltf_months_unknown,tb_regimen,tb_regimen_specify,regimen_months,regimen_months_unknown,tb_otcome"|cut:"," %}
+                                    <div class="col-md-6">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Health-related conditions -->
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">Health-related conditions</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                                {% if field.name in "hiv_status,other_diseases,diseases_medical,diseases_specify"|cut:"," %}
+                                    <div class="col-md-6">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Samples collections -->
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">Samples collections</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                                {% if field.name in "sputum_collected,sputum_date,sputum_reasons"|cut:"," %}
+                                    <div class="col-md-6">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- REMARKS -->
+                        <div class="p-2 mb-3 bg-dark text-white rounded">
+                            <h5 class="mb-0">Remarks / Comments</h5>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.remarks.label_tag }}
+                            {{ form.remarks }}
+                            {% for error in form.remarks.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">
+                                ❌ Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                💾 Save Enrollment
+                            </button>
+                        </div>
+
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
