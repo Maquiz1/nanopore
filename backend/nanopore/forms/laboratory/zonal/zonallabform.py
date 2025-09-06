@@ -1,16 +1,32 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ZonalLaboratory
+from options.models import YesNo,SampleAppearance
 
 class ZonalLaboratoryForm(forms.ModelForm):
     class Meta:
         model = ZonalLaboratory
-        fields = ["screening", "test_name", "result", "test_date", "remarks"]
+        fields = [
+            "screening",
+            "test_name",
+            "result",
+            "test_date",
+            # New specimen receipt fields
+            "date_sputum_received",
+            "appearance",
+            "sample_volume",
+            "unique_lab_no",
+            "remarks",
+        ]
         widgets = {
             "screening": forms.HiddenInput(),  # hidden field for POST
             "test_name": forms.TextInput(attrs={"class": "form-control"}),
             "result": forms.TextInput(attrs={"class": "form-control"}),
             "test_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date_sputum_received": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "appearance": forms.Select(attrs={"class": "form-select"}),
+            "sample_volume": forms.NumberInput(attrs={"class": "form-control", "step": "0.1"}),
+            "unique_lab_no": forms.TextInput(attrs={"class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 
