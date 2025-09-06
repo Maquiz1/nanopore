@@ -6,12 +6,9 @@
         <div class="col-lg-10">
 
             <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">
-                    🔙 Back to List
-                </a>
-                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">
-                    🏠 Dashboard
-                </a>
+                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to
+                    List</a>
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
             </div>
 
             <div class="card shadow-sm">
@@ -25,7 +22,7 @@
                         {% if form.non_field_errors %}
                         <div class="alert alert-warning">
                             {% for error in form.non_field_errors %}
-                                <div>{{ error }}</div>
+                            <div>{{ error }}</div>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -40,71 +37,168 @@
                             {{ form.screening }}
                         </div>
 
-                        <!-- Specimen Receipt -->
-                        <div class="p-2 mb-3 bg-secondary text-white rounded">
-                            <h5 class="mb-0">Specimen Receipt</h5>
-                        </div>
-                        <div class="mb-3">
-                            {{ form.date_sputum_received.label_tag }}
-                            {{ form.date_sputum_received }}
-                            {% for error in form.date_sputum_received.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.appearance.label_tag }}
-                            {{ form.appearance }}
-                            {% for error in form.appearance.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.sample_volume.label_tag }}
-                            {{ form.sample_volume }}
-                            {% for error in form.sample_volume.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.unique_lab_no.label_tag }}
-                            {{ form.unique_lab_no }}
-                            {% for error in form.unique_lab_no.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Zonal Lab Details -->
+                        <!-- Lab Details -->
                         <div class="p-2 mb-3 bg-warning text-white rounded">
                             <h5 class="mb-0">Lab Details</h5>
                         </div>
                         <div class="mb-3">
-                            {{ form.test_name.label_tag }}
-                            {{ form.test_name }}
-                            {% for error in form.test_name.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
+                            {{ form.test_name.label_tag }}{{ form.test_name }}{% for error in form.test_name.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         <div class="mb-3">
                             {{ form.result.label_tag }}
                             {{ form.result }}
                             {% for error in form.result.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
+                            <div class="text-danger">
+                                {{ error }}
+                            </div>
+                            {% endfor %}</div>
+                        <div class="mb-3">
+                            {{ form.test_date.label_tag }}{{ form.test_date }}{% for error in form.test_date.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+
+                        <!-- Specimen Receipt -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Specimen Receipt</h5>
+                        </div>
+                        <div class="mb-3">{{ form.date_sputum_received.label_tag }}{{ form.date_sputum_received }}</div>
+                        <div class="mb-3">{{ form.appearance.label_tag }}{{ form.appearance }}</div>
+                        <div class="mb-3">{{ form.sample_volume.label_tag }}{{ form.sample_volume }}</div>
+                        <div class="mb-3">{{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}</div>
+
+                        <!-- Culture -->
+                        <div class="p-2 mb-3 bg-primary text-white rounded">
+                            <h5 class="mb-0">Culture</h5>
+                        </div>
+                        <div class="mb-3">{{ form.culture_performed.label_tag }}{{ form.culture_performed }}</div>
+                        <div class="mb-3">{{ form.culture_method.label_tag }}{{ form.culture_method }}</div>
+                        <div class="mb-3">{{ form.microscopy_type.label_tag }}{{ form.microscopy_type }}</div>
+                        <div class="mb-3">{{ form.microscopy_date.label_tag }}{{ form.microscopy_date }}</div>
+                        <div class="mb-3">{{ form.microscopy_results.label_tag }}{{ form.microscopy_results }}</div>
+
+                        <!-- LJ Results -->
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">LJ Results</h5>
+                        </div>
+                        <div class="mb-3">{{ form.lj_inoculation_date.label_tag }}{{ form.lj_inoculation_date }}</div>
+                        <div class="mb-3">{{ form.lj_results_date.label_tag }}{{ form.lj_results_date }}</div>
+                        <div class="mb-3">{{ form.lj_results.label_tag }}{{ form.lj_results }}</div>
+
+                        <!-- MGIT Results -->
+                        <div class="p-2 mb-3 bg-danger text-white rounded">
+                            <h5 class="mb-0">MGIT Results</h5>
+                        </div>
+                        <div class="mb-3">{{ form.mgit_inoculation_date.label_tag }}{{ form.mgit_inoculation_date }}
+                        </div>
+                        <div class="mb-3">{{ form.mgit_results_date.label_tag }}{{ form.mgit_results_date }}</div>
+                        <div class="mb-3">{{ form.mgit_results.label_tag }}{{ form.mgit_results }}</div>
+
+                        <!-- Culture Isolate -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Culture Isolate</h5>
+                        </div>
+                        <div class="mb-3">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
+                        <div class="mb-3">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
+
+                        <!-- Phenotypic DST -->
+                        <div class="p-2 mb-3 bg-dark text-white rounded">
+                            <h5 class="mb-0">Phenotypic DST</h5>
+                        </div>
+                        <div class="mb-3">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
+                        <div class="mb-3">{{ form.phenotypic_date_performed.label_tag }}{{
+                            form.phenotypic_date_performed }}</div>
+                        <div class="mb-3">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}
+                        </div>
+
+
+
+                        <!-- Phenotypic DST RESULTS -->
+                        <div class="p-2 mb-3 bg-danger text-white rounded">
+                            <h5 class="mb-0">Phenotypic DST RESULTS</h5>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.rifampicin.label_tag }} {{ form.rifampicin }}
+                            {% for error in form.rifampicin.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="mb-3">
-                            {{ form.test_date.label_tag }}
-                            {{ form.test_date }}
-                            {% for error in form.test_date.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
+                            {{ form.isoniazid.label_tag }} {{ form.isoniazid }}
+                            {% for error in form.isoniazid.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="mb-3">
-                            {{ form.remarks.label_tag }}
-                            {{ form.remarks }}
-                            {% for error in form.remarks.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
+                            {{ form.levofloxacin.label_tag }} {{ form.levofloxacin }}
+                            {% for error in form.levofloxacin.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
                         </div>
+                        <div class="mb-3">
+                            {{ form.moxifloxacin.label_tag }} {{ form.moxifloxacin }}
+                            {% for error in form.moxifloxacin.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.bedaquiline.label_tag }} {{ form.bedaquiline }}
+                            {% for error in form.bedaquiline.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.linezolid.label_tag }} {{ form.linezolid }}
+                            {% for error in form.linezolid.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.clofazimine.label_tag }} {{ form.clofazimine }}
+                            {% for error in form.clofazimine.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.cycloserine.label_tag }} {{ form.cycloserine }}
+                            {% for error in form.cycloserine.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.terizidone.label_tag }} {{ form.terizidone }}
+                            {% for error in form.terizidone.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.ethambutol.label_tag }} {{ form.ethambutol }}
+                            {% for error in form.ethambutol.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.delamanid.label_tag }} {{ form.delamanid }}
+                            {% for error in form.delamanid.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.pyrazinamide.label_tag }} {{ form.pyrazinamide }}
+                            {% for error in form.pyrazinamide.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.imipenem.label_tag }} {{ form.imipenem }}
+                            {% for error in form.imipenem.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.cilastatin.label_tag }} {{ form.cilastatin }}
+                            {% for error in form.cilastatin.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.meropenem.label_tag }} {{ form.meropenem }}
+                            {% for error in form.meropenem.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.amikacin.label_tag }} {{ form.amikacin }}
+                            {% for error in form.amikacin.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.streptomycin.label_tag }} {{ form.streptomycin }}
+                            {% for error in form.streptomycin.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.ethionamide.label_tag }} {{ form.ethionamide }}
+                            {% for error in form.ethionamide.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.prothionamide.label_tag }} {{ form.prothionamide }}
+                            {% for error in form.prothionamide.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.para_aminosalicylic_acid.label_tag }} {{ form.para_aminosalicylic_acid }}
+                            {% for error in form.para_aminosalicylic_acid.errors %}<div class="text-danger">{{ error }}
+                            </div>{% endfor %}
+                        </div>
+
+
+                        <!-- Remarks -->
+                        <div class="mb-3">{{ form.remarks.label_tag }}{{ form.remarks }}</div>
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
