@@ -1,15 +1,47 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import Diagnosis, Screening
+from options.models import (
+    YesNo, TBDiagnosisMade, DiagnosisBacteriological, DiagnosedClinically,
+    TBTreatmentStarted, RegimenPrescribed, TBTreatmentOutcome
+)
 
 class DiagnosisForm(forms.ModelForm):
     class Meta:
         model = Diagnosis
-        fields = ["screening", "diagnosis_name", "diagnosis_date", "remarks"]
+        fields = [
+            "screening", "diagnosis_name", "diagnosis_date",
+            "tb_diagnosis", "tb_diagnosis_date", "tb_diagnosis_made", "diagnosis_made_other",
+            "bacteriological_diagnosis", "tb_diagnosed_clinically", "tb_clinically_other",
+            "clinician_received_date", "tb_treatment", "tb_treatment_date", "tb_facility",
+            "tb_reason", "tb_register_number", "tb_regimen", "tb_regimen_other",
+            "regimen_changed", "tb_outcome2", "tb_outcome2_date", "remarks"
+        ]
         widgets = {
-            "screening": forms.HiddenInput(),  # hidden input, won't be editable
+            "screening": forms.HiddenInput(),
             "diagnosis_name": forms.TextInput(attrs={"class": "form-control"}),
             "diagnosis_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+
+            "tb_diagnosis": forms.Select(attrs={"class": "form-select"}),
+            "tb_diagnosis_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "tb_diagnosis_made": forms.Select(attrs={"class": "form-select"}),
+            "diagnosis_made_other": forms.TextInput(attrs={"class": "form-control"}),
+
+            "bacteriological_diagnosis": forms.Select(attrs={"class": "form-select"}),
+            "tb_diagnosed_clinically": forms.Select(attrs={"class": "form-select"}),
+            "tb_clinically_other": forms.TextInput(attrs={"class": "form-control"}),
+
+            "clinician_received_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "tb_treatment": forms.Select(attrs={"class": "form-select"}),
+            "tb_treatment_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "tb_facility": forms.TextInput(attrs={"class": "form-control"}),
+            "tb_reason": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "tb_register_number": forms.TextInput(attrs={"class": "form-control"}),
+            "tb_regimen": forms.Select(attrs={"class": "form-select"}),
+            "tb_regimen_other": forms.TextInput(attrs={"class": "form-control"}),
+            "regimen_changed": forms.Select(attrs={"class": "form-select"}),
+            "tb_outcome2": forms.Select(attrs={"class": "form-select"}),
+            "tb_outcome2_date": forms.TextInput(attrs={"class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 
