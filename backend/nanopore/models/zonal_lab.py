@@ -32,8 +32,8 @@ class ZonalLaboratory(models.Model):
     # NEW FIELDS
     # Specimen receipt
     date_sputum_received = models.DateField(null=True, blank=True)
-    appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL, related_name="zonal_laboratory_appearance")
-    sample_volume = models.DecimalField(null=True, blank=True, max_digits=10, decimal_places=2)
+    appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_appearance")
+    sample_volume = models.DecimalField(null=True, blank=True, max_digits=3, decimal_places=1)
     unique_lab_no = models.CharField(max_length=100, blank=True, null=True)
 
     # Culture
@@ -44,24 +44,24 @@ class ZonalLaboratory(models.Model):
     microscopy_results = models.ForeignKey(CultureMicroscopyResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_microscopy_results")
 
     # LJ RESULTS
-    lj_inoculation_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_inoculation_date")
-    lj_results_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_results_date")
+    lj_inoculation_date = models.DateField(null=True,blank=True)
+    lj_results_date = models.DateField(null=True,blank=True)
     lj_results = models.ForeignKey(LJCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lj_results")
 
     # MGIT RESULTS
-    mgit_inoculation_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_inoculation_date")
-    mgit_results_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_results_date")
+    mgit_inoculation_date = models.DateField(null=True,blank=True)
+    mgit_results_date = models.DateField(null=True,blank=True)
     mgit_results = models.ForeignKey(MGITCultureResult, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_mgit_results")
 
 
     #  culture isolate
 
     culture_isolate = models.ForeignKey(YesNoNA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_culture_isolate")
-    isolate_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_isolate_date")
+    isolate_date = models.DateField(null=True,blank=True)
 
     # phenotypic DST
     phenotypic_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_performed")
-    phenotypic_date_performed = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_date_performed")
+    phenotypic_date_performed = models.DateField(null=True,blank=True)
     phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_phenotypic_date_results")
 
     # phenotypic DST RESULTS
@@ -89,7 +89,7 @@ class ZonalLaboratory(models.Model):
 
     # Xpert XDR
     xpert_xdr_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_xpert_xdr_performed")
-    xpert_xdr_date_performed = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_xpert_xdr_date_performed")
+    xpert_xdr_date_performed = models.DateField(null=True,blank=True)
 
     # Xpert XDR RESULTS    
     isoniazid2 = models.ForeignKey(XpertXDRResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_isoniazid2")
@@ -101,7 +101,7 @@ class ZonalLaboratory(models.Model):
 
     # First-Line LPA
     first_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_lpa")
-    first_line_lpa_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_lpa_date")
+    first_line_lpa_date = models.DateField(null=True,blank=True)
     first_line_drugs = models.ForeignKey(FirstLineDrugs, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_drugs")
     lpa1_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_mtb")
     lpa1_rif = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_rif")
@@ -109,7 +109,7 @@ class ZonalLaboratory(models.Model):
 
     # Second-Line LPA
     second_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_lpa")
-    second_line_lpa_date = models.DateField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_lpa_date")
+    second_line_lpa_date = models.DateField(null=True,blank=True)
     second_line_drugs = models.ForeignKey(SecondLineDrugs, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_drugs")
     lpa2_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_mtb")
     lpa2_rfluoroquinolones = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_rfluoroquinolones")
@@ -120,7 +120,7 @@ class ZonalLaboratory(models.Model):
     nanopore_done = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_done")
     sequencing_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_results")
     epi_to_me = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_epi_to_me")
-    epi_to_me_version = models.CharField(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_epi_to_me_version")
+    epi_to_me_version = models.CharField(max_length=255,null=True,blank=True)
 
     # Nanopore sequencing Results
 
