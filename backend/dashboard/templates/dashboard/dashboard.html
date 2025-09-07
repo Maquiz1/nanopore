@@ -1,7 +1,23 @@
 {% extends "base.html" %}
 
+{% load custom_tags %}
+
 {% block content %}
 <div class="container mt-4">
+        <!-- Selected Site / Zone Info -->
+    <div class="mb-3">
+        {% if request.GET.site or request.GET.zone %}
+            <h5>
+                {% if request.GET.site %}
+                    Site: {{ sites|get_item:request.GET.site|default:"N/A" }}
+                {% endif %}
+                {% if request.GET.zone %}
+                    {% if request.GET.site %} | {% endif %}
+                    Zone: {{ zones|get_item:request.GET.zone|default:"N/A" }}
+                {% endif %}
+            </h5>
+        {% endif %}
+    </div>
     <!-- DASHBOARD CARDS -->
     <div class="row g-3 mb-4">
         <!-- Screened Card -->

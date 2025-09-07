@@ -76,6 +76,10 @@ class Screening(models.Model):
             (self.produce_resp_sample and self.produce_resp_sample.name == 'Yes')
         )
         self.eligible = consent_logic and screening_criteria_logic
+        
+        # --- Safety check: ensure eligible is never None ---
+        if self.eligible is None:
+            self.eligible = False
 
         super().save(*args, **kwargs)
 
