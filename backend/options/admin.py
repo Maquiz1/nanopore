@@ -3,6 +3,7 @@ from .models import (
     YesNoNA,
     YesNo,
     YesNoUnknown,
+    EnrolledReason,
     CategoryTreated,
     Unknown,
     MonthUnknown,
@@ -72,6 +73,14 @@ class YesNoUnknownAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('value',)
 
+
+@admin.register(EnrolledReason)
+class EnrolledReasonAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
 @admin.register(CategoryTreated)
 class CategoryTreatedAdmin(admin.ModelAdmin):
     list_display = ('value', 'name', 'created_at')

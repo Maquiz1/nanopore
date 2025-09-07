@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'options.apps.OptionsConfig',
     'demographic.apps.DemographicConfig',
     # 'status.apps.StatusConfig',
-    'reasons.apps.ReasonsConfig',
+    # 'reasons.apps.ReasonsConfig',
     "nanopore.apps.NanoporeConfig",
     "household.apps.HouseholdConfig",
     "documents.apps.DocumentsConfig",

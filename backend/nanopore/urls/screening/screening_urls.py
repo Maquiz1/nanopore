@@ -7,7 +7,8 @@ from nanopore.views import (
     ScreeningDeleteView,
     ScreeningFormView,
     ScreeningCsvUploadView,
-    ScreeningCsvTemplateDownloadView
+    ScreeningCsvTemplateDownloadView,
+    ScreeningCsvUploadValuesView,
 )
 
 urlpatterns = [
@@ -20,7 +21,7 @@ urlpatterns = [
     path("<int:pk>/delete/", ScreeningDeleteView.as_view(), name="screening-delete"),
     
     path('upload/', ScreeningCsvUploadView.as_view(), name="screening-upload-csv"),
-    
+    path('upload-values/', ScreeningCsvUploadValuesView.as_view(), name="screening-upload-values"),
     path("template/", ScreeningCsvTemplateDownloadView.as_view(), name="screening-template-csv"),
 
 ]

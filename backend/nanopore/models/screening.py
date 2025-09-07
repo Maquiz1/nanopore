@@ -5,8 +5,7 @@ from django.utils import timezone
 from datetime import date
 from demographic.models import Sex
 from locations.models import Site
-from options.models import YesNo
-from reasons.models import EnrolledReason
+from options.models import YesNo, EnrolledReason
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -21,22 +20,22 @@ class Screening(models.Model):
     pid1 = models.CharField(max_length=3, validators=[three_digit_validator])
     pid2 = models.CharField(max_length=3, validators=[three_digit_validator])
     pid = models.CharField(max_length=255, unique=True, editable=False)
-    sex = models.ForeignKey(Sex, on_delete=models.SET_NULL, null=True, blank=True)
-    dob = models.DateField()
-    age = models.IntegerField()
+    sex = models.ForeignKey(Sex, on_delete=models.SET_NULL, null=True, blank=True, related_name="screenings_sex")
+    dob = models.DateField(null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True)
     eligible = models.BooleanField(default=False)
 
     # Inclusion / Consent fields
-    age18years = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_age18years")
-    present_symptoms = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_present_symptoms", blank=True, null=True)
-    produce_resp_sample = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_produce_resp_sample")
-    genexpert_confirmation = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_genexpert_confirmation", blank=True, null=True)
-    consent = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_consent")
+    age18years = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_age18years")
+    present_symptoms = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_present_symptoms")
+    produce_resp_sample = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_produce_resp_sample")
+    genexpert_confirmation = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_genexpert_confirmation")
+    consent = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_consent")
     consent_date = models.DateField(blank=True, null=True)
-    unable_understand = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_unable_understand")
-    not_willing = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_not_willing")
-    enrolled = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="screening_enrolled")
-    reasons = models.ForeignKey(EnrolledReason, on_delete=models.PROTECT, related_name="screening_enrolled_reasons", null=True, blank=True)
+    unable_understand = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_unable_understand")
+    not_willing = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_not_willing")
+    enrolled = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_enrolled")
+    reasons = models.ForeignKey(EnrolledReason, on_delete=models.SET_NULL, blank=True, null=True, related_name="screening_enrolled_reasons")
     reasons_other = models.TextField(blank=True, null=True)
     site = models.ForeignKey(Site, on_delete=models.SET_NULL, blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
@@ -57,13 +56,15 @@ class Screening(models.Model):
             self.pid = f"{pid_prefix}{self.pid1}"
 
         today = date.today()
+
+        # Safe DOB / Age calculation
         if self.dob and not self.age:
             self.age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
         elif self.age and not self.dob:
             self.dob = date(today.year - self.age, today.month, today.day)
-        elif self.dob and self.age:
-            self.age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
+        # If both missing, leave as null
 
+        # Eligible calculation (keep original logic)
         consent_logic = (
             (self.consent and self.consent.name == 'Yes') and
             (self.unable_understand and self.unable_understand.name == 'No') and
@@ -75,6 +76,7 @@ class Screening(models.Model):
             (self.produce_resp_sample and self.produce_resp_sample.name == 'Yes')
         )
         self.eligible = consent_logic and screening_criteria_logic
+
         super().save(*args, **kwargs)
 
     def clean(self):
