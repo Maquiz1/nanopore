@@ -62,35 +62,33 @@ class Screening(models.Model):
             self.age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
         elif self.age and not self.dob:
             self.dob = date(today.year - self.age, today.month, today.day)
-        # If both missing, leave as null
 
-        # Eligible calculation (keep original logic)
         # Consent logic
         consent_logic = all([
-            self.consent and self.consent.name == 'Yes',
-            self.unable_understand and self.unable_understand.name == 'No',
-            self.not_willing and self.not_willing.name == 'No',
+            self.consent and self.consent.name.strip().lower() == 'yes',
+            self.unable_understand and self.unable_understand.name.strip().lower() == 'no',
+            self.not_willing and self.not_willing.name.strip().lower() == 'no',
         ])
 
         # Base screening logic
         screening_logic = all([
-            self.age18years and self.age18years.name == 'Yes',
-            self.produce_resp_sample and self.produce_resp_sample.name == 'Yes',
+            self.age18years and self.age18years.name.strip().lower() == 'yes',
+            self.produce_resp_sample and self.produce_resp_sample.name.strip().lower() == 'yes',
         ])
 
+        # Determine zone safely
+        zone_name = ''
+        if self.site and self.site.district and self.site.district.region and self.site.district.region.zone:
+            zone_name = self.site.district.region.zone.name.strip().lower()
+
         # Zone-dependent condition
-        if self.zone and self.zone.name.lower() == "dar es salaam":
-            screening_logic = screening_logic and (self.present_symptoms and self.present_symptoms.name == 'Yes')
+        if zone_name == "dar es salaam":
+            screening_logic = screening_logic and (self.present_symptoms and self.present_symptoms.name.strip().lower() == 'yes')
         else:
-            screening_logic = screening_logic and (self.genexpert_confirmation and self.genexpert_confirmation.name == 'Yes')
+            screening_logic = screening_logic and (self.genexpert_confirmation and self.genexpert_confirmation.name.strip().lower() == 'yes')
 
         # Final eligibility
         self.eligible = consent_logic and screening_logic
-
-        
-        # --- Safety check: ensure eligible is never None ---
-        if self.eligible is None:
-            self.eligible = False
 
         super().save(*args, **kwargs)
 
@@ -103,7 +101,8 @@ class Screening(models.Model):
             raise ValidationError({"screening_date": "Screening date cannot be before 20 Jan 2025."})
         if self.screening_date > today:
             raise ValidationError({"screening_date": "Screening date cannot be in the future."})
-        if self.consent and self.consent.name.lower() == "yes":
+
+        if self.consent and self.consent.name.strip().lower() == "yes":
             if not self.consent_date:
                 raise ValidationError({"consent_date": "Consent date is required when consent is Yes."})
             if self.consent_date < self.screening_date:
