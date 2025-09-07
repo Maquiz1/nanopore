@@ -1,0 +1,534 @@
+[
+{
+  "model": "locations.country",
+  "pk": 1,
+  "fields": {
+    "name": "Tanzania"
+  }
+},
+{
+  "model": "locations.zone",
+  "pk": 1,
+  "fields": {
+    "name": "Dar es salaam",
+    "description": "",
+    "country": 1
+  }
+},
+{
+  "model": "locations.zone",
+  "pk": 2,
+  "fields": {
+    "name": "Mwanza",
+    "description": "",
+    "country": 1
+  }
+},
+{
+  "model": "locations.zone",
+  "pk": 3,
+  "fields": {
+    "name": "Dodoma",
+    "description": "",
+    "country": 1
+  }
+},
+{
+  "model": "locations.zone",
+  "pk": 4,
+  "fields": {
+    "name": "Mbeya",
+    "description": "",
+    "country": 1
+  }
+},
+{
+  "model": "locations.zone",
+  "pk": 5,
+  "fields": {
+    "name": "Zanzibar",
+    "description": "",
+    "country": 1
+  }
+},
+{
+  "model": "locations.region",
+  "pk": 1,
+  "fields": {
+    "name": "Dar es salaam",
+    "country": 1,
+    "zone": 1
+  }
+},
+{
+  "model": "locations.region",
+  "pk": 2,
+  "fields": {
+    "name": "Mwanza",
+    "country": 1,
+    "zone": 2
+  }
+},
+{
+  "model": "locations.region",
+  "pk": 3,
+  "fields": {
+    "name": "Dodoma",
+    "country": 1,
+    "zone": 3
+  }
+},
+{
+  "model": "locations.region",
+  "pk": 4,
+  "fields": {
+    "name": "Mbeya",
+    "country": 1,
+    "zone": 4
+  }
+},
+{
+  "model": "locations.region",
+  "pk": 5,
+  "fields": {
+    "name": "Zanzibar",
+    "country": 1,
+    "zone": 5
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 1,
+  "fields": {
+    "name": "Kinondoni",
+    "region": 1
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 2,
+  "fields": {
+    "name": "Ilala",
+    "region": 1
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 3,
+  "fields": {
+    "name": "Ubungo",
+    "region": 1
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 4,
+  "fields": {
+    "name": "Temeke",
+    "region": 1
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 5,
+  "fields": {
+    "name": "Ilemela",
+    "region": 2
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 6,
+  "fields": {
+    "name": "Nyamagana",
+    "region": 2
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 7,
+  "fields": {
+    "name": "Dodoma",
+    "region": 3
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 8,
+  "fields": {
+    "name": "Mpwapwa",
+    "region": 3
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 9,
+  "fields": {
+    "name": "Mbeya",
+    "region": 4
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 10,
+  "fields": {
+    "name": "Chunya",
+    "region": 4
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 11,
+  "fields": {
+    "name": "Kaskazini",
+    "region": 5
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 12,
+  "fields": {
+    "name": "Magharib",
+    "region": 5
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 13,
+  "fields": {
+    "name": "Kati",
+    "region": 5
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 14,
+  "fields": {
+    "name": "Kyela",
+    "region": 4
+  }
+},
+{
+  "model": "locations.district",
+  "pk": 15,
+  "fields": {
+    "name": "Magu",
+    "region": 2
+  }
+},
+{
+  "model": "locations.sitetype",
+  "pk": 1,
+  "fields": {
+    "name": "Clinic",
+    "code": "clinic"
+  }
+},
+{
+  "model": "locations.sitetype",
+  "pk": 2,
+  "fields": {
+    "name": "Laboratory",
+    "code": "laboratory"
+  }
+},
+{
+  "model": "locations.sitelevel",
+  "pk": 1,
+  "fields": {
+    "name": "Local",
+    "code": "local"
+  }
+},
+{
+  "model": "locations.sitelevel",
+  "pk": 2,
+  "fields": {
+    "name": "Zonal",
+    "code": "zonal"
+  }
+},
+{
+  "model": "locations.sitelevel",
+  "pk": 3,
+  "fields": {
+    "name": "National",
+    "code": "national"
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 1,
+  "fields": {
+    "name": "Kivunge Hospital",
+    "district": 11,
+    "pid_prefix": "DF_TZ_SS2_01_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 2,
+  "fields": {
+    "name": "Mnazi Mmoja RRH",
+    "district": 12,
+    "pid_prefix": "DF_TZ_SS2_02_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 3,
+  "fields": {
+    "name": "Chunya District Hospital",
+    "district": 10,
+    "pid_prefix": "DF_TZ_SS2_03_",
+    "site_type": 1,
+    "site_level": 2
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 4,
+  "fields": {
+    "name": "Ziwani Police Hospital",
+    "district": 13,
+    "pid_prefix": "DF_TZ_SS2_04_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 5,
+  "fields": {
+    "name": "Kyela District Hospital",
+    "district": 14,
+    "pid_prefix": "DF_TZ_SS2_05_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 6,
+  "fields": {
+    "name": "Mbeya Zonal RH",
+    "district": 9,
+    "pid_prefix": "DF_TZ_SS2_06_",
+    "site_type": 1,
+    "site_level": 2
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 7,
+  "fields": {
+    "name": "Mbeya RRH",
+    "district": 9,
+    "pid_prefix": "DF_TZ_SS2_07_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 8,
+  "fields": {
+    "name": "NONE",
+    "district": 1,
+    "pid_prefix": "DF_TZ_SS2_08_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 9,
+  "fields": {
+    "name": "Magu District Hospital",
+    "district": 6,
+    "pid_prefix": "DF_TZ_SS2_09_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 10,
+  "fields": {
+    "name": "Ngudu District Hospital",
+    "district": 15,
+    "pid_prefix": "DF_TZ_SS2_10_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 11,
+  "fields": {
+    "name": "Buzuruga Hospital",
+    "district": 15,
+    "pid_prefix": "DF_TZ_SS2_11_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 12,
+  "fields": {
+    "name": "Sekou Toure RRH",
+    "district": 5,
+    "pid_prefix": "DF_TZ_SS2_12_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 13,
+  "fields": {
+    "name": "Bugando RRH",
+    "district": 6,
+    "pid_prefix": "DF_TZ_SS2_13_",
+    "site_type": 1,
+    "site_level": 2
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 14,
+  "fields": {
+    "name": "Tambukareli Centre",
+    "district": 4,
+    "pid_prefix": "DF_TZ_SS2_14_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 15,
+  "fields": {
+    "name": "Mbagala Hospital",
+    "district": 4,
+    "pid_prefix": "DF_TZ_SS2_15_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 16,
+  "fields": {
+    "name": "Amana Hospital",
+    "district": 2,
+    "pid_prefix": "DF_TZ_SS2_16_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 17,
+  "fields": {
+    "name": "Mwananyamala Hospital",
+    "district": 1,
+    "pid_prefix": "DF_TZ_SS2_17_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 18,
+  "fields": {
+    "name": "Temeke Hospital",
+    "district": 4,
+    "pid_prefix": "DF_TZ_SS2_18_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 19,
+  "fields": {
+    "name": "Sinza Hospital",
+    "district": 3,
+    "pid_prefix": "DF_TZ_SS2_19_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 20,
+  "fields": {
+    "name": "CTRL Laboratory",
+    "district": 2,
+    "pid_prefix": "DF_TZ_SS2_20_",
+    "site_type": 2,
+    "site_level": 2
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 21,
+  "fields": {
+    "name": "Unguja PH Laboratory",
+    "district": 12,
+    "pid_prefix": "DF_TZ_SS2_21_",
+    "site_type": 2,
+    "site_level": 2
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 22,
+  "fields": {
+    "name": "Dodoma RRH",
+    "district": 7,
+    "pid_prefix": "DF_TZ_SS2_22_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 23,
+  "fields": {
+    "name": "Benjamin Mkapa Hospital",
+    "district": 7,
+    "pid_prefix": "DF_TZ_SS2_23_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 24,
+  "fields": {
+    "name": "Mpwapwa District Hospital",
+    "district": 8,
+    "pid_prefix": "DF_TZ_SS2_24_",
+    "site_type": 1,
+    "site_level": 1
+  }
+},
+{
+  "model": "locations.site",
+  "pk": 25,
+  "fields": {
+    "name": "MAKOLE URBAN HEALTH CENTRE",
+    "district": 7,
+    "pid_prefix": "DF_TZ_SS2_24_",
+    "site_type": 1,
+    "site_level": 1
+  }
+}
+]

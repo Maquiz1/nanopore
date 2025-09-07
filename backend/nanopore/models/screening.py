@@ -5,7 +5,7 @@ from django.utils import timezone
 from datetime import date
 from demographic.models import Sex
 from locations.models import Site
-from clinical.models import YesNo
+from options.models import YesNo
 from reasons.models import EnrolledReason
 from django.contrib.auth import get_user_model
 

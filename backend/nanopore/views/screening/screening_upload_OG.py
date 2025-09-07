@@ -9,7 +9,7 @@ from nanopore.forms.screening.screening_upload_form import ScreeningUploadForm
 from nanopore.models import Screening
 from locations.models import Site
 from demographic.models import Sex
-from clinical.models import YesNo
+from options.models import YesNo
 from reasons.models import EnrolledReason
 
 class ScreeningCsvUploadView(View):

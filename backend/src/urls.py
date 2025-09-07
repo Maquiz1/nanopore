@@ -26,7 +26,7 @@ urlpatterns = [
     path("dashboard/", include("dashboard.urls")),
     path("users/", include("users.urls")),
     path('reports/', include('reports.urls')),  # if mentorship app is included separately
-    path('mentorship/', include('mentorship.urls')),  # if mentorship app is included separately
+    # path('mentorship/', include('mentorship.urls')),  # if mentorship app is included separately
     path('locations/', include('locations.urls', namespace='locations')),
     path("admin/", admin.site.urls),
 ]
