@@ -33,26 +33,46 @@ def get_foreign(obj_class, val):
 
 def safe_eligible(row, consent, age18years, present_symptoms,
                   produce_resp_sample, unable_understand, not_willing):
-    """Calculate a safe boolean eligible value before hitting the DB."""
-    # If CSV contains Eligible column, convert it
+    """
+    Return a safe boolean for 'eligible'.
+    1. Parse CSV value if present (handles True/False/1/0/Yes/No with extra spaces).
+    2. If missing/invalid, calculate based on YesNo ForeignKeys.
+    Always returns True or False (never None).
+    """
+
+    # --- Step 1: Parse CSV column ---
     csv_val = row.get("Eligible") or row.get("eligible")
-    if str(csv_val).strip().lower() in ["true", "1", "yes"]:
-        return True
-    elif str(csv_val).strip().lower() in ["false", "0", "no"]:
-        return False
+    if csv_val is not None:
+        # Remove spaces, tabs, non-breaking spaces, lowercase
+        csv_val_str = str(csv_val).strip().replace("\xa0", "").lower()
+        if csv_val_str in ["true", "1", "yes"]:
+            return True
+        elif csv_val_str in ["false", "0", "no"]:
+            return False
 
-    # Fallback: calculate based on available foreign keys, treat None as 'No' / 'Yes' conservatively
-    consent_val = getattr(consent, "name", "No") if consent else "No"
-    age18_val = getattr(age18years, "name", "No") if age18years else "No"
-    symptom_val = getattr(present_symptoms, "name", "No") if present_symptoms else "No"
-    produce_val = getattr(produce_resp_sample, "name", "No") if produce_resp_sample else "No"
-    unable_val = getattr(unable_understand, "name", "Yes") if unable_understand else "Yes"
-    not_willing_val = getattr(not_willing, "name", "Yes") if not_willing else "Yes"
+    # --- Step 2: Fallback: calculate from YesNo FKs ---
+    def val_to_bool(fk_obj, default="No"):
+        """
+        Convert a YesNo ForeignKey object to boolean.
+        If None, uses default ('Yes' or 'No').
+        """
+        if fk_obj is None:
+            return default.lower() == "yes"
+        return getattr(fk_obj, "name", default).lower() == "yes"
 
-    consent_logic = consent_val == "Yes" and unable_val == "No" and not_willing_val == "No"
-    screening_logic = age18_val == "Yes" and symptom_val == "Yes" and produce_val == "Yes"
+    consent_val = val_to_bool(consent, "No")
+    age18_val = val_to_bool(age18years, "No")
+    symptom_val = val_to_bool(present_symptoms, "No")
+    produce_val = val_to_bool(produce_resp_sample, "No")
+    unable_val = val_to_bool(unable_understand, "No")
+    not_willing_val = val_to_bool(not_willing, "No")
+
+    # --- Step 3: Apply eligibility logic ---
+    consent_logic = consent_val and not unable_val and not not_willing_val
+    screening_logic = age18_val and symptom_val and produce_val
 
     return consent_logic and screening_logic
+
 
 
 class ScreeningCsvUploadValuesView(View):
