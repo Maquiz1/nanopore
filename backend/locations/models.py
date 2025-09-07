@@ -3,7 +3,12 @@
 from django.db import models
 
 class Country(models.Model):
-    name = models.CharField(max_length=100)
+    value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
+    description = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.name
@@ -13,9 +18,13 @@ class Country(models.Model):
         verbose_name_plural = "Countries"
 
 class Zone(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
     description = models.TextField(blank=True, null=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
         # db_table = "zone"
@@ -25,7 +34,12 @@ class Zone(models.Model):
         return self.name
 
 class Region(models.Model):
-    name = models.CharField(max_length=100)
+    value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
+    description = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     zone = models.ForeignKey(Zone, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -33,7 +47,12 @@ class Region(models.Model):
         return f"{self.name}, {self.country.name}"
 
 class District(models.Model):
-    name = models.CharField(max_length=100)
+    value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
+    description = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -41,6 +60,11 @@ class District(models.Model):
 
 
 class SiteType(models.Model):
+    value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
     name = models.CharField(max_length=50, unique=True)  # Clinic, Laboratory
     code = models.CharField(max_length=20, unique=True)
 
@@ -48,6 +72,11 @@ class SiteType(models.Model):
         return self.name
 
 class SiteLevel(models.Model):
+    value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
     name = models.CharField(max_length=50, unique=True)  # e.g., "Local", "Zonal", "National"
     code = models.CharField(max_length=20, unique=True)
 
@@ -55,7 +84,12 @@ class SiteLevel(models.Model):
         return self.name
 
 class Site(models.Model):
-    name = models.CharField(max_length=100)
+    value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
+    description = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
     pid_prefix = models.CharField(max_length=13, default="")  # e.g., TZ01-
     site_type = models.ForeignKey(SiteType, on_delete=models.CASCADE, null=True, blank=True)
