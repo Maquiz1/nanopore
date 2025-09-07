@@ -9,8 +9,7 @@ from nanopore.forms.screening.screening_upload_form import ScreeningUploadForm
 from nanopore.models import Screening
 from locations.models import Site
 from demographic.models import Sex
-from options.models import YesNo
-from reasons.models import EnrolledReason
+from options.models import YesNo,EnrolledReason
 
 class ScreeningCsvUploadView(View):
     template_name = "nanopore/screening/screening_upload.html"

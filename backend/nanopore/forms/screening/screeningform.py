@@ -2,9 +2,8 @@ from django import forms
 from datetime import date
 from django.core.exceptions import ValidationError
 from nanopore.models import Screening
-from options.models import YesNo
+from options.models import YesNo,EnrolledReason
 from demographic.models import Sex
-from reasons.models import EnrolledReason
 from locations.models import Zone
 
 

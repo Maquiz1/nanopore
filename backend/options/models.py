@@ -96,6 +96,25 @@ class Unknown(models.Model):
     def __str__(self):
         return self.name
     
+    
+class EnrolledReason(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Enrolled Reason Option"
+        verbose_name_plural = "Enrolled Reason Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
 class MonthUnknown(models.Model):
     value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"

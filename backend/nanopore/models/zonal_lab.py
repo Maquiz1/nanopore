@@ -136,7 +136,6 @@ class ZonalLaboratory(models.Model):
     nano_rifampicin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_rifampicin")
     nano_streptomycin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_streptomycin")
 
-    # nano_cycloserine = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     # # nano_terizidone = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     # # nano_imipenem = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     # # nano_cilastatin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")

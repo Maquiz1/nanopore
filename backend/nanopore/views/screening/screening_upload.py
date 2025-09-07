@@ -10,8 +10,7 @@ from nanopore.forms.screening.screening_upload_form import ScreeningUploadForm
 from nanopore.models import Screening
 from locations.models import Site
 from demographic.models import Sex
-from options.models import YesNo
-from reasons.models import EnrolledReason
+from options.models import YesNo,EnrolledReason
 
 
 class ScreeningCsvUploadView(View):
@@ -41,7 +40,7 @@ class ScreeningCsvUploadView(View):
 
         # Prepare YesNo and EnrolledReason maps
         yesno_map = {yn.name.lower(): yn for yn in YesNo.objects.all()}
-        reason_map = {r.reason.lower(): r for r in EnrolledReason.objects.all()}
+        reason_map = {r.name.lower(): r for r in EnrolledReason.objects.all()}
 
         for idx, row in enumerate(reader, start=2):
             pid = row.get("PID") or row.get("pid")
