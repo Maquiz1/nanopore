@@ -65,17 +65,28 @@ class Screening(models.Model):
         # If both missing, leave as null
 
         # Eligible calculation (keep original logic)
-        consent_logic = (
-            (self.consent and self.consent.name == 'Yes') and
-            (self.unable_understand and self.unable_understand.name == 'No') and
-            (self.not_willing and self.not_willing.name == 'No')
-        )
-        screening_criteria_logic = (
-            (self.age18years and self.age18years.name == 'Yes') and
-            (self.present_symptoms and self.present_symptoms.name == 'Yes') and
-            (self.produce_resp_sample and self.produce_resp_sample.name == 'Yes')
-        )
-        self.eligible = consent_logic and screening_criteria_logic
+        # Consent logic
+        consent_logic = all([
+            self.consent and self.consent.name == 'Yes',
+            self.unable_understand and self.unable_understand.name == 'No',
+            self.not_willing and self.not_willing.name == 'No',
+        ])
+
+        # Base screening logic
+        screening_logic = all([
+            self.age18years and self.age18years.name == 'Yes',
+            self.produce_resp_sample and self.produce_resp_sample.name == 'Yes',
+        ])
+
+        # Zone-dependent condition
+        if self.zone and self.zone.name.lower() == "dar es salaam":
+            screening_logic = screening_logic and (self.present_symptoms and self.present_symptoms.name == 'Yes')
+        else:
+            screening_logic = screening_logic and (self.genexpert_confirmation and self.genexpert_confirmation.name == 'Yes')
+
+        # Final eligibility
+        self.eligible = consent_logic and screening_logic
+
         
         # --- Safety check: ensure eligible is never None ---
         if self.eligible is None:
