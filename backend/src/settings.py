@@ -27,7 +27,8 @@ ALLOWED_HOSTS = ast.literal_eval(env("ALLOWED_HOSTS", default="[]"))
 # else:
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
+        # 'ENGINE': 'django.db.backends.mysql',
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'common.apps.CommonConfig',
     'options.apps.OptionsConfig',
     'demographic.apps.DemographicConfig',
-    'status.apps.StatusConfig',
+    # 'status.apps.StatusConfig',
     'reasons.apps.ReasonsConfig',
     "nanopore.apps.NanoporeConfig",
     "household.apps.HouseholdConfig",
@@ -50,7 +51,7 @@ INSTALLED_APPS = [
     "clinical.apps.ClinicalConfig",
     "dashboard.apps.DashboardConfig",
     "locations.apps.LocationsConfig",
-    "mentorship.apps.MentorshipConfig",
+    # "mentorship.apps.MentorshipConfig",
     "users.apps.UsersConfig",
     'django.contrib.admin',
     'django.contrib.auth',

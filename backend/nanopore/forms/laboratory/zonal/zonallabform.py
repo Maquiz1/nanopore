@@ -25,6 +25,61 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "linezolid", "clofazimine", "cycloserine", "terizidone", "ethambutol",
             "delamanid", "pyrazinamide", "imipenem", "cilastatin", "meropenem",
             "amikacin", "streptomycin", "ethionamide", "prothionamide", "para_aminosalicylic_acid",
+            # Xpert XDR
+            "xpert_xdr_performed", "xpert_xdr_date_performed",
+            
+            # Xpert XDR RESULTS
+            "xpert_xdr_isoniazid",
+            "xpert_xdr_fluoroquinolones",
+            "xpert_xdr_amikacin",
+            "xpert_xdr_kanamycin",
+            "xpert_xdr_capreomycin",
+            "xpert_xdr_ethionamide",
+           
+            # First-Line LPA
+            "first_line_lpa",
+            "first_line_lpa_date",
+            "first_line_drugs",
+            "lpa1_mtb",
+            "lpa1_rif",
+            "lpa1_inh",
+
+            # Second-Line LPA
+            "second_line_lpa",
+            "second_line_lpa_date",
+            "second_line_drugs",
+            "lpa2_mtb",
+            "lpa2_rfluoroquinolones",
+            "lpa2_aminoglycosides",
+            "lpa2_kanamycin",
+            
+            
+            # Nanopore sequencing
+            "nanopore_done",
+            "sequencing_results",
+            "epi_to_me",
+            "epi_to_me_version",
+            
+            
+            # Nanopore sequencing Results
+            
+            "nano_amikacin",
+            "nano_bedaquiline",
+            "nano_capreomycin",
+            "nano_clofazimine",
+            "nano_delamanid",
+            "nano_ethambutol",
+            "nano_ethionamide",
+            "nano_isoniazid",
+            "nano_kanamycin",
+            "nano_levofloxacin",
+            "nano_linezolid",
+            "nano_moxifloxacin",
+            "nano_pretomanid",
+            "nano_pyrazinamide",
+            "nano_rifampicin",
+            "nano_streptomycin",
+
         ]
         widgets = {
             "screening": forms.HiddenInput(),
@@ -79,6 +134,62 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "ethionamide": forms.Select(attrs={"class": "form-select"}),
             "prothionamide": forms.Select(attrs={"class": "form-select"}),
             "para_aminosalicylic_acid": forms.Select(attrs={"class": "form-select"}),
+            
+            # Xpert XDR
+            "xpert_xdr_performed": forms.Select(attrs={"class": "form-select"}),
+            "xpert_xdr_date_performed": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            
+            # Xpert XDR RESULTS
+            "xpert_xdr_isoniazid": forms.Select(attrs={"class": "form-select"}),
+            "xpert_xdr_fluoroquinolones": forms.Select(attrs={"class": "form-select"}),
+            "xpert_xdr_amikacin": forms.Select(attrs={"class": "form-select"}),
+            "xpert_xdr_kanamycin": forms.Select(attrs={"class": "form-select"}),
+            "xpert_xdr_capreomycin": forms.Select(attrs={"class": "form-select"}),
+            "xpert_xdr_ethionamide": forms.Select(attrs={"class": "form-select"}),
+            
+            # First-Line LPA
+            "first_line_lpa": forms.Select(attrs={"class": "form-select"}),
+            "first_line_lpa_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "first_line_drugs": forms.CheckboxSelectMultiple(),
+            "lpa1_mtb": forms.Select(attrs={"class": "form-select"}),
+            "lpa1_rif": forms.Select(attrs={"class": "form-select"}),
+            "lpa1_inh": forms.Select(attrs={"class": "form-select"}),
+            
+            
+            # Second-Line LPA            
+            "second_line_lpa": forms.Select(attrs={"class": "form-select"}),
+            "second_line_lpa_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "second_line_drugs": forms.CheckboxSelectMultiple(),
+            "lpa2_mtb": forms.Select(attrs={"class": "form-select"}),
+            "lpa2_rfluoroquinolones": forms.Select(attrs={"class": "form-select"}),
+            "lpa2_aminoglycosides": forms.Select(attrs={"class": "form-select"}),
+            "lpa2_kanamycin": forms.Select(attrs={"class": "form-select"}),
+            
+            
+            # Nanopore sequencing
+            "nanopore_done": forms.Select(attrs={"class": "form-select"}),
+            "sequencing_results": forms.Select(attrs={"class": "form-select"}),
+            "epi_to_me": forms.Select(attrs={"class": "form-select"}),
+            "epi_to_me_version": forms.TextInput(attrs={"class": "form-control"}),
+            
+            
+            # Nanopore sequencing Results
+            "nano_amikacin": forms.Select(attrs={"class": "form-select"}),
+            "nano_bedaquiline": forms.Select(attrs={"class": "form-select"}),
+            "nano_capreomycin": forms.Select(attrs={"class": "form-select"}),
+            "nano_clofazimine": forms.Select(attrs={"class": "form-select"}),
+            "nano_delamanid": forms.Select(attrs={"class": "form-select"}),
+            "nano_ethambutol": forms.Select(attrs={"class": "form-select"}),
+            "nano_ethionamide": forms.Select(attrs={"class": "form-select"}),
+            "nano_isoniazid": forms.Select(attrs={"class": "form-select"}),
+            "nano_kanamycin": forms.Select(attrs={"class": "form-select"}),
+            "nano_levofloxacin": forms.Select(attrs={"class": "form-select"}),
+            "nano_linezolid": forms.Select(attrs={"class": "form-select"}),
+            "nano_moxifloxacin": forms.Select(attrs={"class": "form-select"}),
+            "nano_pretomanid": forms.Select(attrs={"class": "form-select"}),
+            "nano_pyrazinamide": forms.Select(attrs={"class": "form-select"}),
+            "nano_rifampicin": forms.Select(attrs={"class": "form-select"}),
+            "nano_streptomycin": forms.Select(attrs={"class": "form-select"}),            
         }
 
 

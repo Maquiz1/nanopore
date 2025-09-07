@@ -1,0 +1,16 @@
+[
+{
+  "model": "demographic.sex",
+  "pk": 1,
+  "fields": {
+    "name": "Male"
+  }
+},
+{
+  "model": "demographic.sex",
+  "pk": 2,
+  "fields": {
+    "name": "Female"
+  }
+}
+]

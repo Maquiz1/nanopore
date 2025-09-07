@@ -1,0 +1,16 @@
+[
+{
+  "model": "clinical.yesno",
+  "pk": 1,
+  "fields": {
+    "name": "Yes"
+  }
+},
+{
+  "model": "clinical.yesno",
+  "pk": 2,
+  "fields": {
+    "name": "No"
+  }
+}
+]
