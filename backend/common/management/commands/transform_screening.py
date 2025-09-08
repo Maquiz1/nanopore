@@ -32,6 +32,8 @@ class Command(BaseCommand):
         # Mapping columns from internal/download to upload-ready
         column_mapping = {
             "pid": "PID",
+            "pid1": "PID1",
+            "pid2": "PID2",
             "screening_date": "ScreeningDate",
             "sex": "Sex",
             "dob": "DOB",
@@ -94,6 +96,8 @@ class Command(BaseCommand):
         # Keep only the expected upload columns
         upload_columns = [
             "PID",
+            "PID1",
+            "PID2",
             "ScreeningDate",
             "Sex",
             "DOB",

@@ -118,6 +118,8 @@ class ScreeningCsvUploadValuesView(View):
                 genexpert_confirmation = get_foreign(YesNo, row.get("GenexpertConfirmation"))
                 reasons = get_foreign(EnrolledReason, row.get("Reasons"))
                 reasons_other = row.get("ReasonsOther") or None
+                pid1 = row.get("PID1") or None
+                pid2 = row.get("PID2") or None
 
                 # --- Site (required) ---
                 site = get_foreign(Site, row.get("Site"))
@@ -166,6 +168,8 @@ class ScreeningCsvUploadValuesView(View):
                 screening, created = Screening.objects.update_or_create(
                     pid=pid,
                     defaults={
+                        "pid1": pid1,
+                        "pid2": pid2,
                         "screening_date": screening_date,
                         "dob": dob,
                         "age": age,
