@@ -76,7 +76,7 @@ class EnrollmentForm(forms.ModelForm):
 
             "hiv_status": forms.Select(attrs={"class": "form-select"}),
             "other_diseases": forms.Select(attrs={"class": "form-select"}),
-            "diseases_medical": forms.SelectMultiple(attrs={"class": "form-select"}),
+            "diseases_medical": forms.CheckboxSelectMultiple(),
             "diseases_specify": forms.TextInput(attrs={"class": "form-control"}),
 
             "sputum_collected": forms.Select(attrs={"class": "form-select"}),

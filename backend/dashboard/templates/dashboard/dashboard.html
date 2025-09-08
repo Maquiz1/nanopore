@@ -2,10 +2,21 @@
 
 {% load custom_tags %}
 
+{% load static %}
+
+{% block title %}Dream - nanopore{% endblock %}
+
+{% block titlebar %}
+Dashboard — {{ user.get_full_name|default:user.username }}
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<h2 class="mb-4">Welcome, {{ user.get_full_name|default:user.username }}!</h2>
+
+<div class="container mt-3">
         <!-- Selected Site / Zone Info -->
     <div class="mb-3">
+
         {% if request.GET.site or request.GET.zone %}
             <h5>
                 {% if request.GET.site %}
