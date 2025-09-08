@@ -96,20 +96,42 @@
                             <h5 class="mb-0">Inclusion Criteria</h5>
                         </div>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.present_symptoms.label_tag }}
-                                {{ form.present_symptoms }}
-                                {% for error in form.present_symptoms.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.genexpert_confirmation.label_tag }}
-                                {{ form.genexpert_confirmation }}
-                                {% for error in form.genexpert_confirmation.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
+                            {% if request.user.is_superuser or request.user.groups.all.0.name|upper in "ADMIN,REVIEWER" %}
+                                <!-- Show both for Admin, Reviewer, or Superuser -->
+                                <div class="col-md-4">
+                                    {{ form.present_symptoms.label_tag }}
+                                    {{ form.present_symptoms }}
+                                    {% for error in form.present_symptoms.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.genexpert_confirmation.label_tag }}
+                                    {{ form.genexpert_confirmation }}
+                                    {% for error in form.genexpert_confirmation.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <!-- Normal user: show based on Zone -->
+                                {% if form.instance.site and form.instance.site.district.region.zone.name|lower == "dar es salaam" %}
+                                    <div class="col-md-6">
+                                        {{ form.present_symptoms.label_tag }}
+                                        {{ form.present_symptoms }}
+                                        {% for error in form.present_symptoms.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="col-md-6">
+                                        {{ form.genexpert_confirmation.label_tag }}
+                                        {{ form.genexpert_confirmation }}
+                                        {% for error in form.genexpert_confirmation.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
                             <div class="col-md-4">
                                 {{ form.produce_resp_sample.label_tag }}
                                 {{ form.produce_resp_sample }}
@@ -169,7 +191,7 @@
                         <hr class="my-4">
 
                         <!-- ENROLLMENT SECTION -->
-                        <div id="enrollment-section">
+                        <div id="enrollment-section" style="display:none;">
                             <div class="p-2 mb-3 bg-warning text-white rounded">
                                 <h5 class="mb-0">Enrollment</h5>
                             </div>
@@ -181,14 +203,14 @@
                                     <div class="text-danger">{{ error }}</div>
                                     {% endfor %}
                                 </div>
-                                <div class="col-md-4" id="reasons-wrapper">
+                                <div class="col-md-4" id="reasons-wrapper" style="display:none;">
                                     {{ form.reasons.label_tag }}
                                     {{ form.reasons }}
                                     {% for error in form.reasons.errors %}
                                     <div class="text-danger">{{ error }}</div>
                                     {% endfor %}
                                 </div>
-                                <div class="col-md-4" id="reasons-other-wrapper">
+                                <div class="col-md-4" id="reasons-other-wrapper" style="display:none;">
                                     {{ form.reasons_other.label_tag }}
                                     {{ form.reasons_other }}
                                     {% for error in form.reasons_other.errors %}
@@ -233,41 +255,7 @@
 {% block extra_scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // PID validation logic
-    const pid1 = document.getElementById("id_pid1");
-    const pid2 = document.getElementById("id_pid2");
-    const siteSelect = document.getElementById("id_site");
-    const pidWarning = document.createElement("div");
-    pidWarning.className = "text-danger mt-1";
-    pid1.parentNode.appendChild(pidWarning);
-    const saveButton = document.querySelector("button[type='submit']");
-
-    function allowThreeDigitsOnly(input) {
-        input.addEventListener("input", function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 3);
-        });
-    }
-    allowThreeDigitsOnly(pid1);
-    allowThreeDigitsOnly(pid2);
-
-    async function checkPID() {
-        const pidVal = pid1.value;
-        const siteVal = siteSelect ? siteSelect.value : '';
-        if (!pidVal) { pidWarning.innerText = ''; saveButton.disabled = false; return; }
-        try {
-            const response = await fetch(`/nanopore/check-pid/?pid1=${pidVal}&site_id=${siteVal}`);
-            const data = await response.json();
-            if (data.exists) {
-                pidWarning.innerText = `⚠ PID "${data.pid}" already exists!`;
-                saveButton.disabled = true;
-            } else { pidWarning.innerText = ''; saveButton.disabled = false; }
-        } catch (error) { console.error(error); pidWarning.innerText = ''; saveButton.disabled = false; }
-    }
-
-    pid1.addEventListener("input", checkPID);
-    if (siteSelect) siteSelect.addEventListener("change", checkPID);
-
-    // Consent date toggle
+    // === Consent date toggle ===
     const consentField = document.getElementById("id_consent");
     const consentDateWrapper = document.getElementById("consent-date-wrapper");
     function toggleConsentDate() {
@@ -280,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function () {
     consentField.addEventListener("change", toggleConsentDate);
     toggleConsentDate();
 
-    // Enrollment visibility toggle (based on eligibility + zone)
+    // === Enrollment + Reasons toggle ===
     const form = document.getElementById("screeningForm");
     const zoneId = parseInt(form.dataset.zoneId || 0);
     const darEsSalaamZoneId = {{ dar_es_salaam_zone.id|default:0 }};
@@ -289,15 +277,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const enrollmentSection = document.getElementById("enrollment-section");
     const enrolledField = document.getElementById("id_enrolled");
+    const reasonsWrapper = document.getElementById("reasons-wrapper");
     const reasonsField = document.getElementById("id_reasons");
+    const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
     const reasonsOtherField = document.getElementById("id_reasons_other");
 
     function toggleEnrollmentVisibility() {
         let eligible = false;
         if (zoneId === darEsSalaamZoneId) {
-            eligible = (presentSymptoms.value === "1"); // "Yes"
+            eligible = (presentSymptoms?.value === "1");
         } else {
-            eligible = (genexpertConfirmation.value === "1"); // "Yes"
+            eligible = (genexpertConfirmation?.value === "1");
         }
 
         if (eligible) {
@@ -308,17 +298,44 @@ document.addEventListener("DOMContentLoaded", function () {
             enrolledField.required = false;
             reasonsField.required = false;
             reasonsOtherField.required = false;
-
             enrolledField.value = "";
             reasonsField.value = "";
             reasonsOtherField.value = "";
         }
+        toggleReasonsVisibility();
     }
 
-    presentSymptoms.addEventListener("change", toggleEnrollmentVisibility);
-    genexpertConfirmation.addEventListener("change", toggleEnrollmentVisibility);
+    function toggleReasonsVisibility() {
+        if (enrolledField?.value === "1") {
+            reasonsWrapper.style.display = "block";
+            reasonsField.required = true;
+        } else {
+            reasonsWrapper.style.display = "none";
+            reasonsField.required = false;
+            reasonsField.value = "";
+            toggleReasonsOtherVisibility();
+        }
+    }
 
-    toggleEnrollmentVisibility(); // run on page load
+    function toggleReasonsOtherVisibility() {
+        if (reasonsField?.value === "96") {
+            reasonsOtherWrapper.style.display = "block";
+            reasonsOtherField.required = true;
+        } else {
+            reasonsOtherWrapper.style.display = "none";
+            reasonsOtherField.required = false;
+            reasonsOtherField.value = "";
+        }
+    }
+
+    presentSymptoms?.addEventListener("change", toggleEnrollmentVisibility);
+    genexpertConfirmation?.addEventListener("change", toggleEnrollmentVisibility);
+    enrolledField?.addEventListener("change", toggleReasonsVisibility);
+    reasonsField?.addEventListener("change", toggleReasonsOtherVisibility);
+
+    toggleEnrollmentVisibility();
+    toggleReasonsVisibility();
+    toggleReasonsOtherVisibility();
 });
 </script>
 {% endblock %}
