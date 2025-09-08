@@ -26,7 +26,6 @@ class ClinicLaboratory(models.Model):
     
     # Sputum sample
     sample_received = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_sample_received")
-    date_sample1_received = models.DateField(blank=True, null=True)
     sample_reason = models.ForeignKey(SampleReason, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_sample_reason")
     other_reason = models.TextField(max_length=255, blank=True, null=True)
     new_sample = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_new_sample")
@@ -35,7 +34,7 @@ class ClinicLaboratory(models.Model):
     
     # Sputum sample details
     date_sample1_collected = models.DateField(blank=True, null=True)
-    date_sample2_received = models.DateField(blank=True, null=True)
+    date_sample1_received = models.DateField(blank=True, null=True)
     appearance_sample1 = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_appearance_sample1")
     sample1_volume = models.CharField(max_length=255, blank=True, null=True)
     date_sample2_collected = models.DateField(blank=True, null=True)
@@ -65,7 +64,7 @@ class ClinicLaboratory(models.Model):
     # Additional fields
     remarks = models.TextField(blank=True, null=True)
     
-    
+    # Auditing
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_labs_created")
     updated_at = models.DateTimeField(auto_now=True)
