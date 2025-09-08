@@ -5,6 +5,7 @@ from nanopore.views import (
     ClinicLaboratoryDetailView,
     ClinicLaboratoryDeleteView,
     ClinicLaboratoryFormView,
+    ClinicLabCsvUploadView
 )
 
 urlpatterns = [
@@ -13,4 +14,6 @@ urlpatterns = [
     path("clinic-laboratory/form/", ClinicLaboratoryFormView.as_view(), name="clinic-laboratory-create"),
     path("clinic-laboratory/form/<int:pk>/", ClinicLaboratoryFormView.as_view(), name="clinic-laboratory-update"),
     path("clinic-laboratory/<int:pk>/delete/", ClinicLaboratoryDeleteView.as_view(), name="clinic-laboratory-delete"),
+    
+    path('upload/', ClinicLabCsvUploadView.as_view(), name="clinic-upload-csv"),
 ]

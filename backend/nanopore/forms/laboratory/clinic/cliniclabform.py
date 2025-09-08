@@ -8,10 +8,9 @@ class ClinicLaboratoryForm(forms.ModelForm):
         fields = [
             # General info
             "screening",
-            "test_name",
-            "result",
-            "test_date",
-            "remarks",
+            # "test_name",
+            # "result",
+            # "test_date",
             
             # 🔹 Sputum sample
             "sample_received",
@@ -46,13 +45,15 @@ class ClinicLaboratoryForm(forms.ModelForm):
             "xpert_rif",
             "ct_value",
             "ct_na",
+            
+            "remarks",
         ]
         widgets = {
             # General info
             "screening": forms.Select(attrs={"class": "form-select", "disabled": True}),
-            "test_name": forms.TextInput(attrs={"class": "form-control"}),
-            "result": forms.TextInput(attrs={"class": "form-control"}),
-            "test_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            # "test_name": forms.TextInput(attrs={"class": "form-control"}),
+            # "result": forms.TextInput(attrs={"class": "form-control"}),
+            # "test_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
 
             # 🔹 Sputum sample

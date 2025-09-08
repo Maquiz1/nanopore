@@ -33,3 +33,10 @@ t ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_07/screening_ready_
 <!-- python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR
 /DREAM/MIGRATIONS/ENROLLMENT/_2025_09_08/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_08/enro
 llment_ready_values.csv -->
+
+
+<!-- CLINIC -->
+
+<!-- python manage.py transform_clinic   -
+-input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_08/clinic_lab_form.csv   --output ~/Documen
+ts/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_08/clinic_ready_values.csv -->
