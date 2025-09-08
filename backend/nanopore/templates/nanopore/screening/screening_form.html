@@ -22,7 +22,7 @@
                 </div>
                 <div class="card-body">
 
-                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ form.instance.site.district.region.zone.id|default:'' }}">
+                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ form.instance.site.district.region.zone.id|default:'' }}" data-zone-name="{{ screening.site.zone.name|default:'' }}">
                         {% csrf_token %}
 
                         <!-- Non-field errors -->
@@ -271,7 +271,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // === Enrollment + Reasons toggle ===
     const form = document.getElementById("screeningForm");
     const zoneId = parseInt(form.dataset.zoneId || 0);
-    const darEsSalaamZoneId = {{ dar_es_salaam_zone.id|default:0 }};
+    const zoneName = form.dataset.zoneName.toLowerCase();
+    console.log("Zone ID:", zoneId, "Zone Name:", zoneName);
+    // Assuming Dar es Salaam has a specific zone ID, e.g., 123
+    // Replace 123 with the actual ID from your database if needed
+    // Or you can pass it from the backend context
+    // const darEsSalaamZoneId = {{ dar_es_salaam_zone.id|default:0 }};
+
+    const darEsSalaamZoneId = parseInt("{{ dar_es_salaam_zone.id|default:'0' }}", 10);
+
     const presentSymptoms = document.getElementById("id_present_symptoms");
     const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
 
