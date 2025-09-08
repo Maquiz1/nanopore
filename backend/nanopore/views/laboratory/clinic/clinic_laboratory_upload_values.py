@@ -116,21 +116,12 @@ class ClinicLabCsvUploadView(View):
                 ct_value = safe_decimal(row.get("CTValue"))
                 ct_na = get_foreign(NoSPCResult, row.get("CTNA"))
 
-                test_name = row.get("TestName") or "Clinic Lab Test"
-                result = row.get("Result") or None
-                test_date = parse_date(row.get("TestDate"))
                 remarks = row.get("Remarks") or None
-
-                if not test_date:
-                    raise ValueError("TestDate is required.")
 
                 # --- Create or update ClinicLaboratory ---
                 lab, created = ClinicLaboratory.objects.update_or_create(
                     screening=screening,
                     defaults={
-                        # "test_name": test_name,
-                        # "result": result,
-                        # "test_date": test_date,
                         "sample_received": sample_received,
                         "sample_reason": sample_reason,
                         "other_reason": other_reason,
