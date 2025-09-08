@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 
 from nanopore.models import Screening
 from nanopore.forms.screening.screeningform import ScreeningForm
-from locations.models import Site
+from locations.models import Site,Zone
 
 class ScreeningFormView(LoginRequiredMixin, View):
     template_name = "nanopore/screening/screening_form.html"
@@ -20,15 +20,36 @@ class ScreeningFormView(LoginRequiredMixin, View):
             return get_object_or_404(Screening, pk=pk)
         return None
 
+
     def get(self, request, pk=None):
         obj = self.get_object(pk)
         form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
-        return render(request, self.template_name, {"form": form, "object": obj})
+        context = self.get_context_data(form=form, object=obj)
+        return render(request, self.template_name, context)
+    
+    # def get(self, request, pk=None):
+    #     obj = self.get_object(pk)
+    #     form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
+    #     return render(request, self.template_name, {"form": form, "object": obj})
+    
+    def get_context_data(self, **kwargs):
+        """
+        Returns context data for the template, including Dar es Salaam Zone.
+        """
+        context = kwargs
+        context['dar_es_salaam_zone'] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
+        # return context
+
+        return context
 
     def post(self, request, pk=None):
+        # obj = self.get_object(pk)
+        # form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
+
         obj = self.get_object(pk)
         form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
-
+        context = self.get_context_data(form=form, object=obj)
+        
         if form.is_valid():
             obj = form.save(commit=False)
 
@@ -74,7 +95,10 @@ class ScreeningFormView(LoginRequiredMixin, View):
 
             return redirect(self.success_url)
 
-        return render(request, self.template_name, {"form": form, "object": obj})
+        # return render(request, self.template_name, {"form": form, "object": obj})
+    
+        return render(request, self.template_name, context)
+
 
     def get_initial(self, request, obj=None):
         """
