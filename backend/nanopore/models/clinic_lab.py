@@ -18,9 +18,9 @@ User = get_user_model()
 
 class ClinicLaboratory(models.Model):
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="clinic_laboratory")
-    test_name = models.CharField(max_length=100)
-    result = models.CharField(max_length=100, blank=True, null=True)
-    test_date = models.DateField()
+    # test_name = models.CharField(max_length=100)
+    # result = models.CharField(max_length=100, blank=True, null=True)
+    # test_date = models.DateField()
     
     # pid = models.CharField(max_length=255, blank=True, null=True)
     
@@ -71,7 +71,7 @@ class ClinicLaboratory(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_labs_updated")
 
     class Meta:
-        ordering = ["-test_date"]
+        ordering = ["-sample_received"]
 
     def __str__(self):
         return f"{self.test_name} for {self.screening.pid}"

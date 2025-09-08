@@ -4,6 +4,7 @@ from .clinic import ClinicLaboratoryCreateView
 from .clinic import ClinicLaboratoryUpdateView
 from .clinic import ClinicLaboratoryDeleteView
 from .clinic import ClinicLaboratoryFormView
+from .clinic import ClinicLabCsvUploadView
 
 from .zonal import ZonalLaboratoryListView
 from .zonal import ZonalLaboratoryDetailView
@@ -26,4 +27,5 @@ __all__ = [
     "ZonalLaboratoryDeleteView",
     "ClinicLaboratoryFormView",
     "ZonalLabFormView",  # new form view
+    "ClinicLabCsvUploadView"    
 ]
