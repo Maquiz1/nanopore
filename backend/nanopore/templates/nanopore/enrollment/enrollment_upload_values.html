@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Upload Enrollment Data (CSV)</h2>
+
+    <p>
+        Please make sure your file follows the required format.
+        👉 <a href="{% url 'nanopore:screening-template-csv' %}" class="btn btn-sm btn-outline-primary">
+            Download Template
+        </a>
+    </p>
+
+    <!-- Display Django messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Display counts of successful imports -->
+    {% if count_created or count_updated %}
+        <div class="alert alert-success">
+            <strong>Success:</strong> Imported {{ count_created }} new and updated {{ count_updated }} screenings.
+        </div>
+    {% endif %}
+
+    <!-- Display row errors -->
+    {% if row_errors %}
+        <div class="alert alert-danger">
+            <h5>Errors in CSV ({{ row_errors|length }} total):</h5>
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for error in row_errors %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ error }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p>Please fix the errors in your CSV and re-upload.</p>
+        </div>
+    {% endif %}
+
+    <!-- Upload form -->
+    <div class="card shadow-sm p-3">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.file.label_tag }}<br>
+                {{ form.file }}
+                {% if form.file.errors %}
+                    <div class="text-danger">
+                        {% for error in form.file.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-success">Upload CSV</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

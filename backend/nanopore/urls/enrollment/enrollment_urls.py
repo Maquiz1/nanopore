@@ -4,6 +4,7 @@ from nanopore.views import (
     EnrollmentDetailView,
     EnrollmentDeleteView,
     EnrollmentFormView,
+    EnrollmentCsvUploadView
 )
 
 urlpatterns = [
@@ -12,4 +13,6 @@ urlpatterns = [
     path("enrollment/form/", EnrollmentFormView.as_view(), name="enrollment-create"),
     path("enrollment/form/<int:pk>/", EnrollmentFormView.as_view(), name="enrollment-update"),
     path("<int:pk>/delete/", EnrollmentDeleteView.as_view(), name="enrollment-delete"),
+    
+    path('upload/', EnrollmentCsvUploadView.as_view(), name="enrollment-upload-csv"),
 ]

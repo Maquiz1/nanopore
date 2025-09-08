@@ -4,6 +4,7 @@ from .enrollment_create import EnrollmentCreateView
 from .enrollment_update import EnrollmentUpdateView
 from .enrollment_delete import EnrollmentDeleteView
 from .enrollment_form import EnrollmentFormView 
+from .enrollment_upload_values import EnrollmentCsvUploadView
 
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "EnrollmentFormView",
     "EnrollmentUpdateView",
     "EnrollmentDeleteView",
+    "EnrollmentCsvUploadView"
 ]
