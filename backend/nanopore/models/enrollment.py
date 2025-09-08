@@ -28,11 +28,6 @@ class Enrollment(models.Model):
     # pid = models.CharField(max_length=255)  # Keep PID for reference
     enrollment_date = models.DateField()
 
-    # Details of enrolment and patient demographics
-    # sex = models.ForeignKey(Sex, on_delete=models.SET_NULL, null=True, blank=True)
-    # dob = models.DateField()
-    # age = models.IntegerField()
-
     # Reason(s) for being regarded as presumptive TB patient at initial assessment
 
     cough2weeks = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
@@ -72,8 +67,12 @@ class Enrollment(models.Model):
     sputum_date = models.DateField(blank=True, null=True)
     sputum_reasons = models.TextField(blank=True, null=True)
 
+    # ADDITIONAL COLUMNS
+
     remarks = models.TextField(blank=True, null=True)
     
+    # AUDITING 
+
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollments_created")
     updated_at = models.DateTimeField(auto_now=True)

@@ -23,3 +23,13 @@ t ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_07/screening_ready_
 
 
 <!-- FINAL  COMMAND TO TRANSFORM  -->
+
+
+
+
+
+<!-- ENROLLMENT -->
+
+<!-- python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR
+/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_08/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_08/enro
+llment_ready_values.csv -->
