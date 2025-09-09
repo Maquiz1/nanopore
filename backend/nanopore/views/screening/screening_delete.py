@@ -12,4 +12,4 @@ from nanopore.forms.screening.screeningform import ScreeningForm
 class ScreeningDeleteView(LoginRequiredMixin, DeleteView):
     model = Screening
     template_name = 'nanopore/screening/screening_confirm_delete.html'
-    success_url = reverse_lazy('nanopore:screening-list')
+    success_url = reverse_lazy('nanopore:form-status-list')

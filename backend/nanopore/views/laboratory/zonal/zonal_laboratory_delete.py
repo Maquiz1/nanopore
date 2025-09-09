@@ -12,4 +12,4 @@ from nanopore.forms.screening.screeningform import ScreeningForm
 class ZonalLaboratoryDeleteView(LoginRequiredMixin, DeleteView):
     model = ZonalLaboratory
     template_name = 'nanopore/laboratory/zonal/zonal_laboratory_confirm_delete.html'
-    success_url = reverse_lazy('nanopore:zonal-laboratory-list')
+    success_url = reverse_lazy('nanopore:form-status-list')
