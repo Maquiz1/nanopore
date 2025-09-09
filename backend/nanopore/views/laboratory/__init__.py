@@ -12,6 +12,7 @@ from .zonal import ZonalLaboratoryCreateView
 from .zonal import ZonalLaboratoryUpdateView
 from .zonal import ZonalLaboratoryDeleteView
 from .zonal import ZonalLabFormView
+from .zonal import ZonalLabCsvUploadView
 
 
 __all__ = [
@@ -27,5 +28,6 @@ __all__ = [
     "ZonalLaboratoryDeleteView",
     "ClinicLaboratoryFormView",
     "ZonalLabFormView",  # new form view
-    "ClinicLabCsvUploadView"    
+    "ClinicLabCsvUploadView",
+    "ZonalLabCsvUploadView",
 ]

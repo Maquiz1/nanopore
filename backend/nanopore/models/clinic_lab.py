@@ -18,9 +18,6 @@ User = get_user_model()
 
 class ClinicLaboratory(models.Model):
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="clinic_laboratory")
-    # test_name = models.CharField(max_length=100)
-    # result = models.CharField(max_length=100, blank=True, null=True)
-    # test_date = models.DateField()
     
     # pid = models.CharField(max_length=255, blank=True, null=True)
     
