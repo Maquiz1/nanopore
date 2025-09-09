@@ -12,4 +12,4 @@ from nanopore.forms.screening.screeningform import ScreeningForm
 class EnrollmentDeleteView(LoginRequiredMixin, DeleteView):
     model = Enrollment
     template_name = 'nanopore/enrollment/enrollment_confirm_delete.html'
-    success_url = reverse_lazy('nanopore:enrollment-list')
+    success_url = reverse_lazy('nanopore:form-status-list')
