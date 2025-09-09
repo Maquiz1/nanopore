@@ -45,3 +45,9 @@ ts/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_08/clinic_ready_values.csv -->
 <!-- ZONAL -->
 
 <!-- python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_09/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_09/zonal_ready_values.csv -->
+
+
+<!-- DIAGNOSIS -->
+
+<!-- python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_09/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_09/diagnosi
+s_ready_values.csv -->

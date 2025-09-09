@@ -5,6 +5,7 @@ from nanopore.views import (
     ZonalLaboratoryDetailView,
     ZonalLaboratoryDeleteView,
     ZonalLabFormView,
+    ZonalLabCsvUploadView
 )
 
 urlpatterns = [
@@ -13,4 +14,6 @@ urlpatterns = [
     path("zonal-lab/form/", ZonalLabFormView.as_view(), name="zonal-laboratory-create"),
     path("zonal-lab/form/<int:pk>/", ZonalLabFormView.as_view(), name="zonal-laboratory-update"),
     path("zonal-lab/<int:pk>/delete/", ZonalLaboratoryDeleteView.as_view(), name="zonal-laboratory-delete"),
+    
+    path('upload/', ZonalLabCsvUploadView.as_view(), name="zonal-upload-csv"),
 ]

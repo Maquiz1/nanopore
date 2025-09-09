@@ -10,7 +10,7 @@ class DiagnosisForm(forms.ModelForm):
     class Meta:
         model = Diagnosis
         fields = [
-            "screening", "diagnosis_name", "diagnosis_date",
+            "screening",
             "tb_diagnosis", "tb_diagnosis_date", "tb_diagnosis_made", "diagnosis_made_other",
             "bacteriological_diagnosis", "tb_diagnosed_clinically", "tb_clinically_other",
             "clinician_received_date", "tb_treatment", "tb_treatment_date", "tb_facility",
@@ -19,9 +19,6 @@ class DiagnosisForm(forms.ModelForm):
         ]
         widgets = {
             "screening": forms.HiddenInput(),
-            "diagnosis_name": forms.TextInput(attrs={"class": "form-control"}),
-            "diagnosis_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-
             "tb_diagnosis": forms.Select(attrs={"class": "form-select"}),
             "tb_diagnosis_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "tb_diagnosis_made": forms.Select(attrs={"class": "form-select"}),
