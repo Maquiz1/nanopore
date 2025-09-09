@@ -12,7 +12,7 @@
 CHECKING DUPLICATE -->
 
 
-<!-- python manage.py convert_csv_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/screening_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_07/screening_ready_values.csv
+<!-- python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_09/screening_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_09/screening_ready_values.csv
 
 
 CONVERTING -->
