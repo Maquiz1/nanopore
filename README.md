@@ -40,3 +40,8 @@ llment_ready_values.csv -->
 <!-- python manage.py transform_clinic   -
 -input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_08/clinic_lab_form.csv   --output ~/Documen
 ts/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_08/clinic_ready_values.csv -->
+
+
+<!-- ZONAL -->
+
+<!-- python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_09/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_09/zonal_ready_values.csv -->
