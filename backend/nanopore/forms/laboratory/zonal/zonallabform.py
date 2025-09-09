@@ -7,7 +7,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
     class Meta:
         model = ZonalLaboratory
         fields = [
-            "screening", "remarks",
+            "screening", 
             # Specimen Receipt
             "date_sputum_received", "appearance", "sample_volume", "unique_lab_no",
             # Culture
@@ -79,13 +79,13 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "nano_pyrazinamide",
             "nano_rifampicin",
             "nano_streptomycin",
+            
+            # Additional Remarks
+            "remarks",
 
         ]
         widgets = {
             "screening": forms.HiddenInput(),
-            # "test_name": forms.TextInput(attrs={"class": "form-control"}),
-            # "result": forms.TextInput(attrs={"class": "form-control"}),
-            # "test_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "culture_method": forms.CheckboxSelectMultiple(),
             # Specimen Receipt
