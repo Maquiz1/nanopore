@@ -4,6 +4,7 @@ from .diagnosis_create import DiagnosisCreateView
 from .diagnosis_update import DiagnosisUpdateView
 from .diagnosis_delete import DiagnosisDeleteView
 from .diagnosis_form_view import DiagnosisFormView
+from .diagnosis_upload_values import DiagnosisCsvUploadView
 
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "DiagnosisUpdateView",
     "DiagnosisFormView",  # replaces both create and update views
     "DiagnosisDeleteView",
+    "DiagnosisCsvUploadView"
 ]

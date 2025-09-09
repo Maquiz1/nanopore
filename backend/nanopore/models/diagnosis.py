@@ -17,10 +17,7 @@ from options.models import (
 User = get_user_model()
 
 class Diagnosis(models.Model):
-    screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="diagnosis")
-    diagnosis_name = models.CharField(max_length=200)
-    diagnosis_date = models.DateField()
-    
+    screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="diagnosis")  
     
     # New fields
     # pid = models.CharField(max_length=255)
@@ -62,7 +59,7 @@ class Diagnosis(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="diagnoses_updated")
 
     class Meta:
-        ordering = ["-diagnosis_date"]
+        ordering = ["-tb_diagnosis_date"]
 
     def __str__(self):
         return f"Diagnosis for {self.screening.pid}: {self.diagnosis_name}"
