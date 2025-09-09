@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📋 Forms Report</h2>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Zone</th>
+            <th>Site</th>
+            <th>Screenings</th>
+            <th>Enrollments</th>
+            <th>Clinic Lab</th>
+            <th>Zonal Lab</th>
+            <th>Diagnosis</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <!-- zone and site come directly from the row dict -->
+            <td>{{ row.zone }}</td>
+            <td>{{ row.site }}</td>
+            <td>{{ row.screenings }}</td>
+            <td>{{ row.enrollments }}</td>
+            <td>{{ row.clinic_lab }}</td>
+            <td>{{ row.zonal_lab }}</td>
+            <td>{{ row.diagnosis }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        {% for zone, totals in zone_totals.items %}
+        <tr class="table-secondary fw-bold">
+            <td>{{ zone }}</td>
+            <td>Subtotal</td>
+            <td>{{ totals.screenings }}</td>
+            <td>{{ totals.enrollments }}</td>
+            <td>{{ totals.clinic_lab }}</td>
+            <td>{{ totals.zonal_lab }}</td>
+            <td>{{ totals.diagnosis }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="table-dark fw-bold">
+            <td colspan="2">Grand Total</td>
+            <td>{{ grand_totals.screenings }}</td>
+            <td>{{ grand_totals.enrollments }}</td>
+            <td>{{ grand_totals.clinic_lab }}</td>
+            <td>{{ grand_totals.zonal_lab }}</td>
+            <td>{{ grand_totals.diagnosis }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+<div class="mb-3">
+    <a href="{% url 'reports:export_forms' 'excel' %}" class="btn btn-success">⬇️ Export Excel</a>
+    <a href="{% url 'reports:export_forms' 'pdf' %}" class="btn btn-danger">⬇️ Export PDF</a>
+</div>
+
+{% endblock %}

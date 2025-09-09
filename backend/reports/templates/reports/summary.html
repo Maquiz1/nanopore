@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>📑 Summary Report – Screenings & Enrollments</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Zone</th>
+            <th>Site</th>
+            <th>Total Screenings</th>
+            <th>Total Enrollments</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in data %}
+        <tr>
+            <td>{{ row.site__district__region__zone__name }}</td>
+            <td>{{ row.site__name }}</td>
+            <td>{{ row.total_screenings }}</td>
+            <td>{{ row.total_enrollments }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        {% for zone, totals in zone_totals.items %}
+        <tr class="table-secondary fw-bold">
+            <td>{{ zone }}</td>
+            <td>Subtotal</td>
+            <td>{{ totals.screenings }}</td>
+            <td>{{ totals.enrollments }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="table-dark fw-bold">
+            <td colspan="2">Grand Total</td>
+            <td>{{ grand_totals.screenings }}</td>
+            <td>{{ grand_totals.enrollments }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+<div class="mb-3">
+    <a href="{% url 'reports:export_summary' 'excel' %}" class="btn btn-success">⬇️ Export Excel</a>
+    <a href="{% url 'reports:export_summary' 'pdf' %}" class="btn btn-danger">⬇️ Export PDF</a>
+</div>
+
+{% endblock %}
