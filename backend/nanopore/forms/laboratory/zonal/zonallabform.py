@@ -60,9 +60,8 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "epi_to_me",
             "epi_to_me_version",
             
-            
             # Nanopore sequencing Results
-            
+
             "nano_amikacin",
             "nano_bedaquiline",
             "nano_capreomycin",
