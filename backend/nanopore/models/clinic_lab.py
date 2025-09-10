@@ -71,7 +71,7 @@ class ClinicLaboratory(models.Model):
         ordering = ["-sample_received"]
 
     def __str__(self):
-        return f"{self.test_name} for {self.screening.pid}"
+        return f"{self.date_sample1_collected} for {self.screening.pid}"
     
     
     
