@@ -12,7 +12,7 @@ class EnrollmentUpdateView(LoginRequiredMixin, UpdateView):
     model = Enrollment
     form_class = EnrollmentForm
     template_name = "nanopore/enrollment/enrollment_form.html"
-    success_url = reverse_lazy("nanopore:enrollment-list")
+    success_url = reverse_lazy("nanopore:form-status-list")
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)

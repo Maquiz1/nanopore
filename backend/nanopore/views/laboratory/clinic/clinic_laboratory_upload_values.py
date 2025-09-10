@@ -184,4 +184,4 @@ class ClinicLabCsvUploadView(View):
                 request,
                 f"Imported {count_created} new and updated {count_updated} clinic lab records."
             )
-        return redirect("nanopore:clinic-lab-list")
+        return redirect("nanopore:form-status-list")

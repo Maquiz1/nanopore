@@ -12,7 +12,7 @@ class DiagnosisUpdateView(LoginRequiredMixin, UpdateView):
     model = Diagnosis
     form_class = DiagnosisForm
     template_name = "nanopore/diagnosis/diagnosis_form.html"
-    success_url = reverse_lazy("nanopore:diagnosis-list")
+    success_url = reverse_lazy("nanopore:form-status-list")
 
     def form_valid(self, form):
         obj = form.save(commit=False)
