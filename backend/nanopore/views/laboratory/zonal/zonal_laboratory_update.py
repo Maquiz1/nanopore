@@ -12,7 +12,7 @@ class ZonalLaboratoryUpdateView(LoginRequiredMixin, UpdateView):
     model = ZonalLaboratory
     form_class = ZonalLaboratoryForm
     template_name = "nanopore/laboratory/zonal/zonal_laboratory_form.html"
-    success_url = reverse_lazy("nanopore:zonal-laboratory-list")
+    success_url = reverse_lazy("nanopore:form-status-list")
 
     def form_valid(self, form):
         obj = form.save(commit=False)

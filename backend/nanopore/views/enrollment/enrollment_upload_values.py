@@ -187,4 +187,4 @@ class EnrollmentCsvUploadView(View):
                 request,
                 f"Imported {count_created} new and updated {count_updated} enrollments."
             )
-        return redirect("nanopore:enrollment-list")
+        return redirect("nanopore:form-status-list")

@@ -12,7 +12,7 @@ class EnrollmentCreateView(LoginRequiredMixin, CreateView):
     model = Enrollment
     form_class = EnrollmentForm
     template_name = "nanopore/enrollment/enrollment_form.html"
-    success_url = reverse_lazy("nanopore:enrollment-list")
+    success_url = reverse_lazy("nanopore:form-status-list")
 
     def get_initial(self):
         initial = super().get_initial()
