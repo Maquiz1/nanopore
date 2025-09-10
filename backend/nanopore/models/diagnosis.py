@@ -19,9 +19,6 @@ User = get_user_model()
 class Diagnosis(models.Model):
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="diagnosis")  
     
-    # New fields
-    # pid = models.CharField(max_length=255)
-    
     # Final diagnosis
 
     tb_diagnosis = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="tb_diagnosis")
@@ -62,4 +59,4 @@ class Diagnosis(models.Model):
         ordering = ["-tb_diagnosis_date"]
 
     def __str__(self):
-        return f"Diagnosis for {self.screening.pid}: {self.diagnosis_name}"
+        return f"Diagnosis for {self.screening.pid}: {self.tb_diagnosis_date}"
