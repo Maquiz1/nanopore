@@ -25,7 +25,6 @@ class Enrollment(models.Model):
     screening = models.OneToOneField(
         Screening, on_delete=models.CASCADE, related_name="enrollment"
     )
-    # pid = models.CharField(max_length=255)  # Keep PID for reference
     enrollment_date = models.DateField()
 
     # Reason(s) for being regarded as presumptive TB patient at initial assessment

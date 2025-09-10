@@ -162,3 +162,10 @@ MESSAGE_TAGS = {
 # External API keys
 AT_USERNAME = env("AT_USERNAME")
 AT_API_KEY = env("AT_API_KEY")
+
+
+
+
+# Allow up to 10,000 form fields
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
