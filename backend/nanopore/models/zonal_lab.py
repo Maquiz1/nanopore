@@ -25,10 +25,7 @@ User = get_user_model()
 
 class ZonalLaboratory(models.Model):
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="zonal_laboratory")
-    # test_name = models.CharField(max_length=100)
-    # result = models.CharField(max_length=100, blank=True, null=True)
-    # test_date = models.DateField()
-    
+        
     # # NEW FIELDS
     # Specimen receipt
     date_sputum_received = models.DateField(null=True, blank=True)
@@ -157,4 +154,4 @@ class ZonalLaboratory(models.Model):
         ordering = ["-date_sputum_received"]
 
     def __str__(self):
-        return f"{self.test_name} for {self.screening.pid} (Zonal Lab)"
+        return f"{self.date_sputum_received} for {self.screening.pid} (Zonal Lab)"
