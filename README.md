@@ -7,7 +7,7 @@
 
 <!--
 
- python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_07/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_07/duplicates.csv
+ python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/duplicates.csv
 
  -->
 
@@ -16,9 +16,7 @@
 
 <!-- 
 
-python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREA
-M/MIGRATIONS/SCREENING/_2025_09_11/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/screening_pid_length
-s.csv-o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/screening_pid_lengths.cs
+ python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/screening_pid_lengths.csv
 
 -->
 
