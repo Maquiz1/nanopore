@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📊 Completed Study Summary</h2>
+
+    <!-- Totals -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">✅ Total Completed</h5>
+                    <p class="display-6 text-success">{{ total_completed }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">🔄 Total In Progress</h5>
+                    <p class="display-6 text-warning">{{ total_in_progress }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone Summary Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Breakdown by Zone</h5>
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Zone</th>
+                        <th class="text-success">Completed</th>
+                        <th class="text-warning">In Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in zone_summary %}
+                    <tr>
+                        <td>{{ row.screening__site__district__region__zone__name }}</td>
+                        <td class="text-success fw-bold">{{ row.completed }}</td>
+                        <td class="text-warning fw-bold">{{ row.in_progress }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">No data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+     <!-- Site Summary Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Breakdown by Site</h5>
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Zone</th>
+                        <th>Site</th>
+                        <th class="text-success">Completed</th>
+                        <th class="text-warning">In Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in site_summary %}
+                    <tr>
+                        <td>{{ row.screening__site__district__region__zone__name }}</td>
+                        <td>{{ row.screening__site__name }}</td>
+                        <td class="text-success fw-bold">{{ row.completed }}</td>
+                        <td class="text-warning fw-bold">{{ row.in_progress }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

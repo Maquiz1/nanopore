@@ -10,6 +10,10 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
+from nanopore.models import Enrollment, Diagnosis, ClinicLaboratory
+from django.views.generic import TemplateView
+from django.db.models import Count, Q
+from nanopore.models import Enrollment, Diagnosis, ClinicLaboratory
 
 from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory, Diagnosis
 from locations.models import Zone
@@ -277,3 +281,187 @@ def export_forms(request, fmt):
         response["Content-Disposition"] = 'attachment; filename="forms.pdf"'
         response.write(pdf)
         return response
+
+
+
+
+from django.views.generic import TemplateView
+from django.db.models import Count, Q
+from nanopore.models import Enrollment, Diagnosis, ClinicLaboratory
+
+class EnrollmentSummaryView(TemplateView):
+    template_name = "reports/enrollment_summary.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # --- Base Query ---
+        enrollments = Enrollment.objects.select_related(
+            "screening__site__district__region__zone"
+        )
+        diagnoses = Diagnosis.objects.select_related(
+            "screening__site__district__region__zone"
+        )
+        labs = ClinicLaboratory.objects.select_related(
+            "screening__site__district__region__zone"
+        )
+
+        # --- Filters (optional from request) ---
+        zone_id = self.request.GET.get("zone")
+        site_id = self.request.GET.get("site")
+        start_date = self.request.GET.get("start_date")
+        end_date = self.request.GET.get("end_date")
+
+        if zone_id:
+            enrollments = enrollments.filter(screening__site__district__region__zone_id=zone_id)
+            diagnoses = diagnoses.filter(screening__site__district__region__zone_id=zone_id)
+            labs = labs.filter(screening__site__district__region__zone_id=zone_id)
+        if site_id:
+            enrollments = enrollments.filter(screening__site_id=site_id)
+            diagnoses = diagnoses.filter(screening__site_id=site_id)
+            labs = labs.filter(screening__site_id=site_id)
+        if start_date and end_date:
+            enrollments = enrollments.filter(screening__screening_date__range=[start_date, end_date])
+            diagnoses = diagnoses.filter(screening__screening_date__range=[start_date, end_date])
+            labs = labs.filter(screening__screening_date__range=[start_date, end_date])
+
+        # --- Aggregations ---
+        total_enrolled = enrollments.count()
+        substudy2_count = labs.filter(xpert_mtb__in=[2, 3, 4, 5, 6]).count()
+        substudy4_count = labs.filter(xpert_mtb__in=[1, 7, 8, 9]).count()
+
+        # By Zone
+        zone_summary = (
+            enrollments.values("screening__site__district__region__zone__name")
+            .annotate(
+                enrolled=Count("id", distinct=True),
+                substudy2=Count(
+                    "screening__clinic_laboratory",
+                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]),
+                    distinct=True,
+                ),
+                substudy4=Count(
+                    "screening__clinic_laboratory",
+                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]),
+                    distinct=True,
+                ),
+            )
+            .order_by("screening__site__district__region__zone__name")
+        )
+        
+        
+        # By Site
+        site_summary = (
+            enrollments.values(
+                "screening__site__district__region__zone__name",
+                "screening__site__name"
+            )
+            .annotate(
+                enrolled=Count("id", distinct=True),
+                                            substudy2=Count(
+                    "screening__clinic_laboratory",
+                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]),
+                    distinct=True,
+                                                    ),
+                substudy4=Count(
+                    "screening__clinic_laboratory",
+                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]),
+                    distinct=True,
+                ),
+            )
+            .order_by("screening__site__district__region__zone__name", "screening__site__name")
+        )       
+
+        context.update({
+            "total_enrolled": total_enrolled,
+            "substudy2_count": substudy2_count,
+            "substudy4_count": substudy4_count,
+            "zone_summary": zone_summary,
+            "site_summary": site_summary,
+        })
+                
+
+        context.update(
+            {
+                "total_enrolled": total_enrolled,
+                "substudy2_count": substudy2_count,
+                "substudy4_count": substudy4_count,
+                "zone_summary": zone_summary,
+            }
+        )
+        return context
+    
+    
+    
+class CompletedStudySummaryView(TemplateView):
+    template_name = "reports/completed_study_summary.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        diagnoses = Diagnosis.objects.select_related(
+            "screening__site__district__region__zone"
+        )
+
+        # --- Filters (optional from request) ---
+        zone_id = self.request.GET.get("zone")
+        site_id = self.request.GET.get("site")
+        start_date = self.request.GET.get("start_date")
+        end_date = self.request.GET.get("end_date")
+
+        if zone_id:
+            diagnoses = diagnoses.filter(screening__site__district__region__zone_id=zone_id)
+        if site_id:
+            diagnoses = diagnoses.filter(screening__site_id=site_id)
+        if start_date and end_date:
+            diagnoses = diagnoses.filter(screening__screening_date__range=[start_date, end_date])
+
+        # --- Aggregation by Zone ---
+        zone_summary = (
+            diagnoses.values("screening__site__district__region__zone__name")
+            .annotate(
+                completed=Count(
+                    "id",
+                    filter=Q(tb_outcome2__in=[1, 2]) & ~Q(tb_outcome2__isnull=True),
+                ),
+                in_progress=Count(
+                    "id",
+                    filter=~Q(tb_outcome2__in=[1, 2]) | Q(tb_outcome2__isnull=True),
+                ),
+            )
+            .order_by("screening__site__district__region__zone__name")
+        )
+
+        # --- Totals ---
+        total_completed = diagnoses.filter(tb_outcome2__in=[1, 2]).exclude(tb_outcome2__isnull=True).count()
+        total_in_progress = diagnoses.exclude(tb_outcome2__in=[1, 2]).count()
+
+
+        # By Site
+        site_summary = (
+            diagnoses.values(
+                "screening__site__district__region__zone__name",
+                "screening__site__name"
+            )
+            .annotate(
+                completed=Count(
+                    "id",
+                    filter=Q(tb_outcome2__in=[1, 2]) & ~Q(tb_outcome2__isnull=True),
+                ),
+                in_progress=Count(
+                    "id",
+                    filter=~Q(tb_outcome2__in=[1, 2]) | Q(tb_outcome2__isnull=True),
+                ),
+            )
+            .order_by("screening__site__district__region__zone__name", "screening__site__name")
+        )
+
+        context.update(
+            {
+                "zone_summary": zone_summary,
+                "site_summary": site_summary,
+                "total_completed": total_completed,
+                "total_in_progress": total_in_progress,
+            }
+        )
+        return context
