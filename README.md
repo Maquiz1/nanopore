@@ -11,6 +11,19 @@
 
  -->
 
+
+<!-- CHECKING PIDS LENGHT -->
+
+<!-- 
+
+python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREA
+M/MIGRATIONS/SCREENING/_2025_09_11/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/screening_pid_length
+s.csv-o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_11/screening_pid_lengths.cs
+
+-->
+
+
+
 <!-- FINAL COMMAND TO TRANSFORM  -->
 
 <!-- 
@@ -55,3 +68,5 @@ python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIO
 python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_09/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_09/diagnosis_ready_values.csv 
 
 -->
+
+
