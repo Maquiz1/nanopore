@@ -139,6 +139,11 @@ class ScreeningCsvUploadValuesView(View):
                 
                 pid1 = format_pid(pid1, "PID1")
                 pid2 = format_pid(pid2, "PID2")
+                
+                
+                # --- Ensure PID1 and PID2 match ---
+                if pid1 != pid2:
+                    raise ValueError(f"PID1 ({pid1}) and PID2 ({pid2}) do not match.")
 
                 # --- Site (required) ---
                 site = get_foreign(Site, row.get("Site"))
