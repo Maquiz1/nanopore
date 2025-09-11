@@ -120,6 +120,25 @@ class ScreeningCsvUploadValuesView(View):
                 reasons_other = row.get("ReasonsOther") or None
                 pid1 = row.get("PID1") or None
                 pid2 = row.get("PID2") or None
+                
+                # --- Ensure pid1 and pid2 are 3 digits, raise error if invalid ---
+                # def format_pid(val, field_name):
+                #     if val is None or str(val).strip() == "":
+                #         return None
+                #     if not str(val).strip().isdigit():
+                #         raise ValueError(f"{field_name} must be numeric (got '{val}')")
+                #     return f"{int(val):03d}"  # pad to 3 digits
+                
+                
+                def format_pid(val, field_name):
+                    if val is None or str(val).strip() == "":
+                        raise ValueError(f"{field_name} is required")
+                    if not str(val).strip().isdigit():
+                        raise ValueError(f"{field_name} must be numeric (got '{val}')")
+                    return f"{int(val):03d}"  # pad to 3 digits
+                
+                pid1 = format_pid(pid1, "PID1")
+                pid2 = format_pid(pid2, "PID2")
 
                 # --- Site (required) ---
                 site = get_foreign(Site, row.get("Site"))
@@ -163,6 +182,26 @@ class ScreeningCsvUploadValuesView(View):
                 # --- Determine eligible safely ---
                 eligible_val = safe_eligible(row, consent, age18years, present_symptoms,
                                              produce_resp_sample, unable_understand, not_willing)
+                
+                
+                # --- Check uniqueness (pid + pid1 + pid2) ---
+                # existing = Screening.objects.filter(pid=pid, pid1=pid1, pid2=pid2)
+                # if existing.exists():
+                #     raise ValueError(
+                #         f"Duplicate Screening with PID={pid}, PID1={pid1}, PID2={pid2} already exists."
+                #     )
+                
+                # --- Check uniqueness for PID ---
+                if Screening.objects.filter(pid=pid).exists():
+                    raise ValueError(f"Duplicate Screening with PID={pid} already exists.")
+
+                # --- Optional: check uniqueness for full combo as well ---
+                if Screening.objects.filter(pid=pid, pid1=pid1, pid2=pid2).exists():
+                    raise ValueError(
+                        f"Duplicate Screening with PID={pid}, PID1={pid1}, PID2={pid2} already exists."
+                    )
+
+
 
                 # --- Create or update Screening ---
                 screening, created = Screening.objects.update_or_create(

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Enrollment Summary{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Enrollment & Substudy Summary</h2>
+
+    <!-- Totals -->
+    <div class="row g-3 my-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Enrolled</h5>
+                    <p class="fs-3">{{ total_enrolled }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Substudy 2</h5>
+                    <p class="fs-3">{{ substudy2_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Substudy 4</h5>
+                    <p class="fs-3">{{ substudy4_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breakdown by Zone -->
+    <h4>By Zone</h4>
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Zone</th>
+                <th>Enrolled</th>
+                <th>Substudy 2</th>
+                <th>Substudy 4</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in zone_summary %}
+            <tr>
+                <td>{{ row.screening__site__district__region__zone__name }}</td>
+                <td>{{ row.enrolled }}</td>
+                <td>{{ row.substudy2 }}</td>
+                <td>{{ row.substudy4 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No data available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Breakdown by Site -->
+    <h4 class="mt-5">By Site</h4>
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Zone</th>
+                <th>Site</th>
+                <th>Enrolled</th>
+                <th>Substudy 2</th>
+                <th>Substudy 4</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in site_summary %}
+            <tr>
+                <td>{{ row.screening__site__district__region__zone__name }}</td>
+                <td>{{ row.screening__site__name }}</td>
+                <td>{{ row.enrolled }}</td>
+                <td>{{ row.substudy2 }}</td>
+                <td>{{ row.substudy4 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">No data available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
