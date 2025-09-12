@@ -10,7 +10,7 @@
 
     <!-- Locations -->
     <a href="{% url 'locations:country-list' %}"
-        class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
+       class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Countries</span>
     </a>
 
@@ -25,6 +25,7 @@
     <a href="{% url 'nanopore:form-status-list' %}">
         <i class="fas fa-calendar-check"></i><span> Visits</span>
     </a>
+
     <!-- Reports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
@@ -42,10 +43,10 @@
                 <i class="fas fa-clipboard-list"></i><span> Forms Reports</span>
             </a>
             <a href="{% url 'reports:enrollment-summary' %}">
-                <i class="fas fa-clipboard-list"></i><span> enrollment summary Reports</span>
+                <i class="fas fa-clipboard-list"></i><span> Enrollment Summary</span>
             </a>
             <a href="{% url 'reports:completed_study_summary' %}">
-                <i class="fas fa-clipboard-list"></i><span> completed study summary Reports</span>
+                <i class="fas fa-clipboard-list"></i><span> Completed Study Summary</span>
             </a>
         </div>
     </div>
@@ -152,3 +153,40 @@
     </a>
     {% endif %}
 </div>
+
+<!-- Sidebar toggle script -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".menu-toggle").forEach(toggle => {
+        toggle.addEventListener("click", function () {
+            const submenu = this.nextElementSibling;
+            submenu.classList.toggle("open");
+
+            // Rotate the chevron icon
+            const chevron = this.querySelector(".fa-chevron-down");
+            if (chevron) {
+                chevron.classList.toggle("rotate");
+            }
+        });
+    });
+});
+</script>
+
+<style>
+/* Initially hide submenus */
+.submenu {
+    display: none;
+    margin-left: 15px;
+}
+
+/* Show when open */
+.submenu.open {
+    display: block;
+}
+
+/* Rotate animation for chevron */
+.fa-chevron-down.rotate {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+</style>
