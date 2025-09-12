@@ -19,7 +19,7 @@ class Screening(models.Model):
     screening_date = models.DateField()
     pid1 = models.CharField(max_length=3, validators=[three_digit_validator])
     pid2 = models.CharField(max_length=3, validators=[three_digit_validator])
-    pid = models.CharField(max_length=255, unique=True, editable=False)
+    pid = models.CharField(max_length=16, unique=True, editable=False)
     sex = models.ForeignKey(Sex, on_delete=models.SET_NULL, null=True, blank=True, related_name="screenings_sex")
     dob = models.DateField(null=True, blank=True)
     age = models.IntegerField(null=True, blank=True)
