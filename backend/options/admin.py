@@ -1,9 +1,18 @@
 from django.contrib import admin
 from .models import (
+    
+    # ALL
+    
     YesNoNA,
     YesNo,
     YesNoUnknown,
+    
+    # SCREENING
+    
     EnrolledReason,
+    
+    # ENROLLMENT
+    
     CategoryTreated,
     Unknown,
     MonthUnknown,
@@ -16,6 +25,9 @@ from .models import (
     PositiveNegativeNA,
     PositiveNegative,
     DiseasesMedicalConditions,
+    
+    # CLINIC LAB
+    
     SampleReason,
     SampleNumber,
     SampleAppearance,
@@ -24,6 +36,8 @@ from .models import (
     XpertMTB,
     XpertRIF,
     NoSPCResult,
+    
+    # DIAGNOSIS
     TBDiagnosisMade,
     DiagnosisBacteriological,
     DiagnosedClinically,
@@ -32,6 +46,8 @@ from .models import (
     RegimenTypeOfChange,
     RegimenReasonForChange,
     TBTreatmentOutcome,
+    TBOtherDiagnosis,
+    TBOtherDiagnosisMade,
     
     # ZONAL LABS
     CultureMethod,
@@ -51,6 +67,8 @@ from .models import (
     NanoporeResults,
     
 )
+
+# ALL
 
 @admin.register(YesNo)
 class YesNoAdmin(admin.ModelAdmin):
@@ -73,6 +91,7 @@ class YesNoUnknownAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('value',)
 
+# SCREENING
 
 @admin.register(EnrolledReason)
 class EnrolledReasonAdmin(admin.ModelAdmin):
@@ -81,6 +100,9 @@ class EnrolledReasonAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('value',)
     
+    
+# ENROLLMENT
+
 @admin.register(CategoryTreated)
 class CategoryTreatedAdmin(admin.ModelAdmin):
     list_display = ('value', 'name', 'created_at')
@@ -170,7 +192,10 @@ class DiseasesMedicalConditionsAdmin(admin.ModelAdmin):
     list_filter = ('value',)
     search_fields = ('name',)
     ordering = ('value',)
-    
+
+
+# CLINIC  LAB
+
 @admin.register(SampleReason)
 class SampleReasonAdmin(admin.ModelAdmin):
     list_display = ('value', 'name', 'created_at')
@@ -233,6 +258,9 @@ class NoSPCResultAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('value',)
     
+    
+# DIAGNOSIS  
+
 @admin.register(TBDiagnosisMade)
 class TBDiagnosisMadeAdmin(admin.ModelAdmin):
     list_display = ('value', 'name', 'created_at')
@@ -292,6 +320,21 @@ class RegimenReasonForChangeAdmin(admin.ModelAdmin):
     
 @admin.register(TBTreatmentOutcome)
 class TBTreatmentOutcomeAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+@admin.register(TBOtherDiagnosis)
+class TBOtherDiagnosisAdmin(admin.ModelAdmin):
+    list_display = ('value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(TBOtherDiagnosisMade)
+class TBOtherDiagnosisMadeAdmin(admin.ModelAdmin):
     list_display = ('value', 'name', 'created_at')
     list_filter = ('value',)
     search_fields = ('name',)
