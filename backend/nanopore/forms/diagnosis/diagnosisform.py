@@ -16,7 +16,7 @@ class DiagnosisForm(forms.ModelForm):
             "clinician_received_date", "tb_treatment", "tb_treatment_date", "tb_facility",
             "tb_reason", "tb_register_number", "tb_regimen", "tb_regimen_other",
             "regimen_changed", "tb_outcome2", "tb_outcome2_date", 
-            "tb_other_diagnosis","tb_other_specify","tb_diagnosis_made2"
+            "tb_other_diagnosis","tb_other_specify","tb_diagnosis_made2",
             "remarks"
         ]
         widgets = {
