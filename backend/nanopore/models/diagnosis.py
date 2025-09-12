@@ -52,7 +52,7 @@ class Diagnosis(models.Model):
     # Treatment outcome
 
     tb_other_diagnosis = models.ForeignKey(TBOtherDiagnosis, on_delete=models.SET_NULL, blank=True, null=True, related_name="tb_other_diagnosis")
-    tb_other_specify = models.CharField(max_length=20, blank=True, null=True)
+    tb_other_specify = models.CharField(max_length=255, blank=True, null=True)
     tb_diagnosis_made2 = models.ForeignKey(TBOtherDiagnosisMade, on_delete=models.SET_NULL, blank=True, null=True, related_name="tb_other_diagnosis_made")
 
     # additional fields
