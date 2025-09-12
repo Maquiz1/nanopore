@@ -121,22 +121,20 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         {% if is_admin or is_national_lab %}
             <div class="col-md-3">
                 <select name="zone" class="form-select">
-                    <option value="">-- Zone --</option>
-                    {% for zone in zones %}
-                        <option value="{{ zone.id }}" 
-                                {% if request.GET.zone == zone.id|stringformat:"s" %}selected{% endif %}>
-                            {{ zone.name }}
+                    <option value="">All Zones</option>
+                    {% for id, name in zones.items %}
+                        <option value="{{ id }}" {% if request.GET.zone == id|stringformat:"s" %}selected{% endif %}>
+                            {{ name }}
                         </option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
                 <select name="site" class="form-select">
-                    <option value="">-- Site --</option>
-                    {% for site in sites %}
-                        <option value="{{ site.id }}" 
-                                {% if request.GET.site == site.id|stringformat:"s" %}selected{% endif %}>
-                            {{ site.name }}
+                    <option value="">All Sites</option>
+                    {% for id, name in sites.items %}
+                        <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                            {{ name }}
                         </option>
                     {% endfor %}
                 </select>
@@ -144,26 +142,21 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         {% elif is_zonal_lab %}
             <div class="col-md-3">
                 <select name="site" class="form-select">
-                    <option value="">-- Site --</option>
-                    {% for site in sites %}
-                        <option value="{{ site.id }}" 
-                                {% if request.GET.site == site.id|stringformat:"s" %}selected{% endif %}>
-                            {{ site.name }}
+                    <option value="">All Sites</option>
+                    {% for id, name in sites.items %}
+                        <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                            {{ name }}
                         </option>
                     {% endfor %}
                 </select>
             </div>
         {% else %}
-            <!-- site-only user -->
-            <input type="hidden" name="site" value="{{ sites.0.id }}">
+            <input type="hidden" name="site" value="{{ sites.keys.0 }}">
         {% endif %}
 
-        <!-- Period + dates -->
         <div class="col-md-2">
             <select name="period" class="form-select">
-                <option value="daily" {% if request.GET.period == "daily" %}selected{% endif %}>Daily</option>
-                <option value="weekly" {% if request.GET.period == "" or request.GET.period == "weekly" %}selected{% endif %}>Weekly</option>
-                <option value="monthly" {% if request.GET.period == "monthly" %}selected{% endif %}>Monthly</option>
+                <option value="monthly" {% if request.GET.period == "monthly" or request.GET.period == "" %}selected{% endif %}>Monthly</option>
             </select>
         </div>
         <div class="col-md-2">
@@ -180,21 +173,21 @@ Dashboard — {{ user.get_full_name|default:user.username }}
 
     <!-- CHARTS -->
     <div class="row g-4">
-        <!-- Bar Chart per Zone -->
+        <!-- Bar Chart per Zone / Site -->
         <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Screenings by Zone</h5>
+                    <h5 class="card-title">Screenings</h5>
                     <canvas id="zoneBarChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Time Series Line Chart -->
+        <!-- Time Series Line Chart (monthly only) -->
         <div class="col-md-12">
             <div class="card shadow-sm mt-4">
                 <div class="card-body">
-                    <h5 class="card-title">Screening Trends by Zone</h5>
+                    <h5 class="card-title">Screening Trends (Monthly)</h5>
                     <canvas id="zoneTimeChart"></canvas>
                 </div>
             </div>
@@ -204,7 +197,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div class="col-md-12 mt-4">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Substudy Distribution by Zone</h5>
+                    <h5 class="card-title">Substudy Distribution</h5>
                     <canvas id="substudyBarChart"></canvas>
                 </div>
             </div>
@@ -237,7 +230,7 @@ function getColor(index) {
     return colors[index % colors.length];
 }
 
-// --- Bar Chart (Screenings per Zone) ---
+// --- Bar Chart (Screenings per Zone / Site) ---
 new Chart(document.getElementById('zoneBarChart').getContext('2d'), {
     type: 'bar',
     data: {
@@ -257,10 +250,10 @@ new Chart(document.getElementById('zoneBarChart').getContext('2d'), {
     }
 });
 
-// --- Line Chart (Trends per Zone) ---
-const timeDatasets = timeDatasetsRaw.map((zoneData, index) => ({
-    label: zoneData.label,
-    data: zoneData.data,
+// --- Line Chart (Monthly Trends) ---
+const timeDatasets = timeDatasetsRaw.map((dataset, index) => ({
+    label: dataset.label,
+    data: dataset.data,
     borderColor: getColor(index),
     backgroundColor: getColor(index),
     fill: false,
@@ -280,7 +273,7 @@ new Chart(document.getElementById('zoneTimeChart').getContext('2d'), {
         stacked: false,
         plugins: {
             legend: { position: 'top' },
-            title: { display: true, text: 'Screening Trends per Zone' },
+            title: { display: true, text: 'Monthly Screening Trends' },
             tooltip: {
                 callbacks: {
                     label: function(context) {
