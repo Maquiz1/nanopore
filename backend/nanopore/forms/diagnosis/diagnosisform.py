@@ -19,6 +19,30 @@ class DiagnosisForm(forms.ModelForm):
             "tb_other_diagnosis","tb_other_specify","tb_diagnosis_made2",
             "remarks"
         ]
+        labels = {
+            "tb_diagnosis": "4(a). Was a TB diagnosis made?",
+            "tb_diagnosis_date": "TB Diagnosis Date",
+            "tb_diagnosis_made": "TB Diagnosis Made (Method)",
+            "diagnosis_made_other": "Other Diagnosis Made",
+            "bacteriological_diagnosis": "Bacteriological Diagnosis",
+            "tb_diagnosed_clinically": "Diagnosed Clinically",
+            "tb_clinically_other": "Other Clinical Diagnosis",
+            "clinician_received_date": "Date Received by Clinician",
+            "tb_treatment": "TB Treatment Started",
+            "tb_treatment_date": "TB Treatment Date",
+            "tb_facility": "Treatment Facility",
+            "tb_reason": "Reason for TB Diagnosis",
+            "tb_register_number": "TB Register Number",
+            "tb_regimen": "TB Regimen Prescribed",
+            "tb_regimen_other": "Other TB Regimen",
+            "regimen_changed": "Regimen Changed",
+            "tb_outcome2": "TB Treatment Outcome",
+            "tb_outcome2_date": "Outcome Date",
+            "tb_other_diagnosis": "12a. What diagnosis other than TB was made?",
+            "tb_other_specify": "If Other Mention If Bacterial pneumonia, specify causative species if known",
+            "tb_diagnosis_made2": "12b. How was this diagnosis made?",
+            "remarks": "Remarks / Notes",
+        }
         widgets = {
             "screening": forms.HiddenInput(),
             "tb_diagnosis": forms.Select(attrs={"class": "form-select"}),
