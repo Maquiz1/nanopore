@@ -28,7 +28,7 @@ class Diagnosis(models.Model):
     tb_diagnosis_made = models.ForeignKey(TBDiagnosisMade, on_delete=models.SET_NULL, blank=True, null=True, related_name="tb_diagnosis_made")
     diagnosis_made_other = models.TextField(max_length=255, blank=True, null=True)
     bacteriological_diagnosis = models.ForeignKey(DiagnosisBacteriological, on_delete=models.SET_NULL, blank=True, null=True, related_name="bacteriological_diagnosis")
-    tb_diagnosed_clinically = models.ForeignKey(DiagnosedClinically, on_delete=models.SET_NULL, blank=True, null=True, related_name="tb_diagnosed_clinically")
+    tb_diagnosed_clinically = models.ManyToManyField(DiagnosedClinically, blank=True, related_name="tb_diagnosed_clinically")
     tb_clinically_other = models.CharField(max_length=255, blank=True, null=True)
     
     clinician_received_date = models.DateField(blank=True, null=True)

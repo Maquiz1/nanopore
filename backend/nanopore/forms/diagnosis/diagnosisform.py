@@ -51,7 +51,7 @@ class DiagnosisForm(forms.ModelForm):
             "diagnosis_made_other": forms.TextInput(attrs={"class": "form-control"}),
 
             "bacteriological_diagnosis": forms.Select(attrs={"class": "form-select"}),
-            "tb_diagnosed_clinically": forms.Select(attrs={"class": "form-select"}),
+            "tb_diagnosed_clinically": forms.CheckboxSelectMultiple(),
             "tb_clinically_other": forms.TextInput(attrs={"class": "form-control"}),
 
             "clinician_received_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
