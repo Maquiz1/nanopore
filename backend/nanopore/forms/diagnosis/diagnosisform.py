@@ -15,7 +15,9 @@ class DiagnosisForm(forms.ModelForm):
             "bacteriological_diagnosis", "tb_diagnosed_clinically", "tb_clinically_other",
             "clinician_received_date", "tb_treatment", "tb_treatment_date", "tb_facility",
             "tb_reason", "tb_register_number", "tb_regimen", "tb_regimen_other",
-            "regimen_changed", "tb_outcome2", "tb_outcome2_date", "remarks"
+            "regimen_changed", "tb_outcome2", "tb_outcome2_date", 
+            "tb_other_diagnosis","tb_other_specify","tb_diagnosis_made2"
+            "remarks"
         ]
         widgets = {
             "screening": forms.HiddenInput(),
@@ -38,7 +40,10 @@ class DiagnosisForm(forms.ModelForm):
             "tb_regimen_other": forms.TextInput(attrs={"class": "form-control"}),
             "regimen_changed": forms.Select(attrs={"class": "form-select"}),
             "tb_outcome2": forms.Select(attrs={"class": "form-select"}),
-            "tb_outcome2_date": forms.TextInput(attrs={"class": "form-control"}),
+            "tb_outcome2_date": forms.DateInput(attrs={"type": "date","class": "form-control"}),
+            "tb_other_diagnosis": forms.Select(attrs={"class": "form-select"}),
+            "tb_other_specify": forms.TextInput(attrs={"class": "form-control"}),
+            "tb_diagnosis_made2": forms.Select(attrs={"class": "form-select"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 
