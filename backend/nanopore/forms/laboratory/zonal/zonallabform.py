@@ -152,7 +152,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "first_line_drugs": forms.CheckboxSelectMultiple(),
             "lpa1_mtb": forms.Select(attrs={"class": "form-select"}),
             "lpa1_rif": forms.Select(attrs={"class": "form-select"}),
-            "lpa1_inh": forms.Select(attrs={"class": "form-select"}),
+            "lpa1_inh": forms.CheckboxSelectMultiple(),
             
             
             # Second-Line LPA            

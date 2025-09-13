@@ -35,7 +35,8 @@ class Enrollment(models.Model):
     unexplained_fever = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_unexplained_fever")
     night_sweats = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_night_sweats")
     neck_lymph = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_neck_lymph")
-    
+    history_tb = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="enrollment_history_tb")
+
     date_information_collected = models.DateField()
 
     # History of TB and previous treatment

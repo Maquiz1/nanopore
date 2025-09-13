@@ -1,0 +1,48 @@
+<h4>Regimen Changes</h4>
+
+<div id="regimenChangesContainer">
+
+    <!-- Add new regimen button -->
+    <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#regimenChangeModal"
+        data-screening-id="{{ screening.id }}" id="addRegimenBtn">
+        Add Regimen Change
+    </button>
+
+    {% if regimen_changes %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered" id="regimenChangesTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Drug</th>
+                    <th>Type of Change</th>
+                    <th>Reason for Change</th>
+                    <th>Reason</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rc in regimen_changes %}
+                <tr id="regimenRow{{ rc.id }}" data-id="{{ rc.id }}">
+                    <td>{{ rc.date|date:"Y-m-d" }}</td>
+                    <td>{{ rc.drug }}</td>
+                    <td>{{ rc.changes }}</td>
+                    <td>{{ rc.reason }}</td>
+                    <td>{{ rc.specify }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning editRegimenBtn" data-id="{{ rc.id }}">Edit</button>
+                        <button class="btn btn-sm btn-danger deleteRegimenBtn" data-id="{{ rc.id }}">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No regimen changes recorded yet.</p>
+    {% endif %}
+
+</div>
+
+<!-- Include the modal -->
+{% include "nanopore/regimen/regimen_modal_form.html" %}

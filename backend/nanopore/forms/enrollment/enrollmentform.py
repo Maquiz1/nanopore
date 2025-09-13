@@ -2,7 +2,7 @@ from django import forms
 from nanopore.models import Enrollment
 from django.core.exceptions import ValidationError
 import datetime
-
+from common.labels.Enrollment.labels import Enrollment_LABELS   # ✅ import from core app
 
 class EnrollmentForm(forms.ModelForm):
     class Meta:
@@ -18,6 +18,7 @@ class EnrollmentForm(forms.ModelForm):
             "unexplained_fever",
             "night_sweats",
             "neck_lymph",
+            "history_tb",
             "date_information_collected",
             # History / previous treatment
             "tx_previous",
@@ -45,6 +46,8 @@ class EnrollmentForm(forms.ModelForm):
             "sputum_date",
             "sputum_reasons",
         ]
+        # fields = TB_LABELS.keys()
+        labels = Enrollment_LABELS
 
         widgets = {
             "screening": forms.Select(attrs={"class": "form-select"}),
@@ -56,6 +59,7 @@ class EnrollmentForm(forms.ModelForm):
             "unexplained_fever": forms.Select(attrs={"class": "form-select"}),
             "night_sweats": forms.Select(attrs={"class": "form-select"}),
             "neck_lymph": forms.Select(attrs={"class": "form-select"}),
+            "history_tb": forms.Select(attrs={"class": "form-select"}),
             "date_information_collected": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
 
             "tx_previous": forms.Select(attrs={"class": "form-select"}),
