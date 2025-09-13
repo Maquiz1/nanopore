@@ -1,0 +1,25 @@
+<!-- Regimen Modal -->
+<div class="modal fade" id="regimenChangeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="regimenForm" method="post" action="{% url 'nanopore:regimen-save' %}">
+        {% csrf_token %}
+        
+        <!-- Hidden fields for screening ID and regimen ID -->
+        <input type="hidden" name="screening_id" id="regimenScreeningId" value="">
+        <input type="hidden" name="regimen_id" id="regimenId" value="">
+        
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="regimenModalTitle">Regimen Change Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="regimenModalBody">
+          {{ regimen_form.as_p }}
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" id="regimenModalSaveBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

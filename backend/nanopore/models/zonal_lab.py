@@ -98,7 +98,7 @@ class ZonalLaboratory(models.Model):
     first_line_drugs = models.ManyToManyField(FirstLineDrugs ,blank=True, related_name="zonal_laboratory_first_line_drugs")
     lpa1_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_mtb")
     lpa1_rif = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_rif")
-    lpa1_inh = models.ForeignKey(INHResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_inh")
+    lpa1_inh = models.ManyToManyField(INHResultLPA, blank=True, related_name="zonal_laboratory_lpa1_inh")
 
     # Second-Line LPA
     second_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_lpa")
