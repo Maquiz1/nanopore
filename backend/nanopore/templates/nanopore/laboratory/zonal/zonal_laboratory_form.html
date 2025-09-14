@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load string_extras %}
 
 {% block content %}
 <div class="container mt-4">
@@ -48,8 +49,10 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-3">{{ form.date_sputum_received.label_tag }}{{ form.date_sputum_received
-                                }}</div>
+                            <div class="col-md-3">
+                                {{ form.date_sputum_received.label_tag }}
+                                {{ form.date_sputum_received }}
+                            </div>
                             <div class="col-md-3">{{ form.appearance.label_tag }}{{ form.appearance }}</div>
                             <div class="col-md-3">{{ form.sample_volume.label_tag }}{{ form.sample_volume }}</div>
                             <div class="col-md-3">{{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}</div>
@@ -91,8 +94,10 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">{{ form.mgit_inoculation_date.label_tag }}{{
-                                form.mgit_inoculation_date }}</div>
+                            <div class="col-md-4">
+                                {{ form.mgit_inoculation_date.label_tag }}
+                                {{form.mgit_inoculation_date }}
+                            </div>
                             <div class="col-md-4">{{ form.mgit_results_date.label_tag }}{{ form.mgit_results_date }}
                             </div>
                             <div class="col-md-4">{{ form.mgit_results.label_tag }}{{ form.mgit_results }}</div>
@@ -268,7 +273,7 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                            {% if field.name in "nano_amikacin,nano_bedaquiline,nano_capreomycin,nano_clofazimine,nano_delamanid,nano_ethambutol,nano_ethionamide,nano_isoniazid,nano_kanamycin,nano_levofloxacin,nano_linezolid,nano_moxifloxacin,nano_pretomanid,nano_pyrazinamide,nano_rifampicin,nano_streptomycin"|cut:"," %}
+                            {% if field.name|startswith:"nano_" and field.name in "nano_amikacin,nano_bedaquiline,nano_capreomycin,nano_clofazimine,nano_delamanid,nano_ethambutol,nano_ethionamide,nano_isoniazid,nano_kanamycin,nano_levofloxacin,nano_linezolid,nano_moxifloxacin,nano_pretomanid,nano_pyrazinamide,nano_rifampicin,nano_streptomycin"|cut:"," %}
                             <div class="col-md-3">
                                 {{ field.label_tag }}
                                 {{ field }}
