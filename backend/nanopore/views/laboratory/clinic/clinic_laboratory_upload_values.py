@@ -44,6 +44,22 @@ def get_foreign(obj_class, val):
         return None
     return obj_class.objects.filter(pk=pk).first()
 
+
+def get_yesno(val):
+    if val is None or str(val).strip() == "":
+        return None
+    val = str(val).strip().lower()
+    if val in ("1", "yes", "y", "true", "t"):
+        return YesNo.objects.get(pk=1)  # or whatever PK is Yes
+    if val in ("2", "no", "n", "false", "f"):
+        return YesNo.objects.get(pk=2)  # or whatever PK is No
+    return None
+
+
+def to_bool(val):
+    """Convert '1' → True, empty/None → False."""
+    return str(val).strip() == "1" if val is not None else False
+
 class ClinicLabCsvUploadView(View):
     template_name = "nanopore/laboratory/clinic/clinic_laboratory_upload.html"
 
@@ -99,7 +115,8 @@ class ClinicLabCsvUploadView(View):
                 appearance_sample2 = get_foreign(SampleAppearance, row.get("AppearanceSample2"))
                 sample2_volume = row.get("Sample2Volume") or None
 
-                afb_microscopy_conducted = get_foreign(YesNo, row.get("AFBMicroscopyConducted"))
+                # afb_microscopy_conducted = get_foreign(YesNo, row.get("AFBMicroscopyConducted"))
+                afb_microscopy_conducted = get_yesno(row.get("AFBMicroscopyConducted"))
                 afb_a_date = parse_date(row.get("AFBA_Date"))
                 technique_a = get_foreign(AFBTechnique, row.get("TechniqueA"))
                 afb_a_results = get_foreign(AFBMicroscopyResult, row.get("AFBA_Results"))
@@ -108,13 +125,17 @@ class ClinicLabCsvUploadView(View):
                 technique_b = get_foreign(AFBTechnique, row.get("TechniqueB"))
                 afb_b_results = get_foreign(AFBMicroscopyResult, row.get("AFBB_Results"))
 
-                xpert_mtb_rif_conducted = get_foreign(YesNo, row.get("XpertMTBRIFConducted"))
+                # xpert_mtb_rif_conducted = get_foreign(YesNo, row.get("XpertMTBRIFConducted"))
+                xpert_mtb_rif_conducted = get_yesno(row.get("XpertMTBRIFConducted"))
                 xpert_date = parse_date(row.get("XpertDate"))
                 xpert_mtb = get_foreign(XpertMTB, row.get("XpertMTB"))
                 error_code = safe_int(row.get("ErrorCode"))
                 xpert_rif = get_foreign(XpertRIF, row.get("XpertRIF"))
                 ct_value = safe_decimal(row.get("CTValue"))
-                ct_na = get_foreign(NoSPCResult, row.get("CTNA"))
+                # ct_na = get_foreign(NoSPCResult, row.get("CTNA"))
+                
+                # --- Boolean unknown fields ---
+                ct_na = to_bool(row.get("CTNA"))
 
                 remarks = row.get("Remarks") or None
 

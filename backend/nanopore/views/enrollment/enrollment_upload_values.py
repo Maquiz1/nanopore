@@ -11,9 +11,9 @@ from nanopore.models.enrollment import Enrollment
 from nanopore.models.screening import Screening
 from locations.models import Site
 from options.models import (
-    YesNo, YesNoUnknown, CategoryTreated, MonthUnknown, YearUnknown,
-    DrDsTB, TreatmentRegimen, TreatmentOutcome, PositiveNegativeUnknown,
-    DiseasesMedicalConditions,
+    YesNo, YesNoUnknown, CategoryTreated,
+    DrDsTB, TreatmentRegimen, TreatmentOutcome,
+    PositiveNegativeUnknown, DiseasesMedicalConditions,
 )
 
 
@@ -40,6 +40,11 @@ def get_many_to_many(obj_class, val):
         return obj_class.objects.none()
     ids = [safe_int(x) for x in str(val).split(",") if safe_int(x) is not None]
     return obj_class.objects.filter(pk__in=ids)
+
+
+def to_bool(val):
+    """Convert '1' → True, empty/None → False."""
+    return str(val).strip() == "1" if val is not None else False
 
 
 class EnrollmentCsvUploadView(View):
@@ -86,20 +91,23 @@ class EnrollmentCsvUploadView(View):
                 unexplained_fever = get_foreign(YesNo, row.get("UnexplainedFever"))
                 night_sweats = get_foreign(YesNo, row.get("NightSweats"))
                 neck_lymph = get_foreign(YesNo, row.get("NeckLymph"))
+                history_tb = get_foreign(YesNo, row.get("HistoryTb"))
                 tx_previous = get_foreign(YesNoUnknown, row.get("TxPrevious"))
                 tb_category = get_foreign(CategoryTreated, row.get("TbCategory"))
                 tb_category_specify = row.get("TbCategorySpecify") or None
                 tx_month = safe_int(row.get("TxMonth"))
-                tx_unknown_month = get_foreign(MonthUnknown, row.get("TxUnknownMonth"))
+
+                # --- Boolean unknown fields ---
+                tx_unknown_month = to_bool(row.get("TxUnknownMonth"))
                 tx_year = safe_int(row.get("TxYear"))
-                tx_unknown_year = get_foreign(YearUnknown, row.get("TxUnknownYear"))
-                dr_ds = get_foreign(DrDsTB, row.get("DrDs"))
+                tx_unknown_year = to_bool(row.get("TxUnknownYear"))
                 ltf_months = safe_int(row.get("LtfMonths"))
-                ltf_months_unknown = get_foreign(MonthUnknown, row.get("LtfMonthsUnknown"))
+                ltf_months_unknown = to_bool(row.get("LtfMonthsUnknown"))
                 tb_regimen = get_foreign(TreatmentRegimen, row.get("TbRegimen"))
                 tb_regimen_specify = row.get("TbRegimenSpecify") or None
                 regimen_months = safe_int(row.get("RegimenMonths"))
-                regimen_months_unknown = get_foreign(MonthUnknown, row.get("RegimenMonthsUnknown"))
+                regimen_months_unknown = to_bool(row.get("RegimenMonthsUnknown"))
+
                 tb_outcome = get_foreign(TreatmentOutcome, row.get("TbOutcome"))
                 hiv_status = get_foreign(PositiveNegativeUnknown, row.get("HivStatus"))
                 other_diseases = get_foreign(YesNoUnknown, row.get("OtherDiseases"))
@@ -128,6 +136,7 @@ class EnrollmentCsvUploadView(View):
                         "unexplained_fever": unexplained_fever,
                         "night_sweats": night_sweats,
                         "neck_lymph": neck_lymph,
+                        "history_tb": history_tb,
                         "date_information_collected": date_information_collected,
                         "tx_previous": tx_previous,
                         "tb_category": tb_category,
@@ -136,7 +145,7 @@ class EnrollmentCsvUploadView(View):
                         "tx_unknown_month": tx_unknown_month,
                         "tx_year": tx_year,
                         "tx_unknown_year": tx_unknown_year,
-                        "dr_ds": dr_ds,
+                        "dr_ds": get_foreign(DrDsTB, row.get("DrDs")),
                         "ltf_months": ltf_months,
                         "ltf_months_unknown": ltf_months_unknown,
                         "tb_regimen": tb_regimen,
