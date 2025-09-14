@@ -28,14 +28,14 @@ class ZonalLaboratory(models.Model):
         
     # # NEW FIELDS
     # Specimen receipt
-    date_sputum_received = models.DateField(null=True, blank=True)
-    appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_appearance")
-    sample_volume = models.DecimalField(null=True, blank=True, max_digits=3, decimal_places=1)
-    unique_lab_no = models.CharField(max_length=100, blank=True, null=True)
+    date_sputum_received = models.DateField()
+    appearance = models.ForeignKey(SampleAppearance, on_delete=models.PROTECT, related_name="zonal_laboratory_appearance")
+    sample_volume = models.DecimalField(max_digits=3, decimal_places=1)
+    unique_lab_no = models.CharField(max_length=100,unique=True)
     
     # Culture
-    culture_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_culture_performed")
-    culture_method = models.ManyToManyField(CultureMethod, blank=True, related_name="zonal_laboratory_culture_method")
+    culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="zonal_laboratory_culture_performed")
+    culture_method = models.ManyToManyField(CultureMethod, on_delete=models.PROTECT, related_name="zonal_laboratory_culture_method")
     microscopy_type = models.ForeignKey(MicroscopyType, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_culture_microscopy_type")
     microscopy_date = models.DateField(null=True, blank=True)
     microscopy_results = models.ForeignKey(CultureMicroscopyResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_culture_microscopy_results")
@@ -110,10 +110,10 @@ class ZonalLaboratory(models.Model):
     lpa2_kanamycin = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_kanamycin")
 
     # Nanopore sequencing
-    nanopore_done = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_done")
-    sequencing_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_results")
-    epi_to_me = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_epi_to_me")
-    epi_to_me_version = models.CharField(max_length=255,null=True,blank=True)
+    nanopore_done = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="zonal_laboratory_nanopore_done")
+    sequencing_results = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="zonal_laboratory_sequencing_results")
+    epi_to_me = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="zonal_laboratory_epi_to_me")
+    epi_to_me_version = models.CharField(max_length=255)
     
     # Nanopore sequencing (no explicit db_index)
     nano_amikacin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_amikacin")
