@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ZonalLaboratory
 from options.models import YesNo,SampleAppearance
-from common.labels.laboratory.zonal.labels import ZONAL_LABELS   # ✅ import from core app
+from common.labels.laboratory.zonal.zonal_labels import ZONAL_LABELS   # ✅ import from core app
 
 class ZonalLaboratoryForm(forms.ModelForm):
     class Meta:
@@ -104,26 +104,32 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "date_sputum_received": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "sample_volume": forms.NumberInput(attrs={"class": "form-control"}),
             "unique_lab_no": forms.TextInput(attrs={"class": "form-control"}),
+            
             # Culture
             "culture_performed": forms.Select(attrs={"class": "form-select"}),
             "microscopy_type": forms.Select(attrs={"class": "form-select"}),
             "microscopy_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "microscopy_results": forms.Select(attrs={"class": "form-select"}),
+            
             # LJ Results
             "lj_inoculation_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "lj_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "lj_results": forms.Select(attrs={"class": "form-select"}),
+            
             # MGIT Results
             "mgit_inoculation_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "mgit_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "mgit_results": forms.Select(attrs={"class": "form-select"}),
+            
             # Culture Isolate
             "culture_isolate": forms.Select(attrs={"class": "form-select"}),
             "isolate_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            
             # Phenotypic DST
             "phenotypic_performed": forms.Select(attrs={"class": "form-select"}),
             "phenotypic_date_performed": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "phenotypic_date_results": forms.Select(attrs={"class": "form-select"}),
+            
             # Phenotypic DST RESULTS
             "rifampicin": forms.Select(attrs={"class": "form-select"}),
             "isoniazid": forms.Select(attrs={"class": "form-select"}),

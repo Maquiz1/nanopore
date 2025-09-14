@@ -56,6 +56,7 @@ ZONAL_LABELS = {
     "ethionamide":"13(r). Ethionamide",
     "prothionamide":"13(s). Prothionamide",
     "para_aminosalicylic_acid":"13(t). Para-aminosalicylic acid",
+    
     # Xpert XDR
     "xpert_xdr_performed":"14(a). Was Xpert XDR performed?",
     "xpert_xdr_date_performed":"14(b). Date of performing Xpert XDR testing?",
