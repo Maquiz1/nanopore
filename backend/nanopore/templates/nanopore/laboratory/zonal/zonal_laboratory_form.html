@@ -46,57 +46,73 @@
                         <div class="p-2 mb-3 bg-secondary text-white rounded">
                             <h5 class="mb-0">Specimen Receipt</h5>
                         </div>
-                        <div class="mb-3">{{ form.date_sputum_received.label_tag }}{{ form.date_sputum_received }}</div>
-                        <div class="mb-3">{{ form.appearance.label_tag }}{{ form.appearance }}</div>
-                        <div class="mb-3">{{ form.sample_volume.label_tag }}{{ form.sample_volume }}</div>
-                        <div class="mb-3">{{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}</div>
-
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">{{ form.date_sputum_received.label_tag }}{{ form.date_sputum_received }}</div>
+                            <div class="col-md-3">{{ form.appearance.label_tag }}{{ form.appearance }}</div>
+                            <div class="col-md-3">{{ form.sample_volume.label_tag }}{{ form.sample_volume }}</div>
+                            <div class="col-md-3">{{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}</div>
+                        </div>
+                        <hr>
                         <!-- Culture -->
                         <div class="p-2 mb-3 bg-primary text-white rounded">
                             <h5 class="mb-0">Culture</h5>
                         </div>
-                        <div class="mb-3">{{ form.culture_performed.label_tag }}{{ form.culture_performed }}</div>
-                        <div class="mb-3">{{ form.culture_method.label_tag }}{{ form.culture_method }}</div>
-                        <div class="mb-3">{{ form.microscopy_type.label_tag }}{{ form.microscopy_type }}</div>
-                        <div class="mb-3">{{ form.microscopy_date.label_tag }}{{ form.microscopy_date }}</div>
-                        <div class="mb-3">{{ form.microscopy_results.label_tag }}{{ form.microscopy_results }}</div>
-
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.culture_performed.label_tag }}{{ form.culture_performed }}</div>
+                            <div class="col-md-4">{{ form.culture_method.label_tag }}{{ form.culture_method }}</div>
+                            <div class="col-md-4">{{ form.microscopy_type.label_tag }}{{ form.microscopy_type }}</div>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">{{ form.microscopy_date.label_tag }}{{ form.microscopy_date }}</div>
+                            <div class="col-md-6">{{ form.microscopy_results.label_tag }}{{ form.microscopy_results }}</div>
+                        </div>
+                        <hr>
                         <!-- LJ Results -->
                         <div class="p-2 mb-3 bg-success text-white rounded">
                             <h5 class="mb-0">LJ Results</h5>
                         </div>
-                        <div class="mb-3">{{ form.lj_inoculation_date.label_tag }}{{ form.lj_inoculation_date }}</div>
-                        <div class="mb-3">{{ form.lj_results_date.label_tag }}{{ form.lj_results_date }}</div>
-                        <div class="mb-3">{{ form.lj_results.label_tag }}{{ form.lj_results }}</div>
-
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.lj_inoculation_date.label_tag }}{{ form.lj_inoculation_date }}</div>
+                            <div class="col-md-4">{{ form.lj_results_date.label_tag }}{{ form.lj_results_date }}</div>
+                            <div class="col-md-4">{{ form.lj_results.label_tag }}{{ form.lj_results }}</div>
+                        </div>
+                        <hr>
                         <!-- MGIT Results -->
                         <div class="p-2 mb-3 bg-danger text-white rounded">
                             <h5 class="mb-0">MGIT Results</h5>
                         </div>
-                        <div class="mb-3">{{ form.mgit_inoculation_date.label_tag }}{{ form.mgit_inoculation_date }}
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.mgit_inoculation_date.label_tag }}{{ form.mgit_inoculation_date }}</div>
+                            <div class="col-md-4">{{ form.mgit_results_date.label_tag }}{{ form.mgit_results_date }}</div>
+                            <div class="col-md-4">{{ form.mgit_results.label_tag }}{{ form.mgit_results }}</div>
                         </div>
-                        <div class="mb-3">{{ form.mgit_results_date.label_tag }}{{ form.mgit_results_date }}</div>
-                        <div class="mb-3">{{ form.mgit_results.label_tag }}{{ form.mgit_results }}</div>
-
+                        <hr>
                         <!-- Culture Isolate -->
                         <div class="p-2 mb-3 bg-secondary text-white rounded">
                             <h5 class="mb-0">Culture Isolate</h5>
                         </div>
-                        <div class="mb-3">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
-                        <div class="mb-3">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
-
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
+                            <div class="col-md-6">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
+                        </div>
+                        <hr>
                         <!-- Phenotypic DST -->
                         <div class="p-2 mb-3 bg-dark text-white rounded">
                             <h5 class="mb-0">Phenotypic DST</h5>
                         </div>
-                        <div class="mb-3">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
-                        <div class="mb-3">
-                            {{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}
-                        </div>
-                        <div class="mb-3">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}
-                        </div>
-
-
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
+                            <div class="col-md-4">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
+                            <div class="col-md-4">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
+                         </div>
+                        <hr>
 
                         <!-- Phenotypic DST RESULTS -->
                         <div class="p-2 mb-3 bg-danger text-white rounded">
@@ -241,6 +257,22 @@
                         </div>
 
                         <!-- Nanopore Sequencing Results -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Nanopore Sequencing Results</h5>
+                        </div>
+                         <div class="row g-3 mb-3">
+                                {% for field in form %}
+                                {% if field.name in "nano_amikacin,nano_bedaquiline,nano_capreomycin,nano_clofazimine,nano_delamanid,nano_ethambutol,nano_ethionamide,nano_isoniazid,nano_kanamycin,nano_levofloxacin,nano_linezolid,nano_moxifloxacin,nano_pretomanid,nano_pyrazinamide,nano_rifampicin,nano_streptomycin"|cut:"," %}
+                                    <div class="col-md-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
 
                         <!-- Remarks -->
                         <div class="p-2 mb-3 bg-secondary text-white rounded">
