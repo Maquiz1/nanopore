@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ClinicLaboratory
-from common.labels.laboratory.clinic.labels import CLINIC_LABELS   # ✅ import from core app
+from common.labels.laboratory.clinic.clinic_labels import CLINIC_LABELS   # ✅ import from core app
 
 class ClinicLaboratoryForm(forms.ModelForm):
     class Meta:

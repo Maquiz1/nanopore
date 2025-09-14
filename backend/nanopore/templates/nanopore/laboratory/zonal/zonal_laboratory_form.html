@@ -48,7 +48,8 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-3">{{ form.date_sputum_received.label_tag }}{{ form.date_sputum_received }}</div>
+                            <div class="col-md-3">{{ form.date_sputum_received.label_tag }}{{ form.date_sputum_received
+                                }}</div>
                             <div class="col-md-3">{{ form.appearance.label_tag }}{{ form.appearance }}</div>
                             <div class="col-md-3">{{ form.sample_volume.label_tag }}{{ form.sample_volume }}</div>
                             <div class="col-md-3">{{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}</div>
@@ -60,14 +61,16 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">{{ form.culture_performed.label_tag }}{{ form.culture_performed }}</div>
+                            <div class="col-md-4">{{ form.culture_performed.label_tag }}{{ form.culture_performed }}
+                            </div>
                             <div class="col-md-4">{{ form.culture_method.label_tag }}{{ form.culture_method }}</div>
                             <div class="col-md-4">{{ form.microscopy_type.label_tag }}{{ form.microscopy_type }}</div>
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">{{ form.microscopy_date.label_tag }}{{ form.microscopy_date }}</div>
-                            <div class="col-md-6">{{ form.microscopy_results.label_tag }}{{ form.microscopy_results }}</div>
+                            <div class="col-md-6">{{ form.microscopy_results.label_tag }}{{ form.microscopy_results }}
+                            </div>
                         </div>
                         <hr>
                         <!-- LJ Results -->
@@ -76,7 +79,8 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">{{ form.lj_inoculation_date.label_tag }}{{ form.lj_inoculation_date }}</div>
+                            <div class="col-md-4">{{ form.lj_inoculation_date.label_tag }}{{ form.lj_inoculation_date }}
+                            </div>
                             <div class="col-md-4">{{ form.lj_results_date.label_tag }}{{ form.lj_results_date }}</div>
                             <div class="col-md-4">{{ form.lj_results.label_tag }}{{ form.lj_results }}</div>
                         </div>
@@ -87,8 +91,10 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">{{ form.mgit_inoculation_date.label_tag }}{{ form.mgit_inoculation_date }}</div>
-                            <div class="col-md-4">{{ form.mgit_results_date.label_tag }}{{ form.mgit_results_date }}</div>
+                            <div class="col-md-4">{{ form.mgit_inoculation_date.label_tag }}{{
+                                form.mgit_inoculation_date }}</div>
+                            <div class="col-md-4">{{ form.mgit_results_date.label_tag }}{{ form.mgit_results_date }}
+                            </div>
                             <div class="col-md-4">{{ form.mgit_results.label_tag }}{{ form.mgit_results }}</div>
                         </div>
                         <hr>
@@ -111,7 +117,7 @@
                             <div class="col-md-4">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
                             <div class="col-md-4">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
                             <div class="col-md-4">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
-                         </div>
+                        </div>
                         <hr>
 
                         <!-- Phenotypic DST RESULTS -->
@@ -120,18 +126,18 @@
                         </div>
 
                         <div class="row">
-                        {% for field in form %}
-                            {% if field.name in "rifampicin,isoniazid,levofloxacin,moxifloxacin,bedaquiline,linezolid,clofazimine,cycloserine,terizidone,ethambutol,delamanid,pyrazinamide,imipenem,cilastatin,meropenem,amikacin,streptomycin,ethionamide,prothionamide,para_aminosalicylic_acid" %}
-                                <div class="col-md-3 mb-3">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
+                            {% for field in form %}
+                            {% if field.name in "rifampicin,isoniazid,levofloxacin,moxifloxacin,bedaquiline,linezolid,clofazimine,cycloserine,terizidone,ethambutol,delamanid,pyrazinamide,imipenem,cilastatin,meropenem,amikacin,streptomycin,ethionamide,prothionamide,para_aminosalicylic_acid"|cut:"," %}
+                            <div class="col-md-3 mb-3">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
                             {% endif %}
-                        {% endfor %}
-                    </div>
+                            {% endfor %}
+                        </div>
 
 
 
@@ -141,15 +147,15 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                                {% if field.name in "xpert_xdr_performed,xpert_xdr_date_performed" %}
-                                    <div class="col-md-6">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                            <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            {% if field.name in "xpert_xdr_performed,xpert_xdr_date_performed" %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 
@@ -158,16 +164,16 @@
                             <h5 class="mb-0">Xpert XDR RESULTS</h5>
                         </div>
                         <div class="row g-3 mb-3">
-                                {% for field in form %}
-                                {% if field.name in "xpert_xdr_isoniazid,xpert_xdr_fluoroquinolones,xpert_xdr_amikacin,xpert_xdr_kanamycin,xpert_xdr_capreomycin,xpert_xdr_ethionamide2"|cut:"," %}
-                                    <div class="col-md-4">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            {% for field in form %}
+                            {% if field.name in "xpert_xdr_isoniazid,xpert_xdr_fluoroquinolones,xpert_xdr_amikacin,xpert_xdr_kanamycin,xpert_xdr_capreomycin,xpert_xdr_ethionamide2"|cut:"," %}
+                            <div class="col-md-4">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 
@@ -180,15 +186,15 @@
                             <!-- First Column -->
                             <div class="col-md-6 p-3 border-end">
                                 {% for field in form %}
-                                    {% if field.name in "first_line_lpa,first_line_lpa_date,lpa1_mtb,lpa1_rif,lpa1_inh"|cut:"," %}
-                                        <div class="mb-3">
-                                            {{ field.label_tag }}
-                                            {{ field }}
-                                            {% for error in field.errors %}
-                                                <div class="text-danger">{{ error }}</div>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                {% if field.name in "first_line_lpa,first_line_lpa_date,lpa1_mtb,lpa1_rif,lpa1_inh"|cut:"," %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
 
@@ -198,7 +204,7 @@
                                     {{ form.first_line_drugs.label_tag }}
                                     {{ form.first_line_drugs }}
                                     {% for error in form.first_line_drugs.errors %}
-                                        <div class="text-danger">{{ error }}</div>
+                                    <div class="text-danger">{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -210,19 +216,19 @@
                         <div class="p-2 mb-3 bg-info text-white rounded">
                             <h5 class="mb-0">Second-Line LPA</h5>
                         </div>
-                         <div class="row g-3 mb-3">
+                        <div class="row g-3 mb-3">
                             <!-- First Column -->
                             <div class="col-md-6 p-3 border-end">
                                 {% for field in form %}
-                                {% if field.name in "second_line_lpa, second_line_lpa_date, lpa2_mtb, lpa2_rfluoroquinolones, lpa2_aminoglycosides, lpa2_kanamycin"|cut:"," %}
-                                        <div class="mb-3">
-                                            {{ field.label_tag }}
-                                            {{ field }}
-                                            {% for error in field.errors %}
-                                                <div class="text-danger">{{ error }}</div>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                {% if field.name in "second_line_lpa, second_line_lpa_date, lpa2_mtb,lpa2_rfluoroquinolones, lpa2_aminoglycosides, lpa2_kanamycin"|cut:"," %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
 
@@ -232,7 +238,7 @@
                                     {{ form.second_line_drugs.label_tag }}
                                     {{ form.second_line_drugs }}
                                     {% for error in form.second_line_drugs.errors %}
-                                        <div class="text-danger">{{ error }}</div>
+                                    <div class="text-danger">{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -244,15 +250,15 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                                {% if field.name in "nanopore_done,sequencing_results,epi_to_me,epi_to_me_version"|cut:"," %}
-                                    <div class="col-md-6">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                            <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            {% if field.name in "nanopore_done,sequencing_results,epi_to_me,epi_to_me_version"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 
@@ -260,17 +266,17 @@
                         <div class="p-2 mb-3 bg-secondary text-white rounded">
                             <h5 class="mb-0">Nanopore Sequencing Results</h5>
                         </div>
-                         <div class="row g-3 mb-3">
-                                {% for field in form %}
-                                {% if field.name in "nano_amikacin,nano_bedaquiline,nano_capreomycin,nano_clofazimine,nano_delamanid,nano_ethambutol,nano_ethionamide,nano_isoniazid,nano_kanamycin,nano_levofloxacin,nano_linezolid,nano_moxifloxacin,nano_pretomanid,nano_pyrazinamide,nano_rifampicin,nano_streptomycin"|cut:"," %}
-                                    <div class="col-md-3">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                            {% if field.name in "nano_amikacin,nano_bedaquiline,nano_capreomycin,nano_clofazimine,nano_delamanid,nano_ethambutol,nano_ethionamide,nano_isoniazid,nano_kanamycin,nano_levofloxacin,nano_linezolid,nano_moxifloxacin,nano_pretomanid,nano_pyrazinamide,nano_rifampicin,nano_streptomycin"|cut:"," %}
+                            <div class="col-md-3">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 
