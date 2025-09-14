@@ -11,21 +11,29 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "screening", 
             # Specimen Receipt
             "date_sputum_received", "appearance", "sample_volume", "unique_lab_no",
+            
             # Culture
             "culture_performed", "culture_method", "microscopy_type", "microscopy_date", "microscopy_results",
+            
             # LJ Results
             "lj_inoculation_date", "lj_results_date", "lj_results",
+            
             # MGIT Results
             "mgit_inoculation_date", "mgit_results_date", "mgit_results",
+            
             # Culture Isolate
             "culture_isolate", "isolate_date",
+            
             # Phenotypic DST
+            
             "phenotypic_performed", "phenotypic_date_performed", "phenotypic_date_results",
+            
             # Phenotypic DST RESULTS
             "rifampicin", "isoniazid", "levofloxacin", "moxifloxacin", "bedaquiline",
             "linezolid", "clofazimine", "cycloserine", "terizidone", "ethambutol",
             "delamanid", "pyrazinamide", "imipenem", "cilastatin", "meropenem",
             "amikacin", "streptomycin", "ethionamide", "prothionamide", "para_aminosalicylic_acid",
+            
             # Xpert XDR
             "xpert_xdr_performed", "xpert_xdr_date_performed",
             
@@ -89,8 +97,8 @@ class ZonalLaboratoryForm(forms.ModelForm):
         
         widgets = {
             "screening": forms.HiddenInput(),
-            "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "culture_method": forms.CheckboxSelectMultiple(),
+            
             # Specimen Receipt
             "appearance": forms.Select(attrs={"class": "form-select"}),
             "date_sputum_received": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
@@ -192,7 +200,10 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "nano_pretomanid": forms.Select(attrs={"class": "form-select"}),
             "nano_pyrazinamide": forms.Select(attrs={"class": "form-select"}),
             "nano_rifampicin": forms.Select(attrs={"class": "form-select"}),
-            "nano_streptomycin": forms.Select(attrs={"class": "form-select"}),            
+            "nano_streptomycin": forms.Select(attrs={"class": "form-select"}),
+            
+            "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            
         }
 
 
