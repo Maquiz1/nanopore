@@ -56,8 +56,10 @@ class ClinicLaboratory(models.Model):
     error_code = models.IntegerField(blank=True, null=True)
     xpert_rif = models.ForeignKey(XpertRIF, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_xpert_rif")
     ct_value = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
-    ct_na = models.ForeignKey(NoSPCResult, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_ct_na")
-   
+    # ct_na = models.ForeignKey(NoSPCResult, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_ct_na")
+    ct_na = models.BooleanField(default=False)
+    
+
     # Additional fields
     remarks = models.TextField(blank=True, null=True)
     

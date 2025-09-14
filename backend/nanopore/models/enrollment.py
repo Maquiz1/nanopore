@@ -44,16 +44,20 @@ class Enrollment(models.Model):
     tb_category = models.ForeignKey(CategoryTreated, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollment_tb_category")
     tb_category_specify = models.TextField(max_length=255, blank=True, null=True)
     tx_month = models.IntegerField(blank=True, null=True)
-    tx_unknown_month = models.ForeignKey(MonthUnknown, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollment_tx_unknown_month")
+    # tx_unknown_month = models.ManyToManyField(MonthUnknown, blank=True, related_name="enrollment_tx_unknown_month")
+    tx_unknown_month = models.BooleanField(default=False)
     tx_year = models.IntegerField(blank=True, null=True)
-    tx_unknown_year = models.ForeignKey(YearUnknown, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollment_tx_unknown_year")
+    # tx_unknown_year = models.ManyToManyField(YearUnknown, blank=True, related_name="enrollment_tx_unknown_year")
+    tx_unknown_year = models.BooleanField(default=False)
     dr_ds = models.ForeignKey(DrDsTB, on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollment_dr_ds")
     ltf_months = models.IntegerField(blank=True, null=True)
-    ltf_months_unknown = models.ForeignKey(MonthUnknown, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollment_ltf_months_unknown")
+    # ltf_months_unknown = models.ManyToManyField(MonthUnknown, blank=True, related_name="enrollment_ltf_months_unknown")
+    ltf_months_unknown = models.BooleanField(default=False)
     tb_regimen = models.ForeignKey(TreatmentRegimen, on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollment_tb_regimen")
     tb_regimen_specify = models.TextField(max_length=255, blank=True, null=True)
     regimen_months = models.IntegerField(blank=True, null=True)
-    regimen_months_unknown = models.ForeignKey(MonthUnknown, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollment_regimen_months_unknown")
+    # regimen_months_unknown = models.ManyToManyField(MonthUnknown, blank=True, related_name="enrollment_regimen_months_unknown")
+    regimen_months_unknown = models.BooleanField(default=False)
     tb_otcome = models.ForeignKey(TreatmentOutcome, on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollment_tb_outcome")
 
     # Health-related conditions
@@ -67,8 +71,8 @@ class Enrollment(models.Model):
     sputum_date = models.DateField(blank=True, null=True)
     sputum_reasons = models.TextField(blank=True, null=True)
 
-    # ADDITIONAL COLUMNS
 
+    # ADDITIONAL COLUMNS
     remarks = models.TextField(blank=True, null=True)
     
     # AUDITING 
