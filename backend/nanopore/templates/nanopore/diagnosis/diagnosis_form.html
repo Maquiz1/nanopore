@@ -42,59 +42,67 @@
                         <div class="p-2 mb-3 bg-warning text-white rounded">
                             <h5 class="mb-0">Diagnosis Details</h5>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">{{ form.diagnosis_name.label_tag }} {{ form.diagnosis_name }}</div>
-                            <div class="col-md-6">{{ form.diagnosis_date.label_tag }} {{ form.diagnosis_date }}</div>
-                        </div>
 
                         <!-- TB Diagnosis -->
                         <div class="p-2 mb-3 bg-secondary text-white rounded">
                             <h5 class="mb-0">TB Diagnosis</h5>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-4">{{ form.tb_diagnosis.label_tag }} {{ form.tb_diagnosis }}</div>
-                            <div class="col-md-4">{{ form.tb_diagnosis_date.label_tag }} {{ form.tb_diagnosis_date }}
-                            </div>
-                            <div class="col-md-4">{{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}
-                            </div>
+                            <div class="col-md-6">{{ form.tb_diagnosis.label_tag }} {{ form.tb_diagnosis }}</div>
+                            <div class="col-md-6">{{ form.tb_diagnosis_date.label_tag }} {{ form.tb_diagnosis_date }}</div>
                         </div>
-                        <div class="mb-3">{{ form.diagnosis_made_other.label_tag }} {{ form.diagnosis_made_other }}
-                        </div>
-
-                        <!-- Bacteriological / Clinical Diagnosis -->
-                        <div class="p-2 mb-3 bg-info text-white rounded">
-                            <h5 class="mb-0">Bacteriological / Clinical Diagnosis</h5>
-                        </div>
+                        <hr>
                         <div class="row mb-3">
-                            <div class="col-md-4">{{ form.bacteriological_diagnosis.label_tag }} {{
-                                form.bacteriological_diagnosis }}</div>
-                            <div class="col-md-4">{{ form.tb_diagnosed_clinically.label_tag }} {{
-                                form.tb_diagnosed_clinically }}</div>
-                            <div class="col-md-4">{{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other
-                                }}</div>
+                            <div class="col-md-6">{{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}</div>
+                            <div class="col-md-6">{{ form.diagnosis_made_other.label_tag }} {{ form.diagnosis_made_other }}</div>
                         </div>
+                        <hr>
+
+                        <!-- Bacteriological Diagnosis -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Bacteriological Diagnosis</h5>
+                        </div>
+                        <hr>                      
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.bacteriological_diagnosis.label_tag }} {{ form.bacteriological_diagnosis }}</div>
+                            <div class="col-md-6">{{ form.clinician_received_date.label_tag }} {{ form.clinician_received_date }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- Clinical Diagnosis -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Clinical Diagnosis</h5>
+                        </div>
+                        <hr>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.tb_diagnosed_clinically.label_tag }} {{ form.tb_diagnosed_clinically }}</div>
+                            <div class="col-md-6">{{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
+                        </div>
+                        <hr>
 
                         <!-- TB Treatment -->
                         <div class="p-2 mb-3 bg-warning text-white rounded">
                             <h5 class="mb-0">TB Treatment</h5>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
-                            <div class="col-md-4">{{ form.tb_treatment_date.label_tag }} {{ form.tb_treatment_date }}
-                            </div>
-                            <div class="col-md-4">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
-                        </div>
-                        <div class="mb-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
+                        <hr>
 
                         <div class="row mb-3">
-                            <div class="col-md-4">{{ form.tb_register_number.label_tag }} {{ form.tb_register_number }}
-                            </div>
-                            <div class="col-md-4">{{ form.tb_regimen.label_tag }} {{ form.tb_regimen }}</div>
-                            <div class="col-md-4">{{ form.tb_regimen_other.label_tag }} {{ form.tb_regimen_other }}
-                            </div>
+                            <div class="col-md-3">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
+                            <div class="col-md-3">{{ form.tb_treatment_date.label_tag }} {{ form.tb_treatment_date }}</div>                            
+                            <div class="col-md-3">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
+                            <div class="col-md-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
                         </div>
 
-                        <div class="mb-3">{{ form.regimen_changed.label_tag }} {{ form.regimen_changed }}</div>
+                        <hr>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">{{ form.tb_register_number.label_tag }} {{ form.tb_register_number }}</div>                            
+                            <div class="col-md-3">{{ form.tb_regimen.label_tag }} {{ form.tb_regimen }}</div>
+                            <div class="col-md-3">{{ form.tb_regimen_other.label_tag }} {{ form.tb_regimen_other }}</div>
+                            <div class="col-md-3">{{ form.regimen_changed.label_tag }} {{ form.regimen_changed }}</div>
+                        </div>
+                        <hr>
 
                         <!-- Regimen Changes Table / Add Button -->
                         <div class="card mt-4">
@@ -102,27 +110,32 @@
                                 {% include "nanopore/regimen/regimen_changes_list.html" %}
                             </div>
                         </div>
+                        <hr>
 
                         <!-- TB Other Diagnosis -->
                         <div id="tb-other-diagnosis-section">
                             <div class="p-2 mb-3 bg-secondary text-white rounded">
                                 <h5 class="mb-0">Diagnosis other than TB</h5>
                             </div>
+                            <hr>
+
                             <div class="row mb-3">
-                                <div class="col-md-4">{{ form.tb_other_diagnosis.label_tag }} {{ form.tb_other_diagnosis
-                                    }}</div>
-                                <div class="col-md-4">{{ form.tb_other_specify.label_tag }} {{ form.tb_other_specify }}
-                                </div>
-                                <div class="col-md-4">{{ form.tb_diagnosis_made2.label_tag }} {{ form.tb_diagnosis_made2
-                                    }}</div>
+                                <div class="col-md-4">{{ form.tb_other_diagnosis.label_tag }} {{ form.tb_other_diagnosis }}</div>
+                                <div class="col-md-4">{{ form.tb_other_specify.label_tag }} {{ form.tb_other_specify }}</div>
+                                <div class="col-md-4">{{ form.tb_diagnosis_made2.label_tag }} {{ form.tb_diagnosis_made2 }}</div>
                             </div>
+                            <hr>
                         </div>
+                        <hr>
 
                         <!-- Remarks -->
                         <div class="p-2 mb-3 bg-secondary text-white rounded">
                             <h5 class="mb-0">Any Comment or Remarks</h5>
                         </div>
+                        <hr>
+
                         <div class="mb-3">{{ form.remarks.label_tag }} {{ form.remarks }}</div>
+                        <hr>
 
                         <!-- Bottom Buttons -->
                         <div class="d-flex justify-content-between">
