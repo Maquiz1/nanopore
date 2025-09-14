@@ -45,6 +45,8 @@ class Screening(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="screenings_updated")
 
     class Meta:
+        # verbose_name = "Country"
+        # verbose_name_plural = "Countries"
         ordering = ["screening_date", "pid"]
 
     def __str__(self):

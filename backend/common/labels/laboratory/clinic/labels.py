@@ -17,6 +17,7 @@ CLINIC_LABELS = {
     "date_sample2_received":"5(b). Date sample received",
     "appearance_sample2":"6. Appearance",
     "sample2_volume":"7. Sample Volume (mL)",
+    
     # 🔹 AFB Microscopy
     "afb_microscopy_conducted":"8. Was AFB microscopy conducted at TB clinic?",
     "afb_a_date":"8(a). Date of AFB microscopy",
@@ -25,12 +26,13 @@ CLINIC_LABELS = {
     "afb_b_date":"8(a). Date of AFB microscopy",
     "technique_b":"8(b). AFB technique used",
     "afb_b_results":"8(c). AFB microscopy result",
+    
     # 🔹 Xpert MTB/RIF (Ultra)
     "xpert_mtb_rif_conducted":"9. Was Xpert MTB/RIF (Ultra) Conducted?",
     "xpert_date":"9(a). Date of conducting Xpert MTB/RIF (Ultra)",
     "xpert_mtb":"MTB",
-    "error_code":"RIF Resistance",
-    "xpert_rif":"9(c). SPC Cycle Threshold (Ct) Value",
+    "error_code":"Error Code",
+    "xpert_rif":"RIF Resistance",
     "ct_value":"9(c). SPC Cycle Threshold (Ct) Value",
     "ct_na":"No SPC-Ct value (no result)",
     

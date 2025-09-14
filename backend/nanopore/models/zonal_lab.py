@@ -151,6 +151,8 @@ class ZonalLaboratory(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_labs_updated")
 
     class Meta:
+        # verbose_name = "Country"
+        # verbose_name_plural = "Countries"
         ordering = ["-date_sputum_received"]
 
     def __str__(self):
