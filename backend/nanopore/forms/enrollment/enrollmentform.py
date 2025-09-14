@@ -2,7 +2,7 @@ from django import forms
 from nanopore.models import Enrollment
 from django.core.exceptions import ValidationError
 import datetime
-from common.labels.Enrollment.labels import Enrollment_LABELS   # ✅ import from core app
+from common.labels.enrollment.labels import Enrollment_LABELS   # ✅ import from core app
 
 class EnrollmentForm(forms.ModelForm):
     class Meta:
@@ -66,16 +66,17 @@ class EnrollmentForm(forms.ModelForm):
             "tb_category": forms.Select(attrs={"class": "form-select"}),
             "tb_category_specify": forms.TextInput(attrs={"class": "form-control"}),
             "tx_month": forms.NumberInput(attrs={"class": "form-control"}),
-            "tx_unknown_month": forms.Select(attrs={"class": "form-select"}),
+            # "tx_unknown_month": forms.CheckboxSelectMultiple(),
+            # "tx_unknown_month": forms.BooleanField(attrs={"class": "form-control","required":False,"label":"Consent given?"}),
             "tx_year": forms.NumberInput(attrs={"class": "form-control"}),
-            "tx_unknown_year": forms.Select(attrs={"class": "form-select"}),
+            # "tx_unknown_year": forms.CheckboxSelectMultiple(),
             "dr_ds": forms.Select(attrs={"class": "form-select"}),
             "ltf_months": forms.NumberInput(attrs={"class": "form-control"}),
-            "ltf_months_unknown": forms.Select(attrs={"class": "form-select"}),
+            # "ltf_months_unknown": forms.CheckboxSelectMultiple(),
             "tb_regimen": forms.Select(attrs={"class": "form-select"}),
             "tb_regimen_specify": forms.TextInput(attrs={"class": "form-control"}),
             "regimen_months": forms.NumberInput(attrs={"class": "form-control"}),
-            "regimen_months_unknown": forms.Select(attrs={"class": "form-select"}),
+            # "regimen_months_unknown": forms.CheckboxSelectMultiple(),
             "tb_otcome": forms.Select(attrs={"class": "form-select"}),
 
             "hiv_status": forms.Select(attrs={"class": "form-select"}),

@@ -59,19 +59,20 @@
 
                         <!-- REASONS / HISTORY -->
                         <div class="p-2 mb-3 bg-warning text-white rounded">
-                            <h5 class="mb-0">Reason(s) for being regarded as presumptive TB patient at initial assessment</h5>
+                            <h5 class="mb-0">Reason(s) for being regarded as presumptive TB patient at initial
+                                assessment</h5>
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                                {% if field.name in "cough2weeks,poor_weight,coughing_blood,unexplained_fever,night_sweats,neck_lymph,history_tb,date_information_collected"|cut:"," %}
-                                    <div class="col-md-6">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            {% if field.name in "cough2weeks,poor_weight,coughing_blood,unexplained_fever,night_sweats,neck_lymph,history_tb,date_information_collected"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 
@@ -83,15 +84,83 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                                {% if field.name in "tx_previous,tb_category,tb_category_specify,tx_month,tx_unknown_month,tx_year,tx_unknown_year,dr_ds,ltf_months,ltf_months_unknown,tb_regimen,tb_regimen_specify,regimen_months,regimen_months_unknown,tb_otcome"|cut:"," %}
-                                    <div class="col-md-6">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            {% if field.name in "tx_previous,tb_category,tb_category_specify"|cut:"," %}
+                            <div class="col-md-4">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            <hr class="my-4">
+
+                            <!-- <div class="p-2 mb-3 bg-default text-white rounded"> -->
+                                <h5 class="mb-0">10c. When did the patient’s last treatment episode end?</h5>
+                            <!-- </div> -->
+                            {% for field in form %}
+                            {% if field.name in "tx_month,tx_year"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            <hr class="my-4">
+
+                            {% for field in form %}
+                            {% if field.name in "tx_unknown_month,tx_unknown_year"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            <hr class="my-4">
+
+                            {% for field in form %}
+                            {% if field.name in "dr_ds,ltf_months,ltf_months_unknown"|cut:"," %}
+                            <div class="col-md-4">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            <hr class="my-4">
+
+                            {% for field in form %}
+                            {% if field.name in "tb_regimen,tb_regimen_specify"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            <hr class="my-4">
+
+                            {% for field in form %}
+                            {% if field.name in "regimen_months,regimen_months_unknown,tb_otcome"|cut:"," %}
+                            <div class="col-md-4">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 
@@ -103,15 +172,15 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                                {% if field.name in "hiv_status,other_diseases,diseases_medical,diseases_specify"|cut:"," %}
-                                    <div class="col-md-6">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            {% if field.name in "hiv_status,other_diseases,diseases_medical,diseases_specify"|cut:"," %}
+                            <div class="col-md-3">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 
@@ -121,15 +190,15 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                                {% if field.name in "sputum_collected,sputum_date,sputum_reasons"|cut:"," %}
-                                    <div class="col-md-6">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                            {% if field.name in "sputum_collected,sputum_date,sputum_reasons"|cut:"," %}
+                            <div class="col-md-4">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
 

@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ClinicLaboratory
+from common.labels.laboratory.clinic.labels import CLINIC_LABELS   # ✅ import from core app
 
 class ClinicLaboratoryForm(forms.ModelForm):
     class Meta:
@@ -8,10 +9,7 @@ class ClinicLaboratoryForm(forms.ModelForm):
         fields = [
             # General info
             "screening",
-            # "test_name",
-            # "result",
-            # "test_date",
-            
+                        
             # 🔹 Sputum sample
             "sample_received",
             "date_sample1_received",
@@ -48,12 +46,12 @@ class ClinicLaboratoryForm(forms.ModelForm):
             
             "remarks",
         ]
+        # fields = TB_LABELS.keys()
+        labels = CLINIC_LABELS
+        
         widgets = {
             # General info
             "screening": forms.Select(attrs={"class": "form-select", "disabled": True}),
-            # "test_name": forms.TextInput(attrs={"class": "form-control"}),
-            # "result": forms.TextInput(attrs={"class": "form-control"}),
-            # "test_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
 
             # 🔹 Sputum sample
@@ -88,7 +86,7 @@ class ClinicLaboratoryForm(forms.ModelForm):
             "error_code": forms.NumberInput(attrs={"class": "form-control"}),
             "xpert_rif": forms.Select(attrs={"class": "form-select"}),
             "ct_value": forms.NumberInput(attrs={"class": "form-control", "step": "0.1"}),
-            "ct_na": forms.Select(attrs={"class": "form-select"}),
+            # "ct_na": forms.Select(attrs={"class": "form-select"}),
         }
         
     def __init__(self, *args, **kwargs):

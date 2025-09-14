@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ZonalLaboratory
 from options.models import YesNo,SampleAppearance
+from common.labels.laboratory.zonal.labels import ZONAL_LABELS   # ✅ import from core app
 
 class ZonalLaboratoryForm(forms.ModelForm):
     class Meta:
@@ -83,6 +84,9 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "remarks",
 
         ]
+        # fields = TB_LABELS.keys()
+        labels = ZONAL_LABELS
+        
         widgets = {
             "screening": forms.HiddenInput(),
             "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
