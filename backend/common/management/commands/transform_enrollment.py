@@ -41,6 +41,7 @@ class Command(BaseCommand):
             "unexplained_fever": "UnexplainedFever",
             "night_sweats": "NightSweats",
             "neck_lymph": "NeckLymph",
+            "history_tb": "HistoryTb",
             "date_information_collected": "DateInformationCollected",
             # History of TB and previous treatment
             "tx_previous": "TxPrevious",

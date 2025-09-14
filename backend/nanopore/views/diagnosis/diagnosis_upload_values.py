@@ -44,6 +44,10 @@ def safe_date(val):
         return parse_date(val)
     except Exception:
         return None
+    
+def to_bool(val):
+    """Convert '1' → True, empty/None → False."""
+    return str(val).strip() == "1" if val is not None else False
 
 
 class DiagnosisCsvUploadView(View):
@@ -103,6 +107,9 @@ class DiagnosisCsvUploadView(View):
                 tb_outcome2 = get_foreign(TBTreatmentOutcome, row.get("TbOutcome2"))
                 tb_outcome2_date = row.get("TbOutcome2Date") or None
                 remarks = row.get("Remarks") or None
+                
+                # # --- Boolean unknown fields ---
+                # tx_unknown_month = to_bool(row.get("TxUnknownMonth"))
 
                 # --- Create or update Diagnosis ---
                 diagnosis, created = Diagnosis.objects.update_or_create(
