@@ -18,16 +18,14 @@ User = get_user_model()
 
 class ClinicLaboratory(models.Model):
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="clinic_laboratory")
-    
-    # pid = models.CharField(max_length=255, blank=True, null=True)
-    
+        
     # Sputum sample
-    sample_received = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_sample_received")
+    sample_received = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="clinic_lab_sample_received")
     sample_reason = models.ForeignKey(SampleReason, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_sample_reason")
     other_reason = models.TextField(max_length=255, blank=True, null=True)
     new_sample = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_new_sample")
     new_reason = models.TextField(max_length=255, blank=True, null=True)
-    number_received = models.ForeignKey(SampleNumber, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_number_received")
+    number_received = models.ForeignKey(SampleNumber, on_delete=models.PROTECT, related_name="clinic_lab_number_received")
     
     # Sputum sample details
     date_sample1_collected = models.DateField(blank=True, null=True)
@@ -40,7 +38,7 @@ class ClinicLaboratory(models.Model):
     sample2_volume = models.CharField(max_length=255, blank=True, null=True)
     
     # AFB Microscopy
-    afb_microscopy_conducted = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_afb_microscopy_conducted")
+    afb_microscopy_conducted = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="clinic_lab_afb_microscopy_conducted")
     afb_a_date = models.DateField(blank=True, null=True)
     technique_a = models.ForeignKey(AFBTechnique, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_technique_a")
     afb_a_results = models.ForeignKey(AFBMicroscopyResult, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_afb_a_results")
@@ -50,7 +48,7 @@ class ClinicLaboratory(models.Model):
     afb_b_results = models.ForeignKey(AFBMicroscopyResult, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_afb_b_results")
 
     # Xpert MTB/RIF (Ultra) Test
-    xpert_mtb_rif_conducted = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_xpert_mtb_rif_conducted")
+    xpert_mtb_rif_conducted = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="clinic_lab_xpert_mtb_rif_conducted")
     xpert_date = models.DateField(blank=True, null=True)
     xpert_mtb = models.ForeignKey(XpertMTB, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_lab_xpert_mtb")
     error_code = models.IntegerField(blank=True, null=True)
@@ -70,6 +68,8 @@ class ClinicLaboratory(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="clinic_labs_updated")
 
     class Meta:
+        # verbose_name = "Country"
+        # verbose_name_plural = "Countries"
         ordering = ["-sample_received"]
 
     def __str__(self):

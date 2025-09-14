@@ -40,7 +40,7 @@ class Enrollment(models.Model):
     date_information_collected = models.DateField()
 
     # History of TB and previous treatment
-    tx_previous = models.ForeignKey(YesNoUnknown, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollment_tx_previous")
+    tx_previous = models.ForeignKey(YesNoUnknown, on_delete=models.PROTECT, related_name="enrollment_tx_previous")
     tb_category = models.ForeignKey(CategoryTreated, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollment_tb_category")
     tb_category_specify = models.TextField(max_length=255, blank=True, null=True)
     tx_month = models.IntegerField(blank=True, null=True)
@@ -83,6 +83,8 @@ class Enrollment(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="enrollments_updated")
 
     class Meta:
+        # verbose_name = "Country"
+        # verbose_name_plural = "Countries"
         ordering = ["-enrollment_date"]
 
     def __str__(self):

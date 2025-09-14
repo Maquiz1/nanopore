@@ -65,6 +65,8 @@ class Diagnosis(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="diagnoses_updated")
 
     class Meta:
+        # verbose_name = "Country"
+        # verbose_name_plural = "Countries"
         ordering = ["-tb_diagnosis_date"]
 
     def __str__(self):

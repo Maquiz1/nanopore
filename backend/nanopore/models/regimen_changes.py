@@ -54,6 +54,8 @@ class RegimenChanges(models.Model):
     )
 
     class Meta:
+        # verbose_name = "Country"
+        # verbose_name_plural = "Countries"
         ordering = ["-date"]
 
     def save(self, *args, **kwargs):
