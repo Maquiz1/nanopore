@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ header_text }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        h2 { text-align: center; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #000; padding: 5px; text-align: left; }
+        th { background: #f0f0f0; }
+        .footer { margin-top: 20px; text-align: right; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>{{ header_text }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>PID</th>
+                <th>Site</th>
+                <th>Zone</th>
+                <th>TB Outcome</th>
+                <th>TB Treatment Date</th>
+                <th>Months Since Treatment</th>
+                <th>Substudy</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.no }}</td>
+                <td>{{ r.pid }}</td>
+                <td>{{ r.site }}</td>
+                <td>{{ r.zone }}</td>
+                <td>{{ r.tb_outcome }}</td>
+                <td>{{ r.treatment_date }}</td>
+                <td>{{ r.months_since_treatment }}</td>
+                <td>{{ r.substudy }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="footer">
+        Total Records: {{ total_records }}
+    </div>
+</body>
+</html>

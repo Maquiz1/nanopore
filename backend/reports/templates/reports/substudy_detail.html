@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+
+    <!-- Total count -->
+    <div class="alert alert-info">
+        Total Records: <strong>{{ records|length }}</strong>
+    </div>
+
+    <!-- Export buttons -->
+    <div class="mb-3">
+        {% if substudy == "2" %}
+            <a href="{% url 'reports:export_substudy' 'excel' %}?type=2" class="btn btn-success">⬇️ Export Excel</a>
+            <a href="{% url 'reports:export_substudy' 'pdf' %}?type=2" class="btn btn-danger">⬇️ Export PDF</a>
+        {% elif substudy == "4" %}
+            <a href="{% url 'reports:export_substudy' 'excel' %}?type=4" class="btn btn-success">⬇️ Export Excel</a>
+            <a href="{% url 'reports:export_substudy' 'pdf' %}?type=4" class="btn btn-danger">⬇️ Export PDF</a>
+        {% elif substudy == "uncategorized" %}
+            <a href="{% url 'reports:export_substudy' 'excel' %}?type=uncategorized" class="btn btn-success">⬇️ Export Excel</a>
+            <a href="{% url 'reports:export_substudy' 'pdf' %}?type=uncategorized" class="btn btn-danger">⬇️ Export PDF</a>
+        {% endif %}
+    </div>
+
+    <!-- Records table -->
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Zone</th>
+                <th>Site</th>
+                <th>Screening ID</th>
+                <th>Screening Date</th>
+                <th>Xpert MTB Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lab in records %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ lab.screening.site.district.region.zone.name }}</td>
+                <td>{{ lab.screening.site.name }}</td>
+                <td>{{ lab.screening.pid }}</td>
+                <td>{{ lab.screening.screening_date }}</td>
+                <td>{{ lab.xpert_mtb }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No records found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <!-- Pagination controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if substudy %}&type={{ substudy }}{% endif %}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-5' and num < page_obj.number|add:'5' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if substudy %}&type={{ substudy }}{% endif %}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if substudy %}&type={{ substudy }}{% endif %}">Next</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

@@ -6,32 +6,72 @@
     <h2>Enrollment & Substudy Summary</h2>
 
     <!-- Totals -->
-    <div class="row g-3 my-4">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Total Enrolled</h5>
-                    <p class="fs-3">{{ total_enrolled }}</p>
-                </div>
+   <div class="row g-3 my-4">
+    <!-- Total Enrolled (no export) -->
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Enrolled</h5>
+                <p class="fs-3">{{ total_enrolled }}</p>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Substudy 2</h5>
-                    <p class="fs-3">{{ substudy2_count }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-warning text-white shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Substudy 4</h5>
-                    <p class="fs-3">{{ substudy4_count }}</p>
+    </div>
+
+    <!-- Substudy 2 -->
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Substudy 2</h5>
+                <p class="fs-3">
+                    <a href="{% url 'reports:substudy_detail' '2' %}" class="text-white text-decoration-underline">
+                        {{ substudy2_count }}
+                    </a>
+                </p>
+                <div class="mt-2">
+                    <a href="{% url 'reports:export_substudy' 'excel' %}?type=2" class="btn btn-sm btn-light">⬇️ Excel</a>
+                    <a href="{% url 'reports:export_substudy' 'pdf' %}?type=2" class="btn btn-sm btn-light">⬇️ PDF</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Substudy 4 -->
+    <div class="col-md-3">
+        <div class="card bg-warning text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Substudy 4</h5>
+                <p class="fs-3">
+                    <a href="{% url 'reports:substudy_detail' '4' %}" class="text-white text-decoration-underline">
+                        {{ substudy4_count }}
+                    </a>
+                </p>
+                <div class="mt-2">
+                    <a href="{% url 'reports:export_substudy' 'excel' %}?type=4" class="btn btn-sm btn-light">⬇️ Excel</a>
+                    <a href="{% url 'reports:export_substudy' 'pdf' %}?type=4" class="btn btn-sm btn-light">⬇️ PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Uncategorized -->
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Uncategorized</h5>
+                <p class="fs-3">
+                    <a href="{% url 'reports:substudy_detail' 'uncategorized' %}" class="text-white text-decoration-underline">
+                        {{ uncategorized_count }}
+                    </a>
+                </p>
+                <div class="mt-2">
+                    <a href="{% url 'reports:export_substudy' 'excel' %}?type=uncategorized" class="btn btn-sm btn-light">⬇️ Excel</a>
+                    <a href="{% url 'reports:export_substudy' 'pdf' %}?type=uncategorized" class="btn btn-sm btn-light">⬇️ PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <!-- Breakdown by Zone -->
     <h4>By Zone</h4>
@@ -42,6 +82,7 @@
                 <th>Enrolled</th>
                 <th>Substudy 2</th>
                 <th>Substudy 4</th>
+                <th>Uncategorized</th>
             </tr>
         </thead>
         <tbody>
@@ -49,12 +90,25 @@
             <tr>
                 <td>{{ row.screening__site__district__region__zone__name }}</td>
                 <td>{{ row.enrolled }}</td>
-                <td>{{ row.substudy2 }}</td>
-                <td>{{ row.substudy4 }}</td>
+                <td>
+                    <a href="{% url 'reports:substudy_detail' '2' %}?zone={{ row.screening__site__district__region__zone__name }}">
+                        {{ row.substudy2 }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'reports:substudy_detail' '4' %}?zone={{ row.screening__site__district__region__zone__name }}">
+                        {{ row.substudy4 }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'reports:substudy_detail' 'uncategorized' %}?zone={{ row.screening__site__district__region__zone__name }}">
+                        {{ row.uncategorized }}
+                    </a>
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" class="text-center">No data available</td>
+                <td colspan="5" class="text-center">No data available</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -70,6 +124,7 @@
                 <th>Enrolled</th>
                 <th>Substudy 2</th>
                 <th>Substudy 4</th>
+                <th>Uncategorized</th>
             </tr>
         </thead>
         <tbody>
@@ -78,12 +133,25 @@
                 <td>{{ row.screening__site__district__region__zone__name }}</td>
                 <td>{{ row.screening__site__name }}</td>
                 <td>{{ row.enrolled }}</td>
-                <td>{{ row.substudy2 }}</td>
-                <td>{{ row.substudy4 }}</td>
+                <td>
+                    <a href="{% url 'reports:substudy_detail' '2' %}?site={{ row.screening__site__id }}">
+                        {{ row.substudy2 }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'reports:substudy_detail' '4' %}?site={{ row.screening__site__id }}">
+                        {{ row.substudy4 }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'reports:substudy_detail' 'uncategorized' %}?site={{ row.screening__site__id }}">
+                        {{ row.uncategorized }}
+                    </a>
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" class="text-center">No data available</td>
+                <td colspan="6" class="text-center">No data available</td>
             </tr>
             {% endfor %}
         </tbody>

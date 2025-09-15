@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+
+    <!-- Filter Form -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="zone" class="form-label">Zone</label>
+            <select name="zone" id="zone" class="form-select">
+                <option value="">All Zones</option>
+                {% for z in zones %}
+                    <option value="{{ z.id }}" {% if selected_zone|stringformat:"s" == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="site" class="form-label">Site</label>
+            <select name="site" id="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for s in sites %}
+                    <option value="{{ s.id }}" {% if selected_site|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="months" class="form-label">Months Since TB Treatment ≥</label>
+            <input type="number" min="0" name="months" id="months" class="form-control" value="{{ selected_months|default_if_none:'' }}">
+        </div>
+        <div class="col-md-2">
+            <label for="substudy" class="form-label">Substudy</label>
+            <select name="substudy" id="substudy" class="form-select">
+                <option value="">All</option>
+                <option value="Substudy 2" {% if selected_substudy == "Substudy 2" %}selected{% endif %}>Substudy 2</option>
+                <option value="Substudy 4" {% if selected_substudy == "Substudy 4" %}selected{% endif %}>Substudy 4</option>
+                <option value="Uncategorized" {% if selected_substudy == "Uncategorized" %}selected{% endif %}>Uncategorized</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    {% if records %}
+    <!-- Export Buttons -->
+    <div class="mb-3">
+        <a href="{{ export_url_excel }}" class="btn btn-success me-2">⬇️ Export Excel</a>
+        <a href="{{ export_url_pdf }}" class="btn btn-danger">⬇️ Export PDF</a>
+    </div>
+
+    <!-- Total Records -->
+    <p><strong>Total Records: {{ records.paginator.count }}</strong></p>
+
+    <table class="table table-bordered table-hover align-middle mt-2">
+        <thead class="table-light">
+            <tr>
+                <th>PID</th>
+                <th>Site</th>
+                <th>Zone</th>
+                <th>TB Outcome</th>
+                <th>TB Treatment Date</th>
+                <th>Months Since TB Treatment</th>
+                <th>Substudy</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.screening.pid }}</td>
+                <td>{{ r.screening.site.name }}</td>
+                <td>{{ r.screening.site.district.region.zone.name }}</td>
+                <td>{{ r.tb_outcome2 }}</td>
+                <td>{{ r.tb_treatment_date }}</td>
+                <td>
+                    {% if r.months_since_screening is not None %}
+                        {{ r.months_since_screening }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ r.substudy }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination">
+            {% if records.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if selected_zone %}zone={{ selected_zone }}&{% endif %}{% if selected_site %}site={{ selected_site }}&{% endif %}{% if selected_months %}months={{ selected_months }}&{% endif %}{% if selected_substudy %}substudy={{ selected_substudy }}&{% endif %}page={{ records.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for num in records.paginator.page_range %}
+                {% if records.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if selected_zone %}zone={{ selected_zone }}&{% endif %}{% if selected_site %}site={{ selected_site }}&{% endif %}{% if selected_months %}months={{ selected_months }}&{% endif %}{% if selected_substudy %}substudy={{ selected_substudy }}&{% endif %}page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if records.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if selected_zone %}zone={{ selected_zone }}&{% endif %}{% if selected_site %}site={{ selected_site }}&{% endif %}{% if selected_months %}months={{ selected_months }}&{% endif %}{% if selected_substudy %}substudy={{ selected_substudy }}&{% endif %}page={{ records.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% else %}
+    <p class="text-center text-muted mt-3">No records available.</p>
+    {% endif %}
+</div>
+{% endblock %}
