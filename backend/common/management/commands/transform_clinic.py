@@ -2,7 +2,7 @@ import pandas as pd
 from django.core.management.base import BaseCommand
 
 class Command(BaseCommand):
-    help = "Convert clinic laboratory CSV: rename columns and format dates"
+    help = "Convert clinic laboratory CSV: rename columns, format dates, and convert yes/no fields to integers"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -78,12 +78,20 @@ class Command(BaseCommand):
         ]
         for col in date_columns:
             if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='coerce')
+                df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
 
-        # Format dates as YYYY-MM-DD
-        for col in date_columns:
+        # Convert AFBMicroscopyConducted and XpertMTBRifConducted to integers
+        yesno_columns = ["AFBMicroscopyConducted", "XpertMTBRifConducted"]
+        for col in yesno_columns:
             if col in df.columns:
-                df[col] = df[col].dt.strftime('%Y-%m-%d')
+                # Convert common textual yes/no values to 1/2
+                df[col] = df[col].astype(str).str.strip().str.lower()
+                df[col] = df[col].replace({
+                    "1": 1, "1.0": 1, "yes": 1, "y": 1, "true": 1, "t": 1,
+                    "2": 2, "2.0": 2, "no": 2, "n": 2, "false": 2, "f": 2,
+                    "none": None, "null": None, "": None
+                })
+                df[col] = pd.to_numeric(df[col], errors='coerce')
 
         # Keep only columns that exist in ClinicLaboratory model
         upload_columns = list(column_mapping.values())

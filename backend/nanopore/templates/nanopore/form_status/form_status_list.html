@@ -1,4 +1,3 @@
-<!-- nanopore/templates/nanopore/form_status/status_list.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -7,13 +6,25 @@
 
     <!-- 🔹 Top Buttons -->
     <div class="d-flex justify-content-between mb-3">
+
+        <!-- New Screening (Superuser, Nurse, Clinician) -->
         {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
             <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
                 ➕ New Screening
             </a>
-        {% else %}
-            <span></span>
         {% endif %}
+
+        <!-- Other forms (disabled placeholders) -->
+        <div>
+            {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                <button class="btn btn-secondary" disabled>➕ New Enrollment</button>
+                <button class="btn btn-secondary" disabled>➕ New Clinic Lab</button>
+                <button class="btn btn-secondary" disabled>➕ New Diagnosis</button>
+            {% elif request.user.groups.all.0.name == "LABORATORY_TECHNICIAN" %}
+                <button class="btn btn-secondary" disabled>➕ New Zonal Lab</button>
+            {% endif %}
+        </div>
+
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
             ⬅ Back to Dashboard
         </a>
@@ -100,6 +111,7 @@
             <tbody>
                 {% for screening in object_list %}
                 <tr>
+                    <!-- PID / Screening -->
                     <td>
                         {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" or request.user.is_superuser %}
                             <a href="{% url 'nanopore:screening-update' screening.pk %}">{{ screening.pid }}</a>
@@ -110,6 +122,8 @@
                     <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
                     <td>{{ screening.site.name|default:"-" }}</td>
                     <td>{{ screening.site.district.region.zone.name|default:"-" }}</td>
+
+                    <!-- Eligibility -->
                     <td class="{% if screening.eligible %}table-success{% else %}table-danger{% endif %}">
                         {% if screening.eligible %}
                             ✅ Eligible
@@ -118,13 +132,19 @@
                         {% endif %}
                     </td>
 
+                    <!-- Enrollment / Clinic Lab / Diagnosis (Nurse/Clinician view) -->
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+                        <!-- Enrollment -->
                         <td>
                             {% if screening.enrollment %}
-                                <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ Enrolled</a>
+                                {% if request.user.groups.all.0.name != "REVIEWER" %}
+                                    <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ Enrolled</a>
+                                {% else %}
+                                    ✅ Enrolled
+                                {% endif %}
                                 <br>{{ screening.enrollment.enrollment_date|date:"Y-m-d" }}
                             {% else %}
-                                {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                                {% if screening.eligible and request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
                                     <a href="{% url 'nanopore:enrollment-create' %}?screening={{ screening.pk }}">❌ Not Enrolled</a>
                                 {% else %}
                                     ❌ Not Enrolled
@@ -132,9 +152,14 @@
                             {% endif %}
                         </td>
 
+                        <!-- Clinic Laboratory -->
                         <td>
                             {% if screening.clinic_laboratory %}
-                                <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ DONE </a>
+                                {% if request.user.groups.all.0.name != "REVIEWER" %}
+                                    <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ DONE</a>
+                                {% else %}
+                                    ✅ DONE
+                                {% endif %}
                             {% else %}
                                 {% if screening.eligible and request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
                                     <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
@@ -144,9 +169,14 @@
                             {% endif %}
                         </td>
 
+                        <!-- Diagnosis -->
                         <td>
                             {% if screening.diagnosis %}
-                                <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ DONE</a>
+                                {% if request.user.groups.all.0.name != "REVIEWER" %}
+                                    <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ DONE</a>
+                                {% else %}
+                                    ✅ DONE
+                                {% endif %}
                             {% else %}
                                 {% if screening.eligible and request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
                                     <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ Add</a>
@@ -157,12 +187,17 @@
                         </td>
                     {% endif %}
 
+                    <!-- Zonal Laboratory (Lab Technician view) -->
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                         <td>
                             {% if screening.zonal_laboratory %}
-                                <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅ DONE</a>
+                                {% if request.user.groups.all.0.name != "REVIEWER" %}
+                                    <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅ DONE</a>
+                                {% else %}
+                                    ✅ DONE
+                                {% endif %}
                             {% else %}
-                                {% if screening.eligible and request.user.groups.all.0.name in "LABORATORY_TECHNICIAN" %}
+                                {% if screening.eligible and request.user.groups.all.0.name == "LABORATORY_TECHNICIAN" %}
                                     <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
                                 {% else %}
                                     ❌ Add

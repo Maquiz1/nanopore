@@ -21,6 +21,7 @@ from options.models import (
     NoSPCResult,
 )
 
+
 def safe_int(val):
     if val is None or str(val).strip() == "":
         return None
@@ -28,6 +29,7 @@ def safe_int(val):
         return int(float(val))
     except (ValueError, TypeError):
         return None
+
 
 def safe_decimal(val):
     if val is None or str(val).strip() == "":
@@ -37,6 +39,7 @@ def safe_decimal(val):
     except (ValueError, TypeError):
         return None
 
+
 def get_foreign(obj_class, val):
     """Safely get foreign key object by ID, return None if missing/invalid."""
     pk = safe_int(val)
@@ -45,20 +48,20 @@ def get_foreign(obj_class, val):
     return obj_class.objects.filter(pk=pk).first()
 
 
-def get_yesno(val):
-    if val is None or str(val).strip() == "":
-        return None
-    val = str(val).strip().lower()
-    if val in ("1", "yes", "y", "true", "t"):
-        return YesNo.objects.get(pk=1)  # or whatever PK is Yes
-    if val in ("2", "no", "n", "false", "f"):
-        return YesNo.objects.get(pk=2)  # or whatever PK is No
-    return None
+# def to_bool(val):
+#     """Convert '1' → True, empty/None → False."""
+#     return str(val).strip() == "1" if val is not None else False
 
 
 def to_bool(val):
-    """Convert '1' → True, empty/None → False."""
-    return str(val).strip() == "1" if val is not None else False
+    """Convert 1 / 1.0 / '1' → True, else False."""
+    if val is None:
+        return False
+    try:
+        return int(float(str(val).strip())) == 1
+    except (ValueError, TypeError):
+        return False
+
 
 class ClinicLabCsvUploadView(View):
     template_name = "nanopore/laboratory/clinic/clinic_laboratory_upload.html"
@@ -92,54 +95,62 @@ class ClinicLabCsvUploadView(View):
                 continue
 
             try:
-                # --- Link to existing Screening ---
                 screening = Screening.objects.filter(pid=pid).first()
                 if not screening:
                     raise ValueError(f"No Screening found with PID={pid}")
 
-                # --- Foreign Keys and fields ---
-                sample_received = get_foreign(YesNo, row.get("SampleReceived"))
-                sample_reason = get_foreign(SampleReason, row.get("SampleReason"))
-                other_reason = row.get("OtherReason") or None
-                new_sample = get_foreign(YesNo, row.get("NewSample"))
-                new_reason = row.get("NewReason") or None
-                number_received = get_foreign(SampleNumber, row.get("NumberReceived"))
+                # --- Convert all foreign key CSV values to int first ---
+                fks = {
+                    "sample_received": safe_int(row.get("SampleReceived")),
+                    "sample_reason": safe_int(row.get("SampleReason")),
+                    "new_sample": safe_int(row.get("NewSample")),
+                    "number_received": safe_int(row.get("NumberReceived")),
+                    "appearance_sample1": safe_int(row.get("AppearanceSample1")),
+                    "appearance_sample2": safe_int(row.get("AppearanceSample2")),
+                    "technique_a": safe_int(row.get("TechniqueA")),
+                    "technique_b": safe_int(row.get("TechniqueB")),
+                    "afb_a_results": safe_int(row.get("AFBA_Results")),
+                    "afb_b_results": safe_int(row.get("AFBB_Results")),
+                    "afb_microscopy_conducted": safe_int(row.get("AFBMicroscopyConducted")),
+                    "xpert_mtb_rif_conducted": safe_int(row.get("XpertMTBRIFConducted")),
+                    "xpert_mtb": safe_int(row.get("XpertMTB")),
+                    "xpert_rif": safe_int(row.get("XpertRIF")),
+                }
 
+                # --- Get FK objects ---
+                sample_received = get_foreign(YesNo, fks["sample_received"])
+                sample_reason = get_foreign(SampleReason, fks["sample_reason"])
+                new_sample = get_foreign(YesNo, fks["new_sample"])
+                number_received = get_foreign(SampleNumber, fks["number_received"])
+                appearance_sample1 = get_foreign(SampleAppearance, fks["appearance_sample1"])
+                appearance_sample2 = get_foreign(SampleAppearance, fks["appearance_sample2"])
+                technique_a = get_foreign(AFBTechnique, fks["technique_a"])
+                technique_b = get_foreign(AFBTechnique, fks["technique_b"])
+                afb_a_results = get_foreign(AFBMicroscopyResult, fks["afb_a_results"])
+                afb_b_results = get_foreign(AFBMicroscopyResult, fks["afb_b_results"])
+                afb_microscopy_conducted = get_foreign(YesNo, fks["afb_microscopy_conducted"])
+                xpert_mtb_rif_conducted = get_foreign(YesNo, fks["xpert_mtb_rif_conducted"])
+                xpert_mtb = get_foreign(XpertMTB, fks["xpert_mtb"])
+                xpert_rif = get_foreign(XpertRIF, fks["xpert_rif"])
+
+                # --- Other fields ---
+                other_reason = row.get("OtherReason") or None
+                new_reason = row.get("NewReason") or None
                 date_sample1_collected = parse_date(row.get("DateSample1Collected"))
                 date_sample1_received = parse_date(row.get("DateSample1Received"))
-                appearance_sample1 = get_foreign(SampleAppearance, row.get("AppearanceSample1"))
                 sample1_volume = row.get("Sample1Volume") or None
-
                 date_sample2_collected = parse_date(row.get("DateSample2Collected"))
                 date_sample2_received = parse_date(row.get("DateSample2Received"))
-                appearance_sample2 = get_foreign(SampleAppearance, row.get("AppearanceSample2"))
                 sample2_volume = row.get("Sample2Volume") or None
-
-                # afb_microscopy_conducted = get_foreign(YesNo, row.get("AFBMicroscopyConducted"))
-                afb_microscopy_conducted = get_yesno(row.get("AFBMicroscopyConducted"))
                 afb_a_date = parse_date(row.get("AFBA_Date"))
-                technique_a = get_foreign(AFBTechnique, row.get("TechniqueA"))
-                afb_a_results = get_foreign(AFBMicroscopyResult, row.get("AFBA_Results"))
-
                 afb_b_date = parse_date(row.get("AFBB_Date"))
-                technique_b = get_foreign(AFBTechnique, row.get("TechniqueB"))
-                afb_b_results = get_foreign(AFBMicroscopyResult, row.get("AFBB_Results"))
-
-                # xpert_mtb_rif_conducted = get_foreign(YesNo, row.get("XpertMTBRIFConducted"))
-                xpert_mtb_rif_conducted = get_yesno(row.get("XpertMTBRIFConducted"))
                 xpert_date = parse_date(row.get("XpertDate"))
-                xpert_mtb = get_foreign(XpertMTB, row.get("XpertMTB"))
                 error_code = safe_int(row.get("ErrorCode"))
-                xpert_rif = get_foreign(XpertRIF, row.get("XpertRIF"))
                 ct_value = safe_decimal(row.get("CTValue"))
-                # ct_na = get_foreign(NoSPCResult, row.get("CTNA"))
-                
-                # --- Boolean unknown fields ---
                 ct_na = to_bool(row.get("CTNA"))
-
                 remarks = row.get("Remarks") or None
 
-                # --- Create or update ClinicLaboratory ---
+                # --- Create or update ---
                 lab, created = ClinicLaboratory.objects.update_or_create(
                     screening=screening,
                     defaults={
@@ -183,7 +194,6 @@ class ClinicLabCsvUploadView(View):
             except Exception as e:
                 row_errors.append(f"Row {idx} (PID={pid}): {str(e)}")
 
-        # --- Display results ---
         if row_errors:
             messages.error(
                 request,
