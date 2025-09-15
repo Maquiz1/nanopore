@@ -42,59 +42,59 @@
     </form>
 
 
-    {% if zone_summary or site_summary %}
-<div class="row mb-4">
-    <!-- Zone Summary -->
-    <div class="col-md-6">
-        <h5>Substudy 2 (≥6 Months, No Outcome) by Zone</h5>
-        <table class="table table-sm table-bordered">
-            <thead class="table-light">
-                <tr>
-                    <th>Zone</th>
-                    <th>Count</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for zone, count in zone_summary.items %}
-                <tr>
-                    <td>{{ zone }}</td>
-                    <td>{{ count }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="2" class="text-muted">No data</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        {% if zone_summary or site_summary %}
+    <div class="row mb-4">
+        <!-- Zone Summary -->
+        <div class="col-md-6">
+            <h5>Substudy 2 (≥6 Months, No Outcome) by Zone</h5>
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Zone</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for zone, count in zone_summary.items %}
+                    <tr>
+                        <td>{{ zone }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-muted">No data</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-    <!-- Site Summary -->
-    <div class="col-md-6">
-        <h5>Substudy 2 (≥6 Months, No Outcome) by Site</h5>
-        <table class="table table-sm table-bordered">
-            <thead class="table-light">
-                <tr>
-                    <th>Site</th>
-                    <th>Count</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for site, count in site_summary.items %}
-                <tr>
-                    <td>{{ site }}</td>
-                    <td>{{ count }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="2" class="text-muted">No data</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Site Summary -->
+        <div class="col-md-6">
+            <h5>Substudy 2 (≥6 Months, No Outcome) by Site</h5>
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Site</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for site, count in site_summary.items %}
+                    <tr>
+                        <td>{{ site }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-muted">No data</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 
 
     {% if records %}
