@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Available Models</h2>
+    <table class="table table-bordered table-hover mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Model Name</th>
+                <th>Export</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model in models %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ model.name }}</td>
+                <td>
+                    <!-- Button for labels (names) -->
+                    <a href="{{ model.export_url }}?fk=names" class="btn btn-primary btn-sm">
+                        Labels
+                    </a>
+                    <!-- Button for variables (values/IDs) -->
+                    <a href="{{ model.export_url }}?fk=values" class="btn btn-secondary btn-sm">
+                        Variables
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
