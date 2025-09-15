@@ -151,6 +151,7 @@ class BaseRecordsListView(ListView):
 
         return annotate_months_and_substudy(qs, months_filter, substudy_filter)
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         records_list = self.get_queryset()
@@ -163,7 +164,7 @@ class BaseRecordsListView(ListView):
         context["export_url_excel"] = f"{reverse(self.export_url_name, args=['excel'])}?{query_string}"
         context["export_url_pdf"] = f"{reverse(self.export_url_name, args=['pdf'])}?{query_string}"
 
-        # Common filters for template
+        # Common filters
         context["title"] = self.title
         context["selected_zone"] = self.request.GET.get("zone", "")
         context["selected_site"] = self.request.GET.get("site", "")
@@ -171,6 +172,31 @@ class BaseRecordsListView(ListView):
         context["selected_substudy"] = self.request.GET.get("substudy", "")
         context["zones"] = Zone.objects.all()
         context["sites"] = Site.objects.all()
+
+        # --- Build summaries ---
+        substudy2_records = [
+            r for r in records_list
+            if r.substudy == "Substudy 2"
+            and r.months_since_screening is not None
+            and r.months_since_screening >= 6
+            and not r.tb_outcome2
+        ]
+
+        # Per Zone
+        zone_summary = {}
+        for r in substudy2_records:
+            zone_name = r.screening.site.district.region.zone.name
+            zone_summary[zone_name] = zone_summary.get(zone_name, 0) + 1
+
+        # Per Site
+        site_summary = {}
+        for r in substudy2_records:
+            site_name = r.screening.site.name
+            site_summary[site_name] = site_summary.get(site_name, 0) + 1
+
+        context["zone_summary"] = zone_summary
+        context["site_summary"] = site_summary
+
         return context
     
 def substudy_list(request):
