@@ -59,7 +59,7 @@ python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATI
 
 <!-- 
 
-python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_14/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_14/zonal_ready_values.csv 
+python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_15/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_15/zonal_ready_values.csv 
 
 -->
 

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
 from django.utils.dateparse import parse_date
+from django.core.exceptions import ValidationError
 
 from nanopore.forms.laboratory.zonal.zonal_lab_upload_form import ZonalLabUploadForm
 from nanopore.models.zonal_lab import ZonalLaboratory
@@ -17,52 +18,76 @@ from options.models import (
 )
 
 # --- helpers ---
-def safe_int(val):
-    """Convert to int if possible, else None."""
+def safe_int(val, required=False, field_name=None):
+    """Convert to int if possible, else raise error if required."""
     if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
     try:
         return int(float(val))
     except (ValueError, TypeError):
-        return None
+        raise ValidationError(f"Invalid integer value for {field_name}: {val}")
 
-def safe_decimal(val):
-    """Convert to float if possible, else None."""
+
+def safe_decimal(val, required=False, field_name=None):
+    """Convert to float if possible, else raise error if required."""
     if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
     try:
         return float(val)
     except (ValueError, TypeError):
-        return None
+        raise ValidationError(f"Invalid decimal value for {field_name}: {val}")
 
-def parse_date_field(val):
-    """Safely parse date string into YYYY-MM-DD."""
+
+def parse_date_field(val, required=False, field_name=None):
+    """Safely parse date string into YYYY-MM-DD, raise error if required."""
     if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required date for {field_name}")
         return None
     parsed = parse_date(str(val))
-    return parsed if parsed else None
+    if not parsed and required:
+        raise ValidationError(f"Invalid date format for {field_name}: {val}")
+    return parsed
 
-def get_foreign(obj_class, val):
-    """Safely get ForeignKey by ID or name."""
+
+def get_foreign(obj_class, val, required=False, field_name=None):
+    """Safely get foreign key object by PK or by `value` field."""
     if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required foreign key for {field_name}")
         return None
-    pk = safe_int(val)
-    if pk:
-        return obj_class.objects.filter(pk=pk).first()
-    return obj_class.objects.filter(name__iexact=str(val).strip()).first()
 
-def split_m2m(obj_class, val):
-    """Split M2M values like '1;2;3' and return queryset list."""
-    if not val or str(val).lower() in ["none", "nan"]:
+    pk = safe_int(val)
+    if hasattr(obj_class, "value"):
+        obj = obj_class.objects.filter(value=pk).first()
+    else:
+        obj = obj_class.objects.filter(pk=pk).first()
+
+    if required and not obj:
+        raise ValidationError(f"Invalid foreign key for {field_name}: {val}")
+    return obj
+
+
+def split_m2m(obj_class, val, required=False, field_name=None):
+    """Split comma-separated M2M values and return queryset list."""
+    if not val or str(val).lower() in ["none", "nan", ""]:
+        if required:
+            raise ValidationError(f"Missing required M2M values for {field_name}")
         return []
+
     result = []
-    for v in str(val).split(";"):
+    for v in str(val).split(","):
         v = v.strip()
         if v:
-            obj = get_foreign(obj_class, v)
+            obj = get_foreign(obj_class, v, required=True, field_name=field_name)
             if obj:
                 result.append(obj)
     return result
+
 
 
 class ZonalLabCsvUploadView(View):

@@ -62,3 +62,63 @@ class ModelCsvExportView(View):
             writer.writerow(row)
 
         return response
+    
+    
+class AllModelsSingleCsvExportView(View):
+    """Export all configured models into a single CSV"""
+
+    MODELS_INFO = [
+        {"app_label": "nanopore", "model_name": "Screening"},
+        {"app_label": "nanopore", "model_name": "Enrollment"},
+        {"app_label": "nanopore", "model_name": "ClinicLaboratory"},
+        {"app_label": "nanopore", "model_name": "Diagnosis"},
+        {"app_label": "nanopore", "model_name": "ZonalLaboratory"},
+        {"app_label": "nanopore", "model_name": "RegimenChanges"},
+    ]
+
+    EXCLUDE_FIELDS = {
+        "Screening": ["id","screening","created_at","updated_at","created_by","updated_by"],
+        "Enrollment": ["id","screening","created_at","updated_at","created_by","updated_by"],
+        "ClinicLaboratory": ["id","screening","created_at","updated_at","created_by","updated_by"],
+        "Diagnosis": ["id","screening","created_at","updated_at","created_by","updated_by"],
+        "ZonalLaboratory": ["id","screening","created_at","updated_at","created_by","updated_by"],
+        "RegimenChanges": ["id","screening","created_at","updated_at","created_by","updated_by"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        fk_type = request.GET.get("fk", "names")  # names or values
+        today_str = date.today().strftime("%Y-%m-%d")
+
+        # Response setup
+        response = HttpResponse(content_type="text/csv")
+        response['Content-Disposition'] = f'attachment; filename="all_models_{today_str}.csv"'
+
+        writer = csv.writer(response)
+
+        # Write a universal header
+        writer.writerow(["Model", "Field", "Value", "Record ID"])
+
+        for info in self.MODELS_INFO:
+            try:
+                model_class = apps.get_model(info["app_label"], info["model_name"])
+            except LookupError:
+                continue
+
+            qs = model_class.objects.all()
+            if not qs.exists():
+                continue
+
+            exclude_fields = self.EXCLUDE_FIELDS.get(info["model_name"], [])
+            fields = [
+                f.name for f in model_class._meta.get_fields()
+                if not f.many_to_many and not f.one_to_many and f.name not in exclude_fields
+            ]
+
+            for obj in qs:
+                for f in fields:
+                    val = getattr(obj, f)
+                    if hasattr(val, "name"):
+                        val = val.name if fk_type == "names" else getattr(val, 'id', '')
+                    writer.writerow([info["model_name"], f, val, obj.pk])
+
+        return response

@@ -2,6 +2,15 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Available Models</h2>
+    <div style="margin-bottom: 15px;">
+        <a href="{% url 'reports:download-all-models' %}?fk=names" class="btn btn-success">
+            Download All Models (Labels)
+        </a>
+        <a href="{% url 'reports:download-all-models' %}?fk=values" class="btn btn-warning">
+            Download All Models (Values)
+        </a>
+    </div>
+
     <table class="table table-bordered table-hover mt-3">
         <thead>
             <tr>
