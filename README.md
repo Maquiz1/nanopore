@@ -20,6 +20,12 @@ python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREAM/MIGRATION
 
 -->
 
+<!-- 
+
+python manage.py screening_pid1_and_pid2_checks -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_15/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_15/screening_pid1_and_pid2_checks.csv
+
+-->
+
 
 
 <!-- FINAL COMMAND TO TRANSFORM  -->
@@ -44,7 +50,7 @@ python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIG
 
 <!-- 
 
-python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_14/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_14/clinic_ready_values.csv 
+python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_15/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_15/clinic_ready_values.csv 
 
 -->
 
@@ -62,7 +68,7 @@ python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIO
 
 <!-- 
 
-python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_14/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_14/diagnosis_ready_values.csv 
+python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_15/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_15/diagnosis_ready_values.csv 
 
 -->
 
