@@ -112,6 +112,7 @@ class DiagnosisCsvUploadView(View):
                 # tx_unknown_month = to_bool(row.get("TxUnknownMonth"))
 
                 # --- Create or update Diagnosis ---
+                # --- Create or update Diagnosis ---
                 diagnosis, created = Diagnosis.objects.update_or_create(
                     screening=screening,
                     defaults={
@@ -120,7 +121,6 @@ class DiagnosisCsvUploadView(View):
                         "tb_diagnosis_made": tb_diagnosis_made,
                         "diagnosis_made_other": diagnosis_made_other,
                         "bacteriological_diagnosis": bacteriological_diagnosis,
-                        "tb_diagnosed_clinically": tb_diagnosed_clinically,
                         "tb_clinically_other": tb_clinically_other,
                         "clinician_received_date": clinician_received_date,
                         "tb_treatment": tb_treatment,
@@ -136,6 +136,17 @@ class DiagnosisCsvUploadView(View):
                         "remarks": remarks,
                     },
                 )
+
+                # --- Assign ManyToMany field separately ---
+                if tb_diagnosed_clinically:
+                    # If your CSV can have multiple IDs, split by comma and filter
+                    if isinstance(tb_diagnosed_clinically, str):
+                        ids = [safe_int(i) for i in tb_diagnosed_clinically.split(",") if safe_int(i) is not None]
+                        objects = DiagnosedClinically.objects.filter(pk__in=ids)
+                    else:
+                        objects = [tb_diagnosed_clinically]
+
+                    diagnosis.tb_diagnosed_clinically.set(objects)
 
                 if created:
                     count_created += 1
