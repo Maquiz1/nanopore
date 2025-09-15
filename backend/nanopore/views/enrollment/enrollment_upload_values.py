@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
 from django.utils.dateparse import parse_date
+from django.core.exceptions import ValidationError
 
 from nanopore.forms.enrollment.enrollment_upload_form import EnrollmentUploadForm
 from nanopore.models.enrollment import Enrollment
@@ -17,34 +18,86 @@ from options.models import (
 )
 
 
-def safe_int(val):
-    if val is None or str(val).strip() == "":
+# --- helpers ---
+def safe_int(val, required=False, field_name=None):
+    """Convert to int if possible, else raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
     try:
         return int(float(val))
     except (ValueError, TypeError):
+        raise ValidationError(f"Invalid integer value for {field_name}: {val}")
+
+
+def safe_decimal(val, required=False, field_name=None):
+    """Convert to float if possible, else raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
+        return None
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        raise ValidationError(f"Invalid decimal value for {field_name}: {val}")
+
+
+def parse_date_field(val, required=False, field_name=None):
+    """Safely parse date string into YYYY-MM-DD, raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required date for {field_name}")
+        return None
+    parsed = parse_date(str(val))
+    if not parsed and required:
+        raise ValidationError(f"Invalid date format for {field_name}: {val}")
+    return parsed
+
+
+def get_foreign(obj_class, val, required=False, field_name=None):
+    """Safely get foreign key object by PK or by `value` field."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required foreign key for {field_name}")
         return None
 
-
-def get_foreign(obj_class, val):
-    """Safely get foreign key object by ID, return None if missing/invalid."""
     pk = safe_int(val)
-    if pk is None:
-        return None
-    return obj_class.objects.filter(pk=pk).first()
+    if hasattr(obj_class, "value"):
+        obj = obj_class.objects.filter(value=pk).first()
+    else:
+        obj = obj_class.objects.filter(pk=pk).first()
+
+    if required and not obj:
+        raise ValidationError(f"Invalid foreign key for {field_name}: {val}")
+    return obj
 
 
-def get_many_to_many(obj_class, val):
-    """Return queryset of ManyToMany objects from comma-separated IDs."""
-    if not val:
-        return obj_class.objects.none()
-    ids = [safe_int(x) for x in str(val).split(",") if safe_int(x) is not None]
-    return obj_class.objects.filter(pk__in=ids)
+def split_m2m(obj_class, val, required=False, field_name=None):
+    """Split comma-separated M2M values and return queryset list."""
+    if not val or str(val).lower() in ["none", "nan", ""]:
+        if required:
+            raise ValidationError(f"Missing required M2M values for {field_name}")
+        return []
+
+    result = []
+    for v in str(val).split(","):
+        v = v.strip()
+        if v:
+            obj = get_foreign(obj_class, v, required=True, field_name=field_name)
+            if obj:
+                result.append(obj)
+    return result
 
 
 def to_bool(val):
-    """Convert '1' → True, empty/None → False."""
-    return str(val).strip() == "1" if val is not None else False
+    """Convert 1 / 1.0 / '1' → True, else False."""
+    if val is None:
+        return False
+    try:
+        return int(float(str(val).strip())) == 1
+    except (ValueError, TypeError):
+        return False
 
 
 class EnrollmentCsvUploadView(View):
@@ -111,15 +164,15 @@ class EnrollmentCsvUploadView(View):
                 tb_outcome = get_foreign(TreatmentOutcome, row.get("TbOutcome"))
                 hiv_status = get_foreign(PositiveNegativeUnknown, row.get("HivStatus"))
                 other_diseases = get_foreign(YesNoUnknown, row.get("OtherDiseases"))
-                diseases_medical = get_many_to_many(DiseasesMedicalConditions, row.get("DiseasesMedical"))
+                diseases_medical = split_m2m(DiseasesMedicalConditions, row.get("DiseasesMedical"))
                 diseases_specify = row.get("DiseasesSpecify") or None
                 sputum_collected = get_foreign(YesNo, row.get("SputumCollected"))
-                sputum_date = parse_date(row.get("SputumDate"))
+                sputum_date = parse_date_field(row.get("SputumDate"))
                 sputum_reasons = row.get("SputumReasons") or None
                 remarks = row.get("Remarks") or None
 
-                enrollment_date = parse_date(row.get("EnrollmentDate"))
-                date_information_collected = parse_date(row.get("DateInformationCollected"))
+                enrollment_date = parse_date_field(row.get("EnrollmentDate"))
+                date_information_collected = parse_date_field(row.get("DateInformationCollected"))
                 if not enrollment_date:
                     raise ValueError("EnrollmentDate is required.")
                 if not date_information_collected:

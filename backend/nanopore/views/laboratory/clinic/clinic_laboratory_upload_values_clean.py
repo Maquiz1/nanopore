@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
 from django.utils.dateparse import parse_date
-from django.core.exceptions import ValidationError
 
 from nanopore.forms.laboratory.clinic.clinic_lab_upload_form import ClinicLabUploadForm
 from nanopore.models.clinic_lab import ClinicLaboratory
@@ -19,79 +18,53 @@ from options.models import (
     AFBMicroscopyResult,
     XpertMTB,
     XpertRIF,
+    NoSPCResult,
 )
 
 
-# --- helpers ---
-def safe_int(val, required=False, field_name=None):
-    """Convert to int if possible, else raise error if required."""
-    if val in [None, "", "None", "nan", "NaN"]:
-        if required:
-            raise ValidationError(f"Missing required value for {field_name}")
+def safe_int(val):
+    if val is None or str(val).strip() == "":
         return None
     try:
         return int(float(val))
     except (ValueError, TypeError):
-        raise ValidationError(f"Invalid integer value for {field_name}: {val}")
+        return None
 
 
-def safe_decimal(val, required=False, field_name=None):
-    """Convert to float if possible, else raise error if required."""
-    if val in [None, "", "None", "nan", "NaN"]:
-        if required:
-            raise ValidationError(f"Missing required value for {field_name}")
+def safe_decimal(val):
+    if val is None or str(val).strip() == "":
         return None
     try:
         return float(val)
     except (ValueError, TypeError):
-        raise ValidationError(f"Invalid decimal value for {field_name}: {val}")
-
-
-def parse_date_field(val, required=False, field_name=None):
-    """Safely parse date string into YYYY-MM-DD, raise error if required."""
-    if val in [None, "", "None", "nan", "NaN"]:
-        if required:
-            raise ValidationError(f"Missing required date for {field_name}")
-        return None
-    parsed = parse_date(str(val))
-    if not parsed and required:
-        raise ValidationError(f"Invalid date format for {field_name}: {val}")
-    return parsed
-
-
-def get_foreign(obj_class, val, required=False, field_name=None):
-    """Safely get foreign key object by PK or by `value` field."""
-    if val in [None, "", "None", "nan", "NaN"]:
-        if required:
-            raise ValidationError(f"Missing required foreign key for {field_name}")
         return None
 
+
+def get_foreign(obj_class, val):
+    """Safely get foreign key object by PK or by `value` field if it exists."""
     pk = safe_int(val)
+    if pk is None:
+        return None
+
+    # If model has a 'value' field, look up by that instead of PK
     if hasattr(obj_class, "value"):
-        obj = obj_class.objects.filter(value=pk).first()
-    else:
-        obj = obj_class.objects.filter(pk=pk).first()
+        return obj_class.objects.filter(value=pk).first()
 
-    if required and not obj:
-        raise ValidationError(f"Invalid foreign key for {field_name}: {val}")
-    return obj
+    return obj_class.objects.filter(pk=pk).first()
 
 
-def split_m2m(obj_class, val, required=False, field_name=None):
-    """Split comma-separated M2M values and return queryset list."""
-    if not val or str(val).lower() in ["none", "nan", ""]:
-        if required:
-            raise ValidationError(f"Missing required M2M values for {field_name}")
-        return []
+def get_many_to_many(obj_class, val):
+    """Return queryset of ManyToMany objects from comma-separated IDs or values."""
+    if not val:
+        return obj_class.objects.none()
 
-    result = []
-    for v in str(val).split(","):
-        v = v.strip()
-        if v:
-            obj = get_foreign(obj_class, v, required=True, field_name=field_name)
-            if obj:
-                result.append(obj)
-    return result
+    ids = [safe_int(x) for x in str(val).split(",") if safe_int(x) is not None]
+
+    if hasattr(obj_class, "value"):
+        return obj_class.objects.filter(value__in=ids)
+
+    return obj_class.objects.filter(pk__in=ids)
+
 
 
 def to_bool(val):
@@ -140,41 +113,58 @@ class ClinicLabCsvUploadView(View):
                 if not screening:
                     raise ValueError(f"No Screening found with PID={pid}")
 
-                # --- Foreign Keys with defaults for NOT NULL ---
-                sample_received = get_foreign(YesNo, row.get("SampleReceived"), default_value=2)
-                new_sample = get_foreign(YesNo, row.get("NewSample"), default_value=2)
-                afb_microscopy_conducted = get_foreign(YesNo, row.get("AFBMicroscopyConducted"), default_value=2)
-                xpert_mtb_rif_conducted = get_foreign(YesNo, row.get("XpertMTBRIFConducted"), default_value=2)
+                # --- Convert all foreign key CSV values to int first ---
+                fks = {
+                    "sample_received": safe_int(row.get("SampleReceived")),
+                    "sample_reason": safe_int(row.get("SampleReason")),
+                    "new_sample": safe_int(row.get("NewSample")),
+                    "number_received": safe_int(row.get("NumberReceived")),
+                    "appearance_sample1": safe_int(row.get("AppearanceSample1")),
+                    "appearance_sample2": safe_int(row.get("AppearanceSample2")),
+                    "technique_a": safe_int(row.get("TechniqueA")),
+                    "technique_b": safe_int(row.get("TechniqueB")),
+                    "afb_a_results": safe_int(row.get("AFBA_Results")),
+                    "afb_b_results": safe_int(row.get("AFBB_Results")),
+                    "afb_microscopy_conducted": safe_int(row.get("AFBMicroscopyConducted")),
+                    "xpert_mtb_rif_conducted": safe_int(row.get("XpertMTBRIFConducted")),
+                    "xpert_mtb": safe_int(row.get("XpertMTB")),
+                    "xpert_rif": safe_int(row.get("XpertRIF")),
+                }
 
-                sample_reason = get_foreign(SampleReason, row.get("SampleReason"))
-                number_received = get_foreign(SampleNumber, row.get("NumberReceived"))
-                appearance_sample1 = get_foreign(SampleAppearance, row.get("AppearanceSample1"))
-                appearance_sample2 = get_foreign(SampleAppearance, row.get("AppearanceSample2"))
-                technique_a = get_foreign(AFBTechnique, row.get("TechniqueA"))
-                technique_b = get_foreign(AFBTechnique, row.get("TechniqueB"))
-                afb_a_results = get_foreign(AFBMicroscopyResult, row.get("AFBA_Results"))
-                afb_b_results = get_foreign(AFBMicroscopyResult, row.get("AFBB_Results"))
-                xpert_mtb = get_foreign(XpertMTB, row.get("XpertMTB"))
-                xpert_rif = get_foreign(XpertRIF, row.get("XpertRIF"))
+                # --- Get FK objects ---
+                sample_received = get_foreign(YesNo, fks["sample_received"])
+                sample_reason = get_foreign(SampleReason, fks["sample_reason"])
+                new_sample = get_foreign(YesNo, fks["new_sample"])
+                number_received = get_foreign(SampleNumber, fks["number_received"])
+                appearance_sample1 = get_foreign(SampleAppearance, fks["appearance_sample1"])
+                appearance_sample2 = get_foreign(SampleAppearance, fks["appearance_sample2"])
+                technique_a = get_foreign(AFBTechnique, fks["technique_a"])
+                technique_b = get_foreign(AFBTechnique, fks["technique_b"])
+                afb_a_results = get_foreign(AFBMicroscopyResult, fks["afb_a_results"])
+                afb_b_results = get_foreign(AFBMicroscopyResult, fks["afb_b_results"])
+                afb_microscopy_conducted = get_foreign(YesNo, fks["afb_microscopy_conducted"])
+                xpert_mtb_rif_conducted = get_foreign(YesNo, fks["xpert_mtb_rif_conducted"])
+                xpert_mtb = get_foreign(XpertMTB, fks["xpert_mtb"])
+                xpert_rif = get_foreign(XpertRIF, fks["xpert_rif"])
 
                 # --- Other fields ---
                 other_reason = row.get("OtherReason") or None
                 new_reason = row.get("NewReason") or None
-                date_sample1_collected = parse_date_field(row.get("DateSample1Collected"))
-                date_sample1_received = parse_date_field(row.get("DateSample1Received"))
+                date_sample1_collected = parse_date(row.get("DateSample1Collected"))
+                date_sample1_received = parse_date(row.get("DateSample1Received"))
                 sample1_volume = row.get("Sample1Volume") or None
-                date_sample2_collected = parse_date_field(row.get("DateSample2Collected"))
-                date_sample2_received = parse_date_field(row.get("DateSample2Received"))
+                date_sample2_collected = parse_date(row.get("DateSample2Collected"))
+                date_sample2_received = parse_date(row.get("DateSample2Received"))
                 sample2_volume = row.get("Sample2Volume") or None
-                afb_a_date = parse_date_field(row.get("AFBA_Date"))
-                afb_b_date = parse_date_field(row.get("AFBB_Date"))
-                xpert_date = parse_date_field(row.get("XpertDate"))
+                afb_a_date = parse_date(row.get("AFBA_Date"))
+                afb_b_date = parse_date(row.get("AFBB_Date"))
+                xpert_date = parse_date(row.get("XpertDate"))
                 error_code = safe_int(row.get("ErrorCode"))
                 ct_value = safe_decimal(row.get("CTValue"))
                 ct_na = to_bool(row.get("CTNA"))
                 remarks = row.get("Remarks") or None
 
-                # --- Create or update record ---
+                # --- Create or update ---
                 lab, created = ClinicLaboratory.objects.update_or_create(
                     screening=screening,
                     defaults={
@@ -219,7 +209,10 @@ class ClinicLabCsvUploadView(View):
                 row_errors.append(f"Row {idx} (PID={pid}): {str(e)}")
 
         if row_errors:
-            messages.error(request, "Some rows had errors. Please fix them and re-upload the CSV.")
+            messages.error(
+                request,
+                "Some rows had errors. Please fix them and re-upload the CSV."
+            )
             return render(
                 request,
                 self.template_name,

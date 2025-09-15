@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
 from django.utils.dateparse import parse_date
+from django.core.exceptions import ValidationError
 
 from nanopore.forms.diagnosis.diagnosis_upload_form import DiagnosisUploadForm
 from nanopore.models.diagnosis import Diagnosis
@@ -19,36 +20,86 @@ from options.models import (
 )
 
 
-def safe_int(val):
-    if val is None or str(val).strip() == "":
+# --- helpers ---
+def safe_int(val, required=False, field_name=None):
+    """Convert to int if possible, else raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
     try:
         return int(float(val))
     except (ValueError, TypeError):
-        return None
+        raise ValidationError(f"Invalid integer value for {field_name}: {val}")
 
 
-def get_foreign(obj_class, val):
-    """Safely get foreign key object by ID, return None if missing/invalid."""
-    pk = safe_int(val)
-    if pk is None:
-        return None
-    return obj_class.objects.filter(pk=pk).first()
-
-
-def safe_date(val):
-    """Parse CSV date safely into Python date."""
-    if not val or str(val).strip() == "":
+def safe_decimal(val, required=False, field_name=None):
+    """Convert to float if possible, else raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
     try:
-        return parse_date(val)
-    except Exception:
-        return None
-    
-def to_bool(val):
-    """Convert '1' → True, empty/None → False."""
-    return str(val).strip() == "1" if val is not None else False
+        return float(val)
+    except (ValueError, TypeError):
+        raise ValidationError(f"Invalid decimal value for {field_name}: {val}")
 
+
+def parse_date_field(val, required=False, field_name=None):
+    """Safely parse date string into YYYY-MM-DD, raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required date for {field_name}")
+        return None
+    parsed = parse_date(str(val))
+    if not parsed and required:
+        raise ValidationError(f"Invalid date format for {field_name}: {val}")
+    return parsed
+
+
+def get_foreign(obj_class, val, required=False, field_name=None):
+    """Safely get foreign key object by PK or by `value` field."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required foreign key for {field_name}")
+        return None
+
+    pk = safe_int(val)
+    if hasattr(obj_class, "value"):
+        obj = obj_class.objects.filter(value=pk).first()
+    else:
+        obj = obj_class.objects.filter(pk=pk).first()
+
+    if required and not obj:
+        raise ValidationError(f"Invalid foreign key for {field_name}: {val}")
+    return obj
+
+
+def split_m2m(obj_class, val, required=False, field_name=None):
+    """Split comma-separated M2M values and return queryset list."""
+    if not val or str(val).lower() in ["none", "nan", ""]:
+        if required:
+            raise ValidationError(f"Missing required M2M values for {field_name}")
+        return []
+
+    result = []
+    for v in str(val).split(","):
+        v = v.strip()
+        if v:
+            obj = get_foreign(obj_class, v, required=True, field_name=field_name)
+            if obj:
+                result.append(obj)
+    return result
+
+
+def to_bool(val):
+    """Convert 1 / 1.0 / '1' → True, else False."""
+    if val is None:
+        return False
+    try:
+        return int(float(str(val).strip())) == 1
+    except (ValueError, TypeError):
+        return False
 
 class DiagnosisCsvUploadView(View):
     template_name = "nanopore/diagnosis/diagnosis_upload_values.html"
@@ -89,15 +140,15 @@ class DiagnosisCsvUploadView(View):
 
                 # --- Foreign Keys ---
                 tb_diagnosis = get_foreign(YesNo, row.get("TbDiagnosis"))
-                tb_diagnosis_date = safe_date(row.get("TbDiagnosisDate"))
+                tb_diagnosis_date = parse_date_field(row.get("TbDiagnosisDate"))
                 tb_diagnosis_made = get_foreign(TBDiagnosisMade, row.get("TbDiagnosisMade"))
                 diagnosis_made_other = row.get("DiagnosisMadeOther") or None
                 bacteriological_diagnosis = get_foreign(DiagnosisBacteriological, row.get("BacteriologicalDiagnosis"))
                 tb_diagnosed_clinically = get_foreign(DiagnosedClinically, row.get("TbDiagnosedClinically"))
                 tb_clinically_other = row.get("TbClinicallyOther") or None
-                clinician_received_date = safe_date(row.get("ClinicianReceivedDate"))
+                clinician_received_date = parse_date_field(row.get("ClinicianReceivedDate"))
                 tb_treatment = get_foreign(TBTreatmentStarted, row.get("TbTreatment"))
-                tb_treatment_date = safe_date(row.get("TbTreatmentDate"))
+                tb_treatment_date = parse_date_field(row.get("TbTreatmentDate"))
                 tb_facility = row.get("TbFacility") or None
                 tb_reason = row.get("TbReason") or None
                 tb_register_number = row.get("TbRegisterNumber") or None
