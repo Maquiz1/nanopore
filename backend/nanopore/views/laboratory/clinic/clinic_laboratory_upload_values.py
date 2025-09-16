@@ -60,37 +60,66 @@ def parse_date_field(val, required=False, field_name=None):
 
 
 def get_foreign(obj_class, val, required=False, field_name=None):
-    """Safely get foreign key object by PK or by `value` field."""
+    """
+    Safely get foreign key object by its `value` field only (not pk).
+    Always shows the field name in errors.
+    """
     if val in [None, "", "None", "nan", "NaN"]:
         if required:
-            raise ValidationError(f"Missing required foreign key for {field_name}")
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
 
-    pk = safe_int(val)
-    if hasattr(obj_class, "value"):
-        obj = obj_class.objects.filter(value=pk).first()
-    else:
-        obj = obj_class.objects.filter(pk=pk).first()
+    # normalize "2.0" → "2"
+    val_str = str(val).strip()
+    if val_str.replace(".", "", 1).isdigit():
+        if "." in val_str:
+            val_str = str(int(float(val_str)))  # convert 2.0 -> 2
+
+    try:
+        obj = obj_class.objects.filter(value=val_str).first()
+    except Exception as e:
+        raise ValidationError(f"Error while looking up {field_name}={val_str}: {str(e)}")
 
     if required and not obj:
-        raise ValidationError(f"Invalid foreign key for {field_name}: {val}")
+        raise ValidationError(f"Invalid value for {field_name}: {val_str}")
+
     return obj
 
 
+
+
 def split_m2m(obj_class, val, required=False, field_name=None):
-    """Split comma-separated M2M values and return queryset list."""
+    """
+    Split comma-separated values and fetch objects by their `value` field.
+    Normalizes numbers like '2.0' → '2'.
+    Always includes field_name in error messages.
+    """
     if not val or str(val).lower() in ["none", "nan", ""]:
         if required:
             raise ValidationError(f"Missing required M2M values for {field_name}")
         return []
 
     result = []
-    for v in str(val).split(","):
-        v = v.strip()
-        if v:
-            obj = get_foreign(obj_class, v, required=True, field_name=field_name)
-            if obj:
-                result.append(obj)
+    for raw in str(val).split(","):
+        v = raw.strip()
+        if not v:
+            continue
+
+        # normalize "2.0" → "2"
+        if v.replace(".", "", 1).isdigit():
+            if "." in v:
+                v = str(int(float(v)))
+
+        try:
+            obj = obj_class.objects.filter(value=v).first()
+        except Exception as e:
+            raise ValidationError(f"Error while looking up {field_name}={v}: {str(e)}")
+
+        if not obj:
+            raise ValidationError(f"Invalid value for {field_name}: {v}")
+
+        result.append(obj)
+
     return result
 
 
@@ -141,14 +170,14 @@ class ClinicLabCsvUploadView(View):
                     raise ValueError(f"No Screening found with PID={pid}")
 
                 # --- Foreign Keys with defaults for NOT NULL ---
-                sample_received = get_foreign(YesNo, row.get("SampleReceived"), default_value=2)
-                new_sample = get_foreign(YesNo, row.get("NewSample"), default_value=2)
-                afb_microscopy_conducted = get_foreign(YesNo, row.get("AFBMicroscopyConducted"), default_value=2)
-                xpert_mtb_rif_conducted = get_foreign(YesNo, row.get("XpertMTBRIFConducted"), default_value=2)
+                sample_received = get_foreign(YesNo, row.get("SampleReceived"),required=True,field_name="SampleReceived")
+                new_sample = get_foreign(YesNo, row.get("NewSample"))
+                afb_microscopy_conducted = get_foreign(YesNo, row.get("AFBMicroscopyConducted"),required=True,field_name="AFBMicroscopyConducted")
+                xpert_mtb_rif_conducted = get_foreign(YesNo, row.get("XpertMTBRifConducted"),required=True,field_name="XpertMTBRifConducted")
 
                 sample_reason = get_foreign(SampleReason, row.get("SampleReason"))
-                number_received = get_foreign(SampleNumber, row.get("NumberReceived"))
-                appearance_sample1 = get_foreign(SampleAppearance, row.get("AppearanceSample1"))
+                number_received = get_foreign(SampleNumber, row.get("NumberReceived"),required=True,field_name="NumberReceived")
+                appearance_sample1 = get_foreign(SampleAppearance, row.get("AppearanceSample1"),required=True,field_name="AppearanceSample1")
                 appearance_sample2 = get_foreign(SampleAppearance, row.get("AppearanceSample2"))
                 technique_a = get_foreign(AFBTechnique, row.get("TechniqueA"))
                 technique_b = get_foreign(AFBTechnique, row.get("TechniqueB"))
@@ -160,8 +189,8 @@ class ClinicLabCsvUploadView(View):
                 # --- Other fields ---
                 other_reason = row.get("OtherReason") or None
                 new_reason = row.get("NewReason") or None
-                date_sample1_collected = parse_date_field(row.get("DateSample1Collected"))
-                date_sample1_received = parse_date_field(row.get("DateSample1Received"))
+                date_sample1_collected = parse_date_field(row.get("DateSample1Collected"),required=True,field_name="DateSample1Collected")
+                date_sample1_received = parse_date_field(row.get("DateSample1Received"),required=True,field_name="DateSample1Received")
                 sample1_volume = row.get("Sample1Volume") or None
                 date_sample2_collected = parse_date_field(row.get("DateSample2Collected"))
                 date_sample2_received = parse_date_field(row.get("DateSample2Received"))
