@@ -45,51 +45,35 @@ class Screening(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="screenings_updated")
 
     class Meta:
-        # verbose_name = "Country"
-        # verbose_name_plural = "Countries"
         ordering = ["screening_date", "pid"]
 
     def __str__(self):
         return f"{self.pid} - {self.site}"
 
     def save(self, *args, **kwargs):
+        # Generate PID
         pid_prefix = self.site.pid_prefix if self.site else ""
         if self.pid1:
             self.pid = f"{pid_prefix}{self.pid1}"
 
-        today = date.today()
-
-        # Safe DOB / Age calculation
-        if self.dob and not self.age:
-            self.age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
-        elif self.age and not self.dob:
-            self.dob = date(today.year - self.age, today.month, today.day)
-
-        # Consent logic
+        # --- Eligibility calculation ---
         consent_logic = all([
             self.consent and self.consent.name.strip().lower() == 'yes',
             self.unable_understand and self.unable_understand.name.strip().lower() == 'no',
             self.not_willing and self.not_willing.name.strip().lower() == 'no',
         ])
-
-        # Base screening logic
         screening_logic = all([
             self.age18years and self.age18years.name.strip().lower() == 'yes',
             self.produce_resp_sample and self.produce_resp_sample.name.strip().lower() == 'yes',
         ])
-
-        # Determine zone safely
         zone_name = ''
         if self.site and self.site.district and self.site.district.region and self.site.district.region.zone:
             zone_name = self.site.district.region.zone.name.strip().lower()
-
-        # Zone-dependent condition
         if zone_name == "dar es salaam":
             screening_logic = screening_logic and (self.present_symptoms and self.present_symptoms.name.strip().lower() == 'yes')
         else:
             screening_logic = screening_logic and (self.genexpert_confirmation and self.genexpert_confirmation.name.strip().lower() == 'yes')
 
-        # Final eligibility
         self.eligible = consent_logic and screening_logic
 
         super().save(*args, **kwargs)
@@ -99,11 +83,28 @@ class Screening(models.Model):
         today = timezone.now().date()
         min_date = date(2025, 1, 20)
 
+        # --- Screening date validation ---
         if self.screening_date < min_date:
             raise ValidationError({"screening_date": "Screening date cannot be before 20 Jan 2025."})
         if self.screening_date > today:
             raise ValidationError({"screening_date": "Screening date cannot be in the future."})
 
+        # --- Age / DOB validation (independent, at least one required) ---
+        if not self.dob and self.age is None:
+            raise ValidationError({"age": "Either Age or DOB is required."})
+
+        if self.dob:
+            age_from_dob = self.screening_date.year - self.dob.year - (
+                (self.screening_date.month, self.screening_date.day) < (self.dob.month, self.dob.day)
+            )
+            if age_from_dob < 18:
+                raise ValidationError({"dob": "Participant must be at least 18 years old based on DOB."})
+
+        if self.age is not None:
+            if self.age < 18:
+                raise ValidationError({"age": "Participant must be at least 18 years old based on Age."})
+
+        # --- Consent date validation ---
         if self.consent and self.consent.name.strip().lower() == "yes":
             if not self.consent_date:
                 raise ValidationError({"consent_date": "Consent date is required when consent is Yes."})
