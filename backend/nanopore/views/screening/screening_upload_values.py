@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
 from django.utils.dateparse import parse_date
+from django.core.exceptions import ValidationError
 
 from nanopore.forms.screening.screening_upload_form import ScreeningUploadForm
 from nanopore.models import Screening
@@ -21,66 +22,66 @@ def clean_text(val):
     return cleaned if cleaned else None
 
 
-def safe_int(val):
-    """Convert string numbers like '1.0' to int, return None if invalid."""
-    if val is None or str(val).strip() == "":
+def safe_int(val, required=False, field_name=None):
+    """Convert to int if possible, else raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
     try:
         return int(float(val))
     except (ValueError, TypeError):
+        raise ValidationError(f"Invalid integer value for {field_name}: {val}")
+
+
+def safe_decimal(val, required=False, field_name=None):
+    """Convert to float if possible, else raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
+        return None
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        raise ValidationError(f"Invalid decimal value for {field_name}: {val}")
+
+
+def parse_date_field(val, required=False, field_name=None):
+    """Safely parse date string into YYYY-MM-DD, raise error if required."""
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required date for {field_name}")
+        return None
+    parsed = parse_date(str(val))
+    if not parsed and required:
+        raise ValidationError(f"Invalid date format for {field_name}: {val}")
+    return parsed
+
+
+def get_foreign(obj_class, val, required=False, field_name=None):
+    """
+    Safely get foreign key object by its `value` field only (not pk).
+    Always shows the field name in errors.
+    """
+    if val in [None, "", "None", "nan", "NaN"]:
+        if required:
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
 
+    val_str = str(val).strip()
+    if val_str.replace(".", "", 1).isdigit():
+        if "." in val_str:
+            val_str = str(int(float(val_str)))  # convert 2.0 -> 2
 
-def get_foreign(obj_class, val):
-    """Safely get foreign key object by ID, return None if missing/invalid."""
-    pk = safe_int(val)
-    if pk is None:
-        return None
-    return obj_class.objects.filter(pk=pk).first()
+    try:
+        obj = obj_class.objects.filter(value=val_str).first()
+    except Exception as e:
+        raise ValidationError(f"Error while looking up {field_name}={val_str}: {str(e)}")
 
+    if required and not obj:
+        raise ValidationError(f"Invalid value for {field_name}: {val_str}")
 
-def safe_eligible(row, consent, age18years, present_symptoms,
-                  produce_resp_sample, unable_understand, not_willing):
-    """
-    Return a safe boolean for 'eligible'.
-    1. Parse CSV value if present (handles True/False/1/0/Yes/No with extra spaces).
-    2. If missing/invalid, calculate based on YesNo ForeignKeys.
-    Always returns True or False (never None).
-    """
-
-    # --- Step 1: Parse CSV column ---
-    csv_val = row.get("Eligible") or row.get("eligible")
-    if csv_val is not None:
-        # Remove spaces, tabs, non-breaking spaces, lowercase
-        csv_val_str = str(csv_val).strip().replace("\xa0", "").lower()
-        if csv_val_str in ["true", "1", "yes"]:
-            return True
-        elif csv_val_str in ["false", "0", "no"]:
-            return False
-
-    # --- Step 2: Fallback: calculate from YesNo FKs ---
-    def val_to_bool(fk_obj, default="No"):
-        """
-        Convert a YesNo ForeignKey object to boolean.
-        If None, uses default ('Yes' or 'No').
-        """
-        if fk_obj is None:
-            return default.lower() == "yes"
-        return getattr(fk_obj, "name", default).lower() == "yes"
-
-    consent_val = val_to_bool(consent, "No")
-    age18_val = val_to_bool(age18years, "No")
-    symptom_val = val_to_bool(present_symptoms, "No")
-    produce_val = val_to_bool(produce_resp_sample, "No")
-    unable_val = val_to_bool(unable_understand, "No")
-    not_willing_val = val_to_bool(not_willing, "No")
-
-    # --- Step 3: Apply eligibility logic ---
-    consent_logic = consent_val and not unable_val and not not_willing_val
-    screening_logic = age18_val and symptom_val and produce_val
-
-    return consent_logic and screening_logic
-
+    return obj
 
 
 class ScreeningCsvUploadValuesView(View):
@@ -116,16 +117,15 @@ class ScreeningCsvUploadValuesView(View):
 
             try:
                 # --- Foreign Keys ---
-                consent = get_foreign(YesNo, row.get("Consent"))
-                age18years = get_foreign(YesNo, row.get("Age18Years"))
-                produce_resp_sample = get_foreign(YesNo, row.get("ProduceRespSample"))
-                unable_understand = get_foreign(YesNo, row.get("UnableUnderstand"))
-                not_willing = get_foreign(YesNo, row.get("NotWilling"))
+                consent = get_foreign(YesNo, row.get("Consent"), required=True, field_name="Consent")
+                age18years = get_foreign(YesNo, row.get("Age18Years"), required=True, field_name="Age18Years")
+                produce_resp_sample = get_foreign(YesNo, row.get("ProduceRespSample"), required=True, field_name="ProduceRespSample")
+                unable_understand = get_foreign(YesNo, row.get("UnableUnderstand"), required=True, field_name="UnableUnderstand")
+                not_willing = get_foreign(YesNo, row.get("NotWilling"), required=True, field_name="NotWilling")
                 enrolled = get_foreign(YesNo, row.get("Enrolled"))
                 present_symptoms = get_foreign(YesNo, row.get("PresentSymptoms"))
                 genexpert_confirmation = get_foreign(YesNo, row.get("GenexpertConfirmation"))
                 reasons = get_foreign(EnrolledReason, row.get("Reasons"))
-                # reasons_other = row.get("ReasonsOther") or None
                 pid1 = row.get("PID1") or None
                 pid2 = row.get("PID2") or None
 
@@ -152,23 +152,28 @@ class ScreeningCsvUploadValuesView(View):
                 sex = get_foreign(Sex, row.get("Sex"))
 
                 # --- Dates ---
-                screening_date = parse_date(row.get("ScreeningDate"))
-                dob = parse_date(row.get("DOB"))
-                consent_date = parse_date(row.get("ConsentDate"))
+                screening_date = parse_date_field(row.get("ScreeningDate"))
+                dob = parse_date_field(row.get("DOB"))
+                consent_date = parse_date_field(row.get("ConsentDate"))
 
                 if not screening_date:
                     raise ValueError("Screening date is required.")
 
-                # --- Calculate missing DOB or Age ---
+                # --- Age / DOB validation (must be >= 18) ---
                 age_val = safe_int(row.get("Age"))
-                if not dob and age_val:
-                    dob = date(screening_date.year - age_val, screening_date.month, screening_date.day)
+                if dob:
+                    age_from_dob = screening_date.year - dob.year - (
+                        (screening_date.month, screening_date.day) < (dob.month, dob.day)
+                    )
+                    if age_from_dob < 18:
+                        raise ValueError("Participant must be at least 18 years old based on DOB.")
+                    age = age_from_dob
+                elif age_val is not None:
+                    if age_val < 18:
+                        raise ValueError("Participant must be at least 18 years old based on Age.")
                     age = age_val
-                elif dob:
-                    age = screening_date.year - dob.year - ((screening_date.month, screening_date.day) < (dob.month, dob.day))
                 else:
-                    dob = None
-                    age = age_val if age_val else None
+                    raise ValueError("Either Age or DOB is required.")
 
                 # --- Consent date validation ---
                 if consent and consent.name.lower() == "yes":
@@ -182,10 +187,6 @@ class ScreeningCsvUploadValuesView(View):
                 else:
                     consent_date = None
 
-                # --- Determine eligible safely ---
-                eligible_val = safe_eligible(row, consent, age18years, present_symptoms,
-                                             produce_resp_sample, unable_understand, not_willing)
-
                 # --- Create or update Screening ---
                 screening, created = Screening.objects.update_or_create(
                     pid=pid,
@@ -195,7 +196,7 @@ class ScreeningCsvUploadValuesView(View):
                         "screening_date": screening_date,
                         "dob": dob,
                         "age": age,
-                        "remarks": row.get("Remarks") or None,
+                        "remarks": clean_text(row.get("Remarks")),
                         "site": site,
                         "sex": sex,
                         "age18years": age18years,
@@ -209,8 +210,6 @@ class ScreeningCsvUploadValuesView(View):
                         "genexpert_confirmation": genexpert_confirmation,
                         "reasons": reasons,
                         "reasons_other": clean_text(row.get("ReasonsOther")),
-                        # "reasons_other": reasons_other,
-                        "eligible": eligible_val,
                     },
                 )
 
