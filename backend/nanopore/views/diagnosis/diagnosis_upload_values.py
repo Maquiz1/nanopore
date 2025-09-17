@@ -251,4 +251,4 @@ class DiagnosisCsvUploadView(View):
                 request,
                 f"Imported {count_created} new and updated {count_updated} diagnosis."
             )
-        return redirect("nanopore:forms-status-list")
+        return redirect("nanopore:form-status-list")
