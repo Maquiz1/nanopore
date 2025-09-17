@@ -21,6 +21,7 @@ from options.models import (
 
 
 # --- helpers ---
+
 def safe_int(val, required=False, field_name=None):
     """Convert to int if possible, else raise error if required."""
     if val in [None, "", "None", "nan", "NaN"]:
@@ -58,44 +59,77 @@ def parse_date_field(val, required=False, field_name=None):
 
 
 def get_foreign(obj_class, val, required=False, field_name=None):
-    """Safely get foreign key object by PK or by `value` field."""
+    """
+    Safely get foreign key object by its `value` field only (not pk).
+    Always shows the field name in errors.
+    """
     if val in [None, "", "None", "nan", "NaN"]:
         if required:
-            raise ValidationError(f"Missing required foreign key for {field_name}")
+            raise ValidationError(f"Missing required value for {field_name}")
         return None
 
-    pk = safe_int(val)
-    if hasattr(obj_class, "value"):
-        obj = obj_class.objects.filter(value=pk).first()
-    else:
-        obj = obj_class.objects.filter(pk=pk).first()
+    # normalize "2.0" → "2"
+    val_str = str(val).strip()
+    if val_str.replace(".", "", 1).isdigit():
+        if "." in val_str:
+            val_str = str(int(float(val_str)))  # convert 2.0 -> 2
+
+    try:
+        obj = obj_class.objects.filter(value=val_str).first()
+    except Exception as e:
+        raise ValidationError(f"Error while looking up {field_name}={val_str}: {str(e)}")
 
     if required and not obj:
-        raise ValidationError(f"Invalid foreign key for {field_name}: {val}")
+        raise ValidationError(f"Invalid value for {field_name}: {val_str}")
+
     return obj
 
 
+
+
 def split_m2m(obj_class, val, required=False, field_name=None):
-    """Split comma-separated M2M values and return queryset list."""
+    """
+    Split comma-separated values and fetch objects by their `value` field.
+    Normalizes numbers like '2.0' → '2'.
+    Always includes field_name in error messages.
+    """
     if not val or str(val).lower() in ["none", "nan", ""]:
         if required:
             raise ValidationError(f"Missing required M2M values for {field_name}")
         return []
 
     result = []
-    for v in str(val).split(","):
-        v = v.strip()
-        if v:
-            obj = get_foreign(obj_class, v, required=True, field_name=field_name)
-            if obj:
-                result.append(obj)
+    for raw in str(val).split(","):
+        v = raw.strip()
+        if not v:
+            continue
+
+        # normalize "2.0" → "2"
+        if v.replace(".", "", 1).isdigit():
+            if "." in v:
+                v = str(int(float(v)))
+
+        try:
+            obj = obj_class.objects.filter(value=v).first()
+        except Exception as e:
+            raise ValidationError(f"Error while looking up {field_name}={v}: {str(e)}")
+
+        if not obj:
+            raise ValidationError(f"Invalid value for {field_name}: {v}")
+
+        result.append(obj)
+
     return result
 
 
 def to_bool(val):
-    """Convert 1 / 1.0 / '1' → True, else False."""
+    """Convert 1 / 1.0 / '1' / 'on' → True, else False."""
     if val is None:
         return False
+
+    if isinstance(val, str) and val.strip().lower() == "on":
+        return True
+
     try:
         return int(float(str(val).strip())) == 1
     except (ValueError, TypeError):
@@ -144,7 +178,6 @@ class DiagnosisCsvUploadView(View):
                 tb_diagnosis_made = get_foreign(TBDiagnosisMade, row.get("TbDiagnosisMade"))
                 diagnosis_made_other = row.get("DiagnosisMadeOther") or None
                 bacteriological_diagnosis = get_foreign(DiagnosisBacteriological, row.get("BacteriologicalDiagnosis"))
-                tb_diagnosed_clinically = get_foreign(DiagnosedClinically, row.get("TbDiagnosedClinically"))
                 tb_clinically_other = row.get("TbClinicallyOther") or None
                 clinician_received_date = parse_date_field(row.get("ClinicianReceivedDate"))
                 tb_treatment = get_foreign(TBTreatmentStarted, row.get("TbTreatment"))
@@ -159,10 +192,6 @@ class DiagnosisCsvUploadView(View):
                 tb_outcome2_date = row.get("TbOutcome2Date") or None
                 remarks = row.get("Remarks") or None
                 
-                # # --- Boolean unknown fields ---
-                # tx_unknown_month = to_bool(row.get("TxUnknownMonth"))
-
-                # --- Create or update Diagnosis ---
                 # --- Create or update Diagnosis ---
                 diagnosis, created = Diagnosis.objects.update_or_create(
                     screening=screening,
@@ -187,18 +216,11 @@ class DiagnosisCsvUploadView(View):
                         "remarks": remarks,
                     },
                 )
-
-                # --- Assign ManyToMany field separately ---
-                if tb_diagnosed_clinically:
-                    # If your CSV can have multiple IDs, split by comma and filter
-                    if isinstance(tb_diagnosed_clinically, str):
-                        ids = [safe_int(i) for i in tb_diagnosed_clinically.split(",") if safe_int(i) is not None]
-                        objects = DiagnosedClinically.objects.filter(pk__in=ids)
-                    else:
-                        objects = [tb_diagnosed_clinically]
-
-                    diagnosis.tb_diagnosed_clinically.set(objects)
-
+                
+                # ManyToMany
+                diagnosis.tb_diagnosed_clinically.set(
+                    split_m2m(DiagnosedClinically, row.get("TbDiagnosedClinically"))
+                )
                 if created:
                     count_created += 1
                 else:

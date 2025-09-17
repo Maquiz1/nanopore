@@ -23,7 +23,7 @@ class Diagnosis(models.Model):
     
     # Final diagnosis
 
-    tb_diagnosis = models.ForeignKey(YesNo, on_delete=models.SET_NULL, blank=True, null=True, related_name="tb_diagnosis")
+    tb_diagnosis = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="tb_diagnosis")
     tb_diagnosis_date = models.DateField(blank=True, null=True)
     tb_diagnosis_made = models.ForeignKey(TBDiagnosisMade, on_delete=models.SET_NULL, blank=True, null=True, related_name="tb_diagnosis_made")
     diagnosis_made_other = models.TextField(max_length=255, blank=True, null=True)
