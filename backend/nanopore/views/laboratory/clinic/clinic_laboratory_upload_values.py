@@ -23,6 +23,11 @@ from options.models import (
 
 
 # --- helpers ---
+# def normalize_headers(reader):
+#     """Normalize headers: strip spaces, lowercase for consistency."""
+#     reader.fieldnames = [fn.strip().lower() for fn in reader.fieldnames]
+#     return reader
+
 def safe_int(val, required=False, field_name=None):
     """Convert to int if possible, else raise error if required."""
     if val in [None, "", "None", "nan", "NaN"]:
@@ -124,9 +129,13 @@ def split_m2m(obj_class, val, required=False, field_name=None):
 
 
 def to_bool(val):
-    """Convert 1 / 1.0 / '1' → True, else False."""
+    """Convert 1 / 1.0 / '1' / 'on' → True, else False."""
     if val is None:
         return False
+
+    if isinstance(val, str) and val.strip().lower() == "on":
+        return True
+
     try:
         return int(float(str(val).strip())) == 1
     except (ValueError, TypeError):

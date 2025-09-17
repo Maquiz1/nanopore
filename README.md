@@ -41,7 +41,7 @@ python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGR
 
 <!-- 
 
-python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_16/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_16/enrollment_ready_values.csv 
+python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_17/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_17/enrollment_ready_values.csv 
 
 -->
 
@@ -50,7 +50,7 @@ python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIG
 
 <!-- 
 
-python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_16/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_16/clinic_ready_values.csv 
+python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_17/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_17/clinic_ready_values.csv 
 
 -->
 
@@ -59,7 +59,7 @@ python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATI
 
 <!-- 
 
-python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_15/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_15/zonal_ready_values.csv 
+python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_17/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_17/zonal_ready_values.csv 
 
 -->
 
@@ -68,10 +68,11 @@ python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIO
 
 <!-- 
 
-python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_16/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_16/diagnosis_ready_values.csv 
+python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_17/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_17/diagnosis_ready_values.csv 
 
 -->
 
+<!-- REGIMES CHANGES -->
 
 <!-- 
 
