@@ -13,6 +13,14 @@ from demographic.models import Sex
 from options.models import YesNo, EnrolledReason
 
 
+def clean_text(val):
+    """Strip spaces and normalize empty strings to None."""
+    if val is None:
+        return None
+    cleaned = str(val).strip()
+    return cleaned if cleaned else None
+
+
 def safe_int(val):
     """Convert string numbers like '1.0' to int, return None if invalid."""
     if val is None or str(val).strip() == "":
@@ -117,7 +125,7 @@ class ScreeningCsvUploadValuesView(View):
                 present_symptoms = get_foreign(YesNo, row.get("PresentSymptoms"))
                 genexpert_confirmation = get_foreign(YesNo, row.get("GenexpertConfirmation"))
                 reasons = get_foreign(EnrolledReason, row.get("Reasons"))
-                reasons_other = row.get("ReasonsOther") or None
+                # reasons_other = row.get("ReasonsOther") or None
                 pid1 = row.get("PID1") or None
                 pid2 = row.get("PID2") or None
 
@@ -200,7 +208,8 @@ class ScreeningCsvUploadValuesView(View):
                         "present_symptoms": present_symptoms,
                         "genexpert_confirmation": genexpert_confirmation,
                         "reasons": reasons,
-                        "reasons_other": reasons_other,
+                        "reasons_other": clean_text(row.get("ReasonsOther")),
+                        # "reasons_other": reasons_other,
                         "eligible": eligible_val,
                     },
                 )
