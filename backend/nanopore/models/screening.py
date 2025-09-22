@@ -7,6 +7,7 @@ from demographic.models import Sex
 from locations.models import Site
 from options.models import YesNo, EnrolledReason
 from django.contrib.auth import get_user_model
+import re
 
 User = get_user_model()
 
@@ -75,8 +76,14 @@ class Screening(models.Model):
             screening_logic = screening_logic and (self.genexpert_confirmation and self.genexpert_confirmation.name.strip().lower() == 'yes')
 
         self.eligible = consent_logic and screening_logic
+        
+        if self.remarks:
+            self.remarks = re.sub(r"\s+", " ", self.remarks.strip())
+        if self.reasons_other:
+            self.reasons_other = re.sub(r"\s+", " ", self.reasons_other.strip())
 
         super().save(*args, **kwargs)
+
 
     def clean(self):
         super().clean()
@@ -84,6 +91,9 @@ class Screening(models.Model):
         min_date = date(2025, 1, 20)
 
         # --- Screening date validation ---
+        if self.screening_date is None:
+            raise ValidationError({"screening_date": "Screening date is required."})
+        
         if self.screening_date < min_date:
             raise ValidationError({"screening_date": "Screening date cannot be before 20 Jan 2025."})
         if self.screening_date > today:
@@ -93,16 +103,29 @@ class Screening(models.Model):
         if not self.dob and self.age is None:
             raise ValidationError({"age": "Either Age or DOB is required."})
 
-        if self.dob:
-            age_from_dob = self.screening_date.year - self.dob.year - (
+        calculated_age = None
+        if self.dob and self.screening_date:
+            if self.screening_date < self.dob:
+                raise ValidationError({"dob": "Screening date cannot be before Date of Birth."})
+
+            calculated_age = self.screening_date.year - self.dob.year - (
                 (self.screening_date.month, self.screening_date.day) < (self.dob.month, self.dob.day)
             )
-            if age_from_dob < 18:
+
+            if calculated_age < 18:
                 raise ValidationError({"dob": "Participant must be at least 18 years old based on DOB."})
 
         if self.age is not None:
             if self.age < 18:
                 raise ValidationError({"age": "Participant must be at least 18 years old based on Age."})
+
+        # If both are given, check consistency (only if screening_date available)
+        # if self.dob and self.age is not None and calculated_age is not None:
+        #     if calculated_age != self.age:
+        #         raise ValidationError({
+        #             "age": f"Provided Age ({self.age}) does not match age from DOB ({calculated_age})."
+        #         })
+
 
         # --- Consent date validation ---
         if self.consent and self.consent.name.strip().lower() == "yes":

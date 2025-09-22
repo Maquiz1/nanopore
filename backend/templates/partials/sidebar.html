@@ -92,6 +92,8 @@
         </div>
     </div>
 
+    {% if user.is_superuser %}
+
     <!-- Exports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
@@ -147,6 +149,8 @@
             </a>
         </div>
     </div>
+    
+    {% endif %}
 
     <!-- Auth -->
     {% if user.is_authenticated %}
