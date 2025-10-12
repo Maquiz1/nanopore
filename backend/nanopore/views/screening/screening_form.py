@@ -46,6 +46,8 @@ class ScreeningFormView(LoginRequiredMixin, View):
 
         context["user_zone"] = user_zone
         context["dar_es_salaam_zone"] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
+        context["zone_group_1"] = [1]  # ← add this line
+        context["zone_group_2_5"] = [2, 3, 4, 5]  # ← add this line
         return context
 
 

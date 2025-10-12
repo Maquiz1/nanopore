@@ -133,13 +133,12 @@ class ScreeningForm(forms.ModelForm):
 
     @property
     def zone(self):
-        site = self.initial.get("site") or getattr(self.instance, "site", None)
-        if (
-            site
-            and site.district
-            and site.district.region
-            and site.district.region.zone
-        ):
+        site = (
+            getattr(self, "cleaned_data", {}).get("site")
+            or self.initial.get("site")
+            or getattr(self.instance, "site", None)
+        )
+        if site and site.district and site.district.region and site.district.region.zone:
             return site.district.region.zone
         return None
 
