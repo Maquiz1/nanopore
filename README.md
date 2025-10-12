@@ -93,6 +93,14 @@ python manage.py transform_regimen_changes   --input ~/Documents/WORKS/NIMR/DREA
 -->
 
 
+<!-- Back Up  -->
+<!-- 
+
+~/Documents/FINAL_PROJECTS/dream/backend$ pg_dump -U username -h localhost -p 5432 -Fc nanopore > ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/Back_Up/_2025_10_12/nanopore.dump
+
+-->
+
+
 
 
 
