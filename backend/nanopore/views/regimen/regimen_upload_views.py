@@ -130,4 +130,4 @@ class RegimenChangesCsvUploadView(View):
                 request,
                 f"Imported {count_created} new and updated {count_updated} regimen changes."
             )
-        return redirect("nanopore:forms-status-list")
+        return redirect("nanopore:form-status-list")

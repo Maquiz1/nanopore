@@ -1,94 +1,34 @@
-import pandas as pd
 from django.core.management.base import BaseCommand
-from datetime import timedelta
+import pandas as pd
+import os
+
 
 class Command(BaseCommand):
-    help = "Convert screening CSV from internal format to upload-ready format"
+    help = "Update Screening CSV (age, sex, dob) from Enrollment CSV using id ↔ enrollment_id, and report incomplete records."
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--input', '-i',
-            type=str,
-            required=True,
-            help='Path to input CSV file (internal format)'
+            "--screening_csv", type=str, required=True,
+            help="Path to the Screening CSV file"
         )
         parser.add_argument(
-            '--output', '-o',
-            type=str,
-            required=True,
-            help='Path to output CSV file (upload-ready format)'
+            "--enrollment_csv", type=str, required=True,
+            help="Path to the Enrollment CSV file"
+        )
+        parser.add_argument(
+            "--output_csv", type=str, required=True,
+            help="Path to save the updated Screening CSV file"
         )
 
     def handle(self, *args, **options):
-        input_csv = options['input']
-        output_csv = options['output']
+        screening_csv = options["screening_csv"]
+        enrollment_csv = options["enrollment_csv"]
+        output_csv = options["output_csv"]
 
-        self.stdout.write(f"Converting CSV:\n  Input: {input_csv}\n  Output: {output_csv}")
+        self.stdout.write(f"📂 Loading Screening CSV: {screening_csv}")
+        self.stdout.write(f"📂 Loading Enrollment CSV: {enrollment_csv}")
 
-        # Load CSV
-        df = pd.read_csv(input_csv)
-        df.columns = df.columns.str.strip()  # remove extra spaces
-
-        # Convert Yes/No fields (1 → Yes, 2 → No)
-        yes_no_columns = [
-            "present_symptoms",
-            "genexpert_confirmation",
-            "produce_resp_sample",
-            "age18years",
-            "consent",
-            "not_willing",
-            "unable_understand",
-            "enrolled",
-        ]
-        for col in yes_no_columns:
-            if col in df.columns:
-                df[col] = df[col].map({1: "Yes", 2: "No"}).fillna(df[col])
-
-        # Default 'enrolled' to "Yes" if empty
-        if "enrolled" in df.columns:
-            df["enrolled"] = df["enrolled"].fillna("Yes")
-
-        # Convert Eligible: 1 -> True, 0 -> False, blanks -> False
-        if "eligible" in df.columns:
-            df["eligible"] = (
-                df["eligible"]
-                .astype(str)
-                .str.strip()
-                .map({"1": True, "0": False, "True": True, "False": False})
-                .fillna(False)
-            )
-
-        # Convert Sex: 1 -> Male, 2 -> Female
-        if "sex" in df.columns:
-            df["sex"] = df["sex"].map({1: "Male", 2: "Female"}).fillna(df["sex"])
-
-        # Mapping columns from internal/download to upload-ready
-        column_mapping = {
-            "pid": "PID",
-            "screening_date": "ScreeningDate",
-            "sex": "Sex",
-            "dob": "DOB",
-            "age": "Age",
-            "present_symptoms": "PresentSymptoms",
-            "genexpert_confirmation": "GenexpertConfirmation",
-            "produce_resp_sample": "ProduceRespSample",
-            "age18years": "Age18Years",
-            "consent": "Consent",
-            "consent_date": "ConsentDate",
-            "not_willing": "NotWilling",
-            "unable_understand": "UnableUnderstand",
-            "enrolled": "Enrolled",
-            "reasons": "Reasons",
-            "reasons_other": "OtherReason",
-            "remarks": "Remarks",
-            "eligible": "Eligible",
-            "facility_id": "Site",
-            "zone": "Zone"
-        }
-
-        df = df.rename(columns=column_mapping)
-
-        # Replace Site IDs with names
+        # ---------------- Facility mapping ----------------
         site_mapping = {
             1: "Kivunge Hospital",
             2: "Mnazi Mmoja RRH",
@@ -116,71 +56,63 @@ class Command(BaseCommand):
             25: "MAKOLE URBAN HEALTH CENTRE",
         }
 
-        if "Site" in df.columns:
-            df["Site"] = df["Site"].map(site_mapping).fillna(df["Site"])
+        # ---------------- Load CSVs ----------------
+        df_screening = pd.read_csv(screening_csv)
+        df_enrollment = pd.read_csv(enrollment_csv)
 
-        # Replace Zone IDs with names
-        zone_mapping = {
-            1: "Dar es salaam",
-            2: "Mbeya",
-            3: "Mwanza",
-            4: "Mbeya",
-            5: "Zanzibar",
-        }
+        # Merge (left join: keep all Screening rows, pull Age/Sex/DOB from Enrollment)
+        df_merged = df_screening.merge(
+            df_enrollment[["enrollment_id", "age", "sex", "dob"]],
+            how="left",
+            left_on="id",              # from screening_form
+            right_on="enrollment_id",  # from enrollment_form
+            suffixes=("", "_enrollment")
+        )
 
-        if "Zone" in df.columns:
-            df["Zone"] = df["Zone"].map(zone_mapping).fillna(df["Zone"])
+        # Update values from enrollment if missing in screening
+        for col in ["age", "sex", "dob"]:
+            df_merged[col] = df_merged[f"{col}_enrollment"].combine_first(df_merged[col])
 
-        # Convert date fields to Django-friendly YYYY-MM-DD
-        date_columns = ["ScreeningDate", "DOB", "ConsentDate"]
-        for col in date_columns:
-            if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
+        # Drop helper columns
+        df_merged.drop(columns=["enrollment_id"] +
+                       [f"{col}_enrollment" for col in ["age", "sex", "dob"]],
+                       inplace=True, errors="ignore")
 
-        # Calculate missing DOB or Age based on ScreeningDate
-        def calculate_dob_age(row):
-            try:
-                if pd.isna(row["DOB"]) and not pd.isna(row["Age"]):
-                    row["DOB"] = (
-                        pd.to_datetime(row["ScreeningDate"])
-                        - pd.to_timedelta(int(row["Age"]) * 365.25, unit='d')
-                    ).strftime('%Y-%m-%d')
-                elif pd.isna(row["Age"]) and not pd.isna(row["DOB"]):
-                    row["Age"] = int(
-                        (pd.to_datetime(row["ScreeningDate"]) - pd.to_datetime(row["DOB"])).days // 365.25
-                    )
-            except Exception:
-                pass
-            return row
 
-        df = df.apply(calculate_dob_age, axis=1)
+        # ---------------- Find incomplete records ----------------
+        missing_mask = ((df_merged["age"].isna() & df_merged["dob"].isna()) |
+                        (df_merged["sex"].isna()) |
+                        (df_merged["sex"].astype(str).str.strip() == ""))
 
-        # Final required upload columns
-        upload_columns = [
-            "PID",
-            "ScreeningDate",
-            "Sex",
-            "DOB",
-            "Age",
-            "PresentSymptoms",
-            "GenexpertConfirmation",
-            "ProduceRespSample",
-            "Age18Years",
-            "Consent",
-            "ConsentDate",
-            "NotWilling",
-            "UnableUnderstand",
-            "Enrolled",
-            "Reasons",
-            "OtherReason",
-            "Remarks",
-            "Eligible",
-            "Site",
-            "Zone"
-        ]
+        missing_records = df_merged.loc[missing_mask]
 
-        df = df[upload_columns]
+        # Save updated CSV
+        df_merged.to_csv(output_csv, index=False)
+        self.stdout.write(self.style.SUCCESS(f"✅ Updated CSV saved to: {output_csv}"))
 
-        # Save CSV
-        df.to_csv(output_csv, index=False)
-        self.stdout.write(self.style.SUCCESS(f"CSV successfully converted and saved to {output_csv}"))
+
+
+        # ---------------- Map facility_id to facility_name ----------------
+        if "facility_id" in missing_records.columns:
+            missing_records["facility_name"] = missing_records["facility_id"].map(site_mapping)
+            
+        # Report missing values (count only)
+        if not missing_records.empty:
+            count_missing = len(missing_records)
+            self.stdout.write(self.style.WARNING(f"⚠️ Found {count_missing} records with missing Age/DOB or Sex."))
+
+            # Save missing records separately
+            missing_csv = os.path.join(
+                os.path.dirname(output_csv),
+                "screening_missing_records.csv"
+            )
+
+            cols_to_export = [
+                c for c in ["facility_id", "facility_name", "pid", "id", "age", "dob", "sex", "eligible"]
+                if c in missing_records.columns
+            ]
+            missing_records.to_csv(missing_csv, index=False, columns=cols_to_export)
+
+            self.stdout.write(self.style.WARNING(f"⚠️ Missing records saved to: {missing_csv}"))
+        else:
+            self.stdout.write(self.style.SUCCESS("🎉 All records have Age/DOB and Sex."))
