@@ -101,6 +101,10 @@ python manage.py transform_regimen_changes   --input ~/Documents/WORKS/NIMR/DREA
 -->
 
 
+<!-- pg_restore -U myuser -h localhost -p 5432 -d nanopore_restored ~/Documents/WORKS/nanopore.dump
+ -->
+
+
 
 
 
