@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
 
-            <!-- Top navigation buttons -->
+            <!-- Navigation -->
             <div class="d-flex justify-content-between mb-4 gap-2">
                 <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary flex-grow-1">
                     🔙 Back to List
@@ -15,16 +15,14 @@
                 </a>
             </div>
 
-            <!-- Card wrapper -->
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">{{ object|default:"New" }} Screening</h4>
                 </div>
-                <div class="card-body">
 
-                    <form method="post" novalidate id="screeningForm"
-                        data-zone-id="{{ form.instance.site.district.region.zone.id|default:'' }}"
-                        data-zone-name="{{ screening.site.zone.name|default:'' }}">
+                <div class="card-body">
+                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ user_zone.id|default:'0' }}"
+                        data-zone-name="{{ user_zone.name|default:'' }}">
                         {% csrf_token %}
 
                         <!-- Non-field errors -->
@@ -40,54 +38,43 @@
                         <div class="p-2 mb-3 bg-info text-white rounded">
                             <h5 class="mb-0">Demographic Information</h5>
                         </div>
+
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                {{ form.screening_date.label_tag }}
-                                {{ form.screening_date }}
+                                {{ form.screening_date.label_tag }} {{ form.screening_date }}
                                 {% for error in form.screening_date.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
                             </div>
                             <div class="col-md-4">
-                                {{ form.pid1.label_tag }}
-                                {{ form.pid1 }}
+                                {{ form.pid1.label_tag }} {{ form.pid1 }}
                                 {% for error in form.pid1.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
                             </div>
                             <div class="col-md-4">
-                                {{ form.pid2.label_tag }}
-                                {{ form.pid2 }}
+                                {{ form.pid2.label_tag }} {{ form.pid2 }}
                                 {% for error in form.pid2.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
                             </div>
                         </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                {{ form.sex.label_tag }}
-                                {{ form.sex }}
+                                {{ form.sex.label_tag }} {{ form.sex }}
                                 {% for error in form.sex.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
                             </div>
                             <div class="col-md-4">
-                                {{ form.dob.label_tag }}
-                                {{ form.dob }}
+                                {{ form.dob.label_tag }} {{ form.dob }}
                                 {% for error in form.dob.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
                             </div>
                             <div class="col-md-4">
-                                {{ form.age.label_tag }}
-                                {{ form.age }}
+                                {{ form.age.label_tag }} {{ form.age }}
                                 {% if form.instance.dob %}
-                                <small class="text-muted"> (Current age: {{ current_age }} yrs)</small>
+                                <small class="text-muted">(Current age: {{ current_age }} yrs)</small>
                                 {% endif %}
                                 {% for error in form.age.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
                             </div>
                         </div>
 
@@ -99,94 +86,54 @@
                         </div>
 
                         <div class="row g-3 mb-3">
-                            {% with user_group=request.user.groups.all.0.name|upper %}
+                            {% with user_group=request.user.groups.first.name|upper %}
                             {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
-                            <!-- Admin/Reviewer see both -->
+                            <!-- Admins & reviewers see both -->
                             <div class="col-md-6">
-                                {{ form.present_symptoms.label_tag }}
-                                {{ form.present_symptoms }}
-                                {% for error in form.present_symptoms.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
                             </div>
                             <div class="col-md-6">
-                                {{ form.genexpert_confirmation.label_tag }}
-                                {{ form.genexpert_confirmation }}
-                                {% for error in form.genexpert_confirmation.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
                             </div>
-
+                            {% elif user_zone %}
+                            {% if user_zone.id == 1 %}
+                            <!-- Zone 1 → Present symptoms -->
+                            <div class="col-md-6">
+                                {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
+                            </div>
+                            {% elif user_zone.id in zone_group_2_5 %}
+                            <!-- Zone 2–5 → GeneXpert -->
+                            <div class="col-md-6">
+                                {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
+                            </div>
                             {% else %}
-                            {% if user_zone %}
-                            {% with zone_id=user_zone.id %}
-                            {% if zone_id == 1 %}
-                            <!-- Zone ID = 1 → Show present_symptoms -->
-                            <div class="col-md-6">
-                                {{ form.present_symptoms.label_tag }}
-                                {{ form.present_symptoms }}
-                                {% for error in form.present_symptoms.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            {% elif zone_id == 2 or zone_id == 3 or zone_id == 4 or zone_id == 5 %}
-                            <!-- Zone IDs 2–5 → Show genexpert_confirmation -->
-                            <div class="col-md-6">
-                                {{ form.genexpert_confirmation.label_tag }}
-                                {{ form.genexpert_confirmation }}
-                                {% for error in form.genexpert_confirmation.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            {% else %}
-                            <!-- All other zones → Show nothing -->
                             <div class="col-md-12 text-muted">
                                 <em>No inclusion criteria required for this zone.</em>
                             </div>
                             {% endif %}
-                            {% endwith %}
                             {% else %}
                             <div class="col-md-12 text-muted">
                                 <em>No site information available.</em>
                             </div>
                             {% endif %}
-                            {% endif %}
                             {% endwith %}
                         </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                {{ form.produce_resp_sample.label_tag }}
-                                {{ form.produce_resp_sample }}
-                                {% for error in form.produce_resp_sample.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.produce_resp_sample.label_tag }} {{ form.produce_resp_sample }}
                             </div>
                         </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                {{ form.age18years.label_tag }}
-                                {{ form.age18years }}
-                                {% for error in form.age18years.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.age18years.label_tag }} {{ form.age18years }}
                             </div>
                             <div class="col-md-4">
-                                {{ form.consent.label_tag }}
-                                {{ form.consent }}
-                                {% for error in form.consent.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.consent.label_tag }} {{ form.consent }}
                             </div>
                             <div class="col-md-4" id="consent-date-wrapper">
-                                {{ form.consent_date.label_tag }}
-                                {{ form.consent_date }}
-                                {% for error in form.consent_date.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.consent_date.label_tag }} {{ form.consent_date }}
                             </div>
                         </div>
 
@@ -198,18 +145,10 @@
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                {{ form.not_willing.label_tag }}
-                                {{ form.not_willing }}
-                                {% for error in form.not_willing.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.not_willing.label_tag }} {{ form.not_willing }}
                             </div>
                             <div class="col-md-6">
-                                {{ form.unable_understand.label_tag }}
-                                {{ form.unable_understand }}
-                                {% for error in form.unable_understand.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                {{ form.unable_understand.label_tag }} {{ form.unable_understand }}
                             </div>
                         </div>
 
@@ -222,25 +161,13 @@
                             </div>
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
-                                    {{ form.enrolled.label_tag }}
-                                    {{ form.enrolled }}
-                                    {% for error in form.enrolled.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    {{ form.enrolled.label_tag }} {{ form.enrolled }}
                                 </div>
                                 <div class="col-md-4" id="reasons-wrapper" style="display:none;">
-                                    {{ form.reasons.label_tag }}
-                                    {{ form.reasons }}
-                                    {% for error in form.reasons.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    {{ form.reasons.label_tag }} {{ form.reasons }}
                                 </div>
                                 <div class="col-md-4" id="reasons-other-wrapper" style="display:none;">
-                                    {{ form.reasons_other.label_tag }}
-                                    {{ form.reasons_other }}
-                                    {% for error in form.reasons_other.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    {{ form.reasons_other.label_tag }} {{ form.reasons_other }}
                                 </div>
                             </div>
                         </div>
@@ -252,21 +179,13 @@
                             <h5 class="mb-0">General Comments</h5>
                         </div>
                         <div class="mb-3">
-                            {{ form.remarks.label_tag }}
-                            {{ form.remarks }}
-                            {% for error in form.remarks.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
+                            {{ form.remarks.label_tag }} {{ form.remarks }}
                         </div>
 
-                        <!-- Form Buttons -->
+                        <!-- Buttons -->
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">
-                                ❌ Cancel
-                            </a>
-                            <button type="submit" class="btn btn-success">
-                                💾 Save Screening
-                            </button>
+                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">❌ Cancel</a>
+                            <button type="submit" class="btn btn-success">💾 Save Screening</button>
                         </div>
 
                     </form>
@@ -280,30 +199,22 @@
 {% block extra_scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // === Consent date toggle ===
         const consentField = document.getElementById("id_consent");
         const consentDateWrapper = document.getElementById("consent-date-wrapper");
         function toggleConsentDate() {
-            if (consentField.value === "1") consentDateWrapper.style.display = "block";
+            if (consentField?.value === "1") consentDateWrapper.style.display = "block";
             else {
                 consentDateWrapper.style.display = "none";
-                document.getElementById("id_consent_date").value = "";
+                const dateInput = document.getElementById("id_consent_date");
+                if (dateInput) dateInput.value = "";
             }
         }
-        consentField.addEventListener("change", toggleConsentDate);
+        consentField?.addEventListener("change", toggleConsentDate);
         toggleConsentDate();
 
-        // === Enrollment + Reasons toggle ===
         const form = document.getElementById("screeningForm");
         const zoneId = parseInt(form.dataset.zoneId || 0);
-        const zoneName = form.dataset.zoneName.toLowerCase();
-        console.log("Zone ID:", zoneId, "Zone Name:", zoneName);
-        // Assuming Dar es Salaam has a specific zone ID, e.g., 123
-        // Replace 123 with the actual ID from your database if needed
-        // Or you can pass it from the backend context
-        // const darEsSalaamZoneId = {{ dar_es_salaam_zone.id|default:0 }};
-
-        const darEsSalaamZoneId = parseInt("{{ dar_es_salaam_zone.id|default:'0' }}", 10);
+        const darZoneId = parseInt("{{ dar_es_salaam_zone.id|default:'0' }}", 10);
 
         const presentSymptoms = document.getElementById("id_present_symptoms");
         const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
@@ -317,46 +228,26 @@
 
         function toggleEnrollmentVisibility() {
             let eligible = false;
-            if (zoneId === darEsSalaamZoneId) {
-                eligible = (presentSymptoms?.value === "1");
-            } else {
-                eligible = (genexpertConfirmation?.value === "1");
-            }
+            if (zoneId === darZoneId) eligible = presentSymptoms?.value === "1";
+            else eligible = genexpertConfirmation?.value === "1";
 
-            if (eligible) {
-                enrollmentSection.style.display = "block";
-                enrolledField.required = true;
-            } else {
-                enrollmentSection.style.display = "none";
-                enrolledField.required = false;
-                reasonsField.required = false;
-                reasonsOtherField.required = false;
-                enrolledField.value = "";
-                reasonsField.value = "";
-                reasonsOtherField.value = "";
-            }
-            toggleReasonsVisibility();
+            enrollmentSection.style.display = eligible ? "block" : "none";
         }
 
         function toggleReasonsVisibility() {
             if (enrolledField?.value === "2") {
                 reasonsWrapper.style.display = "block";
-                reasonsField.required = true;
             } else {
                 reasonsWrapper.style.display = "none";
-                reasonsField.required = false;
                 reasonsField.value = "";
                 toggleReasonsOtherVisibility();
             }
         }
 
         function toggleReasonsOtherVisibility() {
-            if (reasonsField?.value === "96") {
-                reasonsOtherWrapper.style.display = "block";
-                reasonsOtherField.required = true;
-            } else {
+            if (reasonsField?.value === "96") reasonsOtherWrapper.style.display = "block";
+            else {
                 reasonsOtherWrapper.style.display = "none";
-                reasonsOtherField.required = false;
                 reasonsOtherField.value = "";
             }
         }
@@ -367,8 +258,6 @@
         reasonsField?.addEventListener("change", toggleReasonsOtherVisibility);
 
         toggleEnrollmentVisibility();
-        toggleReasonsVisibility();
-        toggleReasonsOtherVisibility();
     });
 </script>
 {% endblock %}
