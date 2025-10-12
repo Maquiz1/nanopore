@@ -48,6 +48,16 @@ class ScreeningFormView(LoginRequiredMixin, View):
         context["dar_es_salaam_zone"] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
         context["zone_group_1"] = [1]  # ← add this line
         context["zone_group_2_5"] = [2, 3, 4, 5]  # ← add this line
+        
+        # Calculate current age if dob exists
+        form = context.get("form")
+        current_age = None
+        if form and form.instance.dob:
+            today = timezone.now().date()
+            dob = form.instance.dob
+            current_age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        context["current_age"] = current_age
+    
         return context
 
 
@@ -78,16 +88,6 @@ class ScreeningFormView(LoginRequiredMixin, View):
                 obj.created_by = request.user
             obj.updated_by = request.user
             obj.updated_at = timezone.now()
-
-            # Age calculation at screening
-            if obj.dob and obj.screening_date:
-                age_at_screening = obj.screening_date.year - obj.dob.year - (
-                    (obj.screening_date.month, obj.screening_date.day) < (obj.dob.month, obj.dob.day)
-                )
-                obj.age = age_at_screening
-            else:
-                form.add_error(None, "Date of Birth and Screening Date are required to calculate age.")
-                return render(request, self.template_name, {"form": form, "object": obj})
 
             # Eligibility recalculation
             obj.eligible = self.calculate_eligibility(obj)
