@@ -39,6 +39,7 @@ DATABASES = {
 
 # Installed apps
 INSTALLED_APPS = [
+    'rest_framework',
     'common.apps.CommonConfig',
     'options.apps.OptionsConfig',
     'demographic.apps.DemographicConfig',

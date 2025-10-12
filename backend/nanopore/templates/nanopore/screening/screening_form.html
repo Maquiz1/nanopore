@@ -96,42 +96,48 @@
                             <h5 class="mb-0">Inclusion Criteria</h5>
                         </div>
                         <div class="row g-3 mb-3">
-                            {% if request.user.is_superuser or request.user.groups.all.0.name|upper in "ADMIN,REVIEWER" %}
-                                <!-- Show both for Admin, Reviewer, or Superuser -->
-                                <div class="col-md-4">
-                                    {{ form.present_symptoms.label_tag }}
-                                    {{ form.present_symptoms }}
-                                    {% for error in form.present_symptoms.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-4">
-                                    {{ form.genexpert_confirmation.label_tag }}
-                                    {{ form.genexpert_confirmation }}
-                                    {% for error in form.genexpert_confirmation.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <!-- Normal user: show based on Zone -->
-                                {% if form.instance.site and form.instance.site.district.region.zone.name|lower == "dar es salaam" %}
-                                    <div class="col-md-6">
-                                        {{ form.present_symptoms.label_tag }}
-                                        {{ form.present_symptoms }}
-                                        {% for error in form.present_symptoms.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <div class="col-md-6">
-                                        {{ form.genexpert_confirmation.label_tag }}
-                                        {{ form.genexpert_confirmation }}
-                                        {% for error in form.genexpert_confirmation.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            {% endif %}
+{% with user_group=request.user.groups.all.0.name|upper %}
+    {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+        <!-- Show both -->
+        <div class="col-md-6">
+            {{ form.present_symptoms.label_tag }}
+            {{ form.present_symptoms }}
+            {% for error in form.present_symptoms.errors %}
+            <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="col-md-6">
+            {{ form.genexpert_confirmation.label_tag }}
+            {{ form.genexpert_confirmation }}
+            {% for error in form.genexpert_confirmation.errors %}
+            <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+    {% elif user_group == "NURSE" or user_group == "CLINICIAN" %}
+        {% if form.instance.site and form.instance.site.district.region.zone.name|lower == "dar es salaam" %}
+            <!-- Zone = Dar es Salaam → show present_symptoms -->
+            <div class="col-md-6">
+                {{ form.present_symptoms.label_tag }}
+                {{ form.present_symptoms }}
+                {% for error in form.present_symptoms.errors %}
+                <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Zone ≠ Dar es Salaam → show genexpert_confirmation -->
+            <div class="col-md-6">
+                {{ form.genexpert_confirmation.label_tag }}
+                {{ form.genexpert_confirmation }}
+                {% for error in form.genexpert_confirmation.errors %}
+                <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endwith %}
+
+
                             <div class="col-md-4">
                                 {{ form.produce_resp_sample.label_tag }}
                                 {{ form.produce_resp_sample }}

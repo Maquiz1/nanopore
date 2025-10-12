@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.utils.dateparse import parse_date
 from django.core.exceptions import ValidationError
+from datetime import datetime
 
 from nanopore.forms.screening.screening_upload_form import ScreeningUploadForm
 from nanopore.models import Screening
@@ -160,20 +161,36 @@ class ScreeningCsvUploadValuesView(View):
                     raise ValueError("Screening date is required.")
 
                 # --- Age / DOB validation (must be >= 18) ---
-                age_val = safe_int(row.get("Age"))
-                if dob:
-                    age_from_dob = screening_date.year - dob.year - (
-                        (screening_date.month, screening_date.day) < (dob.month, dob.day)
-                    )
-                    if age_from_dob < 18:
-                        raise ValueError("Participant must be at least 18 years old based on DOB.")
-                    age = age_from_dob
-                elif age_val is not None:
-                    if age_val < 18:
-                        raise ValueError("Participant must be at least 18 years old based on Age.")
-                    age = age_val
+                eligible = str(row.get("Eligible")).strip().lower() == "true"  # Adjust depending on how Eligible is stored
+
+                if eligible:
+                    # Parse DOB string to date if exists
+                    dob_str = row.get("DOB")
+                    dob = None
+                    if dob_str:
+                        try:
+                            dob = datetime.strptime(dob_str, "%Y-%m-%d").date()  # adjust format to match your CSV
+                        except ValueError:
+                            raise ValueError(f"Invalid DOB format: {dob_str}")
+
+                    age_val = safe_int(row.get("Age"))
+
+                    if dob:
+                        age_from_dob = screening_date.year - dob.year - (
+                            (screening_date.month, screening_date.day) < (dob.month, dob.day)
+                        )
+                        if age_from_dob < 18:
+                            raise ValueError("Participant must be at least 18 years old based on DOB.")
+                        age = age_from_dob
+                    elif age_val is not None:
+                        if age_val < 18:
+                            raise ValueError("Participant must be at least 18 years old based on Age.")
+                        age = age_val
+                    else:
+                        raise ValueError("Either Age or DOB is required.")
                 else:
-                    raise ValueError("Either Age or DOB is required.")
+                    age = age_val if age_val is not None else None
+
 
                 # --- Consent date validation ---
                 if consent and consent.name.lower() == "yes":

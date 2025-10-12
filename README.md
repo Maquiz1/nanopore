@@ -7,7 +7,7 @@
 
 <!--
 
-python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/duplicates.csv
+python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/duplicates.csv
 
  -->
 
@@ -16,14 +16,26 @@ python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS
 
 <!-- 
 
-python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/screening_pid_lengths.csv
+python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_pid_lengths.csv
 
 -->
 
 <!-- 
 
-python manage.py screening_pid1_and_pid2_checks -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/screening_pid1_and_pid2_checks.csv
+python manage.py screening_pid1_and_pid2_checks -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_pid1_and_pid2_checks.csv
 
+-->
+
+<!-- UPDATING AGE,SEX AND DOB -->
+
+<!--
+
+python manage.py update_screening_age_sex_dob \
+  --screening_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_form.csv \
+  --enrollment_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_12/enrollment_form.csv \
+  --output_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_updated_form.csv
+ 
+  
 -->
 
 
@@ -32,7 +44,7 @@ python manage.py screening_pid1_and_pid2_checks -i ~/Documents/WORKS/NIMR/DREAM/
 
 <!-- 
 
-python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/screening_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_09_17/screening_ready_values.csv 
+python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_updated_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_12/screening_ready_values.csv 
 
 -->
 
@@ -41,7 +53,7 @@ python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGR
 
 <!-- 
 
-python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_17/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_09_17/enrollment_ready_values.csv 
+python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_12/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_12/enrollment_ready_values.csv 
 
 -->
 
@@ -50,7 +62,7 @@ python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIG
 
 <!-- 
 
-python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_17/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_09_17/clinic_ready_values.csv 
+python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_10_12/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_10_12/clinic_ready_values.csv 
 
 -->
 
@@ -59,7 +71,7 @@ python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATI
 
 <!-- 
 
-python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_17/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_09_17/zonal_ready_values.csv 
+python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_10_12/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_10_12/zonal_ready_values.csv 
 
 -->
 
@@ -68,7 +80,7 @@ python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIO
 
 <!-- 
 
-python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_17/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_09_17/diagnosis_ready_values.csv 
+python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_10_12/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_10_12/diagnosis_ready_values.csv 
 
 -->
 
@@ -76,7 +88,7 @@ python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGR
 
 <!-- 
 
-python manage.py transform_regimen_changes   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_09_14/regimen_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_09_14/regimen_ready_values.csv 
+python manage.py transform_regimen_changes   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_10_12/regimen_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_10_12/regimen_ready_values.csv 
 
 -->
 
@@ -179,3 +191,75 @@ pdfkit.from_file('template.html', 'output.pdf')
 
 If you want, I can also show a **Django view example that generates a PDF from a template using `pdfkit`**, which is often the most common use case. Do you want me to do that?
 
+
+
+
+MOBILE APP
+
+
+📱 Nanopore Mobile Starter (React Native + DRF)
+1. ✅ Setup React Native Project
+
+Run this on your dev machine:
+
+To create a new Expo project, run the following in your terminal:
+
+npx create-expo-app nanopore-mobile
+
+OR 
+
+npx create-expo-app@latest
+
+
+Choose the blank (JavaScript) template.
+
+2. ✅ To start the development server, run the following command:TO Terminal
+
+cd nanopore-mobile
+
+npx expo start
+
+3. ✅ Project Structure
+nanopore-mobile/
+ ├── App.js
+ ├── api/
+ │    └── client.js
+ ├── screens/
+ │    ├── LoginScreen.js
+ │    ├── DashboardScreen.js
+ │    └── ScreeningFormScreen.js
+ └── utils/
+      └── auth.js
+
+4. npm run reset-project
+
+This command will move the existing files in app to app-example, then create a new app directory with a new index.tsx file.
+
+
+
+
+EAS CLI
+EAS CLI is used to log in to your Expo account and compile your app using different EAS services such as Build, Update, or Submit. You can also use this tool to:
+
+Publish your app to the app stores
+Create a development, preview, or production build of your app
+Create over-the-air (OTA) updates
+Manage your app credentials
+Create an ad hoc provisioning profile for an iOS device
+To use EAS CLI, you need to install it globally on your local machine by running the command:
+
+Terminal
+
+Copy
+
+npm install -g eas-cli
+You can use eas --help in your terminal window to learn more about the available commands. For a complete reference, see eas-cli npm page.
+
+Expo Doctor
+Expo Doctor is a command line tool used to diagnose issues in your Expo project. To use it, run the following command in your project's root directory:
+
+Terminal
+
+Copy
+
+npx expo-doctor
