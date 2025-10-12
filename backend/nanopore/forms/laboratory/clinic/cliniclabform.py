@@ -92,9 +92,30 @@ class ClinicLaboratoryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['screening'].disabled = True
+        
+        
+        # ✅ Make required fields
+        self.fields['date_sample1_collected'].required = True
+        self.fields['appearance_sample1'].required = True
+        self.fields['sample1_volume'].required = True
 
     def clean(self):
         cleaned_data = super().clean()
+        
+        screening = cleaned_data.get("screening")
+        date_sample1_collected = cleaned_data.get("date_sample1_collected")
+        appearance_sample1 = cleaned_data.get("appearance_sample1")
+        sample1_volume = cleaned_data.get("sample1_volume")
+
+        # ✅ Custom validation messages for clarity
+        if not date_sample1_collected:
+            raise ValidationError("Date of Sample 1 collection is required.")
+        if not appearance_sample1:
+            raise ValidationError("Appearance of Sample 1 is required.")
+        if not sample1_volume:
+            raise ValidationError("Sample 1 volume is required.")
+
+        # Prevent duplicate laboratory record for same screening
         screening = cleaned_data.get("screening")
         if screening:
             # Exclude the current instance when checking for duplicates
