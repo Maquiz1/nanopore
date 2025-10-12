@@ -10,7 +10,7 @@
 
     <!-- Locations -->
     <a href="{% url 'locations:country-list' %}"
-       class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
+        class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Countries</span>
     </a>
 
@@ -25,7 +25,10 @@
     <a href="{% url 'nanopore:form-status-list' %}">
         <i class="fas fa-calendar-check"></i><span> Visits</span>
     </a>
+    {% endif %}
 
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
     <!-- Reports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
@@ -33,9 +36,9 @@
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
         <div class="submenu">
-            <a href="{% url 'reports:index' %}">
+            <!-- <a href="{% url 'reports:index' %}">
                 <i class="fas fa-chart-pie"></i><span> Dashboard</span>
-            </a>
+            </a> -->
             <a href="{% url 'reports:summary' %}">
                 <i class="fas fa-file-alt"></i><span> Summary Reports</span>
             </a>
@@ -46,13 +49,17 @@
                 <i class="fas fa-clipboard-list"></i><span> Enrollment Summary</span>
             </a>
             <a href="{% url 'reports:completed_study_summary' %}">
-                <i class="fas fa-clipboard-list"></i><span> Completed Study Summary</span>
+                <i class="fas fa-clipboard-list"></i><span> Completed Summary</span>
             </a>
             <a href="{% url 'reports:eligibility_summary' %}">
                 <i class="fas fa-clipboard-list"></i><span> Eligibility Summary</span>
             </a>
         </div>
     </div>
+    {% endif %}
+    {% endwith %}
+
+    {% if user.is_superuser %}
 
     <a href="{% url 'household:household-list' %}">
         <i class="fas fa-house-user"></i><span> Household</span>
@@ -62,6 +69,7 @@
     </a>
     {% endif %}
 
+    {% if user.is_superuser %}
     <!-- Forms -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
@@ -72,7 +80,6 @@
             <a href="{% url 'nanopore:form-status-list' %}">
                 <i class="fas fa-list-ul"></i><span> All</span>
             </a>
-            {% if user.is_superuser %}
             <a href="{% url 'nanopore:screening-list' %}">
                 <i class="fas fa-user-check"></i><span> Screenings</span>
             </a>
@@ -88,9 +95,10 @@
             <a href="{% url 'nanopore:diagnosis-list' %}">
                 <i class="fas fa-stethoscope"></i><span> Diagnosis</span>
             </a>
-            {% endif %}
         </div>
     </div>
+    {% endif %}
+
 
     {% if user.is_superuser %}
 
@@ -103,7 +111,7 @@
         <div class="submenu">
             <a href="{% url 'nanopore:zonal-upload-csv' %}">
                 <i class="fas fa-file-csv"></i><span> All CSV</span>
-            </a>            
+            </a>
         </div>
     </div>
 
@@ -134,7 +142,7 @@
             </a>
         </div>
     </div>
-    
+
     {% endif %}
 
     <!-- Auth -->
@@ -151,37 +159,37 @@
 
 <!-- Sidebar toggle script -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".menu-toggle").forEach(toggle => {
-        toggle.addEventListener("click", function () {
-            const submenu = this.nextElementSibling;
-            submenu.classList.toggle("open");
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".menu-toggle").forEach(toggle => {
+            toggle.addEventListener("click", function () {
+                const submenu = this.nextElementSibling;
+                submenu.classList.toggle("open");
 
-            // Rotate the chevron icon
-            const chevron = this.querySelector(".fa-chevron-down");
-            if (chevron) {
-                chevron.classList.toggle("rotate");
-            }
+                // Rotate the chevron icon
+                const chevron = this.querySelector(".fa-chevron-down");
+                if (chevron) {
+                    chevron.classList.toggle("rotate");
+                }
+            });
         });
     });
-});
 </script>
 
 <style>
-/* Initially hide submenus */
-.submenu {
-    display: none;
-    margin-left: 15px;
-}
+    /* Initially hide submenus */
+    .submenu {
+        display: none;
+        margin-left: 15px;
+    }
 
-/* Show when open */
-.submenu.open {
-    display: block;
-}
+    /* Show when open */
+    .submenu.open {
+        display: block;
+    }
 
-/* Rotate animation for chevron */
-.fa-chevron-down.rotate {
-    transform: rotate(180deg);
-    transition: transform 0.3s ease;
-}
+    /* Rotate animation for chevron */
+    .fa-chevron-down.rotate {
+        transform: rotate(180deg);
+        transition: transform 0.3s ease;
+    }
 </style>
