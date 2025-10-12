@@ -34,13 +34,20 @@ class ScreeningFormView(LoginRequiredMixin, View):
     
     def get_context_data(self, **kwargs):
         """
-        Returns context data for the template, including Dar es Salaam Zone.
+        Returns context data for the template, including the user's zone
+        and the Dar es Salaam zone reference.
         """
         context = kwargs
-        context['dar_es_salaam_zone'] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
-        # return context
+        user_site = getattr(getattr(self.request.user, "profile", None), "site", None)
+        user_zone = None
 
+        if user_site and user_site.district and user_site.district.region:
+            user_zone = user_site.district.region.zone
+
+        context["user_zone"] = user_zone
+        context["dar_es_salaam_zone"] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
         return context
+
 
     def post(self, request, pk=None):
         # obj = self.get_object(pk)
