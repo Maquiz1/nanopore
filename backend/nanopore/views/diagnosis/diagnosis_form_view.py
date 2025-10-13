@@ -1,13 +1,14 @@
-# nanopore/views/diagnosis/diagnosis_form_views.py
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.contrib import messages
 
 from nanopore.models import Diagnosis, Screening, RegimenChanges
 from nanopore.forms.diagnosis.diagnosisform import DiagnosisForm
 from nanopore.forms.regimen.regimenform import RegimenChangesForm
+
 
 class DiagnosisFormView(LoginRequiredMixin, View):
     template_name = "nanopore/diagnosis/diagnosis_form.html"
@@ -34,12 +35,11 @@ class DiagnosisFormView(LoginRequiredMixin, View):
 
         form = DiagnosisForm(
             instance=obj,
-            initial={"screening": screening_instance},
             screening_instance=screening_instance,
         )
 
         regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
-        regimen_form = RegimenChangesForm()  # <-- create the modal form
+        regimen_form = RegimenChangesForm()  # For modal
 
         return render(
             request,
@@ -49,7 +49,7 @@ class DiagnosisFormView(LoginRequiredMixin, View):
                 "object": obj,
                 "screening": screening_instance,
                 "regimen_changes": regimen_changes,
-                "regimen_form": regimen_form,  # <-- pass it to template
+                "regimen_form": regimen_form,
             },
         )
 
@@ -62,33 +62,18 @@ class DiagnosisFormView(LoginRequiredMixin, View):
         )
 
         regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
-        regimen_form = RegimenChangesForm()  # <-- needed if form invalid
+        regimen_form = RegimenChangesForm()  # For modal if needed
 
         if form.is_valid():
             diagnosis = form.save(commit=False)
             diagnosis.updated_by = request.user
             diagnosis.updated_at = timezone.now()
-
             if not diagnosis.pk:
                 diagnosis.created_by = request.user
 
-            try:
-                diagnosis.save()
-                form.save_m2m()
-            except Exception as e:
-                form.add_error(None, str(e))
-                return render(
-                    request,
-                    self.template_name,
-                    {
-                        "form": form,
-                        "object": obj,
-                        "screening": screening_instance,
-                        "regimen_changes": regimen_changes,
-                        "regimen_form": regimen_form,
-                    },
-                )
-
+            diagnosis.save()
+            form.save_m2m()
+            messages.success(request, "Diagnosis saved successfully!")
             return redirect(self.success_url)
 
         return render(

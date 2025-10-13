@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <!-- Navigation -->
+            <div class="d-flex justify-content-between mb-3 gap-2">
+                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to
+                    List</a>
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">{{ object|default:"New" }} Diagnosis</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-warning">
+                            {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Screening Info -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Screening Information</h5>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Screening</label>
+                            <input type="text" class="form-control" value="{{ form.readonly_screening }}" readonly>
+                            {{ form.screening }}
+                        </div>
+
+                        <!-- Diagnosis Details -->
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">Diagnosis Details</h5>
+                        </div>
+
+                        <!-- TB Diagnosis -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">TB Diagnosis</h5>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.tb_diagnosis.label_tag }} {{ form.tb_diagnosis }}</div>
+                            <div class="col-md-6">{{ form.tb_diagnosis_date.label_tag }} {{ form.tb_diagnosis_date }}</div>
+                        </div>
+                        <hr>
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}</div>
+                            <div class="col-md-6">{{ form.diagnosis_made_other.label_tag }} {{ form.diagnosis_made_other }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- Bacteriological Diagnosis -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Bacteriological Diagnosis</h5>
+                        </div>
+                        <hr>                      
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.bacteriological_diagnosis.label_tag }} {{ form.bacteriological_diagnosis }}</div>
+                            <div class="col-md-6">{{ form.clinician_received_date.label_tag }} {{ form.clinician_received_date }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- Clinical Diagnosis -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Clinical Diagnosis</h5>
+                        </div>
+                        <hr>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.tb_diagnosed_clinically.label_tag }} {{ form.tb_diagnosed_clinically }}</div>
+                            <div class="col-md-6">{{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- TB Treatment -->
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">TB Treatment</h5>
+                        </div>
+                        <hr>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
+                            <div class="col-md-3">{{ form.tb_treatment_date.label_tag }} {{ form.tb_treatment_date }}</div>                            
+                            <div class="col-md-3">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
+                            <div class="col-md-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">{{ form.tb_register_number.label_tag }} {{ form.tb_register_number }}</div>                            
+                            <div class="col-md-3">{{ form.tb_regimen.label_tag }} {{ form.tb_regimen }}</div>
+                            <div class="col-md-3">{{ form.tb_regimen_other.label_tag }} {{ form.tb_regimen_other }}</div>
+                            <div class="col-md-3">{{ form.regimen_changed.label_tag }} {{ form.regimen_changed }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- Regimen Changes Table / Add Button -->
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                {% include "nanopore/regimen/regimen_changes_list.html" %}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <!-- TB Other Diagnosis -->
+                        <div id="tb-other-diagnosis-section">
+                            <div class="p-2 mb-3 bg-secondary text-white rounded">
+                                <h5 class="mb-0">Diagnosis other than TB</h5>
+                            </div>
+                            <hr>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">{{ form.tb_other_diagnosis.label_tag }} {{ form.tb_other_diagnosis }}</div>
+                                <div class="col-md-4">{{ form.tb_other_specify.label_tag }} {{ form.tb_other_specify }}</div>
+                                <div class="col-md-4">{{ form.tb_diagnosis_made2.label_tag }} {{ form.tb_diagnosis_made2 }}</div>
+                            </div>
+                            <hr>
+                        </div>
+                        <hr>
+
+                        <!-- Remarks -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Any Comment or Remarks</h5>
+                        </div>
+                        <hr>
+
+                        <div class="mb-3">{{ form.remarks.label_tag }} {{ form.remarks }}</div>
+                        <hr>
+
+                        <!-- Bottom Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
+                            <button type="submit" class="btn btn-success">💾 Save Diagnosis</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Regimen Modal -->
+{% include "nanopore/regimen/regimen_modal_form.html" %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // === TB Other Diagnosis toggle ===
+        const tbDiagnosisField = document.getElementById("id_tb_diagnosis");
+        const tbOtherSection = document.getElementById("tb-other-diagnosis-section");
+        function toggleTbOther() {
+            if (tbDiagnosisField && tbOtherSection) {
+                tbOtherSection.style.display = tbDiagnosisField.value === "1" ? "none" : "block";
+            }
+        }
+        if (tbDiagnosisField) {
+            tbDiagnosisField.addEventListener("change", toggleTbOther);
+            toggleTbOther();
+        }
+
+        // === Regimen Changes Modal ===
+        const regimenModalEl = document.getElementById("regimenChangeModal");
+        const regimenScreeningInput = document.getElementById("regimenScreeningId");
+        const regimenIdInput = document.getElementById("regimenId");
+        const regimenTableBody = document.querySelector("#regimenChangesTable tbody");
+        let regimenModal = regimenModalEl ? new bootstrap.Modal(regimenModalEl) : null;
+
+        // Add or Edit button click
+        document.querySelectorAll(".editRegimenBtn, #addRegimenBtn").forEach(btn => {
+            btn.addEventListener("click", function (event) {
+                const regimenId = this.dataset.id || "";
+                const screeningId = this.dataset.screeningId || "{{ screening.id }}";
+                regimenScreeningInput.value = screeningId;
+                regimenIdInput.value = regimenId;
+
+                // Change modal title
+                document.getElementById("regimenModalTitle").textContent = regimenId ? "Edit Regimen Change" : "Add Regimen Change";
+
+                // If editing, fetch data via AJAX and fill the form
+                if (regimenId) {
+                    fetch(`/nanopore/regimen/${regimenId}/edit/`, {
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            Object.keys(data.fields).forEach(key => {
+                                const input = document.getElementById(`id_${key}`);
+                                if (input) input.value = data.fields[key];
+                            });
+                            regimenModal.show();
+                        });
+                } else {
+                    // Reset form for create
+                    regimenForm.reset();
+                    regimenModal.show();
+                }
+            });
+        });
+
+        // Handle AJAX form submission for create/update
+        const regimenForm = document.getElementById("regimenForm");
+        if (regimenForm) {
+            regimenForm.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                const formData = new FormData(regimenForm);
+                const response = await fetch(regimenForm.action, {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(data.message);
+                    regimenModal.hide();
+
+                    // Update table dynamically
+                    const rowId = `regimenRow${data.regimen.id}`;
+                    let row = document.getElementById(rowId);
+                    const html = `
+                    <td>${data.regimen.date}</td>
+                    <td>${data.regimen.drug}</td>
+                    <td>${data.regimen.changes}</td>
+                    <td>${data.regimen.reason}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning editRegimenBtn" data-id="${data.regimen.id}">Edit</button>
+                        <button class="btn btn-sm btn-danger deleteRegimenBtn" data-id="${data.regimen.id}">Delete</button>
+                    </td>
+                `;
+                    if (row) {
+                        row.innerHTML = html;
+                    } else if (regimenTableBody) {
+                        const newRow = document.createElement("tr");
+                        newRow.id = rowId;
+                        newRow.innerHTML = html;
+                        regimenTableBody.prepend(newRow);
+                    }
+
+                    regimenForm.reset();
+                } else {
+                    alert("Error: " + JSON.stringify(data.errors));
+                }
+            });
+        }
+
+        // === Handle AJAX delete for regimen changes ===
+        document.addEventListener("click", async function (event) {
+            if (event.target.classList.contains("deleteRegimenBtn")) {
+                const regimenId = event.target.dataset.id;
+                if (!regimenId) return;
+
+                if (!confirm("Are you sure you want to delete this regimen change?")) return;
+
+                try {
+                    const response = await fetch(`/nanopore/regimen/${regimenId}/delete/`, {
+                        method: "DELETE",
+                        headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}" }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        // Remove the row from the table
+                        const row = document.getElementById(`regimenRow${regimenId}`);
+                        if (row) row.remove();
+                        alert(data.message);
+                    } else {
+                        alert("Error deleting regimen: " + JSON.stringify(data.errors || data));
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("An error occurred while deleting the regimen change.");
+                }
+            }
+        });
+
+    });
+</script>
+{% endblock %}
