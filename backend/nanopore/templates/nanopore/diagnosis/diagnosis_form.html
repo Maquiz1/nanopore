@@ -61,7 +61,7 @@
                         </div>
 
                         <hr>
-                        
+
                         <div class="row mb-3" id="tb-diagnosis-made-sections-row">
                             <div class="col-md-6" id="tb-diagnosis-made-sections">
                                 {{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}
@@ -112,8 +112,9 @@
                             <hr>
                             <div class="row mb-3">
                                 <div class="col-md-3">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
-                                <div class="col-md-3">{{ form.tb_treatment_date.label_tag }} {{ form.tb_treatment_date
-                                    }}
+                                <div class="col-md-3">
+                                    {{ form.tb_treatment_date.label_tag }} 
+                                    {{ form.tb_treatment_date }}        
                                 </div>
                                 <div class="col-md-3">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
                                 <div class="col-md-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
