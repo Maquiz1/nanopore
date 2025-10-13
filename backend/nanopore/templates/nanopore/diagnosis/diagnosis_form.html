@@ -77,10 +77,10 @@
                         <hr>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                {{ form.bacteriological_diagnosis.label_tag }} 
+                                {{ form.bacteriological_diagnosis.label_tag }}
                                 {{ form.bacteriological_diagnosis }}</div>
                             <div class="col-md-6">
-                                {{ form.clinician_received_date.label_tag }} 
+                                {{ form.clinician_received_date.label_tag }}
                                 {{ form.clinician_received_date }}</div>
                         </div>
                         <hr>
@@ -92,7 +92,7 @@
                         <hr>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                {{ form.tb_diagnosed_clinically.label_tag }} 
+                                {{ form.tb_diagnosed_clinically.label_tag }}
                                 {{ form.tb_diagnosed_clinically }}
                             </div>
                             <div class="col-md-6">
@@ -147,36 +147,37 @@
                                     </thead>
                                     <tbody>
                                         {% if regimen_error %}
-                                            <tr>
-                                                <td colspan="5" class="text-center text-danger">{{ regimen_error }}</td>
-                                            </tr>
+                                        <tr>
+                                            <td colspan="5" class="text-center text-danger">{{ regimen_error }}</td>
+                                        </tr>
                                         {% elif regimen_changes %}
-                                            {% for regimen in regimen_changes %}
-                                            <tr id="regimenRow{{ regimen.id }}">
-                                                <td>{{ regimen.date }}</td>
-                                                <td>{{ regimen.drug }}</td>
-                                                <td>{{ regimen.changes }}</td>
-                                                <td>{{ regimen.reason }}</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-warning editRegimenBtn"
-                                                            data-id="{{ regimen.id }}"
-                                                            data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
-                                                            data-save-url="{% url 'nanopore:regimen-save' %}"
-                                                            data-screening-id="{{ screening.id }}">
-                                                        Edit
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-danger deleteRegimenBtn"
-                                                            data-id="{{ regimen.id }}"
-                                                            data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}">
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
+                                        {% for regimen in regimen_changes %}
+                                        <tr id="regimenRow{{ regimen.id }}">
+                                            <td>{{ regimen.date }}</td>
+                                            <td>{{ regimen.drug }}</td>
+                                            <td>{{ regimen.changes }}</td>
+                                            <td>{{ regimen.reason }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-warning editRegimenBtn"
+                                                    data-id="{{ regimen.id }}"
+                                                    data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
+                                                    data-save-url="{% url 'nanopore:regimen-save' %}"
+                                                    data-screening-id="{{ screening.id }}">
+                                                    Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger deleteRegimenBtn"
+                                                    data-id="{{ regimen.id }}"
+                                                    data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}">
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
                                         {% else %}
-                                            <tr>
-                                                <td colspan="5" class="text-center text-muted">No regimen changes added yet.</td>
-                                            </tr>
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">No regimen changes added yet.
+                                            </td>
+                                        </tr>
                                         {% endif %}
                                     </tbody>
                                 </table>
@@ -191,12 +192,18 @@
                             </div>
                             <hr>
                             <div class="row mb-3">
-                                <div class="col-md-4">{{ form.tb_other_diagnosis.label_tag }} {{ form.tb_other_diagnosis
-                                    }}</div>
-                                <div class="col-md-4">{{ form.tb_other_specify.label_tag }} {{ form.tb_other_specify }}
+                                <div class="col-md-4">
+                                    {{ form.tb_other_diagnosis.label_tag }}
+                                    {{ form.tb_other_diagnosis }}
                                 </div>
-                                <div class="col-md-4">{{ form.tb_diagnosis_made2.label_tag }} {{ form.tb_diagnosis_made2
-                                    }}</div>
+                                <div class="col-md-4">
+                                    {{ form.tb_other_specify.label_tag }} 
+                                    {{ form.tb_other_specify }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.tb_diagnosis_made2.label_tag }}
+                                    {{ form.tb_diagnosis_made2 }}
+                                </div>
                             </div>
                             <hr>
                         </div>
