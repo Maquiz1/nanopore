@@ -6,10 +6,13 @@ from nanopore.models import RegimenChanges, Screening
 from nanopore.forms.regimen.regimenform import RegimenChangesForm
 
 class RegimenChangesFormView(LoginRequiredMixin, View):
+    """
+    Handles AJAX create/update for RegimenChanges
+    """
     form_class = RegimenChangesForm
 
     def get_object(self):
-        pk = self.kwargs.get("pk")
+        pk = self.request.POST.get("regimen_id") or self.kwargs.get("pk")
         if pk:
             return get_object_or_404(RegimenChanges, pk=pk)
         return None
@@ -24,13 +27,14 @@ class RegimenChangesFormView(LoginRequiredMixin, View):
                 # Create new
                 screening_id = request.POST.get("screening_id")
                 if screening_id:
-                    regimen.screening = Screening.objects.get(pk=screening_id)
+                    regimen.screening = get_object_or_404(Screening, pk=screening_id)
                     regimen.pid = regimen.screening.pid
                 regimen.created_by = request.user
-            # Update metadata
+            # Always update metadata
             regimen.updated_by = request.user
             regimen.save()
-            
+
+            # Return all relevant data for JS to update modal/table
             return JsonResponse({
                 "success": True,
                 "message": "Regimen saved!" if not obj else "Regimen updated!",
@@ -43,3 +47,38 @@ class RegimenChangesFormView(LoginRequiredMixin, View):
             })
 
         return JsonResponse({"success": False, "errors": form.errors}, status=400)
+
+
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+class RegimenChangesEditView(LoginRequiredMixin, View):
+    """
+    Fetch regimen data for modal edit (AJAX GET)
+    """
+    def get(self, request, pk, *args, **kwargs):
+        regimen = get_object_or_404(RegimenChanges, pk=pk)
+        data = {
+            "fields": {
+                "date": regimen.date.strftime("%Y-%m-%d") if regimen.date else "",
+                "drug": regimen.drug,
+                "changes": regimen.changes,
+                "reason": regimen.reason,
+                "specify": regimen.specify,
+            }
+        }
+        return JsonResponse(data)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RegimenChangesDeleteView(LoginRequiredMixin, View):
+    """
+    AJAX Delete of a regimen change
+    """
+    def delete(self, request, pk, *args, **kwargs):
+        try:
+            regimen = get_object_or_404(RegimenChanges, pk=pk)
+            regimen.delete()
+            return JsonResponse({"success": True, "message": "Regimen deleted!"})
+        except Exception as e:
+            return JsonResponse({"success": False, "errors": str(e)}, status=400)

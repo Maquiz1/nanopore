@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from nanopore.models import Diagnosis, Screening,RegimenChanges
+from nanopore.models import Diagnosis, Screening
 from options.models import (
     YesNo, TBDiagnosisMade, DiagnosisBacteriological, DiagnosedClinically,
     TBTreatmentStarted, RegimenPrescribed, TBTreatmentOutcome
@@ -90,14 +90,6 @@ class DiagnosisForm(forms.ModelForm):
             if hasattr(self.screening_instance, "diagnosis"):
                 raise ValidationError(f"This screening {self.screening_instance} already has a diagnosis record.")
 
-
-        # Custom validation: If regimen_changed=1, ensure at least one RegimenChange exists
-        regimen_changed = cleaned_data.get("regimen_changed")
-        if str(regimen_changed) == "1":  # assuming 1 = Yes
-            screening_id = cleaned_data.get("screening")
-            existing_changes = RegimenChanges.objects.filter(screening_id=screening_id)
-            if not existing_changes.exists():
-                raise ValidationError("You must add at least one regimen change if the regimen was changed.")
         return cleaned_data
 
     def save(self, commit=True):
