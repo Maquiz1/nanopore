@@ -29,6 +29,22 @@ class DiagnosisFormView(LoginRequiredMixin, View):
             return get_object_or_404(Screening, pk=screening_id)
         return None
 
+    def get_regimen_error(self, diagnosis, screening_instance):
+        """
+        Returns a message to display inside the Regimen Changes table:
+        - If regimen_changed = Yes (id=1) and no changes exist → "Regimen changes are missing"
+        - If regimen_changed = No (id !=1) → "N/A"
+        - Else → None
+        """
+        regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
+
+        if diagnosis and diagnosis.regimen_changed:
+            if diagnosis.regimen_changed.id == 1 and not regimen_changes.exists():
+                return "Regimen changes are missing"
+            elif diagnosis.regimen_changed.id != 1:
+                return "N/A"
+        return None
+
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
         screening_instance = self.get_screening_instance()
@@ -40,6 +56,7 @@ class DiagnosisFormView(LoginRequiredMixin, View):
 
         regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
         regimen_form = RegimenChangesForm()  # For modal
+        regimen_error = self.get_regimen_error(obj, screening_instance)
 
         return render(
             request,
@@ -50,6 +67,7 @@ class DiagnosisFormView(LoginRequiredMixin, View):
                 "screening": screening_instance,
                 "regimen_changes": regimen_changes,
                 "regimen_form": regimen_form,
+                "regimen_error": regimen_error,
             },
         )
 
@@ -63,6 +81,9 @@ class DiagnosisFormView(LoginRequiredMixin, View):
 
         regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
         regimen_form = RegimenChangesForm()  # For modal if needed
+
+        # Compute regimen error for template
+        regimen_error = self.get_regimen_error(obj, screening_instance)
 
         if form.is_valid():
             diagnosis = form.save(commit=False)
@@ -85,5 +106,6 @@ class DiagnosisFormView(LoginRequiredMixin, View):
                 "screening": screening_instance,
                 "regimen_changes": regimen_changes,
                 "regimen_form": regimen_form,
+                "regimen_error": regimen_error,
             },
         )

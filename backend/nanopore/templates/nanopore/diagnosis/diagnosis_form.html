@@ -146,28 +146,38 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for regimen in regimen_changes %}
-                                        <tr id="regimenRow{{ regimen.id }}">
-                                            <td>{{ regimen.date }}</td>
-                                            <td>{{ regimen.drug }}</td>
-                                            <td>{{ regimen.changes }}</td>
-                                            <td>{{ regimen.reason }}</td>
-                                            <td>
-                                                <button type="button" class="btn btn-sm btn-warning editRegimenBtn"
-                                                    data-id="{{ regimen.id }}"
-                                                    data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
-                                                    data-save-url="{% url 'nanopore:regimen-save' %}"
-                                                    data-screening-id="{{ screening.id }}">
-                                                    Edit
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-danger deleteRegimenBtn"
-                                                    data-id="{{ regimen.id }}"
-                                                    data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}">
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
+                                        {% if regimen_error %}
+                                            <tr>
+                                                <td colspan="5" class="text-center text-danger">{{ regimen_error }}</td>
+                                            </tr>
+                                        {% elif regimen_changes %}
+                                            {% for regimen in regimen_changes %}
+                                            <tr id="regimenRow{{ regimen.id }}">
+                                                <td>{{ regimen.date }}</td>
+                                                <td>{{ regimen.drug }}</td>
+                                                <td>{{ regimen.changes }}</td>
+                                                <td>{{ regimen.reason }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-warning editRegimenBtn"
+                                                            data-id="{{ regimen.id }}"
+                                                            data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
+                                                            data-save-url="{% url 'nanopore:regimen-save' %}"
+                                                            data-screening-id="{{ screening.id }}">
+                                                        Edit
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger deleteRegimenBtn"
+                                                            data-id="{{ regimen.id }}"
+                                                            data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted">No regimen changes added yet.</td>
+                                            </tr>
+                                        {% endif %}
                                     </tbody>
                                 </table>
                             </div>
