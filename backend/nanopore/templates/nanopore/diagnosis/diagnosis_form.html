@@ -55,166 +55,182 @@
                             <div class="col-md-6">
                                 {{ form.tb_diagnosis.label_tag }} {{ form.tb_diagnosis }}
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="tb-diagnosis-date-sections">
                                 {{ form.tb_diagnosis_date.label_tag }} {{ form.tb_diagnosis_date }}
                             </div>
                         </div>
+
                         <hr>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
+                        
+                        <div class="row mb-3" id="tb-diagnosis-made-sections-row">
+                            <div class="col-md-6" id="tb-diagnosis-made-sections">
                                 {{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="tb-diagnosis-made-other-sections">
                                 {{ form.diagnosis_made_other.label_tag }} {{ form.diagnosis_made_other }}
                             </div>
                         </div>
                         <hr>
 
-                        <!-- Bacteriological Diagnosis -->
-                        <div class="p-2 mb-3 bg-info text-white rounded">
-                            <h5 class="mb-0">Bacteriological Diagnosis</h5>
-                        </div>
-                        <hr>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                {{ form.bacteriological_diagnosis.label_tag }}
-                                {{ form.bacteriological_diagnosis }}</div>
-                            <div class="col-md-6">
-                                {{ form.clinician_received_date.label_tag }}
-                                {{ form.clinician_received_date }}</div>
-                        </div>
-                        <hr>
+                        <!-- TB sections -->
+                        <div id="tb-sections">
 
-                        <!-- Clinical Diagnosis -->
-                        <div class="p-2 mb-3 bg-info text-white rounded">
-                            <h5 class="mb-0">Clinical Diagnosis</h5>
-                        </div>
-                        <hr>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                {{ form.tb_diagnosed_clinically.label_tag }}
-                                {{ form.tb_diagnosed_clinically }}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
-                        </div>
-                        <hr>
-
-                        <!-- TB Treatment -->
-                        <div class="p-2 mb-3 bg-warning text-white rounded">
-                            <h5 class="mb-0">TB Treatment</h5>
-                        </div>
-                        <hr>
-                        <div class="row mb-3">
-                            <div class="col-md-3">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
-                            <div class="col-md-3">{{ form.tb_treatment_date.label_tag }} {{ form.tb_treatment_date }}
-                            </div>
-                            <div class="col-md-3">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
-                            <div class="col-md-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
-                        </div>
-                        <hr>
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                {{ form.tb_register_number.label_tag }} {{ form.tb_register_number }}
-                            </div>
-                            <div class="col-md-3">{{ form.tb_regimen.label_tag }} {{ form.tb_regimen }}</div>
-                            <div class="col-md-3">{{ form.tb_regimen_other.label_tag }} {{ form.tb_regimen_other }}
-                            </div>
-                            <div class="col-md-3">{{ form.regimen_changed.label_tag }} {{ form.regimen_changed }}</div>
-                        </div>
-                        <hr>
-
-                        <!-- Regimen Changes Table / Add Button -->
-                        <div class="card mt-4" id="regimenChangesCard">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <span>Regimen Changes</span>
-                                <button type="button" class="btn btn-sm btn-primary" id="addRegimenBtn"
-                                    data-save-url="{% url 'nanopore:regimen-save' %}"
-                                    data-screening-id="{{ screening.id }}">
-                                    Add Change
-                                </button>
-                            </div>
-                            <div class="card-body p-0">
-                                <table class="table table-striped mb-0" id="regimenChangesTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Drug</th>
-                                            <th>Changes</th>
-                                            <th>Reason</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% if regimen_error %}
-                                        <tr>
-                                            <td colspan="5" class="text-center text-danger">{{ regimen_error }}</td>
-                                        </tr>
-                                        {% elif regimen_changes %}
-                                        {% for regimen in regimen_changes %}
-                                        <tr id="regimenRow{{ regimen.id }}">
-                                            <td>{{ regimen.date }}</td>
-                                            <td>{{ regimen.drug }}</td>
-                                            <td>{{ regimen.changes }}</td>
-                                            <td>{{ regimen.reason }}</td>
-                                            <td>
-                                                <button type="button" class="btn btn-sm btn-warning editRegimenBtn"
-                                                    data-id="{{ regimen.id }}"
-                                                    data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
-                                                    data-save-url="{% url 'nanopore:regimen-save' %}"
-                                                    data-screening-id="{{ screening.id }}">
-                                                    Edit
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-danger deleteRegimenBtn"
-                                                    data-id="{{ regimen.id }}"
-                                                    data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}">
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                        {% else %}
-                                        <tr>
-                                            <td colspan="5" class="text-center text-muted">No regimen changes added yet.
-                                            </td>
-                                        </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <hr>
-
-                        <!-- TB Other Diagnosis -->
-                        <div id="tb-other-diagnosis-section">
-                            <div class="p-2 mb-3 bg-secondary text-white rounded">
-                                <h5 class="mb-0">Diagnosis other than TB</h5>
+                            <!-- Bacteriological Diagnosis -->
+                            <div class="p-2 mb-3 bg-info text-white rounded">
+                                <h5 class="mb-0">Bacteriological Diagnosis</h5>
                             </div>
                             <hr>
                             <div class="row mb-3">
-                                <div class="col-md-4">
-                                    {{ form.tb_other_diagnosis.label_tag }}
-                                    {{ form.tb_other_diagnosis }}
+                                <div class="col-md-6">
+                                    {{ form.bacteriological_diagnosis.label_tag }}
+                                    {{ form.bacteriological_diagnosis }}</div>
+                                <div class="col-md-6">
+                                    {{ form.clinician_received_date.label_tag }}
+                                    {{ form.clinician_received_date }}</div>
+                            </div>
+                            <hr>
+
+                            <!-- Clinical Diagnosis -->
+                            <div class="p-2 mb-3 bg-info text-white rounded">
+                                <h5 class="mb-0">Clinical Diagnosis</h5>
+                            </div>
+                            <hr>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    {{ form.tb_diagnosed_clinically.label_tag }}
+                                    {{ form.tb_diagnosed_clinically }}
                                 </div>
-                                <div class="col-md-4">
-                                    {{ form.tb_other_specify.label_tag }} 
-                                    {{ form.tb_other_specify }}
+                                <div class="col-md-6">
+                                    {{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
+                            </div>
+                            <hr>
+
+                            <!-- TB Treatment -->
+                            <div class="p-2 mb-3 bg-warning text-white rounded">
+                                <h5 class="mb-0">TB Treatment</h5>
+                            </div>
+                            <hr>
+                            <div class="row mb-3">
+                                <div class="col-md-3">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
+                                <div class="col-md-3">{{ form.tb_treatment_date.label_tag }} {{ form.tb_treatment_date
+                                    }}
                                 </div>
-                                <div class="col-md-4">
-                                    {{ form.tb_diagnosis_made2.label_tag }}
-                                    {{ form.tb_diagnosis_made2 }}
+                                <div class="col-md-3">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
+                                <div class="col-md-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
+                            </div>
+                            <hr>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    {{ form.tb_register_number.label_tag }} {{ form.tb_register_number }}
+                                </div>
+                                <div class="col-md-3">{{ form.tb_regimen.label_tag }} {{ form.tb_regimen }}</div>
+                                <div class="col-md-3">{{ form.tb_regimen_other.label_tag }} {{ form.tb_regimen_other }}
+                                </div>
+                                <div class="col-md-3">{{ form.regimen_changed.label_tag }} {{ form.regimen_changed }}
                                 </div>
                             </div>
                             <hr>
+
+                            <!-- Regimen Changes Table / Add Button -->
+                            <div class="card mt-4" id="regimenChangesCard">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Regimen Changes</span>
+                                    <button type="button" class="btn btn-sm btn-primary" id="addRegimenBtn"
+                                        data-save-url="{% url 'nanopore:regimen-save' %}"
+                                        data-screening-id="{{ screening.id }}">
+                                        Add Change
+                                    </button>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-striped mb-0" id="regimenChangesTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Drug</th>
+                                                <th>Changes</th>
+                                                <th>Reason</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if regimen_error %}
+                                            <tr>
+                                                <td colspan="5" class="text-center text-danger">{{ regimen_error }}</td>
+                                            </tr>
+                                            {% elif regimen_changes %}
+                                            {% for regimen in regimen_changes %}
+                                            <tr id="regimenRow{{ regimen.id }}">
+                                                <td>{{ regimen.date }}</td>
+                                                <td>{{ regimen.drug }}</td>
+                                                <td>{{ regimen.changes }}</td>
+                                                <td>{{ regimen.reason }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-warning editRegimenBtn"
+                                                        data-id="{{ regimen.id }}"
+                                                        data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
+                                                        data-save-url="{% url 'nanopore:regimen-save' %}"
+                                                        data-screening-id="{{ screening.id }}">
+                                                        Edit
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger deleteRegimenBtn"
+                                                        data-id="{{ regimen.id }}"
+                                                        data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted">No regimen changes added
+                                                    yet.
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                         <hr>
 
-                        <!-- Remarks -->
-                        <div class="p-2 mb-3 bg-secondary text-white rounded">
-                            <h5 class="mb-0">Any Comment or Remarks</h5>
+                        <!-- Non-TB sections -->
+                        <div id="non-tb-sections">
+                            <!-- TB Other Diagnosis -->
+                            <div id="tb-other-diagnosis-section">
+                                <div class="p-2 mb-3 bg-secondary text-white rounded">
+                                    <h5 class="mb-0">Diagnosis other than TB</h5>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        {{ form.tb_other_diagnosis.label_tag }}
+                                        {{ form.tb_other_diagnosis }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form.tb_other_specify.label_tag }}
+                                        {{ form.tb_other_specify }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form.tb_diagnosis_made2.label_tag }}
+                                        {{ form.tb_diagnosis_made2 }}
+                                    </div>
+                                </div>
+                                <hr>
+                            </div>
                         </div>
                         <hr>
-                        <div class="mb-3">{{ form.remarks.label_tag }} {{ form.remarks }}</div>
+
+
+                        <!-- Remarks sections -->
+                        <div id="remarks-sections">
+                            <!-- Remarks -->
+                            <div class="p-2 mb-3 bg-secondary text-white rounded">
+                                <h5 class="mb-0">Any Comment or Remarks</h5>
+                            </div>
+                            <hr>
+                            <div class="mb-3">{{ form.remarks.label_tag }} {{ form.remarks }}</div>
+                        </div>
                         <hr>
 
                         <!-- Bottom Buttons -->
@@ -257,6 +273,15 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
 
+        // ===== Fields =====
+        const tbDiagnosisField = document.getElementById("id_tb_diagnosis");
+        const tbDiagnosisDateSections = document.getElementById("tb-diagnosis-date-sections");
+        const tbDiagnosisMadeSections = document.getElementById("tb-diagnosis-made-sections");
+        const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
+        const tbSections = document.getElementById("tb-sections");
+        const nonTbSections = document.getElementById("non-tb-sections");
+        const regimenChangedField = document.getElementById("id_regimen_changed");
+        const addBtn = document.getElementById("addRegimenBtn");
         const regimenModalEl = document.getElementById("regimenChangeModal");
         const regimenModal = new bootstrap.Modal(regimenModalEl);
         const regimenForm = document.getElementById("regimenForm");
@@ -264,10 +289,23 @@
         const regimenScreeningInput = document.getElementById("regimenScreeningId");
         const regimenTableBody = document.querySelector("#regimenChangesTable tbody");
 
-        const addBtn = document.getElementById("addRegimenBtn");
+        // ===== Functions =====
+        function toggleTbSections() {
+            if (tbDiagnosisField.value === "1") {
+                tbDiagnosisMadeOtherSections.style.display = "block";
+                tbDiagnosisDateSections.style.display = "block";
+                tbDiagnosisMadeSections.style.display = "block";
+                tbDiagnosisMadeOtherSections.style.display = "block";
+                nonTbSections.style.display = "none";
+            } else if (tbDiagnosisField.value === "2") {
+                tbSections.style.display = "none";
+                tbDiagnosisDateSections.style.display = "none";
+                tbDiagnosisMadeSections.style.display = "none";
+                tbDiagnosisMadeOtherSections.style.display = "none";
+                nonTbSections.style.display = "block";
+            }
+        }
 
-        // ===== Show/Hide Add button based on regimen_changed =====
-        const regimenChangedField = document.getElementById("id_regimen_changed");
         function toggleAddButton() {
             if (regimenChangedField.value === "1") {
                 addBtn.style.display = "inline-block";
@@ -275,10 +313,7 @@
                 addBtn.style.display = "none";
             }
         }
-        toggleAddButton();
-        regimenChangedField.addEventListener("change", toggleAddButton);
 
-        // ===== Bind Edit/Delete buttons =====
         function bindRegimenButtons() {
             document.querySelectorAll(".editRegimenBtn").forEach(btn => {
                 btn.removeEventListener("click", editHandler);
@@ -358,25 +393,25 @@
                         const rowId = `regimenRow${data.regimen_id}`;
                         let row = document.getElementById(rowId);
                         const html = `
-                    <td>${data.date}</td>
-                    <td>${data.drug}</td>
-                    <td>${data.changes}</td>
-                    <td>${data.reason}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning editRegimenBtn"
-                                data-id="${data.regimen_id}"
-                                data-edit-url="/nanopore/regimen/${data.regimen_id}/edit/"
-                                data-save-url="${regimenForm.action}"
-                                data-screening-id="${regimenScreeningInput.value}">
-                            Edit
-                        </button>
-                        <button class="btn btn-sm btn-danger deleteRegimenBtn"
-                                data-id="${data.regimen_id}"
-                                data-delete-url="/nanopore/regimen/${data.regimen_id}/delete/">
-                            Delete
-                        </button>
-                    </td>
-                `;
+                        <td>${data.date}</td>
+                        <td>${data.drug}</td>
+                        <td>${data.changes}</td>
+                        <td>${data.reason}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning editRegimenBtn"
+                                    data-id="${data.regimen_id}"
+                                    data-edit-url="/nanopore/regimen/${data.regimen_id}/edit/"
+                                    data-save-url="${regimenForm.action}"
+                                    data-screening-id="${regimenScreeningInput.value}">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger deleteRegimenBtn"
+                                    data-id="${data.regimen_id}"
+                                    data-delete-url="/nanopore/regimen/${data.regimen_id}/delete/">
+                                Delete
+                            </button>
+                        </td>
+                    `;
                         if (row) row.innerHTML = html;
                         else if (regimenTableBody) {
                             const newRow = document.createElement("tr");
@@ -391,21 +426,14 @@
                 });
         });
 
+        // ===== Initial calls & event binding =====
+        toggleTbSections();
+        toggleAddButton();
+        tbDiagnosisField.addEventListener("change", toggleTbSections);
+        regimenChangedField.addEventListener("change", toggleAddButton);
         bindRegimenButtons();
 
-        // ===== Diagnosis Form Submission Validation =====
-        const diagnosisForm = document.getElementById("diagnosisForm");
-        // diagnosisForm.addEventListener("submit", function (e) {
-        //     if (regimenChangedField.value === "1") {
-        //         const regimenRows = document.querySelectorAll("#regimenChangesTable tbody tr");
-        //         if (regimenRows.length === 0) {
-        //             e.preventDefault();
-        //             alert("You must add at least one regimen change if the regimen was changed.");
-        //             return false;
-        //         }
-        //     }
-        // });
-
     });
+
 </script>
 {% endblock %}
