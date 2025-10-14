@@ -279,7 +279,7 @@
         const tbDiagnosisField = document.getElementById("id_tb_diagnosis");
         const tbDiagnosisDateSections = document.getElementById("tb-diagnosis-date-sections");
         const tbDiagnosisMadeSections = document.getElementById("tb-diagnosis-made-sections");
-        // const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
+        const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
         const tbSections = document.getElementById("tb-sections");
 
 
@@ -326,19 +326,23 @@
             if (tbDiagnosisMadeField.value === "1") {  // Clinical
                 clinicalDiagnosisSection.style.display = "block";
                 bacteriologicalDiagnosisSection.style.display = "none";
-                diagnosisMadeOtherField.style.display = "none";
+                // diagnosisMadeOtherField.style.display = "none";
+                tbDiagnosisMadeOtherSections.style.display = "none";
             } else if (tbDiagnosisMadeField.value === "2") {  // Bacteriological
                 clinicalDiagnosisSection.style.display = "none";
-                bacteriologicalDiagnosisSection.style.display = "block";
-                diagnosisMadeOtherField.style.display = "none";
+                bacteriologicalDiagnosisSection.style.display = "none";
+                // diagnosisMadeOtherField.style.display = "none";
+                tbDiagnosisMadeOtherSections.style.display = "block";
             } else if (tbDiagnosisMadeField.value === "96") {  // Other
                 clinicalDiagnosisSection.style.display = "none";
                 bacteriologicalDiagnosisSection.style.display = "none";
-                diagnosisMadeOtherField.style.display = "block";
+                // diagnosisMadeOtherField.style.display = "block";
+                tbDiagnosisMadeOtherSections.style.display = "block";
             } else {
                 clinicalDiagnosisSection.style.display = "none";
                 bacteriologicalDiagnosisSection.style.display = "none";
-                diagnosisMadeOtherField.style.display = "none";
+                // diagnosisMadeOtherField.style.display = "none";
+                tbDiagnosisMadeOtherSections.style.display = "none";
             }
         }
 
