@@ -76,32 +76,36 @@
                         <div id="tb-sections">
 
                             <!-- Bacteriological Diagnosis -->
-                            <div class="p-2 mb-3 bg-info text-white rounded">
-                                <h5 class="mb-0">Bacteriological Diagnosis</h5>
-                            </div>
-                            <hr>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    {{ form.bacteriological_diagnosis.label_tag }}
-                                    {{ form.bacteriological_diagnosis }}</div>
-                                <div class="col-md-6">
-                                    {{ form.clinician_received_date.label_tag }}
-                                    {{ form.clinician_received_date }}</div>
+                            <div class="bacteriological-diagnosis-section">
+                                <div class="p-2 mb-3 bg-info text-white rounded">
+                                    <h5 class="mb-0">Bacteriological Diagnosis</h5>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        {{ form.bacteriological_diagnosis.label_tag }}
+                                        {{ form.bacteriological_diagnosis }}</div>
+                                    <div class="col-md-6">
+                                        {{ form.clinician_received_date.label_tag }}
+                                        {{ form.clinician_received_date }}</div>
+                                </div>
                             </div>
                             <hr>
 
                             <!-- Clinical Diagnosis -->
-                            <div class="p-2 mb-3 bg-info text-white rounded">
-                                <h5 class="mb-0">Clinical Diagnosis</h5>
-                            </div>
-                            <hr>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    {{ form.tb_diagnosed_clinically.label_tag }}
-                                    {{ form.tb_diagnosed_clinically }}
+                            <div class="clinical-diagnosis-section">
+                                <div class="p-2 mb-3 bg-info text-white rounded">
+                                    <h5 class="mb-0">Clinical Diagnosis</h5>
                                 </div>
-                                <div class="col-md-6">
-                                    {{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        {{ form.tb_diagnosed_clinically.label_tag }}
+                                        {{ form.tb_diagnosed_clinically }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
+                                </div>
                             </div>
                             <hr>
 
@@ -113,8 +117,8 @@
                             <div class="row mb-3">
                                 <div class="col-md-3">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
                                 <div class="col-md-3">
-                                    {{ form.tb_treatment_date.label_tag }} 
-                                    {{ form.tb_treatment_date }}        
+                                    {{ form.tb_treatment_date.label_tag }}
+                                    {{ form.tb_treatment_date }}
                                 </div>
                                 <div class="col-md-3">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
                                 <div class="col-md-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
@@ -278,9 +282,20 @@
         const tbDiagnosisField = document.getElementById("id_tb_diagnosis");
         const tbDiagnosisDateSections = document.getElementById("tb-diagnosis-date-sections");
         const tbDiagnosisMadeSections = document.getElementById("tb-diagnosis-made-sections");
-        const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
+        // const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
         const tbSections = document.getElementById("tb-sections");
+
+
+        // ===== Field References =====
+        const tbDiagnosisMadeField = document.getElementById("id_tb_diagnosis_made");
+        const clinicalDiagnosisSection = document.querySelector(".clinical-diagnosis-section");
+        const bacteriologicalDiagnosisSection = document.querySelector(".bacteriological-diagnosis-section");
+        const diagnosisMadeOtherField = document.getElementById("tb-diagnosis-made-other-sections");
+
+        // ===== Non-TB Sections =====
         const nonTbSections = document.getElementById("non-tb-sections");
+
+        // ===== Regimen Change Elements =====
         const regimenChangedField = document.getElementById("id_regimen_changed");
         const addBtn = document.getElementById("addRegimenBtn");
         const regimenModalEl = document.getElementById("regimenChangeModal");
@@ -290,23 +305,47 @@
         const regimenScreeningInput = document.getElementById("regimenScreeningId");
         const regimenTableBody = document.querySelector("#regimenChangesTable tbody");
 
+
+
         // ===== Functions =====
         function toggleTbSections() {
             if (tbDiagnosisField.value === "1") {
-                tbDiagnosisMadeOtherSections.style.display = "block";
+                // tbDiagnosisMadeOtherSections.style.display = "block";
                 tbDiagnosisDateSections.style.display = "block";
                 tbDiagnosisMadeSections.style.display = "block";
-                tbDiagnosisMadeOtherSections.style.display = "block";
+                // tbDiagnosisMadeOtherSections.style.display = "block";
                 nonTbSections.style.display = "none";
             } else if (tbDiagnosisField.value === "2") {
                 tbSections.style.display = "none";
                 tbDiagnosisDateSections.style.display = "none";
                 tbDiagnosisMadeSections.style.display = "none";
-                tbDiagnosisMadeOtherSections.style.display = "none";
+                // tbDiagnosisMadeOtherSections.style.display = "none";
                 nonTbSections.style.display = "block";
             }
         }
 
+        // ===== Toggle Clinical/Bacteriological Sections =====
+        function toggleDiagnosisMadeSections() {
+            if (tbDiagnosisMadeField.value === "1") {  // Clinical
+                clinicalDiagnosisSection.style.display = "block";
+                bacteriologicalDiagnosisSection.style.display = "none";
+                diagnosisMadeOtherField.style.display = "none";
+            } else if (tbDiagnosisMadeField.value === "2") {  // Bacteriological
+                clinicalDiagnosisSection.style.display = "none";
+                bacteriologicalDiagnosisSection.style.display = "block";
+                diagnosisMadeOtherField.style.display = "none";
+            } else if (tbDiagnosisMadeField.value === "96") {  // Other
+                clinicalDiagnosisSection.style.display = "none";
+                bacteriologicalDiagnosisSection.style.display = "none";
+                diagnosisMadeOtherField.style.display = "block";
+            } else {
+                clinicalDiagnosisSection.style.display = "none";
+                bacteriologicalDiagnosisSection.style.display = "none";
+                diagnosisMadeOtherField.style.display = "none";
+            }
+        }
+
+        // ===== Toggle Add Regimen Button =====
         function toggleAddButton() {
             if (regimenChangedField.value === "1") {
                 addBtn.style.display = "inline-block";
@@ -429,8 +468,10 @@
 
         // ===== Initial calls & event binding =====
         toggleTbSections();
+        toggleDiagnosisMadeSections();
         toggleAddButton();
         tbDiagnosisField.addEventListener("change", toggleTbSections);
+        tbDiagnosisMadeField.addEventListener("change", toggleDiagnosisMadeSections);
         regimenChangedField.addEventListener("change", toggleAddButton);
         bindRegimenButtons();
 
