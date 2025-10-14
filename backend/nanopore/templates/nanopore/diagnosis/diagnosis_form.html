@@ -113,23 +113,42 @@
                             </div>
                             <hr>
                             <div class="row mb-3">
-                                <div class="col-md-3">{{ form.tb_treatment.label_tag }} {{ form.tb_treatment }}</div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
+                                    {{ form.tb_treatment.label_tag }}
+                                    {{ form.tb_treatment }}
+                                </div>
+                                <div class="col-md-6" id="tb-treatment-started-section">
                                     {{ form.tb_treatment_date.label_tag }}
                                     {{ form.tb_treatment_date }}
                                 </div>
-                                <div class="col-md-3">{{ form.tb_facility.label_tag }} {{ form.tb_facility }}</div>
-                                <div class="col-md-3">{{ form.tb_reason.label_tag }} {{ form.tb_reason }}</div>
+                                <div class="col-md-6" id="tb-treatment-facility-section">
+                                    {{ form.tb_facility.label_tag }}
+                                    {{ form.tb_facility }}
+                                </div>
+                                <div class="col-md-6" id="tb-treatment-reason-section">
+                                    {{ form.tb_reason.label_tag }}
+                                    {{ form.tb_reason }}
+                                </div>
                             </div>
                             <hr>
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    {{ form.tb_register_number.label_tag }} {{ form.tb_register_number }}
-                                </div>
-                                <div class="col-md-3">{{ form.tb_regimen.label_tag }} {{ form.tb_regimen }}</div>
-                                <div class="col-md-3">{{ form.tb_regimen_other.label_tag }} {{ form.tb_regimen_other }}
-                                </div>
-                                <div class="col-md-3">{{ form.regimen_changed.label_tag }} {{ form.regimen_changed }}
+                            <div id="regimen-change-section">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        {{ form.tb_register_number.label_tag }}
+                                        {{ form.tb_register_number }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form.tb_regimen.label_tag }}
+                                        {{ form.tb_regimen }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form.tb_regimen_other.label_tag }}
+                                        {{ form.tb_regimen_other }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form.regimen_changed.label_tag }}
+                                        {{ form.regimen_changed }}
+                                    </div>
                                 </div>
                             </div>
                             <hr>
@@ -287,7 +306,16 @@
         const tbDiagnosisMadeField = document.getElementById("id_tb_diagnosis_made");
         const clinicalDiagnosisSection = document.querySelector(".clinical-diagnosis-section");
         const bacteriologicalDiagnosisSection = document.querySelector(".bacteriological-diagnosis-section");
-        const diagnosisMadeOtherField = document.getElementById("tb-diagnosis-made-other-sections");
+        // const diagnosisMadeOtherField = document.getElementById("tb-diagnosis-made-other-sections");
+
+
+        // ===== Field References =====
+        const tbTreatmentField = document.getElementById("id_tb_treatment");
+        const tbTreatmentStartedSection = document.querySelector("#tb-treatment-started-section");
+        const tbTreatmentFacilitySection = document.querySelector("#tb-treatment-facility-section");
+        const tbTreatmentReasonSection = document.querySelector("#tb-treatment-reason-section");
+        const tbRegimenChangeSection = document.getElementById("regimen-change-section");
+
 
         // ===== Non-TB Sections =====
         const nonTbSections = document.getElementById("non-tb-sections");
@@ -343,6 +371,30 @@
                 bacteriologicalDiagnosisSection.style.display = "none";
                 // diagnosisMadeOtherField.style.display = "none";
                 tbDiagnosisMadeOtherSections.style.display = "none";
+            }
+        }
+
+        // ===== Helper function to show/hide sections =====
+        function toggleTbTreatmentSections() {
+            const value = tbTreatmentField ? tbTreatmentField.value : "";
+
+            // Hide all sections by default
+            tbTreatmentStartedSection.style.display = "none";
+            tbTreatmentFacilitySection.style.display = "none";
+            tbTreatmentReasonSection.style.display = "none";
+            tbRegimenChangeSection.style.display = "none";
+
+            // Show based on selection
+            if (value === "1") {
+                // TB treatment = 1 → Show Started + Regimen Change
+                tbTreatmentStartedSection.style.display = "block";
+                tbRegimenChangeSection.style.display = "block";
+            } else if (value === "2") {
+                // TB treatment = 2 → Show Facility
+                tbTreatmentFacilitySection.style.display = "block";
+            } else if (value === "3") {
+                // TB treatment = 3 → Show Reason
+                tbTreatmentReasonSection.style.display = "block";
             }
         }
 
@@ -470,9 +522,16 @@
         // ===== Initial calls & event binding =====
         toggleTbSections();
         toggleDiagnosisMadeSections();
+        // ===== Run on load =====
+        toggleTbTreatmentSections();
+
         toggleAddButton();
         tbDiagnosisField.addEventListener("change", toggleTbSections);
         tbDiagnosisMadeField.addEventListener("change", toggleDiagnosisMadeSections);
+        // ===== Run on change =====
+        if (tbTreatmentField) {
+            tbTreatmentField.addEventListener("change", toggleTbTreatmentSections);
+        }
         regimenChangedField.addEventListener("change", toggleAddButton);
         bindRegimenButtons();
 
