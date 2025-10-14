@@ -7,7 +7,7 @@
 
 <!--
 
-python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/duplicates.csv
+python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/duplicates.csv
 
  -->
 
@@ -16,13 +16,13 @@ python manage.py screening_duplicates -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS
 
 <!-- 
 
-python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_pid_lengths.csv
+python manage.py screening_pid_lengths -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_pid_lengths.csv
 
 -->
 
 <!-- 
 
-python manage.py screening_pid1_and_pid2_checks -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_pid1_and_pid2_checks.csv
+python manage.py screening_pid1_and_pid2_checks -i ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_form.csv -o ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_pid1_and_pid2_checks.csv
 
 -->
 
@@ -31,9 +31,9 @@ python manage.py screening_pid1_and_pid2_checks -i ~/Documents/WORKS/NIMR/DREAM/
 <!--
 
 python manage.py update_screening_age_sex_dob \
-  --screening_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_form.csv \
-  --enrollment_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_13/enrollment_form.csv \
-  --output_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_updated_form.csv
+  --screening_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_form.csv \
+  --enrollment_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_14/enrollment_form.csv \
+  --output_csv ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_updated_form.csv
  
   
 -->
@@ -44,7 +44,7 @@ python manage.py update_screening_age_sex_dob \
 
 <!-- 
 
-python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_updated_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_13/screening_ready_values.csv 
+python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_updated_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/SCREENING/_2025_10_14/screening_ready_values.csv 
 
 -->
 
@@ -53,7 +53,7 @@ python manage.py transform_screening   --input ~/Documents/WORKS/NIMR/DREAM/MIGR
 
 <!-- 
 
-python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_13/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_13/enrollment_ready_values.csv 
+python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_14/enrollment_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ENROLLMENT/_2025_10_14/enrollment_ready_values.csv 
 
 -->
 
@@ -62,7 +62,7 @@ python manage.py transform_enrollment   --input ~/Documents/WORKS/NIMR/DREAM/MIG
 
 <!-- 
 
-python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_10_13/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_10_13/clinic_ready_values.csv 
+python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_10_14/clinic_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/CLINIC/_2025_10_14/clinic_ready_values.csv 
 
 -->
 
@@ -71,7 +71,7 @@ python manage.py transform_clinic   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATI
 
 <!-- 
 
-python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_10_13/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_10_13/zonal_ready_values.csv 
+python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_10_14/zonal_lab_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/ZONAL/_2025_10_14/zonal_ready_values.csv 
 
 -->
 
@@ -80,7 +80,7 @@ python manage.py transform_zonal   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIO
 
 <!-- 
 
-python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_10_13/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_10_13/diagnosis_ready_values.csv 
+python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_10_14/diagnosis_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/DIAGNOSIS/_2025_10_14/diagnosis_ready_values.csv 
 
 -->
 
@@ -88,7 +88,7 @@ python manage.py transform_diagnosis   --input ~/Documents/WORKS/NIMR/DREAM/MIGR
 
 <!-- 
 
-python manage.py transform_regimen_changes   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_10_13/regimen_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_10_13/regimen_ready_values.csv 
+python manage.py transform_regimen_changes   --input ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_10_14/regimen_form.csv   --output ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/treatment/_2025_10_14/regimen_ready_values.csv 
 
 -->
 
@@ -96,7 +96,7 @@ python manage.py transform_regimen_changes   --input ~/Documents/WORKS/NIMR/DREA
 <!-- Back Up  -->
 <!-- 
 
-pg_dump -U username -h localhost -p 5432 -Fc nanopore > ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/Back_Up/_2025_10_13/nanopore_2025_10_13.dump
+pg_dump -U maquiz -h localhost -p 5432 -Fc nanopore > ~/Documents/WORKS/NIMR/DREAM/MIGRATIONS/Back_Up/_2025_10_15/nanopore_2025_10_15.dump
 
 -->
 
