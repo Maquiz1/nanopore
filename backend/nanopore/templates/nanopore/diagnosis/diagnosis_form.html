@@ -407,18 +407,21 @@
             tbTreatmentFacilitySection.style.display = "none";
             tbTreatmentReasonSection.style.display = "none";
             tbRegimenChangeSection.style.display = "none";
-
+            tbTreatmentOutcomesSections.style.display = "none";
             // Show based on selection
             if (value === "1") {
                 // TB treatment = 1 → Show Started + Regimen Change
                 tbTreatmentStartedSection.style.display = "block";
                 tbRegimenChangeSection.style.display = "block";
+                tbTreatmentOutcomesSections.style.display = "block";
             } else if (value === "2") {
                 // TB treatment = 2 → Show Facility
                 tbTreatmentFacilitySection.style.display = "block";
+                tbTreatmentOutcomesSections.style.display = "none";
             } else if (value === "3") {
                 // TB treatment = 3 → Show Reason
                 tbTreatmentReasonSection.style.display = "block";
+                tbTreatmentOutcomesSections.style.display = "none";
             }
         }
 
