@@ -3,7 +3,7 @@ from nanopore.models import Enrollment
 from django.core.exceptions import ValidationError
 import datetime
 from common.labels.enrollment.labels import Enrollment_LABELS   # ✅ import from core app
-from options.models import DiseasesMedicalConditions,YesNoUnknown,PositiveNegativeUnknown
+from options.models import DiseasesMedicalConditions,YesNoUnknown,PositiveNegativeUnknown,CategoryTreated
 
 class EnrollmentForm(forms.ModelForm):
     class Meta:
@@ -98,6 +98,12 @@ class EnrollmentForm(forms.ModelForm):
             self.fields["screening"].disabled = True
             self.fields["screening"].initial = self.screening_instance
 
+        # Override tb_category to use `value` instead of `id`
+        self.fields["tb_category"].choices = [
+            (obj.value, obj.name) for obj in CategoryTreated.objects.all()
+        ]
+        
+        
         # Override diseases_medical to use `value` instead of `id`
         self.fields["diseases_medical"].choices = [
             (obj.value, obj.name) for obj in DiseasesMedicalConditions.objects.all()
