@@ -229,7 +229,7 @@
                                         {{ form.tb_other_diagnosis.label_tag }}
                                         {{ form.tb_other_diagnosis }}
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-4" id="tb-other-specify-section">
                                         {{ form.tb_other_specify.label_tag }}
                                         {{ form.tb_other_specify }}
                                     </div>
@@ -323,6 +323,10 @@
         // ===== Non-TB Sections =====
         const nonTbSections = document.getElementById("non-tb-sections");
 
+        // ===== Field References =====
+        const tbOtherDiagnosisField = document.getElementById("id_tb_other_diagnosis");
+        const tbOtherSpecifySection = document.getElementById("tb-other-specify-section");
+
         // ===== Regimen Change Elements =====
         const regimenChangedField = document.getElementById("id_regimen_changed");
         const addBtn = document.getElementById("addRegimenBtn");
@@ -406,6 +410,17 @@
                 tbRegimenOtherSection.style.display = "block";
             }
         }
+
+        function toggleTbOtherSpecify() {
+            if (!tbOtherDiagnosisField || !tbOtherSpecifySection) return;
+
+            if (tbOtherDiagnosisField.value === "3" || tbOtherDiagnosisField.value === "96") {
+                tbOtherSpecifySection.style.display = "block";
+            } else {
+                tbOtherSpecifySection.style.display = "none";
+            }
+        }
+
 
         // ===== Toggle Add Regimen Button =====
         function toggleAddButton() {
@@ -550,6 +565,12 @@
         if (tbRegimenField) {
             tbRegimenField.addEventListener("change", toggleTbRegimenSection);
         }
+
+        if (tbOtherDiagnosisField) {
+            tbOtherDiagnosisField.addEventListener("change", toggleTbOtherSpecify);
+            toggleTbOtherSpecify(); // initialize on page load
+        }
+
 
         regimenChangedField.addEventListener("change", toggleAddButton);
         bindRegimenButtons();
