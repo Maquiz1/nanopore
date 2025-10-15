@@ -88,6 +88,8 @@
                             <div class="col-md-3">{{ form.sample2_volume.label_tag }}{{ form.sample2_volume }}{% for error in form.sample2_volume.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
                         </div>
+
+                        <div id="afb-details-section">
                         <hr>
 
                         <!-- 🔹 AFB Microscopy -->
@@ -98,6 +100,9 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">{{ form.afb_microscopy_conducted.label_tag }}{{ form.afb_microscopy_conducted }}{% for error in form.afb_microscopy_conducted.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
+                        </div>
+                        <div id="afb-slides-section">
+
                         <hr>
                         <h5 class="mb-0">Slide A:</h5>
                         <hr>
@@ -115,6 +120,7 @@
                             <div class="col-md-4">{{ form.afb_b_results.label_tag }}{{ form.afb_b_results }}{% for error in form.afb_b_results.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
                         <hr>
+                        </div>
 
                         <!-- 🔹 Xpert MTB/RIF -->
                         <div class="p-2 mb-3 bg-success text-white rounded">
@@ -123,24 +129,29 @@
                         <hr>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">{{ form.xpert_mtb_rif_conducted.label_tag }}{{ form.xpert_mtb_rif_conducted }}{% for error in form.xpert_mtb_rif_conducted.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-6">{{ form.xpert_date.label_tag }}{{ form.xpert_date }}{% for error in form.xpert_date.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6" id="xpert-date-section">{{ form.xpert_date.label_tag }}{{ form.xpert_date }}{% for error in form.xpert_date.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
+
+                        <div id="xpert-details-section">
                         <hr>
                         <h5 class="mb-0">9(b). Xpert MTB/RIF (Ultra) Test Result</h5>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">{{ form.xpert_mtb.label_tag }}{{ form.xpert_mtb }}{% for error in form.xpert_mtb.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-4">{{ form.error_code.label_tag }}{{ form.error_code }}{% for error in form.error_code.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-4">{{ form.xpert_rif.label_tag }}{{ form.xpert_rif }}{% for error in form.xpert_rif.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4" id="xpert-mtb-section">{{ form.xpert_mtb.label_tag }}{{ form.xpert_mtb }}{% for error in form.xpert_mtb.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4" id="error-code-section">{{ form.error_code.label_tag }}{{ form.error_code }}{% for error in form.error_code.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4" id="xpert-rif-section">{{ form.xpert_rif.label_tag }}{{ form.xpert_rif }}{% for error in form.xpert_rif.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
+                        </div>
+                        <div id="ct-value-details-section">
                         <hr>
                         <!-- <h5 class="mb-0">Slide B:</h5>
                         <hr> -->
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6">{{ form.ct_value.label_tag }}{{ form.ct_value }}{% for error in form.ct_value.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-6">{{ form.ct_na.label_tag }}{{ form.ct_na }}{% for error in form.ct_na.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6" id="ct-value-section">{{ form.ct_value.label_tag }}{{ form.ct_value }}{% for error in form.ct_value.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6" id="ct-na-section">{{ form.ct_na.label_tag }}{{ form.ct_na }}{% for error in form.ct_na.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
                         <hr>
+                        </div>
 
                         <!-- REMARKS -->
                         <div class="p-2 mb-3 bg-dark text-white rounded">
@@ -185,6 +196,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const newSampleField = document.getElementById("id_new_sample");
     const newReasonField = document.getElementById("id_new_reason");
     const numberReceivedField = document.getElementById("id_number_received");
+    const afbMicroscopyConductedField = document.getElementById("id_afb_microscopy_conducted");
+    const xpertConductedField = document.getElementById("id_xpert_mtb_rif_conducted");
+    const xpertMtbField = document.getElementById("id_xpert_mtb");
 
     // ===== Sections =====
     const numberReceivedSection = document.getElementById("number-received-section");
@@ -195,6 +209,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const sample1Section = document.getElementById("sample1-section");
     const sample2Section = document.getElementById("sample2-section");
+
+    const afbDetailsSection = document.getElementById("afb-details-section");
+    const afbSlidesSection = document.getElementById("afb-slides-section");
+
+
+    const xpertDateSection = document.getElementById("xpert-date-section");
+    const xpertDetailsSection = document.getElementById("xpert-details-section");
+    const xpertRifSection = document.getElementById("xpert-rif-section");
+    const ctValueDetailsSection = document.getElementById("ct-value-details-section");
+    const errorCodeSection = document.getElementById("error-code-section");
 
     // ===== Functions =====
 
@@ -263,21 +287,83 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function toggleAfbMicroscopyConductedSection() {
+        if (!afbMicroscopyConductedField) return;
+
+        if (afbMicroscopyConductedField.value === "1") {
+            afbSlidesSection.style.display = "block";
+        } else {
+            afbSlidesSection.style.display = "none";
+        }
+    }
+
+    // Show xpert_date and details when conducted=1
+    function toggleXpertConducted() {
+        if (!xpertConductedField) return;
+
+        if (xpertConductedField.value === "1") {
+            if (xpertDateSection) xpertDateSection.style.display = "block";
+            if (xpertDetailsSection) xpertDetailsSection.style.display = "block";
+        } else {
+            if (xpertDateSection) xpertDateSection.style.display = "none";
+            if (xpertDetailsSection) xpertDetailsSection.style.display = "none";
+        }
+    }
+
+
+    // Show xpert_rif, ct-value, or error_code based on xpert_mtb value
+    function toggleXpertMtbDetails() {
+        if (!xpertMtbField) return;
+
+        const val = xpertMtbField.value;
+
+        // Hide all sections first
+        if (xpertRifSection) xpertRifSection.style.display = "none";
+        if (ctValueDetailsSection) ctValueDetailsSection.style.display = "none";
+        if (errorCodeSection) errorCodeSection.style.display = "none";
+
+        // Show sections based on values
+        if (["2","3","4","5","6"].includes(val)) {
+            if (xpertRifSection) xpertRifSection.style.display = "block";
+            if (ctValueDetailsSection) ctValueDetailsSection.style.display = "block";
+        } else if (val === "8") {
+            if (errorCodeSection) errorCodeSection.style.display = "block";
+        }
+    }
+
+
+
     // ===== Initial calls & event binding =====
     function initializeSampleSections() {
         toggleSampleReceivedSection();
         toggleSampleReasonSection();
         toggleNewSampleSection();
         toggleSampleSectionsByNumber();
+        toggleAfbMicroscopyConductedSection();
     }
 
     if (sampleReceivedField) sampleReceivedField.addEventListener("change", initializeSampleSections);
     if (sampleReasonField) sampleReasonField.addEventListener("change", initializeSampleSections);
     if (newSampleField) newSampleField.addEventListener("change", initializeSampleSections);
     if (numberReceivedField) numberReceivedField.addEventListener("change", initializeSampleSections);
+    if (afbMicroscopyConductedField) afbMicroscopyConductedField.addEventListener("change", initializeSampleSections);
 
     // Run on page load
     initializeSampleSections();
+
+
+
+    // ===== Initialize & Bind =====
+    function initializeXpertSections() {
+        toggleXpertConducted();
+        toggleXpertMtbDetails();
+    }
+
+    if (xpertConductedField) xpertConductedField.addEventListener("change", initializeXpertSections);
+    if (xpertMtbField) xpertMtbField.addEventListener("change", initializeXpertSections);
+
+    // Run on page load
+    initializeXpertSections();
 
 });
 </script>
