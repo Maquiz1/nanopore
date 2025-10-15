@@ -39,7 +39,7 @@ class DiagnosisForm(forms.ModelForm):
             "tb_outcome2": "11(a). Treatment outcome",
             "tb_outcome2_date": "11(b). Date treatment outcome assigned",
             "tb_other_diagnosis": "12a. What diagnosis other than TB was made?",
-            "tb_other_specify": "If Other Mention If Bacterial pneumonia, specify causative species if known",
+            "tb_other_specify": "If Other Mention ( or If Bacterial pneumonia, specify causative species if known)",
             "tb_diagnosis_made2": "12b. How was this diagnosis made?",
             "remarks": "13. Any comments or remarks regarding this patient",
         }
