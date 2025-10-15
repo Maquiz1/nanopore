@@ -33,7 +33,7 @@ Enrollment_LABELS = {
     "hiv_status": "11. HIV status",
     "other_diseases": "12. Any other relevant diseases/conditions ?",
     "diseases_medical": "12(a). If yes, Select relevant diseases/medical conditions ( Tick all that apply)",
-    "diseases_specify": "12(a). Specify Diseases",
+    "diseases_specify": "12(a). If Other Specify Diseases",
 
     # Samples
     "sputum_collected": "13(a).After TB was confirmed by a rapid molecular test, was an additional sputum sample collected?",
