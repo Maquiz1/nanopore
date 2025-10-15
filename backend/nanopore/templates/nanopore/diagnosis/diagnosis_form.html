@@ -214,7 +214,28 @@
                                 </div>
                             </div>
                             <hr>
+
+                            <!-- TB treatment-outcomes sections -->
+                            <div id="tb-treatment-outcomes-sections">
+                                <div class="p-2 mb-3 bg-secondary text-white rounded">
+                                    <h5 class="mb-0">Treatment outcome</h5>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        {{ form.tb_outcome2.label_tag }}
+                                        {{ form.tb_outcome2 }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form.tb_outcome2_date.label_tag }}
+                                        {{ form.tb_outcome2_date }}
+                                    </div>
+                                </div>
+                                <hr>
+                            </div>
                         </div>
+
+
 
                         <!-- Non-TB sections -->
                         <div id="non-tb-sections">
@@ -322,6 +343,7 @@
 
         // ===== Non-TB Sections =====
         const nonTbSections = document.getElementById("non-tb-sections");
+        const tbTreatmentOutcomesSections = document.getElementById("tb-treatment-outcomes-sections");
 
         // ===== Field References =====
         const tbOtherDiagnosisField = document.getElementById("id_tb_other_diagnosis");
@@ -344,11 +366,13 @@
             if (tbDiagnosisField.value === "1") {
                 tbDiagnosisDateSections.style.display = "block";
                 tbDiagnosisMadeSections.style.display = "block";
+                tbTreatmentOutcomesSections.style.display = "block";
                 nonTbSections.style.display = "none";
             } else if (tbDiagnosisField.value === "2") {
                 tbSections.style.display = "none";
                 tbDiagnosisDateSections.style.display = "none";
                 tbDiagnosisMadeSections.style.display = "none";
+                tbTreatmentOutcomesSections.style.display = "none";
                 nonTbSections.style.display = "block";
             }
         }

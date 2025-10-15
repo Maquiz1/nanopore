@@ -92,7 +92,7 @@ class ZonalLaboratory(models.Model):
     xpert_xdr_ethionamide = models.ForeignKey(XpertXDRResultsTwo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_ethionamide_xpert_xdr")
 
 
- # First-Line LPA
+    # First-Line LPA
     first_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_lpa")
     first_line_lpa_date = models.DateField(null=True,blank=True)
     first_line_drugs = models.ManyToManyField(FirstLineDrugs ,blank=True, related_name="zonal_laboratory_first_line_drugs")
