@@ -141,11 +141,11 @@
                                         {{ form.tb_regimen.label_tag }}
                                         {{ form.tb_regimen }}
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-3" id="tb-regimen-other-section">
                                         {{ form.tb_regimen_other.label_tag }}
                                         {{ form.tb_regimen_other }}
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-3 regimen-changed-section" id="regimen-changed-section">
                                         {{ form.regimen_changed.label_tag }}
                                         {{ form.regimen_changed }}
                                     </div>
@@ -316,6 +316,10 @@
         const tbTreatmentReasonSection = document.querySelector("#tb-treatment-reason-section");
         const tbRegimenChangeSection = document.getElementById("regimen-change-section");
 
+        // ===== Field References =====
+        const tbRegimenField = document.getElementById("id_tb_regimen");
+        const tbRegimenChangedSection = document.querySelector("#regimen-changed-section");
+        const tbRegimenOtherSection = document.querySelector("#tb-regimen-other-section");
 
         // ===== Non-TB Sections =====
         const nonTbSections = document.getElementById("non-tb-sections");
@@ -395,6 +399,19 @@
             } else if (value === "3") {
                 // TB treatment = 3 → Show Reason
                 tbTreatmentReasonSection.style.display = "block";
+            }
+        }
+
+        // ===== Helper function for TB Regimen Other =====
+        function toggleTbRegimenSection() {
+            const value = tbRegimenField ? tbRegimenField.value : "";
+
+            // Hide by default
+            tbRegimenOtherSection.style.display = "none";
+
+            // Show when value = 7
+            if (value === "7") {
+                tbRegimenOtherSection.style.display = "block";
             }
         }
 
@@ -524,6 +541,7 @@
         toggleDiagnosisMadeSections();
         // ===== Run on load =====
         toggleTbTreatmentSections();
+        toggleTbRegimenSection();
 
         toggleAddButton();
         tbDiagnosisField.addEventListener("change", toggleTbSections);
@@ -532,6 +550,11 @@
         if (tbTreatmentField) {
             tbTreatmentField.addEventListener("change", toggleTbTreatmentSections);
         }
+
+        if (tbRegimenField) {
+            tbRegimenField.addEventListener("change", toggleTbRegimenSection);
+        }
+        
         regimenChangedField.addEventListener("change", toggleAddButton);
         bindRegimenButtons();
 
