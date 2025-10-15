@@ -112,13 +112,27 @@
                             </div>
 
                             <div id="tx-treatment-section">
-                            <div id="tx-treatment-episode-section">
-                                <hr class="my-4">
-                                <!-- <div class="p-2 mb-3 bg-default text-white rounded"> -->
-                                <h5 class="mb-0">10c. When did the patient’s last treatment episode end?</h5>
-                                <!-- </div> -->
+                                <div id="tx-treatment-episode-section">
+                                    <hr class="my-4">
+                                    <!-- <div class="p-2 mb-3 bg-default text-white rounded"> -->
+                                    <h5 class="mb-0">10c. When did the patient’s last treatment episode end?</h5>
+                                    <!-- </div> -->
+                                    {% for field in form %}
+                                    {% if field.name in "tx_month,tx_year"|cut:"," %}
+                                    <div class="col-md-6">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                    <!-- <hr class="my-4"> -->
+                                </div>
+
                                 {% for field in form %}
-                                {% if field.name in "tx_month,tx_year"|cut:"," %}
+                                {% if field.name in "tx_unknown_month,tx_unknown_year"|cut:"," %}
                                 <div class="col-md-6">
                                     {{ field.label_tag }}
                                     {{ field }}
@@ -128,60 +142,46 @@
                                 </div>
                                 {% endif %}
                                 {% endfor %}
-                                <!-- <hr class="my-4"> -->
-                            </div>
+                                <hr class="my-4">
 
-                            {% for field in form %}
-                            {% if field.name in "tx_unknown_month,tx_unknown_year"|cut:"," %}
-                            <div class="col-md-6">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% for error in field.errors %}
-                                <div class="text-danger">{{ error }}</div>
+                                {% for field in form %}
+                                {% if field.name in "dr_ds,ltf_months,ltf_months_unknown"|cut:"," %}
+                                <div class="col-md-4">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                                <hr class="my-4">
+
+                                {% for field in form %}
+                                {% if field.name in "tb_regimen,tb_regimen_specify"|cut:"," %}
+                                <div class="col-md-6">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                                <hr class="my-4">
+
+                                {% for field in form %}
+                                {% if field.name in "regimen_months,regimen_months_unknown,tb_otcome"|cut:"," %}
+                                <div class="col-md-4">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
-                            {% endif %}
-                            {% endfor %}
-                            <hr class="my-4">
-
-                            {% for field in form %}
-                            {% if field.name in "dr_ds,ltf_months,ltf_months_unknown"|cut:"," %}
-                            <div class="col-md-4">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% for error in field.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            {% endfor %}
-                            <hr class="my-4">
-
-                            {% for field in form %}
-                            {% if field.name in "tb_regimen,tb_regimen_specify"|cut:"," %}
-                            <div class="col-md-6">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% for error in field.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            {% endfor %}
-                            <hr class="my-4">
-
-                            {% for field in form %}
-                            {% if field.name in "regimen_months,regimen_months_unknown,tb_otcome"|cut:"," %}
-                            <div class="col-md-4">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% for error in field.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            {% endfor %}
-                        </div>
                         </div>
 
                         <hr class="my-4">
@@ -192,8 +192,43 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                            {% if field.name in "hiv_status,other_diseases,diseases_medical,diseases_specify"|cut:"," %}
-                            <div class="col-md-3">
+                            {% if field.name in "hiv_status"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+
+                            <div class="col-md-6">
+                                {{ form.other_diseases.label_tag }}
+                                {{ form.other_diseases }}
+                            </div>
+                        </div>
+                        <hr class="my-4">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6" id="tb-diseases-medical-section">
+                                {{ form.diseases_medical.label_tag }}
+                                {{ form.diseases_medical }}
+                            </div>
+                            <div class="col-md-6" id="tb-diseases-specify-section">
+                                {{ form.diseases_specify.label_tag }}
+                                {{ form.diseases_specify }}
+                            </div>
+                        </div>
+
+                        <!-- Samples collections -->
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">Samples collections</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                            {% if field.name in "sputum_collected"|cut:"," %}
+                            <div class="col-md-6">
                                 {{ field.label_tag }}
                                 {{ field }}
                                 {% for error in field.errors %}
@@ -204,22 +239,17 @@
                             {% endfor %}
                         </div>
 
-                        <!-- Samples collections -->
-                        <div class="p-2 mb-3 bg-success text-white rounded">
-                            <h5 class="mb-0">Samples collections</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            {% for field in form %}
-                            {% if field.name in "sputum_collected,sputum_date,sputum_reasons"|cut:"," %}
-                            <div class="col-md-4">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% for error in field.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                        <hr class="my-4">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6" id="tb-sputum-date-section">
+                                {{ form.sputum_date.label_tag }}
+                                {{ form.sputum_date }}
                             </div>
-                            {% endif %}
-                            {% endfor %}
+                            <div class="col-md-6" id="tb-sputum-reasons-section">
+                                {{ form.sputum_reasons.label_tag }}
+                                {{ form.sputum_reasons }}
+                            </div>
                         </div>
 
                         <!-- REMARKS -->
@@ -256,50 +286,104 @@
 
 {% block extra_scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-    // ===== Fields =====
-    const txPreviousField = document.getElementById("id_tx_previous");
-    const tbCategoryField = document.getElementById("id_tb_category");
+        // ===== Fields =====
+        const txPreviousField = document.getElementById("id_tx_previous");
+        const tbCategoryField = document.getElementById("id_tb_category");
+        const sputumCollectedField = document.getElementById("id_sputum_collected");
+        const otherDiseasesField = document.getElementById("id_other_diseases");
+        const diseasesMedicalField = document.getElementById("id_diseases_medical");
 
-    // ===== Sections =====
-    const txTreatmentSection = document.getElementById("tx-treatment-section");
-    const txTreatmentEpisodeSection = document.getElementById("tx-treatment-episode-section");
-    const tbCategorySection = document.getElementById("tb-category-section");
-    const tbCategorySpecifySection = document.getElementById("tb-category-specify-section");
+        // ===== Sections =====
+        const txTreatmentSection = document.getElementById("tx-treatment-section");
+        const txTreatmentEpisodeSection = document.getElementById("tx-treatment-episode-section");
+        const tbCategorySection = document.getElementById("tb-category-section");
+        const tbCategorySpecifySection = document.getElementById("tb-category-specify-section");
+        const tbSputumDateSection = document.getElementById("tb-sputum-date-section");
+        const tbSputumReasonsSection = document.getElementById("tb-sputum-reasons-section");
+        const tbDiseasesMedicalSection = document.getElementById("tb-diseases-medical-section");
+        const tbDiseasesSpecifySection = document.getElementById("tb-diseases-specify-section");
 
-    // ===== Functions =====
-    function toggleTxPrevious() {
-        if (!txPreviousField) return;
-        const showTx = txPreviousField.value === "1";
+        // ===== Functions =====
+        function toggleTxPrevious() {
+            if (!txPreviousField) return;
+            const showTx = txPreviousField.value === "1";
 
-        if (txTreatmentSection) txTreatmentSection.style.display = showTx ? "block" : "none";
-        if (txTreatmentEpisodeSection) txTreatmentEpisodeSection.style.display = showTx ? "block" : "none";
-        if (tbCategorySection) tbCategorySection.style.display = showTx ? "block" : "none";
+            if (txTreatmentSection) txTreatmentSection.style.display = showTx ? "block" : "none";
+            if (txTreatmentEpisodeSection) txTreatmentEpisodeSection.style.display = showTx ? "block" : "none";
+            if (tbCategorySection) tbCategorySection.style.display = showTx ? "block" : "none";
 
-        // If txPrevious is 1, check tbCategory for tbCategorySpecify
-        toggleTbCategory();
-    }
+            // If txPrevious is 1, check tbCategory for tbCategorySpecify
+            toggleTbCategory();
+        }
 
-    function toggleTbCategory() {
-        if (!tbCategoryField) return;
-        const showSpecify = tbCategoryField.value === "96" && txPreviousField.value === "1";
+        function toggleTbCategory() {
+            if (!tbCategoryField) return;
+            const showSpecify = tbCategoryField.value === "96" && txPreviousField.value === "1";
 
-        if (tbCategorySpecifySection) tbCategorySpecifySection.style.display = showSpecify ? "block" : "none";
-    }
+            if (tbCategorySpecifySection) tbCategorySpecifySection.style.display = showSpecify ? "block" : "none";
+        }
 
-    // ===== Initial calls & event binding =====
-    function initializeTbSections() {
-        toggleTxPrevious();
-        toggleTbCategory();
-    }
+        function toggleSputumSections() {
+            if (!sputumCollectedField) return;
 
-    if (txPreviousField) txPreviousField.addEventListener("change", initializeTbSections);
-    if (tbCategoryField) tbCategoryField.addEventListener("change", initializeTbSections);
+            const value = sputumCollectedField.value;
+            if (tbSputumDateSection) tbSputumDateSection.style.display = value === "1" ? "block" : "none";
+            if (tbSputumReasonsSection) tbSputumReasonsSection.style.display = value === "2" ? "block" : "none";
+        }
 
-    // ===== Run on page load =====
-    initializeTbSections();
+        function toggleOtherDiseases() {
+            if (!otherDiseasesField) return;
+            const showMedical = otherDiseasesField.value === "1";
+            if (tbDiseasesMedicalSection) tbDiseasesMedicalSection.style.display = showMedical ? "block" : "none";
 
-});
+            // Also update the disease specify logic when other diseases are shown
+            toggleDiseasesMedical();
+        }
+
+        function toggleDiseasesMedical() {
+            if (!diseasesMedicalField) return;
+
+            // For checkbox fields, check if any checkbox with value 96 is checked
+            let showSpecify = false;
+
+            if (diseasesMedicalField.type === "checkbox" || diseasesMedicalField.type === "radio") {
+                // Handle if multiple checkboxes with same name exist
+                const checkboxes = document.querySelectorAll("input[name='diseases_medical']");
+                checkboxes.forEach(cb => {
+                    if (cb.value === "96" && cb.checked) showSpecify = true;
+                });
+            } else {
+                // Handle dropdown case
+                showSpecify = diseasesMedicalField.value === "96";
+            }
+
+            if (tbDiseasesSpecifySection) tbDiseasesSpecifySection.style.display = showSpecify ? "block" : "none";
+        }
+
+        // ===== Initial calls & event binding =====
+        function initializeTbSections() {
+            toggleTxPrevious();
+            toggleTbCategory();
+            toggleSputumSections();
+            toggleOtherDiseases();
+            toggleDiseasesMedical();
+        }
+
+        if (txPreviousField) txPreviousField.addEventListener("change", initializeTbSections);
+        if (tbCategoryField) tbCategoryField.addEventListener("change", initializeTbSections);
+        if (sputumCollectedField) sputumCollectedField.addEventListener("change", initializeTbSections);
+        if (otherDiseasesField) otherDiseasesField.addEventListener("change", initializeTbSections);
+
+        // For checkbox field changes (multiple options)
+        document.querySelectorAll("input[name='diseases_medical']").forEach(cb => {
+            cb.addEventListener("change", initializeTbSections);
+        });
+        
+        // ===== Run on page load =====
+        initializeTbSections();
+
+    });
 </script>
 {% endblock %}
