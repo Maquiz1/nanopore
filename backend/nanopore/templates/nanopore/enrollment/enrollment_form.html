@@ -145,7 +145,7 @@
                                 <hr class="my-4">
 
                                 {% for field in form %}
-                                {% if field.name in "dr_ds,ltf_months,ltf_months_unknown"|cut:"," %}
+                                {% if field.name in "dr_ds"|cut:"," %}
                                 <div class="col-md-4">
                                     {{ field.label_tag }}
                                     {{ field }}
@@ -155,6 +155,20 @@
                                 </div>
                                 {% endif %}
                                 {% endfor %}
+
+
+                                <hr class="my-4">
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6" id="tb-ltf-months-section">
+                                        {{ form.ltf_months.label_tag }}
+                                        {{ form.ltf_months }}
+                                    </div>
+                                    <div class="col-md-6" id="tb-ltf-months-unknown-section">
+                                        {{ form.ltf_months_unknown.label_tag }}
+                                        {{ form.ltf_months_unknown }}
+                                    </div>
+                                </div>
                                 <hr class="my-4">
 
                                 {% for field in form %}
@@ -304,6 +318,8 @@
         const tbSputumReasonsSection = document.getElementById("tb-sputum-reasons-section");
         const tbDiseasesMedicalSection = document.getElementById("tb-diseases-medical-section");
         const tbDiseasesSpecifySection = document.getElementById("tb-diseases-specify-section");
+        const tbLtfMonthsSection = document.getElementById("tb-ltf-months-section");
+        const tbLtfMonthsUnknownSection = document.getElementById("tb-ltf-months-unknown-section");
 
         // ===== Functions =====
         function toggleTxPrevious() {
@@ -320,9 +336,14 @@
 
         function toggleTbCategory() {
             if (!tbCategoryField) return;
-            const showSpecify = tbCategoryField.value === "96" && txPreviousField.value === "1";
+
+            const value = tbCategoryField.value;
+            const showSpecify = value === "96";
+            const showLtfMonths = value === "2" || value === "3";
 
             if (tbCategorySpecifySection) tbCategorySpecifySection.style.display = showSpecify ? "block" : "none";
+            if (tbLtfMonthsSection) tbLtfMonthsSection.style.display = showLtfMonths ? "block" : "none";
+            if (tbLtfMonthsUnknownSection) tbLtfMonthsUnknownSection.style.display = showLtfMonths ? "block" : "none";
         }
 
         function toggleSputumSections() {
@@ -380,7 +401,7 @@
         document.querySelectorAll("input[name='diseases_medical']").forEach(cb => {
             cb.addEventListener("change", initializeTbSections);
         });
-        
+
         // ===== Run on page load =====
         initializeTbSections();
 
