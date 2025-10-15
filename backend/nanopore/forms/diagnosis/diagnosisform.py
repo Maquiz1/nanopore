@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from nanopore.models import Diagnosis, Screening,RegimenChanges
 from options.models import (
     YesNo, TBDiagnosisMade, DiagnosisBacteriological, DiagnosedClinically,
-    TBTreatmentStarted, RegimenPrescribed, TBTreatmentOutcome
+    TBTreatmentStarted, RegimenPrescribed, TBTreatmentOutcome,TBOtherDiagnosis,TBOtherDiagnosisMade
 )
 
 class DiagnosisForm(forms.ModelForm):
@@ -78,6 +78,11 @@ class DiagnosisForm(forms.ModelForm):
         # If we have a screening instance, assign it to hidden field initial
         if self.screening_instance:
             self.fields["screening"].initial = self.screening_instance.pk
+            
+        # Override tb_other_diagnosis to use `value` instead of `id`
+        self.fields["tb_other_diagnosis"].choices = [
+            (obj.value, obj.name) for obj in TBOtherDiagnosis.objects.all()
+        ]
 
         # For read-only display in template
         self.readonly_screening = self.screening_instance
