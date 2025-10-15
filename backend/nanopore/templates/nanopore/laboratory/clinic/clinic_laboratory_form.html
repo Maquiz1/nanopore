@@ -49,22 +49,23 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">{{ form.sample_received.label_tag }}{{ form.sample_received }}{% for error in form.sample_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-4">{{ form.sample_reason.label_tag }}{{ form.sample_reason }}{% for error in form.sample_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-4">{{ form.other_reason.label_tag }}{{ form.other_reason }}{% for error in form.other_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4" id="sample-received-section">{{ form.sample_received.label_tag }}{{ form.sample_received }}{% for error in form.sample_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4" id="sample-reason-section">{{ form.sample_reason.label_tag }}{{ form.sample_reason }}{% for error in form.sample_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-4" id="other-reason-section">{{ form.other_reason.label_tag }}{{ form.other_reason }}{% for error in form.other_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
                         <hr>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6">{{ form.new_sample.label_tag }}{{ form.new_sample }}{% for error in form.new_sample.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-6">{{ form.new_reason.label_tag }}{{ form.new_reason }}{% for error in form.new_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6" id="new-sample-section">{{ form.new_sample.label_tag }}{{ form.new_sample }}{% for error in form.new_sample.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6" id="new-reason-section">{{ form.new_reason.label_tag }}{{ form.new_reason }}{% for error in form.new_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
                         <hr>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6">{{ form.number_received.label_tag }}{{ form.number_received }}{% for error in form.number_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-6" id="number-received-section">{{ form.number_received.label_tag }}{{ form.number_received }}{% for error in form.number_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
 
+                        <div id="sample1-section">
                         <hr>
                         <h5 class="mb-0">Sample 1</h5>
                         <hr>
@@ -74,6 +75,9 @@
                             <div class="col-md-3">{{ form.appearance_sample1.label_tag }}{{ form.appearance_sample1 }}{% for error in form.appearance_sample1.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                             <div class="col-md-3">{{ form.sample1_volume.label_tag }}{{ form.sample1_volume }}{% for error in form.sample1_volume.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                         </div>
+                        </div>
+
+                        <div id="sample2-section">
                         <hr>
                         <h5 class="mb-0">Sample 2</h5>
                         <hr>
@@ -82,6 +86,7 @@
                             <div class="col-md-3">{{ form.date_sample2_received.label_tag }}{{ form.date_sample2_received }}{% for error in form.date_sample2_received.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                             <div class="col-md-3">{{ form.appearance_sample2.label_tag }}{{ form.appearance_sample2 }}{% for error in form.appearance_sample2.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
                             <div class="col-md-3">{{ form.sample2_volume.label_tag }}{{ form.sample2_volume }}{% for error in form.sample2_volume.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+                        </div>
                         </div>
                         <hr>
 
@@ -166,4 +171,115 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ===== Fields =====
+    const sampleReceivedField = document.getElementById("id_sample_received");
+    const sampleReasonField = document.getElementById("id_sample_reason");
+    const otherReasonField = document.getElementById("id_other_reason");
+    const newSampleField = document.getElementById("id_new_sample");
+    const newReasonField = document.getElementById("id_new_reason");
+    const numberReceivedField = document.getElementById("id_number_received");
+
+    // ===== Sections =====
+    const numberReceivedSection = document.getElementById("number-received-section");
+    const sampleReasonSection = document.getElementById("sample-reason-section");
+    const otherReasonSection = document.getElementById("other-reason-section");
+    const newSampleSection = document.getElementById("new-sample-section");
+    const newReasonSection = document.getElementById("new-reason-section");
+
+    const sample1Section = document.getElementById("sample1-section");
+    const sample2Section = document.getElementById("sample2-section");
+
+    // ===== Functions =====
+
+    function toggleSampleReceivedSection() {
+        if (!sampleReceivedField) return;
+
+        if (sampleReceivedField.value === "1") {
+            numberReceivedSection.style.display = "block";
+            sampleReasonSection.style.display = "none";
+            newSampleSection.style.display = "none";
+            otherReasonSection.style.display = "none";
+            newReasonSection.style.display = "none";
+        } else if (sampleReceivedField.value === "2") {
+            numberReceivedSection.style.display = "none";
+            sampleReasonSection.style.display = "block";
+            newSampleSection.style.display = "block";
+            toggleSampleReasonSection();
+            toggleNewSampleSection();
+        } else {
+            // default hide all
+            numberReceivedSection.style.display = "none";
+            sampleReasonSection.style.display = "none";
+            otherReasonSection.style.display = "none";
+            newSampleSection.style.display = "none";
+            newReasonSection.style.display = "none";
+        }
+    }
+
+    function toggleSampleReasonSection() {
+        if (!sampleReasonField) return;
+
+        if (sampleReasonField.value === "96") {
+            otherReasonSection.style.display = "block";
+            numberReceivedSection.style.display = "block";
+        } else {
+            otherReasonSection.style.display = "none";
+        }
+    }
+
+    function toggleNewSampleSection() {
+        if (!newSampleField) return;
+
+        if (newSampleField.value === "1") {
+            numberReceivedSection.style.display = "block";
+            newReasonSection.style.display = "none";
+        } else if (newSampleField.value === "2") {
+            newReasonSection.style.display = "block";
+            numberReceivedSection.style.display = "none";
+        } else {
+            newReasonSection.style.display = "none";
+        }
+    }
+
+    function toggleSampleSectionsByNumber() {
+        if (!numberReceivedField) return;
+
+        if (numberReceivedField.value === "1") {
+            if (sample1Section) sample1Section.style.display = "block";
+            if (sample2Section) sample2Section.style.display = "none";
+        } else if (numberReceivedField.value === "2") {
+            if (sample1Section) sample1Section.style.display = "block";
+            if (sample2Section) sample2Section.style.display = "block";
+        } else {
+            if (sample1Section) sample1Section.style.display = "none";
+            if (sample2Section) sample2Section.style.display = "none";
+        }
+    }
+
+    // ===== Initial calls & event binding =====
+    function initializeSampleSections() {
+        toggleSampleReceivedSection();
+        toggleSampleReasonSection();
+        toggleNewSampleSection();
+        toggleSampleSectionsByNumber();
+    }
+
+    if (sampleReceivedField) sampleReceivedField.addEventListener("change", initializeSampleSections);
+    if (sampleReasonField) sampleReasonField.addEventListener("change", initializeSampleSections);
+    if (newSampleField) newSampleField.addEventListener("change", initializeSampleSections);
+    if (numberReceivedField) numberReceivedField.addEventListener("change", initializeSampleSections);
+
+    // Run on page load
+    initializeSampleSections();
+
+});
+</script>
+
 {% endblock %}
