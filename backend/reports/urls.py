@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import (
+from reports.views import (
     EnrollmentSummaryView,
     CompletedStudySummaryView,
     EligibilitySummaryView,
@@ -11,6 +11,11 @@ from .views import (
     RecordsByZoneView,
     RecordsBySiteView,
     ExportRecordsView,
+    
+    # reports/views/exports/__init__.py
+    ScreeningCsvDownloadView,
+    EnrollmentCsvDownloadView,
+    AllCsvDownloadView,
     )
 
 app_name = "reports"
@@ -38,5 +43,12 @@ urlpatterns = [
     path("site/<int:site_id>/<str:status>/", RecordsBySiteView.as_view(), name="records_by_site_status"),
     
     path('records/export/<str:export_format>/', ExportRecordsView.as_view(), name='export_records'),
+    
+    
+    path('all/download/csv/', AllCsvDownloadView.as_view(), name='download-all-csv'),
+    path('screenings/download/csv/', ScreeningCsvDownloadView.as_view(), name='download-screenings-csv'),
+    path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
 
 ]
+
+
