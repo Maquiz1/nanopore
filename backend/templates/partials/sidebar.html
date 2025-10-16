@@ -100,7 +100,8 @@
     {% endif %}
 
 
-    {% if user.is_superuser %}
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
 
     <!-- Exports -->
     <div class="menu-group">
@@ -110,11 +111,28 @@
         </a>
         <div class="submenu">
             <a href="{% url 'nanopore:zonal-upload-csv' %}">
+                <i class="fas fa-file-csv"></i><span> Download</span>
+            </a>
+        </div>
+    </div>
+
+    {% endif %}
+    {% endwith %}
+
+        <!-- Exports -->
+    <div class="menu-group">
+        <a href="javascript:void(0);" class="menu-toggle">
+            <i class="fas fa-file-export"></i><span> Queries</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+        </a>
+        <div class="submenu">
+            <a href="{% url 'nanopore:zonal-upload-csv' %}">
                 <i class="fas fa-file-csv"></i><span> All CSV</span>
             </a>
         </div>
     </div>
 
+    {% if user.is_superuser %}
     <!-- Uploads -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
