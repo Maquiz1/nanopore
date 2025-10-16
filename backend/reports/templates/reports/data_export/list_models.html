@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Available Models for Export</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Model Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for model in models_list %}
+        <tr>
+            <td>{{ model.name }}</td>
+            <td>{{ model.description }}</td>
+            <td>
+                <!-- Full Data -->
+                <a href="{{ model.download_url }}" class="btn btn-primary btn-sm mb-1">Download Full CSV</a>
+
+                <!-- Labels Only -->
+                <a href="{{ model.labels_url }}" class="btn btn-success btn-sm mb-1">Download Labels</a>
+
+                <!-- Variables Only -->
+                <a href="{{ model.fields_url }}" class="btn btn-info btn-sm mb-1">Download Variables</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
