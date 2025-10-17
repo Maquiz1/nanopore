@@ -23,6 +23,10 @@ from reports.views import (
     DownloadModelLabelsView,
     DownloadModelFieldsView,
     ExportAllModelsRawDataView,  # <-- New view
+    
+    
+    DataQualityReportView,
+    DataQualityReportPDFView,
 )
 
 app_name = "reports"
@@ -65,4 +69,11 @@ urlpatterns = [
     path('all/download/csv/', AllCsvDownloadView.as_view(), name='download-all-csv'),
     path('screenings/download/csv/', ScreeningCsvDownloadView.as_view(), name='download-screenings-csv'),
     path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
+    
+    
+    path('data-quality/', DataQualityReportView.as_view(), name='data_quality_report'),
+    
+        path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
+
+
 ]
