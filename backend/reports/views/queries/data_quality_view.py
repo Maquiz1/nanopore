@@ -37,6 +37,9 @@ class DataQualityReportView(View):
             clinic_lab_name = getattr(getattr(s, 'clinic_laboratory', None), 'name', '')
             zonal_lab_name = getattr(getattr(s, 'zonal_laboratory', None), 'name', '')
             diagnosis_name = getattr(getattr(s, 'diagnosis', None), 'name', '')
+            eligible = getattr(getattr(s, 'screening', None), 'eligible', '')
+            reasons = getattr(getattr(s, 'screening', None), 'reasons', '')
+            reasons_other = getattr(getattr(s, 'screening', None), 'reasons_other', '')
 
             missing_fields = []
             if not clinic_lab_name:
@@ -73,7 +76,10 @@ class DataQualityReportView(View):
                 'tb_treatment_date': tb_treatment_date,
                 'tb_outcome2': tb_outcome2,
                 'months_since_treatment': months_since_treatment,
-                'regimen_changed': regimen_changed
+                'regimen_changed': regimen_changed,
+                'eligible': eligible,
+                'reasons': reasons,
+                'reasons_other': reasons_other
             }
 
         # Build context

@@ -8,10 +8,6 @@ from django.db.models import Q
 from django.apps import apps
 import weasyprint
 
-
-# -----------------------------
-# PDF View
-# -----------------------------
 class DataQualityReportPDFView(View):
     """Generate PDF version of the data quality report."""
 
@@ -30,7 +26,7 @@ class DataQualityReportPDFView(View):
 
         total_screenings = screenings.count()
 
-        # Serialize
+        # Serialize function
         def serialize_screening(s):
             zone_name = getattr(getattr(getattr(getattr(s, 'site', None), 'district', None), 'region', None), 'zone', None)
             zone_name = zone_name.name if zone_name else ''
@@ -40,14 +36,9 @@ class DataQualityReportPDFView(View):
             zonal_lab_name = getattr(getattr(s, 'zonal_laboratory', None), 'name', '')
             diagnosis_name = getattr(getattr(s, 'diagnosis', None), 'name', '')
 
-            missing_fields = []
-            if not clinic_lab_name:
-                missing_fields.append("Clinic")
-            if not diagnosis_name:
-                missing_fields.append("Diagnosis")
-
             regimen_missing = False
-            if getattr(s, 'diagnosis', None) and getattr(s.diagnosis, 'regimen_changed', False):
+            regimen_changed = getattr(getattr(s, 'diagnosis', None), 'regimen_changed', False)
+            if regimen_changed:
                 if not getattr(s, 'regimen_changes', None) or not s.regimen_changes.exists():
                     regimen_missing = True
 
@@ -68,7 +59,7 @@ class DataQualityReportPDFView(View):
                 'clinic_lab_name': clinic_lab_name,
                 'zonal_lab_name': zonal_lab_name,
                 'diagnosis_name': diagnosis_name,
-                'missing_fields': missing_fields,  # ✅ list
+                'regimen_changed': regimen_changed,
                 'regimen_missing': regimen_missing,
                 'xpert_mtb': xpert_mtb,
                 'tb_treatment_date': tb_treatment_date,
@@ -76,36 +67,45 @@ class DataQualityReportPDFView(View):
                 'months_since_treatment': months_since_treatment
             }
 
+        # Build context
         context = {
             "total_screenings": total_screenings,
             "not_eligible": [serialize_screening(s) for s in screenings.filter(eligible=False)],
             "eligible_not_enrolled": [serialize_screening(s) for s in screenings.filter(eligible=True, enrollment__isnull=True)],
-            "enrolled_missing_data": [serialize_screening(s) for s in screenings.filter(eligible=True).filter(
-                Q(clinic_laboratory__isnull=True) | Q(diagnosis__isnull=True))],
-            "enrolled_missing_regimen": [serialize_screening(s) for s in screenings.filter(eligible=True, diagnosis__regimen_changed=True).filter(
-                ~Q(regimen_changes__isnull=False)).distinct()],
+            "enrolled_missing_clinic_laboratory_data": [serialize_screening(s) for s in screenings.filter(eligible=True, clinic_laboratory__isnull=True)],
+            "enrolled_missing_diagnosis_data": [serialize_screening(s) for s in screenings.filter(eligible=True, diagnosis__isnull=True)],
+            "diagnosis_regimen_changed_missing_regimen": [serialize_screening(s) for s in screenings.filter(
+                eligible=True,
+                diagnosis__regimen_changed=True
+            ).filter(~Q(regimen_changes__isnull=False)).distinct()],
             "enrolled_substudy2_missing_zonal_lab": [serialize_screening(s) for s in screenings.filter(
                 clinic_laboratory__xpert_mtb_rif_conducted=1,
                 clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
-                zonal_laboratory__isnull=True)],
+                zonal_laboratory__isnull=True
+            )],
             "pending_outcomes": [serialize_screening(s) for s in screenings.filter(
                 diagnosis__tb_treatment=1,
                 diagnosis__tb_treatment_date__isnull=False,
-                diagnosis__tb_treatment_date__lte=timezone.now().date() - timedelta(days=180))]
+                diagnosis__tb_treatment_date__lte=timezone.now().date() - timedelta(days=180)
+            )]
         }
 
-        # Add months since treatment
+        # Calculate months since treatment for pending outcomes
         for s in context['pending_outcomes']:
             if s['tb_treatment_date']:
                 delta = timezone.now().date() - s['tb_treatment_date']
                 s['months_since_treatment'] = delta.days // 30
 
+        # Render HTML
         html_string = render_to_string(
-            'reports/data_quality/data_quality_report.html',
+            'reports/data_quality/data_quality_report.html',  # your template path
             context,
             request=request
         )
+
+        # Generate PDF
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="data_quality_report.pdf"'
         weasyprint.HTML(string=html_string).write_pdf(response)
+
         return response
