@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+
 from reports.views import (
     EnrollmentSummaryView,
     CompletedStudySummaryView,
@@ -73,7 +74,7 @@ urlpatterns = [
     
     path('data-quality/', DataQualityReportView.as_view(), name='data_quality_report'),
     
-        path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
+    path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
 
 
 ]

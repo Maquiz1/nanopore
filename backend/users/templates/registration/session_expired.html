@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Session Expired{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="card shadow-sm p-5 mx-auto" style="max-width: 500px;">
+    <img src="{% static 'images/session_timeout.png' %}" alt="Session expired" width="120" class="mb-4">
+    <h3 class="mb-3 text-danger">Session Expired</h3>
+    <p>Your session has expired due to inactivity. Please log in again to continue.</p>
+    <a href="{% url 'users:login' %}" class="btn btn-primary mt-3">Login Again</a>
+  </div>
+</div>
+{% endblock %}

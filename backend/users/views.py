@@ -24,10 +24,15 @@ from django.views.generic import ListView,DetailView
 from django.views.generic.edit import UpdateView
 from .models import Profile
 from .forms import ProfileForm
-
+from django.contrib.auth import logout
 from .sms_utils import send_verification_sms
 
 User = get_user_model()
+
+def force_logout(request):
+    """Forcefully log out the current user and redirect to login page."""
+    logout(request)
+    return redirect('users:login')
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
@@ -218,3 +223,9 @@ class StaffDetailView(DetailView):
     model = User
     template_name = 'users/staff/staff_detail.html'
     context_object_name = 'staff_member'
+
+class LogoutView(View):
+    def get(self, request):
+        logout(request)  # Clears the session
+        messages.success(request, "You have been logged out successfully.")
+        return redirect('users:login')
