@@ -5,56 +5,51 @@ from django.utils.decorators import method_decorator
 from django.apps import apps
 import csv
 
-# Decorator to restrict access to staff
+# Decorator for staff-only access
 def staff_required(view_func):
     return method_decorator(staff_member_required, name='dispatch')(view_func)
 
 # @staff_required
-class ExportModelDataView(View):
+class ExportModelRawDataView(View):
     """
-    Export any model data to CSV dynamically.
-    ForeignKeys will export `.name` if available.
-    ManyToMany fields will export semicolon-separated values.
+    Export raw model data to CSV.
+    - Includes only actual model fields (no M2M or related names).
+    - ForeignKeys are exported as IDs (raw values).
+    - Excludes system/meta fields (e.g. created_at, updated_by).
     """
 
-    # Fields to exclude
-    exclude_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+    exclude_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
 
     def get(self, request, model_name):
-        # Get model dynamically
         try:
-            model = apps.get_model('nanopore', model_name)  # change 'nanopore' to your app name
+            model = apps.get_model('nanopore', model_name)  # change app name if needed
         except LookupError:
             return HttpResponse("Unknown model", status=404)
 
+        # Prepare CSV response
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="{model_name}_data.csv"'
-
+        response['Content-Disposition'] = f'attachment; filename="{model_name}_raw_data.csv"'
         writer = csv.writer(response)
 
-        # Get concrete fields (normal + ForeignKey) except excluded
-        fields = [f for f in model._meta.get_fields() if f.concrete and f.name not in self.exclude_fields]
-        # Get ManyToMany fields
-        m2m_fields = [f for f in model._meta.get_fields() if f.many_to_many and f.name not in self.exclude_fields]
+        # Get model fields (only concrete fields, exclude auto-created)
+        fields = [
+            f for f in model._meta.get_fields()
+            if f.concrete and not f.auto_created and f.name not in self.exclude_fields
+        ]
 
-        # Header row
-        header = [f.name for f in fields] + [f.name for f in m2m_fields]
-        writer.writerow(header)
+        # Write header row
+        writer.writerow([f.name for f in fields])
 
         # Write data rows
         for obj in model.objects.all():
             row = []
-            # Normal + FK fields
-            for field in fields:
-                value = getattr(obj, field.name)
-                if hasattr(value, 'name'):
-                    value = value.name
-                row.append(value)
-            # ManyToMany fields
-            for field in m2m_fields:
-                related_objs = getattr(obj, field.name).all()
-                # Join names or str() with semicolon
-                row.append("; ".join([str(r) for r in related_objs]))
+            for f in fields:
+                value = getattr(obj, f.name)
+                # For FK/OneToOne fields, export the raw ID (PK)
+                if f.many_to_one or f.one_to_one:
+                    row.append(value.pk if value else '')
+                else:
+                    row.append(value)
             writer.writerow(row)
 
         return response
