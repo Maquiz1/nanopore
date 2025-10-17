@@ -10,17 +10,28 @@ def staff_required(view_func):
     return method_decorator(staff_member_required, name='dispatch')(view_func)
 
 
-# @staff_required
+@staff_required
 class ExportAllModelsRawDataView(View):
     """
     Export all models' data into a single CSV aligned by Screening.pid.
-    PID is the first column. Models are mapped via their Screening relation.
-    If no related object exists for a Screening, columns are empty.
+    PID is the first column. Screening includes all its columns.
+    Other models are mapped via their Screening relation.
+    Columns are ordered:
+    Screening → Enrollment → ClinicLaboratory → Diagnosis → ZonalLaboratory → RegimenChanges
+    Remarks columns are prefixed with the model name.
     """
 
     exclude_fields = [
-        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by',
-        'enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes'
+        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by'
+    ]
+
+    model_order = [
+        'Screening',
+        'Enrollment',
+        'ClinicLaboratory',
+        'Diagnosis',
+        'ZonalLaboratory',
+        'RegimenChanges',
     ]
 
     def get(self, request):
@@ -28,56 +39,54 @@ class ExportAllModelsRawDataView(View):
         response['Content-Disposition'] = 'attachment; filename="all_models_by_screening.csv"'
         writer = csv.writer(response)
 
-        # Get all Screening objects
+        # Get Screening objects
         Screening = apps.get_model('nanopore', 'Screening')
         screening_list = list(Screening.objects.all().order_by('pid'))
 
-        # Prepare headers
-        all_headers = ['pid']
-        model_fields_map = {}  # Keep track of field names per model
+        all_headers = []
+        model_fields_map = {}
 
-        for model in apps.get_app_config('nanopore').get_models():
-            model_name = model.__name__
-            if model_name == 'Screening':
-                continue  # PID is already first column
-
+        # Prepare headers and fields
+        for model_name in self.model_order:
+            model = apps.get_model('nanopore', model_name)
             fields = []
             headers = []
 
             for f in model._meta.get_fields():
                 if f.name in self.exclude_fields:
                     continue
-                if model_name == 'RegimenChanges' and f.name == 'screening':
+                # Skip Screening FK in other models
+                if model_name != 'Screening' and f.one_to_one and f.related_model.__name__ == 'Screening':
                     continue
                 fields.append(f)
                 headers.append(f.name)
 
-            # Add remarks column with model name
-            headers.append(f"{model_name}_remarks")
+            # Add model-specific remarks for non-Screening models
+            if model_name != 'Screening':
+                headers.append(f"{model_name}_remarks")
+
             model_fields_map[model_name] = fields
             all_headers.extend(headers)
 
-        # Write header row
+        # Write headers
         writer.writerow(all_headers)
 
         # Build rows per Screening
         for screening in screening_list:
-            row = [screening.pid]
+            row = []
 
-            for model in apps.get_app_config('nanopore').get_models():
-                model_name = model.__name__
-                if model_name == 'Screening':
-                    continue
-
+            for model_name in self.model_order:
+                model = apps.get_model('nanopore', model_name)
                 fields = model_fields_map[model_name]
 
-                # Get related object for this Screening
-                try:
-                    obj = model.objects.get(screening=screening)
-                except model.DoesNotExist:
-                    obj = None
+                if model_name == 'Screening':
+                    obj = screening
+                else:
+                    try:
+                        obj = model.objects.get(screening=screening)
+                    except model.DoesNotExist:
+                        obj = None
 
-                # Fill row with model data or empty if not exist
                 if obj:
                     for f in fields:
                         try:
@@ -85,7 +94,7 @@ class ExportAllModelsRawDataView(View):
                                 value = getattr(obj, f.name).all()
                                 row.append(';'.join(str(v.pk) for v in value))
                             elif f.one_to_one and f.related_model.__name__ == 'Screening':
-                                # Already have PID
+                                # skip PID, already in Screening
                                 continue
                             elif f.many_to_one or f.one_to_one:
                                 value = getattr(obj, f.name, None)
@@ -94,11 +103,12 @@ class ExportAllModelsRawDataView(View):
                                 row.append(getattr(obj, f.name))
                         except (AttributeError, f.related_model.DoesNotExist):
                             row.append('')
-                    # Append remarks
+                    # Append model-specific remarks
                     row.append(getattr(obj, 'remarks', '') or '')
                 else:
-                    # Fill empty columns
-                    row.extend([''] * (len(fields) + 1))  # +1 for remarks
+                    # Fill empty columns (fields + remarks)
+                    fill_len = len(fields) + (1 if model_name != 'Screening' else 0)
+                    row.extend([''] * fill_len)
 
             writer.writerow(row)
 
