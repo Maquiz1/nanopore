@@ -31,13 +31,16 @@
         <h4>2️⃣ Eligible but Not Enrolled ({{ eligible_not_enrolled|length }})</h4>
         {% if eligible_not_enrolled %}
         <table class="table table-sm table-bordered">
-            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+            <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Reasons</th><th>Other Reasons</th></tr></thead>
             <tbody>
                 {% for s in eligible_not_enrolled %}
                 <tr>
                     <td>{{ s.pid }}</td>
                     <td>{{ s.zone_name }}</td>
                     <td>{{ s.site_name }}</td>
+                    <!-- <td>{{ s.eligible }}</td> -->
+                    <td>{{ s.reasons }}</td>
+                    <td>{{ s.reasons_other }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
