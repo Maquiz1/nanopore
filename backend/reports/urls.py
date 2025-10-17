@@ -19,7 +19,7 @@ from reports.views import (
     
     # Models export views
     list_models_view,
-    ExportModelDataView,
+    ExportModelRawDataView,
     DownloadModelLabelsView,
     DownloadModelFieldsView,
 )
@@ -51,7 +51,7 @@ urlpatterns = [
 
     # Models listing & downloads
     path('list-all-models/', list_models_view, name='list_models'),
-    path('download/<str:model_name>/', ExportModelDataView.as_view(), name='download_model_data'),
+    path('download/<str:model_name>/', ExportModelRawDataView.as_view(), name='download_model_data'),
 
     # New endpoints for labels and field names
     path('download/<str:model_name>/labels/', DownloadModelLabelsView.as_view(), name='download_model_labels'),
