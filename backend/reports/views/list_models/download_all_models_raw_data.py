@@ -16,13 +16,15 @@ class ExportAllModelsRawDataView(View):
     Export all models' data into a single CSV aligned by Screening.pid.
     PID is the first column. Screening includes all its columns.
     Other models are mapped via their Screening relation.
-    Columns are ordered:
-    Screening → Enrollment → ClinicLaboratory → Diagnosis → ZonalLaboratory → RegimenChanges
-    Remarks columns are prefixed with the model name.
+    Each model has one <model_name>_remarks column (lowercase), existing remarks fields are excluded.
+    If a Screening has multiple RegimenChanges, there will be multiple rows for that Screening.
+    The 'pid' column is excluded for RegimenChanges.
     """
 
     exclude_fields = [
-        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by'
+        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by',
+        'screening','enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes',
+        'remarks'  # Exclude existing remarks field
     ]
 
     model_order = [
@@ -53,17 +55,20 @@ class ExportAllModelsRawDataView(View):
             headers = []
 
             for f in model._meta.get_fields():
+                # Exclude general fields
                 if f.name in self.exclude_fields:
                     continue
                 # Skip Screening FK in other models
                 if model_name != 'Screening' and f.one_to_one and f.related_model.__name__ == 'Screening':
                     continue
+                # Exclude 'pid' only for RegimenChanges
+                if model_name == 'RegimenChanges' and f.name == 'pid':
+                    continue
                 fields.append(f)
-                headers.append(f.name)
+                headers.append(f.name.lower())
 
-            # Add model-specific remarks for non-Screening models
-            if model_name != 'Screening':
-                headers.append(f"{model_name}_remarks")
+            # Add one <model_name>_remarks column for all models
+            headers.append(f"{model_name}_remarks".lower())
 
             model_fields_map[model_name] = fields
             all_headers.extend(headers)
@@ -73,43 +78,49 @@ class ExportAllModelsRawDataView(View):
 
         # Build rows per Screening
         for screening in screening_list:
-            row = []
+            # Get all related RegimenChanges objects
+            RegimenChanges = apps.get_model('nanopore', 'RegimenChanges')
+            regimen_list = list(screening.regimen_changes.all()) or [None]  # at least one iteration
 
-            for model_name in self.model_order:
-                model = apps.get_model('nanopore', model_name)
-                fields = model_fields_map[model_name]
+            # Repeat row for each RegimenChanges
+            for regimen in regimen_list:
+                row = []
 
-                if model_name == 'Screening':
-                    obj = screening
-                else:
-                    try:
-                        obj = model.objects.get(screening=screening)
-                    except model.DoesNotExist:
-                        obj = None
+                for model_name in self.model_order:
+                    model = apps.get_model('nanopore', model_name)
+                    fields = model_fields_map[model_name]
 
-                if obj:
-                    for f in fields:
+                    if model_name == 'Screening':
+                        obj = screening
+                    elif model_name == 'RegimenChanges':
+                        obj = regimen
+                    else:
                         try:
-                            if f.many_to_many:
-                                value = getattr(obj, f.name).all()
-                                row.append(';'.join(str(v.pk) for v in value))
-                            elif f.one_to_one and f.related_model.__name__ == 'Screening':
-                                # skip PID, already in Screening
-                                continue
-                            elif f.many_to_one or f.one_to_one:
-                                value = getattr(obj, f.name, None)
-                                row.append(value.pk if value else '')
-                            else:
-                                row.append(getattr(obj, f.name))
-                        except (AttributeError, f.related_model.DoesNotExist):
-                            row.append('')
-                    # Append model-specific remarks
-                    row.append(getattr(obj, 'remarks', '') or '')
-                else:
-                    # Fill empty columns (fields + remarks)
-                    fill_len = len(fields) + (1 if model_name != 'Screening' else 0)
-                    row.extend([''] * fill_len)
+                            obj = model.objects.get(screening=screening)
+                        except model.DoesNotExist:
+                            obj = None
 
-            writer.writerow(row)
+                    if obj:
+                        for f in fields:
+                            try:
+                                if f.many_to_many:
+                                    value = getattr(obj, f.name).all()
+                                    row.append(';'.join(str(v.pk) for v in value))
+                                elif f.one_to_one and f.related_model.__name__ == 'Screening':
+                                    continue
+                                elif f.many_to_one or f.one_to_one:
+                                    value = getattr(obj, f.name, None)
+                                    row.append(value.pk if value else '')
+                                else:
+                                    row.append(getattr(obj, f.name))
+                            except (AttributeError, f.related_model.DoesNotExist):
+                                row.append('')
+                        # Append <model_name>_remarks column
+                        row.append(getattr(obj, 'remarks', '') or '')
+                    else:
+                        # Fill empty columns (fields + <model_name>_remarks)
+                        row.extend([''] * (len(fields) + 1))
+
+                writer.writerow(row)
 
         return response
