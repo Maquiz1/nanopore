@@ -14,8 +14,8 @@ env.read_env(BASE_DIR / ".env")
 # Security
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
-# ALLOWED_HOSTS = ast.literal_eval(env("ALLOWED_HOSTS", default="[]"))
-ALLOWED_HOSTS=['*']
+ALLOWED_HOSTS = ast.literal_eval(env("ALLOWED_HOSTS", default="[]"))
+# ALLOWED_HOSTS=['*']
 
 # Database settings based on DEBUG
 # if DEBUG:
@@ -170,4 +170,9 @@ AT_API_KEY = env("AT_API_KEY")
 
 # Allow up to 10,000 form fields
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
+
+# # Or set a fixed duration (seconds)
+# SESSION_COOKIE_AGE = 10  # 10 seconds
+# SESSION_SAVE_EVERY_REQUEST = True  # Extend session on activity
 
