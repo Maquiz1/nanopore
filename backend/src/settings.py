@@ -70,6 +70,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'users.middleware.AutoLogoutMiddleware',  # ✅ Auto logout
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -175,4 +176,33 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # # Or set a fixed duration (seconds)
 # SESSION_COOKIE_AGE = 10  # 10 seconds
 # SESSION_SAVE_EVERY_REQUEST = True  # Extend session on activity
+
+# # ✅ Sessions expire when the browser closes
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# # ✅ Or expire after 1 hour (3600 seconds)
+# SESSION_COOKIE_AGE = 10 
+
+# # ✅ Refresh expiry time with every request (active users stay logged in)
+# SESSION_SAVE_EVERY_REQUEST = True
+
+# # ✅ Recommended security flags
+# SESSION_COOKIE_SECURE = False  # Set True in production (HTTPS only)
+# SESSION_COOKIE_HTTPONLY = True
+# SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+
+
+
+
+# # ✅ Sessions
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True     # logout when browser closes
+# SESSION_COOKIE_AGE = 10                    # session timeout (10 seconds)
+# SESSION_SAVE_EVERY_REQUEST = True          # extend session on activity
+# SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+# # ✅ Authentication redirects
+# LOGIN_URL = 'users:login'
+# LOGIN_REDIRECT_URL = 'dashboard:dashboard'   # where to go after login
+# LOGOUT_REDIRECT_URL = 'users:login'          # where to go after logout
 

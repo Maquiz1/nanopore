@@ -14,7 +14,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.views.generic import FormView
 from django.contrib import messages
-from .forms import CustomLoginForm,CustomUserCreationForm,ResendActivationEmailForm,PhoneVerificationForm
+from users.forms import CustomLoginForm,CustomUserCreationForm,ResendActivationEmailForm,PhoneVerificationForm
 from django.contrib.auth.views import LoginView
 from django.utils.html import format_html
 from django.contrib.auth import authenticate
@@ -22,17 +22,12 @@ import binascii
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import UpdateView
-from .models import Profile
-from .forms import ProfileForm
-from django.contrib.auth import logout
-from .sms_utils import send_verification_sms
+from users.models import Profile
+from users.forms import ProfileForm
+
+from users.sms_utils import send_verification_sms
 
 User = get_user_model()
-
-def force_logout(request):
-    """Forcefully log out the current user and redirect to login page."""
-    logout(request)
-    return redirect('users:login')
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
@@ -223,9 +218,3 @@ class StaffDetailView(DetailView):
     model = User
     template_name = 'users/staff/staff_detail.html'
     context_object_name = 'staff_member'
-
-class LogoutView(View):
-    def get(self, request):
-        logout(request)  # Clears the session
-        messages.success(request, "You have been logged out successfully.")
-        return redirect('users:login')
