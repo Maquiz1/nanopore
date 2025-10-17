@@ -3,6 +3,13 @@
 {% block content %}
 <h2>Available Models for Export</h2>
 
+<!-- Link to download all models CSV -->
+<p>
+    <a href="{% url 'reports:download_raw_data_all_models' %}" class="btn btn-warning mb-3">
+        Download All Models CSV
+    </a>
+</p>
+
 <table class="table table-striped">
     <thead>
         <tr>
