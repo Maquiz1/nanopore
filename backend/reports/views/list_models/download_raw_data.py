@@ -18,13 +18,16 @@ class ExportModelRawDataView(View):
     - Includes real database fields (including ManyToMany as IDs separated by ;)
     - Exports ForeignKeys as raw IDs.
     - Excludes system/meta fields.
-    - For OneToOneField to Screening, export Screening.pid instead of the relation.
+    - Renames the 'remarks' field to '<model_name>_remarks'.
+    - For OneToOneField to Screening, export Screening.pid instead of the relation,
+      and column name becomes 'pid'.
     - Exclude screening field entirely for RegimenChanges model.
-    - Does NOT include header row (no field names).
     """
 
     exclude_fields = [
-        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks'
+        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks',
+        # Columns to exclude
+        'enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes'
     ]
 
     def get(self, request, model_name):
@@ -40,6 +43,7 @@ class ExportModelRawDataView(View):
 
         # Determine fields to export
         fields = []
+        header = []
         for f in model._meta.get_fields():
             # Skip unwanted fields
             if f.name in self.exclude_fields:
@@ -48,6 +52,17 @@ class ExportModelRawDataView(View):
             if model_name == 'RegimenChanges' and f.name == 'screening':
                 continue
             fields.append(f)
+
+            # Column name logic
+            if f.one_to_one and f.related_model.__name__ == 'Screening':
+                header.append('pid')
+            else:
+                header.append(f.name)
+
+        # Add remarks column
+        remarks_field_name = f"{model_name.lower()}_remarks"
+        header.append(remarks_field_name)
+        writer.writerow(header)
 
         # Write data rows
         for obj in model.objects.all():
@@ -74,7 +89,7 @@ class ExportModelRawDataView(View):
                     # If related object does not exist, write empty string
                     row.append('')
 
-            # Add remarks column
+            # Add remarks
             remarks_value = getattr(obj, 'remarks', '')
             row.append(remarks_value if remarks_value else '')
 
