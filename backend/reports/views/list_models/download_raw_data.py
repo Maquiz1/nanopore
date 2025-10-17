@@ -11,7 +11,7 @@ def staff_required(view_func):
     return method_decorator(staff_member_required, name='dispatch')(view_func)
 
 
-@staff_required
+# @staff_required
 class ExportModelRawDataView(View):
     """
     Export raw model data to CSV.
