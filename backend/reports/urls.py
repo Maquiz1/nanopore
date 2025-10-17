@@ -22,6 +22,7 @@ from reports.views import (
     ExportModelRawDataView,
     DownloadModelLabelsView,
     DownloadModelFieldsView,
+    ExportAllModelsRawDataView,  # <-- New view
 )
 
 app_name = "reports"
@@ -56,6 +57,9 @@ urlpatterns = [
     # New endpoints for labels and field names
     path('download/<str:model_name>/labels/', DownloadModelLabelsView.as_view(), name='download_model_labels'),
     path('download/<str:model_name>/fields/', DownloadModelFieldsView.as_view(), name='download_model_fields'),
+
+    # Export all models into a single CSV
+    path('download/all-models/csv/', ExportAllModelsRawDataView.as_view(), name='download_raw_data_all_models'),
 
     # Legacy CSV downloads
     path('all/download/csv/', AllCsvDownloadView.as_view(), name='download-all-csv'),
