@@ -11,18 +11,21 @@ def staff_required(view_func):
     return method_decorator(staff_member_required, name='dispatch')(view_func)
 
 
-# @staff_required
+@staff_required
 class ExportModelRawDataView(View):
     """
     Export raw model data to CSV.
-    - Includes only actual model fields (no M2M or related names).
-    - ForeignKeys exported as IDs.
+    - Includes only real database fields (no M2M or related names).
+    - Exports ForeignKeys as raw IDs.
     - Excludes system/meta fields.
-    - Replaces 'remarks' column with 'model_name' column.
+    - Renames the 'remarks' field to '<model_name>_remarks'.
+    - For OneToOneField to Screening, export Screening.pid instead of the relation,
+      and column name becomes 'pid'.
+    - Exclude screening field entirely for RegimeChanges model.
     """
 
     exclude_fields = [
-        'pid1', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks'
+        'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks'
     ]
 
     def get(self, request, model_name):
@@ -36,14 +39,25 @@ class ExportModelRawDataView(View):
         response['Content-Disposition'] = f'attachment; filename="{model_name}_raw_data.csv"'
         writer = csv.writer(response)
 
-        # Get model fields (exclude unwanted)
-        fields = [
-            f for f in model._meta.get_fields()
-            if f.concrete and not f.auto_created and f.name not in self.exclude_fields
-        ]
+        # Determine fields to export
+        fields = []
+        header = []
+        for f in model._meta.get_fields():
+            if f.concrete and not f.auto_created and f.name not in self.exclude_fields:
+                # Skip screening for RegimenChanges
+                if model_name == 'RegimenChanges' and f.name == 'screening':
+                    continue
+                fields.append(f)
 
-        # Replace 'remarks' with 'model_name' in header
-        header = [f.name for f in fields] + ['model_name']
+                # Column name: 'pid' if it's OneToOne to Screening
+                if f.one_to_one and f.related_model.__name__ == 'Screening':
+                    header.append('pid')
+                else:
+                    header.append(f.name)
+
+        # Add remarks column
+        remarks_field_name = f"{model_name.lower()}_remarks"
+        header.append(remarks_field_name)
         writer.writerow(header)
 
         # Write data rows
@@ -51,13 +65,20 @@ class ExportModelRawDataView(View):
             row = []
             for f in fields:
                 value = getattr(obj, f.name)
-                if f.many_to_one or f.one_to_one:
+
+                # If this field is OneToOne to Screening → export pid
+                if f.one_to_one and f.related_model.__name__ == 'Screening':
+                    row.append(value.pid if value else '')
+                # For other ForeignKeys → export ID
+                elif f.many_to_one or f.one_to_one:
                     row.append(value.pk if value else '')
                 else:
                     row.append(value)
 
-            # Add 'model_name' column
-            row.append(model_name)
+            # Add <model_name>_remarks column
+            remarks_value = getattr(obj, 'remarks', '')
+            row.append(remarks_value if remarks_value else '')
+
             writer.writerow(row)
 
         return response
