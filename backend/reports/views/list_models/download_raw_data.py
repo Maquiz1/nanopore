@@ -15,13 +15,13 @@ def staff_required(view_func):
 class ExportModelRawDataView(View):
     """
     Export raw model data to CSV.
-    - Includes only real database fields (no M2M or related names).
+    - Includes real database fields (including ManyToMany as IDs separated by ;)
     - Exports ForeignKeys as raw IDs.
     - Excludes system/meta fields.
     - Renames the 'remarks' field to '<model_name>_remarks'.
     - For OneToOneField to Screening, export Screening.pid instead of the relation,
       and column name becomes 'pid'.
-    - Exclude screening field entirely for RegimeChanges model.
+    - Exclude screening field entirely for RegimenChanges model.
     """
 
     exclude_fields = [
@@ -43,17 +43,19 @@ class ExportModelRawDataView(View):
         fields = []
         header = []
         for f in model._meta.get_fields():
-            if f.concrete and not f.auto_created and f.name not in self.exclude_fields:
-                # Skip screening for RegimenChanges
-                if model_name == 'RegimenChanges' and f.name == 'screening':
-                    continue
-                fields.append(f)
+            # Skip unwanted fields
+            if f.name in self.exclude_fields:
+                continue
+            # Skip screening for RegimenChanges
+            if model_name == 'RegimenChanges' and f.name == 'screening':
+                continue
+            fields.append(f)
 
-                # Column name: 'pid' if it's OneToOne to Screening
-                if f.one_to_one and f.related_model.__name__ == 'Screening':
-                    header.append('pid')
-                else:
-                    header.append(f.name)
+            # Column name logic
+            if f.one_to_one and f.related_model.__name__ == 'Screening':
+                header.append('pid')
+            else:
+                header.append(f.name)
 
         # Add remarks column
         remarks_field_name = f"{model_name.lower()}_remarks"
@@ -64,18 +66,24 @@ class ExportModelRawDataView(View):
         for obj in model.objects.all():
             row = []
             for f in fields:
-                value = getattr(obj, f.name)
-
-                # If this field is OneToOne to Screening → export pid
-                if f.one_to_one and f.related_model.__name__ == 'Screening':
+                # ManyToMany → list of IDs separated by ;
+                if f.many_to_many:
+                    value = getattr(obj, f.name).all()
+                    row.append(';'.join(str(v.pk) for v in value))
+                # OneToOne to Screening → pid
+                elif f.one_to_one and f.related_model.__name__ == 'Screening':
+                    value = getattr(obj, f.name)
                     row.append(value.pid if value else '')
-                # For other ForeignKeys → export ID
+                # Other ForeignKeys → ID
                 elif f.many_to_one or f.one_to_one:
+                    value = getattr(obj, f.name)
                     row.append(value.pk if value else '')
+                # Regular fields
                 else:
+                    value = getattr(obj, f.name)
                     row.append(value)
 
-            # Add <model_name>_remarks column
+            # Add remarks
             remarks_value = getattr(obj, 'remarks', '')
             row.append(remarks_value if remarks_value else '')
 
