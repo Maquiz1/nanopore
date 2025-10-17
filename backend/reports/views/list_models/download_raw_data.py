@@ -18,14 +18,13 @@ class ExportModelRawDataView(View):
     - Includes real database fields (including ManyToMany as IDs separated by ;)
     - Exports ForeignKeys as raw IDs.
     - Excludes system/meta fields.
-    - Renames the 'remarks' field to '<model_name>_remarks'.
-    - For OneToOneField to Screening, export Screening.pid instead of the relation,
-      and column name becomes 'pid'.
+    - For OneToOneField to Screening, export Screening.pid instead of the relation.
     - Exclude screening field entirely for RegimenChanges model.
+    - Does NOT include header row (no field names).
     """
 
     exclude_fields = [
-        'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks'
+        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks'
     ]
 
     def get(self, request, model_name):
@@ -41,7 +40,6 @@ class ExportModelRawDataView(View):
 
         # Determine fields to export
         fields = []
-        header = []
         for f in model._meta.get_fields():
             # Skip unwanted fields
             if f.name in self.exclude_fields:
@@ -51,39 +49,32 @@ class ExportModelRawDataView(View):
                 continue
             fields.append(f)
 
-            # Column name logic
-            if f.one_to_one and f.related_model.__name__ == 'Screening':
-                header.append('pid')
-            else:
-                header.append(f.name)
-
-        # Add remarks column
-        remarks_field_name = f"{model_name.lower()}_remarks"
-        header.append(remarks_field_name)
-        writer.writerow(header)
-
         # Write data rows
         for obj in model.objects.all():
             row = []
             for f in fields:
-                # ManyToMany → list of IDs separated by ;
-                if f.many_to_many:
-                    value = getattr(obj, f.name).all()
-                    row.append(';'.join(str(v.pk) for v in value))
-                # OneToOne to Screening → pid
-                elif f.one_to_one and f.related_model.__name__ == 'Screening':
-                    value = getattr(obj, f.name)
-                    row.append(value.pid if value else '')
-                # Other ForeignKeys → ID
-                elif f.many_to_one or f.one_to_one:
-                    value = getattr(obj, f.name)
-                    row.append(value.pk if value else '')
-                # Regular fields
-                else:
-                    value = getattr(obj, f.name)
-                    row.append(value)
+                try:
+                    # ManyToMany → list of IDs separated by ;
+                    if f.many_to_many:
+                        value = getattr(obj, f.name).all()
+                        row.append(';'.join(str(v.pk) for v in value))
+                    # OneToOne to Screening → pid
+                    elif f.one_to_one and f.related_model.__name__ == 'Screening':
+                        value = getattr(obj, f.name, None)
+                        row.append(value.pid if value else '')
+                    # Other ForeignKeys → ID
+                    elif f.many_to_one or f.one_to_one:
+                        value = getattr(obj, f.name, None)
+                        row.append(value.pk if value else '')
+                    # Regular fields
+                    else:
+                        value = getattr(obj, f.name)
+                        row.append(value)
+                except (AttributeError, f.related_model.DoesNotExist):
+                    # If related object does not exist, write empty string
+                    row.append('')
 
-            # Add remarks
+            # Add remarks column
             remarks_value = getattr(obj, 'remarks', '')
             row.append(remarks_value if remarks_value else '')
 
