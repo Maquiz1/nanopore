@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🧾 Data Quality Report</h2>
+    <a href="{% url 'reports:data_quality_pdf' %}" class="btn btn-primary mb-3">Download PDF</a>
+
+    <p>Total Screenings: <strong>{{ total_screenings }}</strong></p>
+
+    <!-- 1️⃣ Not Eligible -->
+    <div class="mb-4">
+        <h4>1️⃣ Not Eligible ({{ not_eligible|length }})</h4>
+        {% if not_eligible %}
+        <table class="table table-sm table-bordered">
+            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+            <tbody>
+                {% for s in not_eligible %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No records found ✅</p>{% endif %}
+    </div>
+
+    <!-- 2️⃣ Eligible but Not Enrolled -->
+    <div class="mb-4">
+        <h4>2️⃣ Eligible but Not Enrolled ({{ eligible_not_enrolled|length }})</h4>
+        {% if eligible_not_enrolled %}
+        <table class="table table-sm table-bordered">
+            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+            <tbody>
+                {% for s in eligible_not_enrolled %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No records found ✅</p>{% endif %}
+    </div>
+
+    <!-- 3️⃣ Enrolled Missing Clinic Laboratory Data -->
+    <div class="mb-4">
+        <h4>3️⃣ Enrolled Missing Clinic Laboratory Data ({{ enrolled_missing_clinic_laboratory_data|length }})</h4>
+        {% if enrolled_missing_clinic_laboratory_data %}
+        <table class="table table-sm table-bordered">
+            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+            <tbody>
+                {% for s in enrolled_missing_clinic_laboratory_data %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No records found ✅</p>{% endif %}
+    </div>
+
+    <!-- 4️⃣ Enrolled Missing Diagnosis Data -->
+    <div class="mb-4">
+        <h4>4️⃣ Enrolled Missing Diagnosis Data ({{ enrolled_missing_diagnosis_data|length }})</h4>
+        {% if enrolled_missing_diagnosis_data %}
+        <table class="table table-sm table-bordered">
+            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+            <tbody>
+                {% for s in enrolled_missing_diagnosis_data %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No records found ✅</p>{% endif %}
+    </div>
+
+    <!-- 5️⃣ Diagnosis Regimen Changed but Missing Regimen -->
+    <div class="mb-4">
+        <h4>5️⃣ Diagnosis Regimen Changed but Missing Regimen ({{ diagnosis_regimen_changed_missing_regimen|length }})</h4>
+        {% if diagnosis_regimen_changed_missing_regimen %}
+        <table class="table table-sm table-bordered">
+            <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Regimen Changed</th></tr></thead>
+            <tbody>
+                {% for s in diagnosis_regimen_changed_missing_regimen %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.regimen_changed }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No records found ✅</p>{% endif %}
+    </div>
+
+    <!-- 6️⃣ Substudy2 Missing Zonal Lab -->
+    <div class="mb-4">
+        <h4>6️⃣ Substudy2 Missing Zonal Lab ({{ enrolled_substudy2_missing_zonal_lab|length }})</h4>
+        {% if enrolled_substudy2_missing_zonal_lab %}
+        <table class="table table-sm table-bordered">
+            <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Xpert MTB</th></tr></thead>
+            <tbody>
+                {% for s in enrolled_substudy2_missing_zonal_lab %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.xpert_mtb }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No records found ✅</p>{% endif %}
+    </div>
+
+    <!-- 7️⃣ Pending Outcomes -->
+    <div class="mb-4">
+        <h4>7️⃣ Pending Outcomes ({{ pending_outcomes|length }})</h4>
+        {% if pending_outcomes %}
+        <table class="table table-sm table-bordered">
+            <thead><tr>
+                <th>PID</th><th>Zone</th><th>Site</th><th>Treatment Date</th><th>TB Outcome</th><th>Months Since Treatment</th>
+            </tr></thead>
+            <tbody>
+                {% for s in pending_outcomes %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.tb_treatment_date }}</td>
+                    <td>{{ s.tb_outcome2 }}</td>
+                    <td>{{ s.months_since_treatment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<p>No records found ✅</p>{% endif %}
+    </div>
+
+</div>
+{% endblock %}
