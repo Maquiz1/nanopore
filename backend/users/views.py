@@ -217,7 +217,7 @@ class StaffListView(ListView):
 
     def get_queryset(self):
         # If you only want users marked as staff
-        return User.objects.filter(is_staff=True).order_by('username')
+        return User.objects.filter(is_active=True).order_by('username')
     
 class StaffDetailView(DetailView):
     model = User
