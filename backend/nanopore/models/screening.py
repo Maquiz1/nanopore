@@ -50,6 +50,29 @@ class Screening(models.Model):
 
     def __str__(self):
         return f"{self.pid} - {self.site}"
+    
+    # @property
+    # def substudy(self):
+    #     cl = self.clinic_laboratory
+    #     if cl:
+    #         if cl.xpert_mtb_rif_conducted == 1 and cl.xpert_mtb in [2, 3, 4, 5, 6]:
+    #             return "Substudy 2"
+    #         elif (cl.xpert_mtb_rif_conducted == 1 and cl.xpert_mtb in [1, 7, 8, 9]) or cl.xpert_mtb_rif_conducted == 2:
+    #             return "Substudy 4"
+    #         elif (cl.xpert_mtb_rif_conducted == 1 and cl.xpert_mtb is None) or cl.xpert_mtb_rif_conducted is None:
+    #             return "Uncategorized"
+    #     return "-"
+    
+    # def substudy(self):
+    #     cl = getattr(self, 'clinic_laboratory', None)
+    #     if cl:
+    #         if cl.xpert_mtb_rif_conducted == 1 and cl.xpert_mtb in [2, 3, 4, 5, 6]:
+    #             return "Substudy 2"
+    #         elif (cl.xpert_mtb_rif_conducted == 1 and cl.xpert_mtb in [1, 7, 8, 9]) or cl.xpert_mtb_rif_conducted == 2:
+    #             return "Substudy 4"
+    #         elif (cl.xpert_mtb_rif_conducted == 1 and cl.xpert_mtb is None) or cl.xpert_mtb_rif_conducted is None:
+    #             return "Uncategorized"
+    #     return "Uncategorized"
 
     def save(self, *args, **kwargs):
         # Generate PID

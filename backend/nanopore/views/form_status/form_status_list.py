@@ -3,7 +3,9 @@ from django.views.generic import ListView
 from nanopore.models import Screening,Enrollment,Diagnosis,ClinicLaboratory,ZonalLaboratory,RegimenChanges
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
-from django.db.models import Q
+from django.db.models import Case, When, Value, CharField, Q
+from django.utils.http import urlencode
+
 
 class FormStatusListView(ListView):
     model = Screening
@@ -63,6 +65,29 @@ class FormStatusListView(ListView):
             qs = qs.filter(diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6])
             
             
+        # 🔹 Annotate substudy
+        qs = qs.annotate(
+            substudy_case=Case(
+                When(
+                    clinic_laboratory__xpert_mtb_rif_conducted=1,
+                    clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+                    then=Value("Substudy 2")
+                ),
+                When(
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]) |
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted=2),
+                    then=Value("Substudy 4")
+                ),
+                When(
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__isnull=True) |
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted__isnull=True),
+                    then=Value("Uncategorized")
+                ),
+                default=Value("Uncategorized"),
+                output_field=CharField(),
+            )
+        )
+        
         # 🔹 Substudy filter
         if substudy:
             if substudy == "substudy2":
@@ -80,12 +105,30 @@ class FormStatusListView(ListView):
                     Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__isnull=True) |
                     Q(clinic_laboratory__xpert_mtb_rif_conducted__isnull=True)
                 )
+        
+        
+        # # Substudy filter using property logic
+        # if substudy:
+        #     filtered_ids = []
+        #     for screening in qs:
+        #         if screening.substudy.lower().replace(" ", "") == substudy.lower():
+        #             filtered_ids.append(screening.id)
+        #     qs = qs.filter(id__in=filtered_ids)
 
         return qs.order_by("-screening_date")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # # Include your filter values as before
+        # filters = {}
+        # for key in ['zone', 'site', 'pid', 'start_date', 'end_date', 'status', 'list_type', 'substudy']:
+        #     value = self.request.GET.get(key)
+        #     if value:
+        #         filters[key] = value
+
+        # context['query_params'] = urlencode(filters)
+    
         # Add zones and sites for filter dropdowns
         role_context = get_role_context(self.request.user)
         context.update(role_context)
