@@ -2,18 +2,19 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 from django.urls import reverse_lazy, reverse
-from .views import force_logout
+# from .views import force_logout
 
-from .views import (
+from users.views import (
     CustomLoginView,
-    ProfileUpdateView,
-    SignUpView,
-    ActivateAccount,
-    ResendActivationEmailView,
+    # ProfileUpdateView,
+    # SignUpView,
+    # ActivateAccount,
+    # ResendActivationEmailView,
     StaffDetailView,
     StaffListView,
-    VerifyPhoneView,
-    SendPhoneVerificationView,
+    StaffCreateUpdateView
+    # VerifyPhoneView,
+    # SendPhoneVerificationView,
 )
 
 from users.forms import CustomPasswordResetForm
@@ -21,23 +22,27 @@ from users.forms import CustomPasswordResetForm
 app_name = 'users'
 
 urlpatterns = [
-    path('profile/edit/', ProfileUpdateView.as_view(), name='edit-profile'),
+    # path('profile/edit/', ProfileUpdateView.as_view(), name='edit-profile'),
 
     # Staff listing
     path('staff/', StaffListView.as_view(), name='staff_list'),
     path('staff/<int:pk>/', StaffDetailView.as_view(), name='staff_detail'),  # ✅ detail view
+    path("staff/", StaffListView.as_view(), name="staff_list"),
+    path("staff/add/", StaffCreateUpdateView.as_view(), name="staff_add"),
+    path("staff/<int:pk>/edit/", StaffCreateUpdateView.as_view(), name="staff_edit"),
+    path("staff/<int:pk>/", StaffDetailView.as_view(), name="staff_detail"),
     
-    # Registration and Activation
-    path('sign_up/', SignUpView.as_view(), name='sign_up'),
-    path('activate/<uidb64>/<token>/', ActivateAccount.as_view(), name='activate_account'),
-    path('email_confirmation_sent/', TemplateView.as_view(
-        template_name='registration/email_confirmation_sent.html'), name='email_confirmation_sent'),
-    path('resend-activation/', ResendActivationEmailView.as_view(), name='resend_activation'),
+    # # Registration and Activation
+    # path('sign_up/', SignUpView.as_view(), name='sign_up'),
+    # path('activate/<uidb64>/<token>/', ActivateAccount.as_view(), name='activate_account'),
+    # path('email_confirmation_sent/', TemplateView.as_view(
+    #     template_name='registration/email_confirmation_sent.html'), name='email_confirmation_sent'),
+    # path('resend-activation/', ResendActivationEmailView.as_view(), name='resend_activation'),
 
-    # Login and Logout
+    # # Login and Logout
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    # path('logout/', auth_views.LogoutView.as_view(next_page='users:login'), name='logout'),# Redirect to login after logout
+    # # path('logout/', auth_views.LogoutView.as_view(next_page='users:login'), name='logout'),# Redirect to login after logout
 
     # Password Reset
     path('accounts/password_reset/', auth_views.PasswordResetView.as_view(
@@ -71,10 +76,10 @@ urlpatterns = [
         name='password_reset_complete'
     ),
     
-    path('send-phone-verification/', SendPhoneVerificationView.as_view(), name='send_phone_verification'),
-    path('verify-phone/', VerifyPhoneView.as_view(), name='verify_phone'),
+    # path('send-phone-verification/', SendPhoneVerificationView.as_view(), name='send_phone_verification'),
+    # path('verify-phone/', VerifyPhoneView.as_view(), name='verify_phone'),
 
-    path('force-logout/', force_logout, name='force_logout'),
+    # path('force-logout/', force_logout, name='force_logout'),
     
     path('session-expired/', TemplateView.as_view(
     template_name='registration/session_expired.html'), name='session_expired'),

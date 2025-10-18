@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from phonenumber_field.formfields import PhoneNumberField
+from users.models import Profile, Prefix, Position, Site
 
 User = get_user_model()
 
@@ -117,3 +118,19 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 class PhoneVerificationForm(forms.Form):
     phone_number = PhoneNumberField(region="TZ")  # or your default region code
+    
+    
+    
+class StaffForm(forms.Form):
+    username = forms.CharField(max_length=150, required=True)
+    password = forms.CharField(widget=forms.PasswordInput, required=False)  # required on creation
+    first_name = forms.CharField(max_length=50, required=False)
+    middle_name = forms.CharField(max_length=50, required=False)
+    last_name = forms.CharField(max_length=50, required=False)
+    email = forms.EmailField(required=False)
+    prefix = forms.ModelChoiceField(queryset=Prefix.objects.all(), required=False, empty_label="-- Select Prefix --")
+    position = forms.ModelChoiceField(queryset=Position.objects.all(), required=False, empty_label="-- Select Position --")
+    site = forms.ModelChoiceField(queryset=Site.objects.all(), required=False, empty_label="-- Select Site --")
+    phone_number = forms.CharField(max_length=20, required=False)
+    description = forms.CharField(widget=forms.Textarea(attrs={"rows":2}), required=False)
+    is_staff = forms.BooleanField(initial=True, required=False)

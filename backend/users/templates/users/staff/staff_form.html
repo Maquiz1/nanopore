@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if view.user_instance %}
+    <h2 class="mb-4">Edit Staff</h2>
+{% else %}
+    <h2 class="mb-4">Add New Staff</h2>
+{% endif %}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      {# Display non-field errors #}
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {# Username #}
+      <div class="mb-3">
+        <label class="form-label">Username <span class="text-danger">*</span></label>
+        {{ form.username|as_widget(attrs={"class":"form-control"}) }}
+        {% for error in form.username.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      {# Password #}
+      <div class="mb-3">
+        <label class="form-label">
+          {% if view.user_instance %}
+            New Password (leave blank to keep current)
+          {% else %}
+            Password <span class="text-danger">*</span>
+          {% endif %}
+        </label>
+        {{ form.password|as_widget(attrs={"class":"form-control"}) }}
+        {% for error in form.password.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      {# First Name #}
+      <div class="mb-3">
+        <label class="form-label">First Name</label>
+        {{ form.first_name|as_widget(attrs={"class":"form-control"}) }}
+      </div>
+
+      {# Middle Name #}
+      <div class="mb-3">
+        <label class="form-label">Middle Name</label>
+        {{ form.middle_name|as_widget(attrs={"class":"form-control"}) }}
+      </div>
+
+      {# Last Name #}
+      <div class="mb-3">
+        <label class="form-label">Last Name</label>
+        {{ form.last_name|as_widget(attrs={"class":"form-control"}) }}
+      </div>
+
+      {# Email #}
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        {{ form.email|as_widget(attrs={"class":"form-control"}) }}
+      </div>
+
+      {# Prefix #}
+      <div class="mb-3">
+        <label class="form-label">Prefix</label>
+        {{ form.prefix|as_widget(attrs={"class":"form-select"}) }}
+      </div>
+
+      {# Position #}
+      <div class="mb-3">
+        <label class="form-label">Position</label>
+        {{ form.position|as_widget(attrs={"class":"form-select"}) }}
+      </div>
+
+      {# Site #}
+      <div class="mb-3">
+        <label class="form-label">Site</label>
+        {{ form.site|as_widget(attrs={"class":"form-select"}) }}
+      </div>
+
+      {# Phone Number #}
+      <div class="mb-3">
+        <label class="form-label">Phone Number</label>
+        {{ form.phone_number|as_widget(attrs={"class":"form-control"}) }}
+      </div>
+
+      {# Description #}
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        {{ form.description|as_widget(attrs={"class":"form-control", "rows":"2"}) }}
+      </div>
+
+      {# Is Staff checkbox #}
+      <div class="mb-3 form-check">
+        {{ form.is_staff|as_widget(attrs={"class":"form-check-input"}) }}
+        <label class="form-check-label">Is Staff</label>
+      </div>
+
+      {# Submit button #}
+      <button type="submit" class="btn btn-success">
+        {% if view.user_instance %}
+          Update Staff
+        {% else %}
+          Create Staff
+        {% endif %}
+      </button>
+      <a href="{% url 'users:staff_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
