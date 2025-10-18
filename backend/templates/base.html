@@ -17,6 +17,7 @@
 </head>
 
 <body>
+    <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
 
     {% include "partials/sidebar.html" %}
 
@@ -25,15 +26,13 @@
         {% include "partials/navbar.html" %}
 
         {% if messages %}
-        <div class="container mt-3">
+        <div class="messages">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
+
 
         <div class="container">
             {% block content %}{% endblock %}
@@ -43,9 +42,10 @@
 
     </div>
 
-    <!-- Bootstrap JS Bundle -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Sidebar Toggle -->
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -53,45 +53,114 @@
         }
     </script>
 
-    {% block extra_scripts %}{% endblock %}
+    <!-- ✅ Auto Logout Modal and Countdown Timer -->
+    <div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-labelledby="sessionTimeoutLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-warning">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="sessionTimeoutLabel">
+                        <i class="fa-solid fa-clock me-2"></i> Session Expiring Soon
+                    </h5>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Your session will expire in <strong id="countdown">60</strong> seconds.</p>
+                    <p><strong>Do you want to stay logged in?</strong></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button id="stayLoggedInBtn" type="button" class="btn btn-success">
+                        <i class="fa-solid fa-rotate-right me-1"></i> Stay Logged In
+                    </button>
+                    <button id="logoutNowBtn" type="button" class="btn btn-danger">
+                        <i class="fa-solid fa-right-from-bracket me-1"></i> Logout Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- ✅ Auto Logout After 10 Minutes of Inactivity -->
     <script>
-      (function() {
-        let warningTime = 9 * 60 * 1000; // 9 minutes
-        let logoutTime = 10 * 60 * 1000; // 10 minutes
-        let warningShown = false;
-        let timer;
+        (function () {
+            const warningTime = 9 * 60 * 1000; // show modal at 9 mins
+            const logoutTime = 10 * 60 * 1000; // auto logout at 10 mins
+            const countdownSeconds = 60; // show 60-sec countdown
+            // const warningTime = 10;          // show modal immediately for testing
+            // const logoutTime = 10 * 1000;   // auto logout after 10 seconds
+            // const countdownSeconds = 10;    // 10-second countdown
+            const modal = new bootstrap.Modal(document.getElementById('sessionTimeoutModal'));
+            const logoutUrl = "{% url 'users:logout' %}";
+            const loginUrl = "{% url 'users:login' %}";
+            const countdownEl = document.getElementById('countdown');
+            const stayLoggedInBtn = document.getElementById('stayLoggedInBtn');
+            const logoutNowBtn = document.getElementById('logoutNowBtn');
+            const csrfToken = document.getElementById('csrf_token').value;
 
-        function resetTimer() {
-          clearTimeout(timer);
-          warningShown = false;
-          timer = setTimeout(showWarning, warningTime);
-        }
+            let warningTimer, logoutTimer, countdownTimer, timeLeft;
 
-        function showWarning() {
-          if (!warningShown) {
-            warningShown = true;
-            const warning = confirm("⚠️ You will be logged out in 1 minute due to inactivity. Click OK to stay logged in.");
-            if (warning) {
-              resetTimer();
-            } else {
-              setTimeout(logoutUser, 60 * 1000);
+            function resetTimers() {
+                clearTimeout(warningTimer);
+                clearTimeout(logoutTimer);
+                clearInterval(countdownTimer);
+                warningTimer = setTimeout(showWarning, warningTime);
+                logoutTimer = setTimeout(autoLogout, logoutTime);
             }
-          }
-        }
 
-        function logoutUser() {
-          window.location.href = "{% url 'users:logout' %}";
-        }
+            function showWarning() {
+                timeLeft = countdownSeconds;
+                countdownEl.textContent = timeLeft;
+                modal.show();
+                countdownTimer = setInterval(() => {
+                    timeLeft--;
+                    countdownEl.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownTimer);
+                        autoLogout();
+                    }
+                }, 1000);
+            }
 
-        ['mousemove', 'keydown', 'click', 'scroll'].forEach(evt =>
-          document.addEventListener(evt, resetTimer)
-        );
+            function autoLogout() {
+                // POST to logout endpoint with CSRF
+                fetch(logoutUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                    .then(response => {
+                        // redirect to login after logout
+                        window.location.href = loginUrl;
+                    })
+                    .catch(err => {
+                        console.error('Logout failed', err);
+                        window.location.href = loginUrl;
+                    });
+            }
 
-        resetTimer();
-      })();
+            stayLoggedInBtn.addEventListener('click', function () {
+                modal.hide();
+                clearInterval(countdownTimer);
+                resetTimers();
+                // send small ping to keep session alive
+                fetch(window.location.href, { method: 'HEAD' });
+            });
+
+            logoutNowBtn.addEventListener('click', autoLogout);
+
+            // reset timers on user activity
+            ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event =>
+                document.addEventListener(event, resetTimers)
+            );
+
+            resetTimers();
+        })();
     </script>
 
+
+    {% block extra_scripts %}{% endblock %}
+
 </body>
+
 </html>
