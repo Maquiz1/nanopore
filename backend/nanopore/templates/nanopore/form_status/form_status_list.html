@@ -118,6 +118,9 @@
                         <th>Clinic Lab</th>
                         <th>Diagnosis</th>
                     {% endif %}
+                    {% if request.user.groups.all.0.name == "ADMIN" %}
+                        <th>Expert Results</th>
+                    {% endif %}
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                         <th>Zonal Lab</th>
                     {% endif %}
@@ -208,6 +211,59 @@
                                     {% else %}
                                         ❌ <br> Add
                                     {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+
+                    <!-- Expert Results for Lab Tech -->
+                    {% if request.user.groups.all.0.name == "ADMIN" %}
+                        <td>
+                            {% if screening.substudy_case == "uncategorized" %}
+                                N/A (Uncategorized)
+                            {% else %}
+                                {% if screening.clinic_laboratory %}
+                                    {% if screening.substudy_case == "substudy2" %}
+                                        {% if screening.clinic_laboratory.xpert_mtb_rif_conducted == 1 %}
+                                            {% if screening.clinic_laboratory.xpert_mtb == 2 %}
+                                                ✅ MTB/RIF Done (Substudy 2)
+                                            {% elif screening.clinic_laboratory.xpert_mtb == 3 %}
+                                                ✅ MTB/RIF Done (Substudy 2)
+                                            {% elif screening.clinic_laboratory.xpert_mtb == 4 %}
+                                                ✅ MTB/RIF Done (Substudy 2)
+                                            {% elif screening.clinic_laboratory.xpert_mtb == 5 %}
+                                                ✅ MTB/RIF Done (Substudy 2)
+                                            {% elif screening.clinic_laboratory.xpert_mtb == 6 %}
+                                                ✅ MTB/RIF Done (Substudy 2)
+                                            {% else %}
+                                                ❌ Not Done
+                                            {% endif %}
+                                        {% else %}
+                                            ❌ Not Done
+                                        {% endif %}
+                                    {% elif screening.substudy_case == "substudy4" %}
+                                        {% if screening.clinic_laboratory.xpert_mtb_rif_conducted == 1 %}
+                                            {% if screening.clinic_laboratory.xpert_mtb == 1 %}
+                                                ✅ MTB/RIF Done (Substudy 4)
+                                            {% elif screening.clinic_laboratory.xpert_mtb == 7 %}
+                                                ✅ MTB/RIF Done (Substudy 4)
+                                            {% elif screening.clinic_laboratory.xpert_mtb == 8 %}
+                                                ✅ MTB/RIF Done (Substudy 4)
+                                            {% elif screening.clinic_laboratory.xpert_mtb == 9 %}
+                                                ✅ MTB/RIF Done (Substudy 4)
+                                            {% else %}
+                                                ❌ Not Done
+                                            {% endif %}
+                                        {% elif screening.clinic_laboratory.xpert_mtb_rif_conducted == 2 %}
+                                            ✅ MTB/RIF Done (Substudy 4)
+                                        {% else %}
+                                            ❌ Not Done
+                                        {% endif %}
+                                    {% else %}
+                                        ❌ Not Done
+                                    {% endif %}
+                                {% else %}
+                                    ❌ Clinic Lab Missing
                                 {% endif %}
                             {% endif %}
                         </td>
