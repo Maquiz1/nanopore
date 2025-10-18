@@ -120,10 +120,22 @@ MEDIA_ROOT = BASE_DIR / 'uploads'
 # Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Auth redirect settings
-LOGIN_URL = '/users/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/users/login/'
+# # Auth redirect settings
+# LOGIN_URL = '/users/login/'
+# LOGIN_REDIRECT_URL = '/dashboard/'
+# LOGOUT_REDIRECT_URL = '/users/login/'
+
+# ✅ Session Settings
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True      # Log out user when browser closes
+SESSION_COOKIE_AGE = 10                     # Session timeout (in seconds) → 10 seconds
+SESSION_SAVE_EVERY_REQUEST = True           # Extend session on each user activity
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Store sessions in DB (default)
+
+# ✅ Authentication Redirects
+LOGIN_URL = 'users:login'                   # Redirect here if not logged in
+LOGIN_REDIRECT_URL = 'dashboard:dashboard'  # Go here after successful login
+LOGOUT_REDIRECT_URL = 'users:login'         # Redirect here after logout
+
 
 # Email settings
 if DEBUG:
