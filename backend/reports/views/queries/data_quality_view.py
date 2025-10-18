@@ -24,6 +24,10 @@ class DataQualityReportView(View):
             'clinic_laboratory',
             'diagnosis',
             'zonal_laboratory'
+        ).order_by(
+            'site__district__region__zone__name',
+            'site__name',
+            'pid'
         ).all()
 
         total_screenings = screenings.count()
@@ -82,6 +86,26 @@ class DataQualityReportView(View):
                 'reasons_other': reasons_other
             }
 
+        # 6 months ago
+        six_months_ago = timezone.now().date() - timedelta(days=180)
+
+        # Step 1: Filter screenings where treatment started more than 6 months ago
+        treatment_started_6m_ago = screenings.filter(
+            diagnosis__tb_treatment=1,
+            diagnosis__tb_treatment_date__isnull=False,
+            diagnosis__tb_treatment_date__lte=six_months_ago
+        )
+
+        # Step 2: Find screenings with missing outcomes
+        pending_tb_outcomes = treatment_started_6m_ago.filter(
+            Q(diagnosis__tb_outcome2__isnull=True)
+        )
+
+        # Step 3: Find screenings with missing outcome dates
+        pending_tb_outcomes_date = treatment_started_6m_ago.filter(
+            Q(diagnosis__tb_outcome2_date__isnull=True)
+        )
+
         # Build context
         context = {
             "total_screenings": total_screenings,
@@ -97,10 +121,18 @@ class DataQualityReportView(View):
                 clinic_laboratory__xpert_mtb_rif_conducted=1,
                 clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
                 zonal_laboratory__isnull=True)],
-            "pending_outcomes": [serialize_screening(s) for s in screenings.filter(
-                diagnosis__tb_treatment=1,
-                diagnosis__tb_treatment_date__isnull=False,
-                diagnosis__tb_treatment_date__lte=timezone.now().date() - timedelta(days=180))]
+            # # Step 2: Find screenings with missing outcomes
+            # "pending_outcomes": [serialize_screening(s) for s in screenings.filter(
+            #     diagnosis__tb_treatment=1,
+            #     diagnosis__tb_treatment_date__isnull=False,
+            #     diagnosis__tb_treatment_date__lte=six_months_ago)],
+            # # Step 3: Find screenings with missing outcomes dates
+            # "pending_outcomes_date": [serialize_screening(s) for s in screenings.filter(
+            #     diagnosis__tb_treatment=1,
+            #     diagnosis__tb_treatment_date__isnull=False,
+            #     diagnosis__tb_treatment_date__lte=six_months_ago)]
+            "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
+            "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date]
         }
 
         # Add months since treatment for pending outcomes

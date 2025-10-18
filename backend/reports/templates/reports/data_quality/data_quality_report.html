@@ -126,14 +126,21 @@
         {% else %}<p>No records found ✅</p>{% endif %}
     </div>
 
-    <!-- 7️⃣ Pending Outcomes -->
+    <!-- 7️⃣ Pending TB Outcomes -->
     <div class="mb-4">
-        <h4>7️⃣ Pending Outcomes ({{ pending_outcomes|length }})</h4>
+        <h4>7️⃣ Pending TB Outcomes ({{ pending_outcomes|length }})</h4>
         {% if pending_outcomes %}
         <table class="table table-sm table-bordered">
-            <thead><tr>
-                <th>PID</th><th>Zone</th><th>Site</th><th>Treatment Date</th><th>TB Outcome</th><th>Months Since Treatment</th>
-            </tr></thead>
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                    <th>Treatment Date</th>
+                    <th>TB Outcome</th>
+                    <th>Months Since Treatment</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for s in pending_outcomes %}
                 <tr>
@@ -147,8 +154,44 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% else %}<p>No records found ✅</p>{% endif %}
+        {% else %}
+        <p>No TB outcome pending ✅</p>
+        {% endif %}
     </div>
+
+    <!-- 8️⃣ Pending TB Outcome Dates -->
+    <div class="mb-4">
+        <h4>8️⃣ Pending TB Outcome Dates ({{ pending_outcomes_date|length }})</h4>
+        {% if pending_outcomes_date %}
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                    <th>Treatment Date</th>
+                    <th>TB Outcome Date</th>
+                    <th>Months Since Treatment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in pending_outcomes_date %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.tb_treatment_date }}</td>
+                    <td>{{ s.tb_outcome2_date }}</td>
+                    <td>{{ s.months_since_treatment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No TB outcome dates pending ✅</p>
+        {% endif %}
+    </div>
+
 
 </div>
 {% endblock %}
