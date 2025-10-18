@@ -9,6 +9,10 @@ from django.contrib.auth.forms import PasswordResetForm
 from phonenumber_field.formfields import PhoneNumberField
 from users.models import Profile, Prefix, Position, Site
 from django.contrib.auth.models import Group
+from phonenumbers import parse, is_valid_number, NumberParseException
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+import re
 
 User = get_user_model()
 
@@ -216,3 +220,39 @@ class StaffForm(forms.Form):
         if " " in username:
             raise forms.ValidationError("Username cannot contain spaces.")
         return username
+    
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if email:
+            qs = User.objects.filter(email__iexact=email)
+            # Exclude current user if updating
+            if getattr(self, "instance", None):
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("This email address is already registered.")
+        return email
+    
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get("phone_number")
+        if phone:
+            try:
+                number = parse(phone, "TZ")  # Tanzania region, change as needed
+                if not is_valid_number(number):
+                    raise forms.ValidationError("Enter a valid Tanzanian phone number.")
+            except NumberParseException:
+                raise forms.ValidationError("Enter a valid phone number.")
+        return phone
+    
+    # def clean_phone_number(self):
+    #     phone = self.cleaned_data.get('phone_number')
+
+    #     # Validate format (Tanzanian format example)
+    #     if phone:
+    #         if not re.match(r'^(?:\+255|0)[67]\d{8}$', phone):
+    #             raise ValidationError("Enter a valid Tanzanian phone number (e.g., 0652821433 or +255652821433).")
+
+    #         # Check uniqueness
+    #         if User.objects.filter(phone_number=phone).exclude(pk=self.instance.pk).exists():
+    #             raise ValidationError("This phone number is already registered.")
+
+    #     return phone

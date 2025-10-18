@@ -51,13 +51,6 @@ class StaffCreateUpdateView(FormView):
                 })
         return initial
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        # Attach current user_instance for clean_email validation
-        if self.user_instance:
-            form.instance = self.user_instance
-        return form
-
     def form_valid(self, form):
         data = form.cleaned_data
         username = data["username"]
@@ -75,11 +68,11 @@ class StaffCreateUpdateView(FormView):
         is_staff = data.get("is_staff", True)
         groups = data.get("groups")  # This should be a queryset from the form
 
-        # Update existing user
         if self.user_instance:
+            # Update existing user
             user = self.user_instance
             user.username = username
-            user.email = email or None
+            user.email = email
             user.first_name = first_name
             user.last_name = last_name
             user.is_staff = is_staff
@@ -96,15 +89,15 @@ class StaffCreateUpdateView(FormView):
             profile.site = site
             profile.phone_number = phone_number or None
             profile.save()
-
+            
             # Update groups
             if groups is not None:
                 user.groups.set(groups)
-
+                
             messages.success(self.request, f"Staff member '{user.username}' updated successfully!")
 
-        # Create new user
         else:
+            # Create new user
             if not password:
                 form.add_error("password", "Password is required for new user.")
                 return self.form_invalid(form)
@@ -113,14 +106,10 @@ class StaffCreateUpdateView(FormView):
                 form.add_error("username", "Username already exists.")
                 return self.form_invalid(form)
 
-            if email and User.objects.filter(email=email).exists():
-                form.add_error("email", "This email address is already registered.")
-                return self.form_invalid(form)
-
             user = User.objects.create_user(
                 username=username,
                 password=password,
-                email=email or None,
+                email=email,
                 first_name=first_name,
                 last_name=last_name,
                 is_staff=is_staff,
@@ -136,11 +125,11 @@ class StaffCreateUpdateView(FormView):
                 site=site,
                 phone_number=phone_number or None,
             )
-
+            
             # Assign groups
             if groups:
                 user.groups.set(groups)
-
+                
             messages.success(self.request, f"Staff member '{username}' created successfully!")
 
         return super().form_valid(form)
