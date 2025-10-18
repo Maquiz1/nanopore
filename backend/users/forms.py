@@ -122,37 +122,88 @@ class PhoneVerificationForm(forms.Form):
     
     
 class StaffForm(forms.Form):
+    # User fields
     username = forms.CharField(
-        max_length=150, required=True,
+        max_length=150,
+        required=True,
+        label="Username",
         widget=forms.TextInput(attrs={"class": "form-control"})
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control"}),
-        required=False
+        required=False,  # Only required for new user in view
+        label="Password",
+        widget=forms.PasswordInput(attrs={"class": "form-control"})
     )
-    first_name = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
-    middle_name = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
-    last_name = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
-    email = forms.EmailField(widget=forms.EmailInput(attrs={"class":"form-control"}), required=False)
+    email = forms.EmailField(
+        required=False,
+        label="Email",
+        widget=forms.EmailInput(attrs={"class": "form-control"})
+    )
+    first_name = forms.CharField(
+        max_length=150,
+        required=False,
+        label="First Name",
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    middle_name = forms.CharField(
+        max_length=150,
+        required=False,
+        label="Middle Name",
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    last_name = forms.CharField(
+        max_length=150,
+        required=False,
+        label="Last Name",
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    
+    is_active = forms.BooleanField(
+        required=False,
+        label="Is Active",
+        initial=True,
+        widget=forms.CheckboxInput()
+    )
+        
+    is_staff = forms.BooleanField(
+        required=False,
+        label="Is Staff",
+        initial=False,
+        widget=forms.CheckboxInput()
+    )
+
+    # Profile fields
     prefix = forms.ModelChoiceField(
         queryset=Prefix.objects.all(),
         required=False,
-        empty_label="-- Select Prefix --",
-        widget=forms.Select(attrs={"class":"form-select"})
+        label="Prefix",
+        widget=forms.Select(attrs={"class": "form-control"})
     )
     position = forms.ModelChoiceField(
         queryset=Position.objects.all(),
         required=False,
-        empty_label="-- Select Position --",
-        widget=forms.Select(attrs={"class":"form-select"})
+        label="Position",
+        widget=forms.Select(attrs={"class": "form-control"})
     )
     site = forms.ModelChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        empty_label="-- Select Site --",
-        widget=forms.Select(attrs={"class":"form-select"})
+        label="Site",
+        widget=forms.Select(attrs={"class": "form-control"})
     )
-    phone_number = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
-    description = forms.CharField(widget=forms.Textarea(attrs={"class":"form-control","rows":2}), required=False)
-    is_staff = forms.BooleanField(initial=True, required=False, widget=forms.CheckboxInput(attrs={"class":"form-check-input"}))
+    phone_number = forms.CharField(
+        required=False,
+        label="Phone Number",
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    description = forms.CharField(
+        required=False,
+        label="Description",
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3})
+    )
 
+    def clean_username(self):
+        username = self.cleaned_data["username"]
+        if " " in username:
+            raise forms.ValidationError("Username cannot contain spaces.")
+        return username
