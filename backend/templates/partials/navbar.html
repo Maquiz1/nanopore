@@ -1,6 +1,16 @@
-        <div class="navbar">
-            <button class="toggle-btn" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <strong>{% block titlebar %}Welcome, {{ user.get_full_name|default:user.username }}{% endblock %}</strong>
-        </div>
+<div class="navbar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #003366; color: white; border-bottom: 2px solid #002244;">
+    <div style="display: flex; align-items: center;">
+        <button class="toggle-btn" onclick="toggleSidebar()" 
+                style="margin-right: 15px; background: none; border: none; color: white; cursor: pointer; font-size: 1.4rem;">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <strong style="font-size: 1.25rem; letter-spacing: 0.5px;">
+            DREAM-FUND NANOPORE STUDY DATABASE
+        </strong>
+    </div>
+
+    <span style="font-weight: 500; font-size: 1rem;">
+        {% block titlebar %}Welcome, {{ user.get_full_name|default:user.username }}{% endblock %}
+    </span>
+</div>
