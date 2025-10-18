@@ -23,7 +23,7 @@
       {# Username #}
       <div class="mb-3">
         <label class="form-label">Username <span class="text-danger">*</span></label>
-        {{ form.username|as_widget(attrs={"class":"form-control"}) }}
+        {{ form.username }}
         {% for error in form.username.errors %}
           <div class="text-danger">{{ error }}</div>
         {% endfor %}
@@ -38,7 +38,7 @@
             Password <span class="text-danger">*</span>
           {% endif %}
         </label>
-        {{ form.password|as_widget(attrs={"class":"form-control"}) }}
+        {{ form.password }}
         {% for error in form.password.errors %}
           <div class="text-danger">{{ error }}</div>
         {% endfor %}
@@ -47,60 +47,60 @@
       {# First Name #}
       <div class="mb-3">
         <label class="form-label">First Name</label>
-        {{ form.first_name|as_widget(attrs={"class":"form-control"}) }}
+        {{ form.first_name }}
       </div>
 
       {# Middle Name #}
       <div class="mb-3">
         <label class="form-label">Middle Name</label>
-        {{ form.middle_name|as_widget(attrs={"class":"form-control"}) }}
+        {{ form.middle_name }}
       </div>
 
       {# Last Name #}
       <div class="mb-3">
         <label class="form-label">Last Name</label>
-        {{ form.last_name|as_widget(attrs={"class":"form-control"}) }}
+        {{ form.last_name }}
       </div>
 
       {# Email #}
       <div class="mb-3">
         <label class="form-label">Email</label>
-        {{ form.email|as_widget(attrs={"class":"form-control"}) }}
+        {{ form.email }}
       </div>
 
       {# Prefix #}
       <div class="mb-3">
         <label class="form-label">Prefix</label>
-        {{ form.prefix|as_widget(attrs={"class":"form-select"}) }}
+        {{ form.prefix }}
       </div>
 
       {# Position #}
       <div class="mb-3">
         <label class="form-label">Position</label>
-        {{ form.position|as_widget(attrs={"class":"form-select"}) }}
+        {{ form.position }}
       </div>
 
       {# Site #}
       <div class="mb-3">
         <label class="form-label">Site</label>
-        {{ form.site|as_widget(attrs={"class":"form-select"}) }}
+        {{ form.site }}
       </div>
 
       {# Phone Number #}
       <div class="mb-3">
         <label class="form-label">Phone Number</label>
-        {{ form.phone_number|as_widget(attrs={"class":"form-control"}) }}
+        {{ form.phone_number }}
       </div>
 
       {# Description #}
       <div class="mb-3">
         <label class="form-label">Description</label>
-        {{ form.description|as_widget(attrs={"class":"form-control", "rows":"2"}) }}
+        {{ form.description }}
       </div>
 
       {# Is Staff checkbox #}
       <div class="mb-3 form-check">
-        {{ form.is_staff|as_widget(attrs={"class":"form-check-input"}) }}
+        {{ form.is_staff }}
         <label class="form-check-label">Is Staff</label>
       </div>
 
@@ -113,6 +113,7 @@
         {% endif %}
       </button>
       <a href="{% url 'users:staff_list' %}" class="btn btn-secondary">Cancel</a>
+
     </form>
   </div>
 </div>

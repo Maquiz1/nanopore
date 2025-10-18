@@ -1,12 +1,19 @@
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView, DetailView
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
-from django.contrib.auth import get_user_model
-from users.models import Profile
+from django.contrib.auth import get_user_model, logout
+from users.models import Profile, Prefix, Position
 from users.forms import StaffForm
+from locations.models import Site
 
 User = get_user_model()
+
+
+def force_logout(request):
+    """Forcefully log out the current user and redirect to login page."""
+    logout(request)
+    return redirect('users:login')
 
 class StaffCreateUpdateView(FormView):
     template_name = "users/staff/staff_form.html"
@@ -30,7 +37,6 @@ class StaffCreateUpdateView(FormView):
                 "last_name": self.user_instance.last_name,
                 "is_staff": self.user_instance.is_staff,
             })
-            # Middle name and description can be stored in profile
             if hasattr(self.user_instance, "profile"):
                 profile = self.user_instance.profile
                 initial.update({
@@ -72,11 +78,11 @@ class StaffCreateUpdateView(FormView):
 
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.middle_name = middle_name
+            profile.description = description or ""
             profile.prefix = prefix
             profile.position = position
             profile.site = site
             profile.phone_number = phone_number or None
-            profile.description = description or ""
             profile.save()
             messages.success(self.request, f"Staff member '{user.username}' updated successfully!")
 
@@ -102,13 +108,12 @@ class StaffCreateUpdateView(FormView):
             Profile.objects.create(
                 user=user,
                 middle_name=middle_name,
+                description=description or "",
                 prefix=prefix,
                 position=position,
                 site=site,
                 phone_number=phone_number or None,
-                description=description or ""
             )
             messages.success(self.request, f"Staff member '{username}' created successfully!")
 
         return super().form_valid(form)
-

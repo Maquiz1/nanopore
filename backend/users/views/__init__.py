@@ -3,6 +3,5 @@ from .user_detail_view import *
 from .user_list_view import *
 from .user_view_delete import *
 from .user_custom_login import *
-
-
-
+from .user_sign_up import *
+from .user_activation import *
