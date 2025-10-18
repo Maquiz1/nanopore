@@ -22,6 +22,10 @@ class DataQualityReportPDFView(View):
             'clinic_laboratory',
             'diagnosis',
             'zonal_laboratory'
+        ).order_by(
+            'site__district__region__zone__name',
+            'site__name',
+            'pid'
         ).all()
 
         total_screenings = screenings.count()
@@ -46,6 +50,7 @@ class DataQualityReportPDFView(View):
 
             tb_treatment_date = getattr(getattr(s, 'diagnosis', None), 'tb_treatment_date', None)
             tb_outcome2 = getattr(getattr(s, 'diagnosis', None), 'tb_outcome2', '')
+            tb_outcome2_date = getattr(getattr(s, 'diagnosis', None), 'tb_outcome2_date', '')
 
             months_since_treatment = None
             if tb_treatment_date:
@@ -64,8 +69,29 @@ class DataQualityReportPDFView(View):
                 'xpert_mtb': xpert_mtb,
                 'tb_treatment_date': tb_treatment_date,
                 'tb_outcome2': tb_outcome2,
+                'tb_outcome2_date': tb_outcome2_date,
                 'months_since_treatment': months_since_treatment
             }
+
+        # 6 months ago
+        six_months_ago = timezone.now().date() - timedelta(days=180)
+
+        # Filter screenings where treatment started more than 6 months ago
+        treatment_started_6m_ago = screenings.filter(
+            diagnosis__tb_treatment=1,
+            diagnosis__tb_treatment_date__isnull=False,
+            diagnosis__tb_treatment_date__lte=six_months_ago
+        )
+
+        # Pending TB outcomes (missing tb_outcome2)
+        pending_tb_outcomes = treatment_started_6m_ago.filter(
+            Q(diagnosis__tb_outcome2__isnull=True)
+        )
+
+        # Pending TB outcome dates (missing tb_outcome2_date)
+        pending_tb_outcomes_date = treatment_started_6m_ago.filter(
+            Q(diagnosis__tb_outcome2_date__isnull=True)
+        )
 
         # Build context
         context = {
@@ -83,18 +109,16 @@ class DataQualityReportPDFView(View):
                 clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
                 zonal_laboratory__isnull=True
             )],
-            "pending_outcomes": [serialize_screening(s) for s in screenings.filter(
-                diagnosis__tb_treatment=1,
-                diagnosis__tb_treatment_date__isnull=False,
-                diagnosis__tb_treatment_date__lte=timezone.now().date() - timedelta(days=180)
-            )]
+            "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
+            "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date]
         }
 
-        # Calculate months since treatment for pending outcomes
-        for s in context['pending_outcomes']:
-            if s['tb_treatment_date']:
-                delta = timezone.now().date() - s['tb_treatment_date']
-                s['months_since_treatment'] = delta.days // 30
+        # Add months since treatment for both pending outcomes
+        for key in ['pending_outcomes', 'pending_outcomes_date']:
+            for s in context[key]:
+                if s.get('tb_treatment_date'):
+                    delta = timezone.now().date() - s['tb_treatment_date']
+                    s['months_since_treatment'] = delta.days // 30
 
         # Render HTML
         html_string = render_to_string(
