@@ -143,9 +143,9 @@
                     <td>{{ screening.substudy_case|default:"-" }}</td>
                     <td class="{% if screening.eligible %}table-success{% else %}table-danger{% endif %}">
                         {% if screening.eligible %}
-                            ✅ Eligible
+                            ✅ <br> Eligible
                         {% else %}
-                            ❌ Not Eligible
+                            ❌ <br> Not Eligible
                         {% endif %}
                     </td>
 
@@ -157,16 +157,16 @@
                             {% else %}
                                 {% if screening.enrollment %}
                                     {% if request.user.groups.all.0.name != "REVIEWER" %}
-                                        <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ Enrolled</a>
+                                        <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ <br>Enrolled</a>
                                     {% else %}
-                                        ✅ Enrolled
+                                        ✅ <br>Enrolled
                                     {% endif %}
                                     <br>{{ screening.enrollment.enrollment_date|date:"Y-m-d" }}
                                 {% else %}
                                     {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
-                                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ screening.pk }}">❌ Not Enrolled</a>
+                                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ screening.pk }}">❌ <br>Not Enrolled</a>
                                     {% else %}
-                                        ❌ Not Enrolled
+                                        ❌ <br>Not Enrolled
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
@@ -178,15 +178,15 @@
                             {% else %}
                                 {% if screening.clinic_laboratory %}
                                     {% if request.user.groups.all.0.name != "REVIEWER" %}
-                                        <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ DONE</a>
+                                        <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ <br> DONE</a>
                                     {% else %}
-                                        ✅ DONE
+                                        ✅ <br> DONE
                                     {% endif %}
                                 {% else %}
                                     {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
-                                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ <br> Add</a>
                                     {% else %}
-                                        ❌ Add
+                                        ❌ <br> Add
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
@@ -198,15 +198,15 @@
                             {% else %}
                                 {% if screening.diagnosis %}
                                     {% if request.user.groups.all.0.name != "REVIEWER" %}
-                                        <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ DONE</a>
+                                        <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ <br>DONE</a>
                                     {% else %}
-                                        ✅ DONE
+                                        ✅ <br> DONE
                                     {% endif %}
                                 {% else %}
                                     {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
-                                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ <br> Add</a>
                                     {% else %}
-                                        ❌ Add
+                                        ❌ <br> Add
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
@@ -222,15 +222,15 @@
                                 {% if screening.substudy_case == "Substudy 2" %}
                                     {% if screening.zonal_laboratory %}
                                         {% if request.user.groups.all.0.name != "REVIEWER" %}
-                                            <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅ DONE</a>
+                                            <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅  <br>DONE</a>
                                         {% else %}
-                                            ✅ DONE
+                                            ✅ <br> DONE
                                         {% endif %}
                                     {% else %}
                                         {% if request.user.groups.all.0.name == "LABORATORY_TECHNICIAN" %}
-                                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ Add</a>
+                                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ <br> Add</a>
                                         {% else %}
-                                            ❌ Add
+                                            ❌ <br> Add
                                         {% endif %}
                                     {% endif %}
                                 {% elif screening.substudy_case in "Substudy 4,Uncategorized" %}
