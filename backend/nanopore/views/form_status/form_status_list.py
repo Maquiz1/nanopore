@@ -1,4 +1,5 @@
 # nanopore/views/status.py
+from lib2to3.fixes.fix_input import context
 from django.views.generic import ListView
 from nanopore.models import Screening,Enrollment,Diagnosis,ClinicLaboratory,ZonalLaboratory,RegimenChanges
 from utils.permissions import filter_queryset_by_user_role
@@ -143,5 +144,25 @@ class FormStatusListView(ListView):
         context['list_type'] = self.request.GET.get("list_type", "screened")
         context['selected_substudy'] = self.request.GET.get("substudy", "")
 
+        # 🔹 Build query_params string for pagination
+        query_dict = {}
+        if context['selected_zone']:
+            query_dict['zone'] = context['selected_zone']
+        if context['selected_site']:
+            query_dict['site'] = context['selected_site']
+        if context['selected_pid']:
+            query_dict['pid'] = context['selected_pid']
+        if context['selected_start_date']:
+            query_dict['start_date'] = context['selected_start_date']
+        if context['selected_end_date']:
+            query_dict['end_date'] = context['selected_end_date']
+        if context['selected_status']:
+            query_dict['status'] = context['selected_status']
+        if context['list_type']:
+            query_dict['list_type'] = context['list_type']
+        if context['selected_substudy']:
+            query_dict['substudy'] = context['selected_substudy']
+
+        context['query_params'] = urlencode(query_dict)
 
         return context
