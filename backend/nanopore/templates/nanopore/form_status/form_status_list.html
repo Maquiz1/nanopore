@@ -1,6 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% with user_group=request.user.groups.first.name|upper %}
+{% if not request.user.is_superuser and user_group != "ADMIN" and user_group != "REVIEWER" %}
+    {% if request.user.profile.site %}
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <div>
+                <strong>Zone:</strong> {{ request.user.profile.site.district.region.zone.name }} &nbsp; | &nbsp;
+                <strong>Site:</strong> {{ request.user.profile.site.name }} &nbsp; | &nbsp;
+                <strong>Position:</strong> {{ request.user.profile.position }}
+            </div>
+            <i class="fas fa-map-marker-alt"></i>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            ⚠️ Your profile does not have a site assigned.
+        </div>
+    {% endif %}
+{% endif %}
+{% endwith %}
+
 <div class="container mt-4">
     <h2 class="mb-4">Screening & Form Status</h2>
 
@@ -95,8 +114,12 @@
                 <tr>
                     <th>PID</th>
                     <th>Screening Date</th>
+                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                     <th>Facility</th>
+                    {% endif %}
+                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER" %}
                     <th>Zone</th>
+                    {% endif %}
                     <th>Eligibility</th>
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
                         <th>Enrollment</th>
@@ -120,8 +143,12 @@
                         {% endif %}
                     </td>
                     <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
+                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
                     <td>{{ screening.site.name|default:"-" }}</td>
+                    {% endif %}
+                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER" %}
                     <td>{{ screening.site.district.region.zone.name|default:"-" }}</td>
+                    {% endif %}
 
                     <!-- Eligibility -->
                     <td class="{% if screening.eligible %}table-success{% else %}table-danger{% endif %}">
