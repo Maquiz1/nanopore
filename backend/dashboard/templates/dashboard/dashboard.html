@@ -230,7 +230,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
     <!-- 7-DAY REPORTS -->
     <div class="row g-4 mb-4">
         <!-- 7-Day Bar Chart -->
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Screenings in Last 7 Days (Bar)</h5>
@@ -238,9 +238,10 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 </div>
             </div>
         </div>
-
+</div>
+            <div class="row g-4 mb-4">
         <!-- 7-Day Trend Line Chart -->
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Screenings in Last 7 Days (Trend)</h5>
@@ -256,7 +257,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
     <!-- THIS MONTH REPORTS -->
     <div class="row g-4 mb-4">
         <!-- This Month Bar Chart -->
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Screenings This Month by Zone (Bar)</h5>
@@ -264,9 +265,10 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 </div>
             </div>
         </div>
-
+</div>
+            <div class="row g-4 mb-4">
         <!-- This Month Trend Line Chart -->
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Screenings This Month by Zone (Trend)</h5>
@@ -286,7 +288,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Screenings</h5>
+                    <h5 class="card-title">Total Screenings by Zone</h5>
                     <canvas id="zoneBarChart"></canvas>
                 </div>
             </div>
@@ -296,7 +298,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div class="col-md-12">
             <div class="card shadow-sm mt-4">
                 <div class="card-body">
-                    <h5 class="card-title">Screening Trends (Monthly)</h5>
+                    <h5 class="card-title">Total Screening Trends (Monthly) by Zone</h5>
                     <canvas id="zoneTimeChart"></canvas>
                 </div>
             </div>
