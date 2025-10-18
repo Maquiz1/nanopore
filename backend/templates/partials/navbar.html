@@ -15,27 +15,27 @@
     <div style="display: flex; align-items: center; gap: 20px; position: relative;">
 
         <!-- Notifications / Messages Icon -->
-        <a href="{% url 'reports:data_quality_report' %}" style="color: white; font-size: 1.2rem; position: relative;">
+        <a href="{% url 'reports:notifications-list' %}" class="icon-btn">
             <i class="fas fa-envelope"></i>
-            <span class="badge" style="position: absolute; top: -5px; right: -10px; background: red; color: white; border-radius: 50%; font-size: 0.7rem; padding: 2px 5px;">3</span>
+            <span class="badge">3</span>
         </a>
 
         <!-- Alerts Icon -->
-        <a href="{% url 'reports:data_quality_report' %}" style="color: white; font-size: 1.2rem; position: relative;">
+        <a href="{% url 'reports:alerts-list' %}" class="icon-btn">
             <i class="fas fa-bell"></i>
-            <span class="badge" style="position: absolute; top: -5px; right: -10px; background: red; color: white; border-radius: 50%; font-size: 0.7rem; padding: 2px 5px;">5</span>
+            <span class="badge">5</span>
         </a>
 
         <!-- Profile Dropdown -->
         {% if user.is_authenticated %}
-        <div class="dropdown" style="position: relative;">
-            <button class="btn-profile" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                <i class="fas fa-user-circle" style="font-size: 1.4rem;"></i>
-                <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+        <div class="dropdown">
+            <button class="btn-profile">
+                <i class="fas fa-user-circle"></i>
+                <i class="fas fa-chevron-down"></i>
             </button>
-            <div class="dropdown-menu" style="display: none; position: absolute; right: 0; background: white; color: black; border-radius: 5px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); min-width: 150px;">
-                <a href="{% url 'users:profile' user.id %}" style="display: block; padding: 10px 15px; text-decoration: none; color: black;">Profile</a>
-                <a href="{% url 'users:logout' %}" style="display: block; padding: 10px 15px; text-decoration: none; color: black;">Logout</a>
+            <div class="dropdown-menu">
+                <a href="{% url 'users:profile' user.id %}">Profile</a>
+                <a href="{% url 'users:logout' %}">Logout</a>
             </div>
         </div>
         {% endif %}
@@ -43,21 +43,67 @@
     </div>
 </div>
 
-<!-- Dropdown script -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const profileBtn = document.querySelector(".btn-profile");
-    const dropdownMenu = document.querySelector(".dropdown-menu");
+<!-- CSS -->
+<style>
+.icon-btn {
+    position: relative;
+    color: white;
+    font-size: 1.2rem;
+    text-decoration: none;
+}
+.icon-btn .badge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    padding: 2px 5px;
+}
 
-    if(profileBtn) {
-        profileBtn.addEventListener("click", function(e) {
-            e.stopPropagation();
-            dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
-        });
+/* Profile dropdown */
+.dropdown {
+    position: relative;
+}
+.btn-profile {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 1.2rem;
+}
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background: white;
+    color: black;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    min-width: 150px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.dropdown-menu a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: black;
+}
+.dropdown-menu a:hover {
+    background-color: #f0f0f0;
+}
 
-        document.addEventListener("click", function() {
-            dropdownMenu.style.display = "none";
-        });
-    }
-});
-</script>
+/* Show dropdown on hover */
+.dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
