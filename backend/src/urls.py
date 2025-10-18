@@ -6,9 +6,9 @@ from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 from django.contrib import admin
 
-admin.site.site_header = "Digital Mentorship LogBook Admin"
-admin.site.site_title = "Mentorship Admin Portal"
-admin.site.index_title = "Welcome to the LogBook Admin Panel"
+admin.site.site_header = "Dream Fund - Nanopore Database Admin"
+admin.site.site_title = "Dream Fund - Nanopore Database Admin Portal"
+admin.site.index_title = "Welcome to the Dream Fund - Nanopore Database Admin Panel"
 
 def root_redirect(request):
     if request.user.is_authenticated:
