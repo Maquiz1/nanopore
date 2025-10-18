@@ -1,8 +1,9 @@
 # nanopore/views/status.py
 from django.views.generic import ListView
-from nanopore.models import Screening
+from nanopore.models import Screening,Enrollment,Diagnosis,ClinicLaboratory,ZonalLaboratory,RegimenChanges
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
+from django.db.models import Q
 
 class FormStatusListView(ListView):
     model = Screening
@@ -32,6 +33,9 @@ class FormStatusListView(ListView):
         start_date = self.request.GET.get("start_date")
         end_date = self.request.GET.get("end_date")
         status = self.request.GET.get("status")  # 🔹 Status filter
+        list_type = self.request.GET.get("list_type", "screened")  # default to all screenings
+        substudy = self.request.GET.get("substudy")  # 🔹 New filter
+
 
         if zone_id:
             qs = qs.filter(site__district__region__zone_id=zone_id)
@@ -47,6 +51,35 @@ class FormStatusListView(ListView):
             qs = qs.filter(eligible=True)
         elif status == "not_eligible":
             qs = qs.filter(eligible=False)
+            
+            
+        # 🔹 Dynamic list type filter
+        if list_type == "eligible":
+            qs = qs.filter(eligible=True)
+        elif list_type == "enrolled":
+            enrolled_screenings = Enrollment.objects.values_list("screening_id", flat=True)
+            qs = qs.filter(id__in=enrolled_screenings)
+        elif list_type == "completed":
+            qs = qs.filter(diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6])
+            
+            
+        # 🔹 Substudy filter
+        if substudy:
+            if substudy == "substudy2":
+                qs = qs.filter(
+                    clinic_laboratory__xpert_mtb_rif_conducted=1,
+                    clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]
+                )
+            elif substudy == "substudy4":
+                qs = qs.filter(
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__in=[1,7,8,9]) |
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted=2)
+                )
+            elif substudy == "uncategorized":
+                qs = qs.filter(
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__isnull=True) |
+                    Q(clinic_laboratory__xpert_mtb_rif_conducted__isnull=True)
+                )
 
         return qs.order_by("-screening_date")
 
@@ -64,5 +97,8 @@ class FormStatusListView(ListView):
         context['selected_start_date'] = self.request.GET.get("start_date", "")
         context['selected_end_date'] = self.request.GET.get("end_date", "")
         context['selected_status'] = self.request.GET.get("status", "")  # 🔹 Pass status to template
+        context['list_type'] = self.request.GET.get("list_type", "screened")
+        context['selected_substudy'] = self.request.GET.get("substudy", "")
+
 
         return context
