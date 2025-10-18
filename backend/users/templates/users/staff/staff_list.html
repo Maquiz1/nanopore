@@ -27,63 +27,17 @@
       <td>{{ user.username }}</td>
       <td>{{ user.get_full_name }}</td>
       <td>{{ user.email }}</td>
-      
-      {# Prefix #}
+      <td>{% if user.profile and user.profile.prefix %}{{ user.profile.prefix.name }}{% else %}-{% endif %}</td>
+      <td>{% if user.profile and user.profile.position %}{{ user.profile.position.name }}{% else %}-{% endif %}</td>
+      <td>{% if user.profile and user.profile.site %}{{ user.profile.site.name }}{% else %}-{% endif %}</td>
+      <td>{% if user.profile and user.profile.site and user.profile.site.district and user.profile.site.district.region and user.profile.site.district.region.zone %}{{ user.profile.site.district.region.zone.name }}{% else %}-{% endif %}</td>
+      <td>{% if user.groups.all %}{{ user.groups.all|join:", " }}{% else %}-{% endif %}</td>
       <td>
-        {% if user.profile and user.profile.prefix %}
-          {{ user.profile.prefix.name }}
-        {% else %}
-          -
-        {% endif %}
-      </td>
-
-      {# Position #}
-      <td>
-        {% if user.profile and user.profile.position %}
-          {{ user.profile.position.name }}
-        {% else %}
-          -
-        {% endif %}
-      </td>
-
-      {# Site #}
-      <td>
-        {% if user.profile and user.profile.site %}
-          {{ user.profile.site.name }}
-        {% else %}
-          -
-        {% endif %}
-      </td>
-
-      {# Zone (site → district → region → zone) #}
-      <td>
-        {% if user.profile and user.profile.site and user.profile.site.district and user.profile.site.district.region and user.profile.site.district.region.zone %}
-          {{ user.profile.site.district.region.zone.name }}
-        {% else %}
-          -
-        {% endif %}
-      </td>
-
-      {# Groups #}
-      <td>
-        {% if user.groups.all %}
-          {{ user.groups.all|join:", " }}
-        {% else %}
-          -
-        {% endif %}
-      </td>
-
-      {# Actions #}
-      <td>
-        <a href="{% url 'users:staff_detail' user.id %}" class="btn btn-sm btn-primary">
-          View Details
-        </a>
+        <a href="{% url 'users:staff_detail' user.id %}" class="btn btn-sm btn-primary">View Details</a>
       </td>
     </tr>
     {% empty %}
-    <tr>
-      <td colspan="10" class="text-center">No staff available.</td>
-    </tr>
+    <tr><td colspan="10" class="text-center">No staff available.</td></tr>
     {% endfor %}
   </tbody>
 </table>

@@ -7,9 +7,9 @@ from django.urls import reverse_lazy, reverse
 from users.views import (
     CustomLoginView,
     # ProfileUpdateView,
-    # SignUpView,
+    SignUpView,
     # ActivateAccount,
-    # ResendActivationEmailView,
+    ResendActivationEmailView,
     StaffDetailView,
     StaffListView,
     StaffCreateUpdateView
@@ -33,11 +33,11 @@ urlpatterns = [
     path("staff/<int:pk>/", StaffDetailView.as_view(), name="staff_detail"),
     
     # # Registration and Activation
-    # path('sign_up/', SignUpView.as_view(), name='sign_up'),
+    path('sign_up/', SignUpView.as_view(), name='sign_up'),
     # path('activate/<uidb64>/<token>/', ActivateAccount.as_view(), name='activate_account'),
     # path('email_confirmation_sent/', TemplateView.as_view(
     #     template_name='registration/email_confirmation_sent.html'), name='email_confirmation_sent'),
-    # path('resend-activation/', ResendActivationEmailView.as_view(), name='resend_activation'),
+    path('resend-activation/', ResendActivationEmailView.as_view(), name='resend_activation'),
 
     # # Login and Logout
     path('login/', CustomLoginView.as_view(), name='login'),

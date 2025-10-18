@@ -27,6 +27,11 @@ class Profile(models.Model):
     prefix = models.ForeignKey(Prefix, on_delete=models.SET_NULL, null=True, blank=True)
     position = models.ForeignKey(Position, on_delete=models.SET_NULL, null=True, blank=True)
 
+
+    # NEW FIELDS
+    middle_name = models.CharField(max_length=50, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    
     def __str__(self):
         display_name = f"{self.prefix.name + ' ' if self.prefix else ''}{self.user.username}"
         return f"{display_name} - {self.position.name if self.position else 'No Position'}"

@@ -122,15 +122,37 @@ class PhoneVerificationForm(forms.Form):
     
     
 class StaffForm(forms.Form):
-    username = forms.CharField(max_length=150, required=True)
-    password = forms.CharField(widget=forms.PasswordInput, required=False)  # required on creation
-    first_name = forms.CharField(max_length=50, required=False)
-    middle_name = forms.CharField(max_length=50, required=False)
-    last_name = forms.CharField(max_length=50, required=False)
-    email = forms.EmailField(required=False)
-    prefix = forms.ModelChoiceField(queryset=Prefix.objects.all(), required=False, empty_label="-- Select Prefix --")
-    position = forms.ModelChoiceField(queryset=Position.objects.all(), required=False, empty_label="-- Select Position --")
-    site = forms.ModelChoiceField(queryset=Site.objects.all(), required=False, empty_label="-- Select Site --")
-    phone_number = forms.CharField(max_length=20, required=False)
-    description = forms.CharField(widget=forms.Textarea(attrs={"rows":2}), required=False)
-    is_staff = forms.BooleanField(initial=True, required=False)
+    username = forms.CharField(
+        max_length=150, required=True,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
+        required=False
+    )
+    first_name = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
+    middle_name = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
+    last_name = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class":"form-control"}), required=False)
+    prefix = forms.ModelChoiceField(
+        queryset=Prefix.objects.all(),
+        required=False,
+        empty_label="-- Select Prefix --",
+        widget=forms.Select(attrs={"class":"form-select"})
+    )
+    position = forms.ModelChoiceField(
+        queryset=Position.objects.all(),
+        required=False,
+        empty_label="-- Select Position --",
+        widget=forms.Select(attrs={"class":"form-select"})
+    )
+    site = forms.ModelChoiceField(
+        queryset=Site.objects.all(),
+        required=False,
+        empty_label="-- Select Site --",
+        widget=forms.Select(attrs={"class":"form-select"})
+    )
+    phone_number = forms.CharField(widget=forms.TextInput(attrs={"class":"form-control"}), required=False)
+    description = forms.CharField(widget=forms.Textarea(attrs={"class":"form-control","rows":2}), required=False)
+    is_staff = forms.BooleanField(initial=True, required=False, widget=forms.CheckboxInput(attrs={"class":"form-check-input"}))
+
