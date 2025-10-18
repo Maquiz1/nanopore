@@ -12,24 +12,36 @@ Dashboard — {{ user.get_full_name|default:user.username }}
 {% block content %}
 
 <style>
-.fa-hand-wave::before {
-  content: "\f44b"; /* custom wave icon if missing */
-}
-.card-body h2 i {
-  animation: wave 2s infinite ease-in-out;
-}
+    .fa-hand-wave::before {
+        content: "\f44b";
+        /* custom wave icon if missing */
+    }
 
-@keyframes wave {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(15deg); }
-  75% { transform: rotate(-10deg); }
-}
+    .card-body h2 i {
+        animation: wave 2s infinite ease-in-out;
+    }
+
+    @keyframes wave {
+
+        0%,
+        100% {
+            transform: rotate(0deg);
+        }
+
+        25% {
+            transform: rotate(15deg);
+        }
+
+        75% {
+            transform: rotate(-10deg);
+        }
+    }
 </style>
 <div class="card shadow-sm border-0 mb-4 rounded-4">
     <div class="card-body bg-light">
         <h2 class="mb-3 text-primary fw-bold d-flex align-items-center flex-wrap">
             <i class="fas fa-hand-wave text-warning me-2"></i>
-            Welcome, 
+            Welcome,
             <span class="ms-1">
                 {{ request.user.profile.prefix|default:"" }} {{ user.get_full_name|default:user.username }}!
             </span>
@@ -37,27 +49,34 @@ Dashboard — {{ user.get_full_name|default:user.username }}
 
         {% with user_group=request.user.groups.first.name|upper %}
         {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
-            <div class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
-                <div>
-                    <p class="mb-0 fs-5 text-dark">
-                        <i class="fas fa-user-shield text-primary me-2"></i>
-                        <strong>Position:</strong> {{ request.user.profile.position }}
-                    </p>
-                </div>
+        <div
+            class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
+            <div>
+                <p class="mb-0 fs-5 text-dark">
+                    <i class="fas fa-user-shield text-primary me-2"></i>
+                    <strong>Position:</strong> {{ request.user.profile.position }}
+                </p>
             </div>
+        </div>
         {% else %}
-            {% if request.user.profile.site %}
-                <div class="p-3 bg-white rounded-3 border-start border-4 border-success shadow-sm">
-                    <!-- <p class="mb-1"><i class="fas fa-user-tag text-success me-2"></i><strong>Prefix:</strong> {{ request.user.profile.prefix }}</p> -->
-                    <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i><strong>Zone:</strong> {{ request.user.profile.site.district.region.zone.name }}</p>
-                    <p class="mb-1"><i class="fas fa-hospital text-success me-2"></i><strong>Site:</strong> {{ request.user.profile.site.name }}</p>
-                    <p class="mb-0"><i class="fas fa-briefcase text-success me-2"></i><strong>Position:</strong> {{ request.user.profile.position }}</p>
-                </div>
-            {% else %}
-                <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
-                    ⚠️ Your profile does not have a site assigned.
-                </div>
-            {% endif %}
+        {% if request.user.profile.site %}
+        <div class="p-3 bg-white rounded-3 border-start border-4 border-success shadow-sm">
+            <!-- <p class="mb-1"><i class="fas fa-user-tag text-success me-2"></i><strong>Prefix:</strong> {{ request.user.profile.prefix }}</p> -->
+            <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i>
+                <strong>Zone:</strong>
+                {{ request.user.profile.site.district.region.zone.name }}</p>
+            <p class="mb-1"><i class="fas fa-hospital text-success me-2"></i>
+                <strong>Site:</strong>
+                {{ request.user.profile.site.name }}</p>
+            <p class="mb-0"><i class="fas fa-briefcase text-success me-2"></i>
+                <strong>Position:</strong>
+                {{ request.user.profile.position }}</p>
+        </div>
+        {% else %}
+        <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
+            ⚠️ Your profile does not have a site assigned.
+        </div>
+        {% endif %}
         {% endif %}
         {% endwith %}
     </div>
@@ -92,17 +111,24 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                         <h5 class="card-title">Screened</h5>
                         <p class="card-text fs-4">{{ screened_count }}</p>
                     </div>
-                    <div class="mt-3 d-flex gap-2">
-                        {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
-                        <a href="{% url 'nanopore:screening-create' %}"
-                            class="btn btn-light btn-sm d-flex align-items-center gap-1">
-                            <i class="bi bi-plus-lg"></i> Add Screening
-                        </a>
-                        {% endif %}
-                        <a href="{% url 'nanopore:screened-list' %}?list_type=screened"
-                            class="btn btn-light btn-sm d-flex align-items-center gap-1">
-                            <i class="bi bi-eye"></i> View Screened
-                        </a>
+
+                    <div class="mt-3">
+                        <div class="row g-2">
+                            {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            <div class="col-md-6 col-12">
+                                <a href="{% url 'nanopore:screened-list' %}?list_type=screened"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-plus-circle"></i> Add Screened
+                                </a>
+                            </div>
+                            {% endif %}
+                            <div class="col-md-6 col-12">
+                                <a href="{% url 'nanopore:screened-list' %}?list_type=screened"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-eye"></i> View Screened
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -116,11 +142,24 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                         <h5 class="card-title">Eligible</h5>
                         <p class="card-text fs-4">{{ eligible_count }}</p>
                     </div>
+
                     <div class="mt-3">
-                        <a href="{% url 'nanopore:eligible-list' %}?list_type=eligible"
-                            class="btn btn-light btn-sm d-flex align-items-center gap-1">
-                            <i class="bi bi-eye"></i> View Eligible
-                        </a>
+                        <div class="row g-2">
+                            <!-- {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            <div class="col-md-6 col-12">
+                                <a href="{% url 'nanopore:eligible-list' %}?list_type=eligible"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-plus-circle"></i> Add Eligible
+                                </a>
+                            </div>
+                            {% endif %} -->
+                            <div class="col-md-12 col-12">
+                                <a href="{% url 'nanopore:eligible-list' %}?list_type=eligible"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-eye"></i> View Eligible
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,11 +175,24 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                         <h5 class="card-title">Enrolled</h5>
                         <p class="card-text fs-4">{{ enrolled_count }}</p>
                     </div>
+
                     <div class="mt-3">
-                        <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
-                            class="btn btn-light btn-sm d-flex align-items-center gap-1">
-                            <i class="bi bi-eye"></i> View Enrolled
-                        </a>
+                        <div class="row g-2">
+                            <!-- {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            <div class="col-md-6 col-12">
+                                <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-plus-circle"></i> Add Enrolled
+                                </a>
+                            </div>
+                            {% endif %} -->
+                            <div class="col-md-12 col-12">
+                                <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-eye"></i> View Enrolled
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -154,16 +206,30 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                         <h5 class="card-title">Completed</h5>
                         <p class="card-text fs-4">{{ completed_count }}</p>
                     </div>
+
                     <div class="mt-3">
-                        <a href="{% url 'nanopore:completed-list' %}?list_type=completed"
-                            class="btn btn-light btn-sm d-flex align-items-center gap-1">
-                            <i class="bi bi-eye"></i> View Completed
-                        </a>
+                        <div class="row g-2">
+                            <!-- {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            <div class="col-md-6 col-12">
+                                <a href="{% url 'nanopore:completed-list' %}?list_type=completed"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-plus-circle"></i> Add Completed
+                                </a>
+                            </div>
+                            {% endif %} -->
+                            <div class="col-md-12 col-12">
+                                <a href="{% url 'nanopore:completed-list' %}?list_type=completed"
+                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                                    <i class="bi bi-eye"></i> View Completed
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
 
     <style>
         .card-hover:hover {
@@ -238,8 +304,8 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 </div>
             </div>
         </div>
-</div>
-            <div class="row g-4 mb-4">
+    </div>
+    <div class="row g-4 mb-4">
         <!-- 7-Day Trend Line Chart -->
         <div class="col-md-12">
             <div class="card shadow-sm">
@@ -265,8 +331,8 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 </div>
             </div>
         </div>
-</div>
-            <div class="row g-4 mb-4">
+    </div>
+    <div class="row g-4 mb-4">
         <!-- This Month Trend Line Chart -->
         <div class="col-md-12">
             <div class="card shadow-sm">
@@ -321,8 +387,8 @@ Dashboard — {{ user.get_full_name|default:user.username }}
 
 <script>
     // --- 7-DAY REPORTS ---
-    const last7DaysLabels = {{ last7days_labels_json|safe }};
-    const last7DaysValues = {{ last7days_values_json|safe }};
+    const last7DaysLabels = {{ last7days_labels_json| safe }};
+    const last7DaysValues = {{ last7days_values_json| safe }};
 
     // 7-Day Bar Chart
     new Chart(document.getElementById('sevenDaysBarChart').getContext('2d'), {
@@ -371,76 +437,76 @@ Dashboard — {{ user.get_full_name|default:user.username }}
 </script>
 
 <script>
-const monthLabels = JSON.parse('{{ this_month_labels_json|safe }}');
-const monthValues = JSON.parse('{{ this_month_values_json|safe }}');
+    const monthLabels = JSON.parse('{{ this_month_labels_json|safe }}');
+    const monthValues = JSON.parse('{{ this_month_values_json|safe }}');
 
-// Generate consistent unique colors per zone
-function generateColors(labels) {
-    const colors = {};
-    labels.forEach((label, index) => {
-        // generate color from label hash
-        const hash = Array.from(label).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const hue = hash % 360;
-        colors[label] = `hsl(${hue}, 65%, 55%)`;
+    // Generate consistent unique colors per zone
+    function generateColors(labels) {
+        const colors = {};
+        labels.forEach((label, index) => {
+            // generate color from label hash
+            const hash = Array.from(label).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const hue = hash % 360;
+            colors[label] = `hsl(${hue}, 65%, 55%)`;
+        });
+        return colors;
+    }
+
+    const zoneColors = generateColors(monthLabels);
+    const backgroundColors = monthLabels.map(l => zoneColors[l]);
+    const borderColors = monthLabels.map(l => zoneColors[l]);
+
+    // --- Bar Chart ---
+    new Chart(document.getElementById('monthBarChart'), {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Screenings This Month',
+                data: monthValues,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
     });
-    return colors;
-}
 
-const zoneColors = generateColors(monthLabels);
-const backgroundColors = monthLabels.map(l => zoneColors[l]);
-const borderColors = monthLabels.map(l => zoneColors[l]);
-
-// --- Bar Chart ---
-new Chart(document.getElementById('monthBarChart'), {
-    type: 'bar',
-    data: {
-        labels: monthLabels,
-        datasets: [{
-            label: 'Screenings This Month',
-            data: monthValues,
-            backgroundColor: backgroundColors,
-            borderColor: borderColors,
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
+    // --- Line Chart ---
+    new Chart(document.getElementById('monthLineChart'), {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Screenings This Month',
+                data: monthValues,
+                borderColor: '#4e79a7',
+                backgroundColor: '#4e79a7',
+                fill: false,
+                tension: 0.3,
+                pointBackgroundColor: backgroundColors,
+                pointBorderColor: borderColors,
+                borderWidth: 2
+            }]
         },
-        scales: {
-            y: { beginAtZero: true }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
         }
-    }
-});
-
-// --- Line Chart ---
-new Chart(document.getElementById('monthLineChart'), {
-    type: 'line',
-    data: {
-        labels: monthLabels,
-        datasets: [{
-            label: 'Screenings This Month',
-            data: monthValues,
-            borderColor: '#4e79a7',
-            backgroundColor: '#4e79a7',
-            fill: false,
-            tension: 0.3,
-            pointBackgroundColor: backgroundColors,
-            pointBorderColor: borderColors,
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            y: { beginAtZero: true }
-        }
-    }
-});
+    });
 </script>
 
 <script>
