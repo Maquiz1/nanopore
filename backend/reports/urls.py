@@ -28,7 +28,10 @@ from reports.views import (
     
     DataQualityReportView,
     DataQualityReportPDFView,
-)
+    
+    NotificationsView,
+    AlertsView,
+    )
 
 app_name = "reports"
 
@@ -75,6 +78,9 @@ urlpatterns = [
     path('data-quality/', DataQualityReportView.as_view(), name='data_quality_report'),
     
     path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
+    
+    path('data-quality/pdf/', NotificationsView.as_view(), name='notifications-list'),
+    path('data-quality/pdf/', AlertsView.as_view(), name='alerts-list'),
 
 
 ]
