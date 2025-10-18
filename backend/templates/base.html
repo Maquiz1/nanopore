@@ -55,31 +55,43 @@
 
     {% block extra_scripts %}{% endblock %}
 
+    <!-- ✅ Auto Logout After 10 Minutes of Inactivity -->
     <script>
-        (function () {
-            const timeout = {{ AUTO_LOGOUT_TIMEOUT|default: 600
-        }} * 1000; // milliseconds
-        let logoutTimer;
+      (function() {
+        let warningTime = 9 * 60 * 1000; // 9 minutes
+        let logoutTime = 10 * 60 * 1000; // 10 minutes
+        let warningShown = false;
+        let timer;
 
-        function startTimer() {
-            clearTimeout(logoutTimer);
-            logoutTimer = setTimeout(() => {
-                alert("Session expired due to inactivity. You will be logged out.");
-                window.location.href = "{% url 'users:login' %}";
-            }, timeout);
+        function resetTimer() {
+          clearTimeout(timer);
+          warningShown = false;
+          timer = setTimeout(showWarning, warningTime);
         }
 
-        // Start timer on load
-        startTimer();
+        function showWarning() {
+          if (!warningShown) {
+            warningShown = true;
+            const warning = confirm("⚠️ You will be logged out in 1 minute due to inactivity. Click OK to stay logged in.");
+            if (warning) {
+              resetTimer();
+            } else {
+              setTimeout(logoutUser, 60 * 1000);
+            }
+          }
+        }
 
-        // Reset timer on user activity
-        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, startTimer, false);
-        });
-    }) ();
+        function logoutUser() {
+          window.location.href = "{% url 'users:logout' %}";
+        }
+
+        ['mousemove', 'keydown', 'click', 'scroll'].forEach(evt =>
+          document.addEventListener(evt, resetTimer)
+        );
+
+        resetTimer();
+      })();
     </script>
 
-
 </body>
-
 </html>
