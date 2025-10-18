@@ -3,9 +3,66 @@
 {% block content %}
 <h2 class="mb-4">Staff Members</h2>
 
-<p><strong>Total Staff:</strong> {{ staff_list|length }}</p>
+<p><strong>Total Staff:</strong> {{ page_obj.paginator.count }}</p>
 
 <a href="{% url 'users:staff_add' %}" class="btn btn-success mb-3">+ Add New Staff</a>
+
+<!-- FILTER FORM -->
+<form method="get" class="row g-2 mb-3" id="filterForm">
+  <div class="col-md-2">
+    <input type="text" name="username" value="{{ request.GET.username }}" class="form-control" placeholder="Username">
+  </div>
+  <div class="col-md-2">
+    <input type="text" name="full_name" value="{{ request.GET.full_name }}" class="form-control" placeholder="Full Name">
+  </div>
+  <div class="col-md-2">
+    <input type="text" name="email" value="{{ request.GET.email }}" class="form-control" placeholder="Email">
+  </div>
+  <div class="col-md-1">
+    <select name="prefix" class="form-select">
+      <option value="">Prefix</option>
+      {% for p in prefixes %}
+        <option value="{{ p.id }}" {% if request.GET.prefix == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-1">
+    <select name="position" class="form-select">
+      <option value="">Position</option>
+      {% for pos in positions %}
+        <option value="{{ pos.id }}" {% if request.GET.position == pos.id|stringformat:"s" %}selected{% endif %}>{{ pos.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="site" class="form-select">
+      <option value="">Site</option>
+      {% for s in sites %}
+        <option value="{{ s.id }}" {% if request.GET.site == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-1">
+    <select name="zone" class="form-select">
+      <option value="">Zone</option>
+      {% for z in zones %}
+        <option value="{{ z.id }}" {% if request.GET.zone == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-1">
+    <select name="group" class="form-select">
+      <option value="">Group</option>
+      {% for g in groups %}
+        <option value="{{ g.id }}" {% if request.GET.group == g.id|stringformat:"s" %}selected{% endif %}>{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-1 d-flex gap-1">
+    <button type="submit" class="btn btn-primary w-100">Filter</button>
+    <a href="{% url 'users:staff_list' %}" class="btn btn-secondary w-100">Reset</a>
+  </div>
+</form>
 
 <table class="table table-bordered table-striped">
   <thead class="table-dark">
@@ -24,9 +81,9 @@
     </tr>
   </thead>
   <tbody>
-    {% for user in staff_list %}
+    {% for user in page_obj %}
     <tr>
-      <td>{{ forloop.counter }}</td>
+      <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
       <td>{{ user.username }}</td>
       <td>{{ user.get_full_name }}</td>
       <td>{{ user.email }}</td>
@@ -53,5 +110,59 @@
   </tbody>
 </table>
 
+<!-- PAGINATION -->
+<!-- PAGINATION -->
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page=1">« First</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Previous</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">« First</span></li>
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+          </li>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Next</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">Last »</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+      <li class="page-item disabled"><span class="page-link">Last »</span></li>
+    {% endif %}
+  </ul>
+</nav>
+
+
 <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+
+<!-- Auto-submit script -->
+<script>
+  const filterForm = document.getElementById('filterForm');
+  filterForm.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', () => {
+      filterForm.submit();
+    });
+  });
+</script>
+
 {% endblock %}
