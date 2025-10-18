@@ -12,9 +12,10 @@ from users.views import (
     ResendActivationEmailView,
     StaffDetailView,
     StaffListView,
-    StaffCreateUpdateView
+    StaffCreateUpdateView,
     # VerifyPhoneView,
     # SendPhoneVerificationView,
+    LogoutView,
 )
 
 from users.forms import CustomPasswordResetForm
@@ -41,8 +42,8 @@ urlpatterns = [
 
     # # Login and Logout
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    # path('logout/', LogoutView.as_view(), name='logout'),
+    # path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     # # path('logout/', auth_views.LogoutView.as_view(next_page='users:login'), name='logout'),# Redirect to login after logout
 
     # Password Reset
