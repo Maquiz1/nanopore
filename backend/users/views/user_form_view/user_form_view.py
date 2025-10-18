@@ -35,6 +35,7 @@ class StaffCreateUpdateView(FormView):
                 "email": self.user_instance.email,
                 "first_name": self.user_instance.first_name,
                 "last_name": self.user_instance.last_name,
+                "is_active": self.user_instance.is_active,
                 "is_staff": self.user_instance.is_staff,
             })
             if hasattr(self.user_instance, "profile"):
@@ -62,6 +63,7 @@ class StaffCreateUpdateView(FormView):
         site = data.get("site")
         phone_number = data.get("phone_number")
         description = data.get("description")
+        is_active = data.get("is_active", True)
         is_staff = data.get("is_staff", True)
 
         if self.user_instance:
@@ -72,6 +74,7 @@ class StaffCreateUpdateView(FormView):
             user.first_name = first_name
             user.last_name = last_name
             user.is_staff = is_staff
+            user.is_active = is_active
             if password:
                 user.set_password(password)
             user.save()
@@ -102,7 +105,8 @@ class StaffCreateUpdateView(FormView):
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
-                is_staff=is_staff
+                is_staff=is_staff,
+                is_active=is_active
             )
 
             Profile.objects.create(

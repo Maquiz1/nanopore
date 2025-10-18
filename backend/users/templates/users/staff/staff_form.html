@@ -98,11 +98,20 @@
         {{ form.description }}
       </div>
 
-      {# Is Staff checkbox #}
-      <div class="mb-3 form-check">
-        {{ form.is_staff }}
-        <label class="form-check-label">Is Staff</label>
+      <div class="row mb-4">
+            {# Is Active checkbox #}
+            <div class="mb-3 form-check">
+              {{ form.is_active }}
+              <label class="form-check-label">Is Active</label>
+            </div>
+
+            {# Is Staff checkbox #}
+            <div class="mb-3 form-check">
+              {{ form.is_staff }}
+              <label class="form-check-label">Is Staff</label>
+            </div>
       </div>
+
 
       {# Submit button #}
       <button type="submit" class="btn btn-success">

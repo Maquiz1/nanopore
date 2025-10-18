@@ -17,6 +17,7 @@
       <th>Site</th>
       <th>Zone</th>
       <th>Group</th>
+      <th>Status</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -33,11 +34,19 @@
       <td>{% if user.profile and user.profile.site and user.profile.site.district and user.profile.site.district.region and user.profile.site.district.region.zone %}{{ user.profile.site.district.region.zone.name }}{% else %}-{% endif %}</td>
       <td>{% if user.groups.all %}{{ user.groups.all|join:", " }}{% else %}-{% endif %}</td>
       <td>
-        <a href="{% url 'users:staff_detail' user.id %}" class="btn btn-sm btn-primary">View Details</a>
+        {% if user.is_active %}
+          <span class="badge bg-success">Active</span>
+        {% else %}
+          <span class="badge bg-secondary">Inactive</span>
+        {% endif %}
+      </td>
+      <td>
+        <a href="{% url 'users:staff_detail' user.id %}" class="btn btn-sm btn-primary">View</a><br><hr>
+        <a href="{% url 'users:staff_update' user.id %}" class="btn btn-sm btn-warning">Update</a>
       </td>
     </tr>
     {% empty %}
-    <tr><td colspan="10" class="text-center">No staff available.</td></tr>
+    <tr><td colspan="11" class="text-center">No staff available.</td></tr>
     {% endfor %}
   </tbody>
 </table>

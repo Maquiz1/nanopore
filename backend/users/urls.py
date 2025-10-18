@@ -29,7 +29,7 @@ urlpatterns = [
     path('staff/<int:pk>/', StaffDetailView.as_view(), name='staff_detail'),  # ✅ detail view
     path("staff/", StaffListView.as_view(), name="staff_list"),
     path("staff/add/", StaffCreateUpdateView.as_view(), name="staff_add"),
-    path("staff/<int:pk>/edit/", StaffCreateUpdateView.as_view(), name="staff_edit"),
+    path("staff/<int:pk>/edit/", StaffCreateUpdateView.as_view(), name="staff_update"),
     path("staff/<int:pk>/", StaffDetailView.as_view(), name="staff_detail"),
     
     # # Registration and Activation
