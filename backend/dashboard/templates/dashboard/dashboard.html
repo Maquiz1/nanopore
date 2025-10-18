@@ -43,7 +43,10 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <i class="fas fa-hand-wave text-warning me-2"></i>
             Welcome,
             <span class="ms-1">
-                {{ request.user.profile.prefix|default:"" }}. {{ user.get_full_name|default:user.username }}!
+                {% if request.user.profile.prefix %}
+                {{ request.user.profile.prefix|default:"" }}.
+                {% endif %}
+                {{ user.get_full_name|default:user.username }}!
             </span>
         </h2>
 
