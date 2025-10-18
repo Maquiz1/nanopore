@@ -15,7 +15,7 @@
         {% endif %}
 
         <!-- Other forms (disabled placeholders) -->
-        <div>
+        <!-- <div>
             {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
                 <button class="btn btn-secondary" disabled>➕ New Enrollment</button>
                 <button class="btn btn-secondary" disabled>➕ New Clinic Lab</button>
@@ -23,7 +23,7 @@
             {% elif request.user.groups.all.0.name == "LABORATORY_TECHNICIAN" %}
                 <button class="btn btn-secondary" disabled>➕ New Zonal Lab</button>
             {% endif %}
-        </div>
+        </div> -->
 
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
             ⬅ Back to Dashboard
