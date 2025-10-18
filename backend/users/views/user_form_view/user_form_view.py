@@ -37,6 +37,7 @@ class StaffCreateUpdateView(FormView):
                 "last_name": self.user_instance.last_name,
                 "is_active": self.user_instance.is_active,
                 "is_staff": self.user_instance.is_staff,
+                "groups": self.user_instance.groups.all(),  # Include current groups
             })
             if hasattr(self.user_instance, "profile"):
                 profile = self.user_instance.profile
@@ -65,6 +66,7 @@ class StaffCreateUpdateView(FormView):
         description = data.get("description")
         is_active = data.get("is_active", True)
         is_staff = data.get("is_staff", True)
+        groups = data.get("groups")  # This should be a queryset from the form
 
         if self.user_instance:
             # Update existing user
@@ -87,6 +89,11 @@ class StaffCreateUpdateView(FormView):
             profile.site = site
             profile.phone_number = phone_number or None
             profile.save()
+            
+            # Update groups
+            if groups is not None:
+                user.groups.set(groups)
+                
             messages.success(self.request, f"Staff member '{user.username}' updated successfully!")
 
         else:
@@ -118,6 +125,11 @@ class StaffCreateUpdateView(FormView):
                 site=site,
                 phone_number=phone_number or None,
             )
+            
+            # Assign groups
+            if groups:
+                user.groups.set(groups)
+                
             messages.success(self.request, f"Staff member '{username}' created successfully!")
 
         return super().form_valid(form)

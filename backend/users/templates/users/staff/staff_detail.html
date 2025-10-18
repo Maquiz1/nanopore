@@ -16,6 +16,7 @@
     <p><strong>Middle Name:</strong> {% if staff_member.profile %}{{ staff_member.profile.middle_name|default:"-" }}{% else %}-{% endif %}</p>
     <p><strong>Description:</strong> {% if staff_member.profile %}{{ staff_member.profile.description|default:"-" }}{% else %}-{% endif %}</p>
     <p><strong>Phone Number:</strong> {% if staff_member.profile %}{{ staff_member.profile.phone_number|default:"-" }}{% else %}-{% endif %}</p>
+    <p><strong>Is active:</strong> {{ staff_member.is_active|yesno:"Yes,No" }}</p>
     <p><strong>Is Staff:</strong> {{ staff_member.is_staff|yesno:"Yes,No" }}</p>
     <p><strong>Date Joined:</strong> {{ staff_member.date_joined|date:"F j, Y" }}</p>
     <p><strong>Last Login:</strong> {% if staff_member.last_login %}{{ staff_member.last_login|date:"F j, Y, g:i a" }}{% else %}-{% endif %}</p>

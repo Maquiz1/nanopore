@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from phonenumber_field.formfields import PhoneNumberField
 from users.models import Profile, Prefix, Position, Site
+from django.contrib.auth.models import Group
 
 User = get_user_model()
 
@@ -171,6 +172,8 @@ class StaffForm(forms.Form):
         initial=False,
         widget=forms.CheckboxInput()
     )
+    
+    
 
     # Profile fields
     prefix = forms.ModelChoiceField(
@@ -200,6 +203,12 @@ class StaffForm(forms.Form):
         required=False,
         label="Description",
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 3})
+    )
+    
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple
     )
 
     def clean_username(self):
