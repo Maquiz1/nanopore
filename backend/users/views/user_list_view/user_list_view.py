@@ -11,7 +11,7 @@ class StaffListView(ListView):
     model = User
     template_name = 'users/staff/staff_list.html'
     context_object_name = 'staff_list'
-    paginate_by = 2  # Adjust per page
+    paginate_by = 15  # Adjust per page
 
     def get_queryset(self):
         qs = User.objects.filter(is_active=True).select_related(
