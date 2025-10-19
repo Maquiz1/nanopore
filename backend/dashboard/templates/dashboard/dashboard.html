@@ -49,7 +49,6 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 {{ user.get_full_name|default:user.username }}!
             </span>
         </h2>
-
         {% with user_group=request.user.groups.first.name|upper %}
         {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
         <div
