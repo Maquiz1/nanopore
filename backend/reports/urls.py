@@ -31,6 +31,8 @@ from reports.views import (
     
     NotificationsView,
     AlertsView,
+    
+    DreamFundQueriesPDFView
     )
 
 app_name = "reports"
@@ -78,6 +80,7 @@ urlpatterns = [
     path('data-quality/', DataQualityReportView.as_view(), name='data_quality_report'),
     
     path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
+    path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),
 
     path('notifications/', DataQualityReportView.as_view(), name='notifications-list'),
     path('alerts/', DataQualityReportPDFView.as_view(), name='alerts-list'),

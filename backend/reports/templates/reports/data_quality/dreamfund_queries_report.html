@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DREAM FUND - NANOPORE TB SEQUENCING QUERIES REPORT (TANZANIA)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 20px;
+            color: #333;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 18px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .report-info {
+            text-align: center;
+            font-size: 10px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+
+        table, th, td {
+            border: 1px solid #555;
+        }
+
+        th, td {
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        h4 {
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 3px;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            font-size: 10px;
+            text-align: center;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>DREAM FUND - NANOPORE TB SEQUENCING QUERIES REPORT</h1>
+</header>
+
+<div class="report-info">
+    <p>Downloaded by: {{ user_prefix }} {{ downloaded_by }} {% if user_position %} ({{ user_position }}){% endif %}</p>
+    <p>Date: {{ download_date|date:"d M Y H:i" }}</p>
+    <p>Total Screenings: {{ total_screenings }}</p>
+    <p>Total Data Quality Issues: {{ report_total }}</p>
+</div>
+
+<div>
+    {% if not is_zonal_lab %}
+        {% if not_eligible %}
+            <h4>1️⃣ Not Eligible ({{ not_eligible|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                <tbody>
+                    {% for s in not_eligible %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if eligible_not_enrolled %}
+            <h4>2️⃣ Eligible but Not Enrolled ({{ eligible_not_enrolled|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Reasons</th><th>Other Reasons</th></tr></thead>
+                <tbody>
+                    {% for s in eligible_not_enrolled %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                            <td>{{ s.reasons }}</td>
+                            <td>{{ s.reasons_other }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if enrolled_missing_clinic_laboratory_data %}
+            <h4>3️⃣ Enrolled Missing Clinic Laboratory Data ({{ enrolled_missing_clinic_laboratory_data|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                <tbody>
+                    {% for s in enrolled_missing_clinic_laboratory_data %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if enrolled_missing_diagnosis_data %}
+            <h4>4️⃣ Enrolled Missing Diagnosis Data ({{ enrolled_missing_diagnosis_data|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                <tbody>
+                    {% for s in enrolled_missing_diagnosis_data %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if diagnosis_regimen_changed_missing_regimen %}
+            <h4>5️⃣ Diagnosis Regimen Changed but Missing Regimen ({{ diagnosis_regimen_changed_missing_regimen|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Regimen Changed</th></tr></thead>
+                <tbody>
+                    {% for s in diagnosis_regimen_changed_missing_regimen %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                            <td>{{ s.regimen_changed }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if pending_outcomes %}
+            <h4>7️⃣ Pending TB Outcomes ({{ pending_outcomes|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Treatment Date</th><th>TB Outcome</th><th>Months Since Treatment</th></tr></thead>
+                <tbody>
+                    {% for s in pending_outcomes %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                            <td>{{ s.tb_treatment_date }}</td>
+                            <td>{{ s.tb_outcome2 }}</td>
+                            <td>{{ s.months_since_treatment }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if pending_outcomes_date %}
+            <h4>8️⃣ Pending TB Outcome Dates ({{ pending_outcomes_date|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Treatment Date</th><th>TB Outcome Date</th><th>Months Since Treatment</th></tr></thead>
+                <tbody>
+                    {% for s in pending_outcomes_date %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                            <td>{{ s.tb_treatment_date }}</td>
+                            <td>{{ s.tb_outcome2_date }}</td>
+                            <td>{{ s.months_since_treatment }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+    {% else %}
+        {% if enrolled_substudy2_missing_zonal_lab %}
+            <h4>6️⃣ Substudy2 Missing Zonal Lab ({{ enrolled_substudy2_missing_zonal_lab|length }})</h4>
+            <table>
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Xpert MTB</th></tr></thead>
+                <tbody>
+                    {% for s in enrolled_substudy2_missing_zonal_lab %}
+                        <tr>
+                            <td>{{ s.pid }}</td>
+                            <td>{{ s.zone_name }}</td>
+                            <td>{{ s.site_name }}</td>
+                            <td>{{ s.xpert_mtb }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endif %}
+</div>
+
+<footer>
+    <p>Generated by DREAM FUND Nanopore TB Sequencing System</p>
+</footer>
+
+</body>
+</html>
