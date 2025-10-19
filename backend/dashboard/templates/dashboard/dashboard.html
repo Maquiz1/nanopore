@@ -77,7 +77,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <!-- Blinking Badge -->
             <div>
                 <span class="badge bg-danger blink">
-                    Pending Queries: {{ report_total }}
+                    Current Pending Queries: {{ report_total }}
                 </span>
             </div>
             {% endif %}
@@ -101,7 +101,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <!-- Blinking Badge -->
         <div>
             <span class="badge bg-danger blink">
-                Pending Queries: {{ report_total }}
+                Current Pending Queries: {{ report_total }}
             </span>
         </div>
         {% endif %}
