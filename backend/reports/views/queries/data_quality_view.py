@@ -134,6 +134,15 @@ class DataQualityReportView(View):
             "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
             "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date]
         }
+        
+        # Count total records across all report categories (excluding total_screenings and not_eligible)
+        report_total = sum(
+            len(v) for k, v in context.items()
+            if isinstance(v, list) and k not in ['not_eligible']
+        )
+
+        context["report_total"] = report_total
+
 
         # Add months since treatment for pending outcomes
         # for s in context['pending_outcomes']:

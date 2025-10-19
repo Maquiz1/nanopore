@@ -114,16 +114,24 @@
 
     <!-- Queries -->
     <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle">
-            <i class="fas fa-search"></i><span> Queries</span>
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center">
+            <i class="fas fa-search me-2"></i>
+            <span>Queries</span>
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
-        <div class="submenu">
-            <a href="{% url 'reports:data_quality_report' %}">
-                <i class="fas fa-file-csv"></i><span> View</span>
+        <div class="submenu ps-4 mt-1">
+            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fas fa-file-csv me-2"></i>
+                    <span>View</span>
+                </div>
+                {% if report_total %}
+                <span class="badge bg-danger rounded-pill">{{ report_total }}</span>
+                {% endif %}
             </a>
         </div>
     </div>
+
 
     {% if user.is_superuser %}
     <!-- Uploads -->
