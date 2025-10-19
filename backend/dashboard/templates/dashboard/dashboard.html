@@ -95,16 +95,16 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <p class="mb-0"><i class="fas fa-briefcase text-success me-2"></i>
                 <strong>Position:</strong>
                 {{ request.user.profile.position }}</p>
-        </div>
 
-        {% if report_total %}
-        <!-- Blinking Badge -->
-        <div>
-            <span class="badge bg-danger blink">
-                Current Pending Queries: {{ report_total }}
-            </span>
         </div>
-        {% endif %}
+            {% if report_total %}
+            <!-- Blinking Badge -->
+            <div>
+                <span class="badge bg-danger blink">
+                    Current Pending Queries: {{ report_total }}
+                </span>
+            </div>
+            {% endif %}
         {% else %}
         <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
             ⚠️ Your profile does not have a site assigned.
