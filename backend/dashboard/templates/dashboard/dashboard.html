@@ -111,7 +111,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <div class="card text-white bg-primary h-100 card-hover">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="card-title">Screening</h5>
+                        <h5 class="card-title">Screenings</h5>
                         <p class="card-text fs-4">{{ screened_count }}</p>
                     </div>
 
@@ -128,7 +128,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:screened-list' %}?list_type=screened"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-eye"></i> View all Screening
+                                    <i class="bi bi-eye"></i> View all Screenings
                                 </a>
                             </div>
                         </div>
@@ -206,7 +206,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <div class="card text-white bg-info h-100 card-hover">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="card-title">Completed</h5>
+                        <h5 class="card-title">Substudy 2 Outcomes</h5>
                         <p class="card-text fs-4">{{ completed_count }}</p>
                     </div>
 
@@ -223,7 +223,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:completed-list' %}?list_type=completed"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-eye"></i> View all Completed
+                                    <i class="bi bi-eye"></i> View all Completed Substudy 2 Outcomes
                                 </a>
                             </div>
                         </div>
