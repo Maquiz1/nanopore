@@ -170,5 +170,9 @@ class DataQualityReportView(View):
             "zones": {z.id: z.name for z in role_context["zones"]},
             "sites": {s.id: s.name for s in role_context["sites"]},
         })
+        
+        context.update({
+            "report_date": timezone.now(),
+        })
 
         return render(request, self.template_name, context)
