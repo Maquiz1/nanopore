@@ -10,44 +10,36 @@
             margin: 20px;
             color: #333;
         }
-
         header {
             text-align: center;
             margin-bottom: 20px;
         }
-
         header h1 {
             font-size: 18px;
             margin: 0;
             padding: 0;
         }
-
         .report-info {
             text-align: center;
             font-size: 10px;
             margin-bottom: 20px;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
             font-size: 11px;
         }
-
         table, th, td {
             border: 1px solid #555;
         }
-
         th, td {
             padding: 5px;
             text-align: left;
         }
-
         th {
             background-color: #f0f0f0;
         }
-
         h4 {
             margin-top: 25px;
             margin-bottom: 10px;
@@ -55,7 +47,6 @@
             border-bottom: 1px solid #ccc;
             padding-bottom: 3px;
         }
-
         footer {
             position: fixed;
             bottom: 0;
@@ -70,11 +61,13 @@
 <body>
 
 <header>
-    <h1>DREAM FUND - NANOPORE TB SEQUENCING QUERIES REPORT</h1>
+    <h1>DREAM FUND - NANOPORE TB SEQUENCING QUERIES REPORT (TANZANIA)</h1>
 </header>
 
 <div class="report-info">
-    <p>Downloaded by: {{ user_prefix }} {{ downloaded_by }} {% if user_position %} ({{ user_position }}){% endif %}</p>
+    <p>Downloaded by: {% if user_prefix %}{{ user_prefix }}. {% endif %}{{ downloaded_by }}</p>
+    <p>Position: {{ user_position|default:"N/A" }}</p>
+    <p>Zone: {{ user_zone|default:"N/A" }} | Site: {{ user_site|default:"N/A" }}</p>
     <p>Date: {{ download_date|date:"d M Y H:i" }}</p>
     <p>Total Screenings: {{ total_screenings }}</p>
     <p>Total Data Quality Issues: {{ report_total }}</p>
