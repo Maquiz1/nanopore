@@ -73,12 +73,14 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 </p>
             </div>
 
+            {% if report_total %}
             <!-- Blinking Badge -->
             <div>
                 <span class="badge bg-danger blink">
                     Pending Queries: {{ report_total }}
                 </span>
             </div>
+            {% endif %}
         </div>
         {% else %}
         {% if request.user.profile.site %}
@@ -95,12 +97,14 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 {{ request.user.profile.position }}</p>
         </div>
 
+        {% if report_total %}
         <!-- Blinking Badge -->
         <div>
             <span class="badge bg-danger blink">
                 Pending Queries: {{ report_total }}
             </span>
         </div>
+        {% endif %}
         {% else %}
         <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
             ⚠️ Your profile does not have a site assigned.
