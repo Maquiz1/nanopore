@@ -111,7 +111,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <div class="card text-white bg-primary h-100 card-hover">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="card-title">Screened</h5>
+                        <h5 class="card-title">Screening</h5>
                         <p class="card-text fs-4">{{ screened_count }}</p>
                     </div>
 
@@ -121,14 +121,14 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:screened-list' %}?list_type=screened"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-plus-circle"></i> Add Screened
+                                    <i class="bi bi-plus-circle"></i> Add New Screening
                                 </a>
                             </div>
                             {% endif %}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:screened-list' %}?list_type=screened"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-eye"></i> View Screened
+                                    <i class="bi bi-eye"></i> View all Screening
                                 </a>
                             </div>
                         </div>
@@ -142,7 +142,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <div class="card text-white bg-success h-100 card-hover">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="card-title">Eligible</h5>
+                        <h5 class="card-title">Eligibility</h5>
                         <p class="card-text fs-4">{{ eligible_count }}</p>
                     </div>
 
@@ -159,7 +159,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:eligible-list' %}?list_type=eligible"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-eye"></i> View Eligible
+                                    <i class="bi bi-eye"></i> View all Eligible
                                 </a>
                             </div>
                         </div>
@@ -175,7 +175,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             <div class="card text-white bg-warning h-100 card-hover">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="card-title">Enrolled</h5>
+                        <h5 class="card-title">Enrollments</h5>
                         <p class="card-text fs-4">{{ enrolled_count }}</p>
                     </div>
 
@@ -192,7 +192,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-eye"></i> View Enrolled
+                                    <i class="bi bi-eye"></i> View all Enrollments
                                 </a>
                             </div>
                         </div>
@@ -223,7 +223,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:completed-list' %}?list_type=completed"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-eye"></i> View Completed
+                                    <i class="bi bi-eye"></i> View all Completed
                                 </a>
                             </div>
                         </div>
