@@ -136,9 +136,15 @@ class DataQualityReportView(View):
         }
 
         # Add months since treatment for pending outcomes
-        for s in context['pending_outcomes']:
-            if s['tb_treatment_date']:
-                delta = timezone.now().date() - s['tb_treatment_date']
-                s['months_since_treatment'] = delta.days // 30
+        # for s in context['pending_outcomes']:
+        #     if s['tb_treatment_date']:
+        #         delta = timezone.now().date() - s['tb_treatment_date']
+        #         s['months_since_treatment'] = delta.days // 30
+                
+        for group in ['pending_outcomes', 'pending_outcomes_date']:
+            for s in context[group]:
+                if s['tb_treatment_date']:
+                    delta = timezone.now().date() - s['tb_treatment_date']
+                    s['months_since_treatment'] = delta.days // 30
 
         return render(request, self.template_name, context)
