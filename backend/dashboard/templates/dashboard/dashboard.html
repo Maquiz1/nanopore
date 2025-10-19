@@ -107,7 +107,8 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         </div>
         {% else %}
         <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
-            ⚠️ Your profile does not have a site assigned.
+            ⚠️ Your profile does not have a site assigned. please Login again <br><hr> 
+            <a href="{% url 'users:login' %}">Click here to login</a>
         </div>
         {% endif %}
         {% endif %}
