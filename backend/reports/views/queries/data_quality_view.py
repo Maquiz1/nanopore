@@ -33,10 +33,9 @@ class DataQualityReportView(View):
         # --- Role-Based Filtering ---
         screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
 
-        # Optional: filter manually via GET
+        # Optional filters via GET
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
-
         if zone_id:
             screenings = screenings.filter(site__district__region__zone_id=zone_id)
         if site_id:
@@ -74,6 +73,8 @@ class DataQualityReportView(View):
                 delta = timezone.now().date() - tb_treatment_date
                 months_since_treatment = delta.days // 30
 
+            xpert_mtb = getattr(getattr(s, 'clinic_laboratory', None), 'xpert_mtb', '')
+
             return {
                 'pid': getattr(s, 'pid', ''),
                 'zone_name': zone_name,
@@ -87,6 +88,7 @@ class DataQualityReportView(View):
                 'tb_outcome2': tb_outcome2,
                 'months_since_treatment': months_since_treatment,
                 'regimen_changed': regimen_changed,
+                'xpert_mtb': xpert_mtb,
             }
 
         # --- Filters ---
@@ -96,59 +98,77 @@ class DataQualityReportView(View):
             diagnosis__tb_treatment_date__isnull=False,
             diagnosis__tb_treatment_date__lte=six_months_ago
         )
+        pending_tb_outcomes = treatment_started_6m_ago.filter(Q(diagnosis__tb_outcome2__isnull=True))
+        pending_tb_outcomes_date = treatment_started_6m_ago.filter(Q(diagnosis__tb_outcome2_date__isnull=True))
 
-        pending_tb_outcomes = treatment_started_6m_ago.filter(
-            Q(diagnosis__tb_outcome2__isnull=True)
-        )
-
-        pending_tb_outcomes_date = treatment_started_6m_ago.filter(
-            Q(diagnosis__tb_outcome2_date__isnull=True)
-        )
+        # --- Role Context ---
+        role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin = role_context.get("is_admin", False)
+        is_reviewer = role_context.get("is_reviewer", False)
 
         # --- Context Data ---
-        context = {
-            "total_screenings": total_screenings,
-            "not_eligible": [serialize_screening(s) for s in screenings.filter(eligible=False)],
-            "eligible_not_enrolled": [serialize_screening(s) for s in screenings.filter(eligible=True, enrollment__isnull=True)],
-            "enrolled_missing_clinic_laboratory_data": [serialize_screening(s) for s in screenings.filter(
-                eligible=True, clinic_laboratory__isnull=True)],
-            "enrolled_missing_diagnosis_data": [serialize_screening(s) for s in screenings.filter(
-                eligible=True, diagnosis__isnull=True)],
-            "diagnosis_regimen_changed_missing_regimen": [serialize_screening(s) for s in screenings.filter(
-                eligible=True, diagnosis__regimen_changed=True).filter(~Q(regimen_changes__isnull=False)).distinct()],
-            "enrolled_substudy2_missing_zonal_lab": [serialize_screening(s) for s in screenings.filter(
-                clinic_laboratory__xpert_mtb_rif_conducted=1,
-                clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
-                zonal_laboratory__isnull=True)],
-            "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
-            "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date]
-        }
+        context = {"total_screenings": total_screenings}
 
-        # --- Total count across all categories ---
+        # --- Substudy2 Missing Zonal Lab (for superuser/admin/reviewer/zonal lab) ---
+        if request.user.is_superuser or is_admin or is_reviewer or is_zonal_lab:
+            context["enrolled_substudy2_missing_zonal_lab"] = [
+                serialize_screening(s) for s in screenings.filter(
+                    clinic_laboratory__xpert_mtb_rif_conducted=1,
+                    clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+                    zonal_laboratory__isnull=True
+                )
+            ]
+        else:
+            context["enrolled_substudy2_missing_zonal_lab"] = []
+
+        # --- Other sections ---
+        if is_zonal_lab and not (is_admin or request.user.is_superuser):
+            # Zonal lab only sees Substudy2
+            for key in [
+                "not_eligible",
+                "eligible_not_enrolled",
+                "enrolled_missing_clinic_laboratory_data",
+                "enrolled_missing_diagnosis_data",
+                "diagnosis_regimen_changed_missing_regimen",
+                "pending_outcomes",
+                "pending_outcomes_date",
+            ]:
+                context.pop(key, None)
+        else:
+            # Normal users see all sections
+            context.update({
+                "not_eligible": [serialize_screening(s) for s in screenings.filter(eligible=False)],
+                "eligible_not_enrolled": [serialize_screening(s) for s in screenings.filter(eligible=True, enrollment__isnull=True)],
+                "enrolled_missing_clinic_laboratory_data": [serialize_screening(s) for s in screenings.filter(eligible=True, clinic_laboratory__isnull=True)],
+                "enrolled_missing_diagnosis_data": [serialize_screening(s) for s in screenings.filter(eligible=True, diagnosis__isnull=True)],
+                "diagnosis_regimen_changed_missing_regimen": [serialize_screening(s) for s in screenings.filter(
+                    eligible=True, diagnosis__regimen_changed=True).filter(~Q(regimen_changes__isnull=False)).distinct()],
+                "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
+                "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date],
+            })
+
+        # --- Recalculate report_total for visible sections only ---
         report_total = sum(
-            len(v) for k, v in context.items()
-            if isinstance(v, list) and k not in ['not_eligible']
+            len(v) for k, v in context.items() if isinstance(v, list) and k != "not_eligible"
         )
         context["report_total"] = report_total
 
         # --- Add months_since_treatment ---
-        for group in ['pending_outcomes', 'pending_outcomes_date']:
-            for s in context[group]:
+        for group in ["pending_outcomes", "pending_outcomes_date"]:
+            for s in context.get(group, []):
                 if s['tb_treatment_date']:
                     delta = timezone.now().date() - s['tb_treatment_date']
                     s['months_since_treatment'] = delta.days // 30
 
-        # --- Role Context (for template control) ---
-        role_context = get_role_context(request.user)
-        context.update(
-            {
-                "is_admin": role_context["is_admin"],
-                "is_zonal_lab": role_context["is_zonal_lab"],
-                "is_national_lab": role_context["is_national_lab"],
-                "is_site_only": role_context["is_site_only"],
-                "zones": {z.id: z.name for z in role_context["zones"]},
-                "sites": {s.id: s.name for s in role_context["sites"]},
-            }
-        )
+        # --- Add role flags for template ---
+        context.update({
+            "is_admin": is_admin,
+            "is_zonal_lab": is_zonal_lab,
+            "is_national_lab": role_context.get("is_national_lab", False),
+            "is_site_only": role_context.get("is_site_only", False),
+            "zones": {z.id: z.name for z in role_context["zones"]},
+            "sites": {s.id: s.name for s in role_context["sites"]},
+        })
 
         return render(request, self.template_name, context)

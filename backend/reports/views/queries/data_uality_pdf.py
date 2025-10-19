@@ -8,12 +8,17 @@ from django.db.models import Q
 from django.apps import apps
 import weasyprint
 
+from utils.permissions import filter_queryset_by_user_role
+from utils.roles import get_role_context
+
+
 class DataQualityReportPDFView(View):
-    """Generate PDF version of the data quality report."""
+    """Generate PDF version of the data quality report with role-based visibility."""
 
     def get(self, request, *args, **kwargs):
         Screening = apps.get_model('nanopore', 'Screening')
 
+        # --- Base queryset ---
         screenings = Screening.objects.select_related(
             'site',
             'site__district',
@@ -26,11 +31,18 @@ class DataQualityReportPDFView(View):
             'site__district__region__zone__name',
             'site__name',
             'pid'
-        ).all()
+        )
 
-        total_screenings = screenings.count()
+        # --- Role-based filtering ---
+        screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
 
-        # Serialize function
+        # --- Role context ---
+        role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin = role_context.get("is_admin", False)
+        is_reviewer = role_context.get("is_reviewer", False)
+
+        # --- Helper function to serialize screenings ---
         def serialize_screening(s):
             zone_name = getattr(getattr(getattr(getattr(s, 'site', None), 'district', None), 'region', None), 'zone', None)
             zone_name = zone_name.name if zone_name else ''
@@ -46,8 +58,6 @@ class DataQualityReportPDFView(View):
                 if not getattr(s, 'regimen_changes', None) or not s.regimen_changes.exists():
                     regimen_missing = True
 
-            xpert_mtb = getattr(getattr(s, 'clinic_laboratory', None), 'xpert_mtb', '')
-
             tb_treatment_date = getattr(getattr(s, 'diagnosis', None), 'tb_treatment_date', None)
             tb_outcome2 = getattr(getattr(s, 'diagnosis', None), 'tb_outcome2', '')
             tb_outcome2_date = getattr(getattr(s, 'diagnosis', None), 'tb_outcome2_date', '')
@@ -56,6 +66,8 @@ class DataQualityReportPDFView(View):
             if tb_treatment_date:
                 delta = timezone.now().date() - tb_treatment_date
                 months_since_treatment = delta.days // 30
+
+            xpert_mtb = getattr(getattr(s, 'clinic_laboratory', None), 'xpert_mtb', '')
 
             return {
                 'pid': getattr(s, 'pid', ''),
@@ -73,63 +85,79 @@ class DataQualityReportPDFView(View):
                 'months_since_treatment': months_since_treatment
             }
 
-        # 6 months ago
+        # --- Filters ---
         six_months_ago = timezone.now().date() - timedelta(days=180)
-
-        # Filter screenings where treatment started more than 6 months ago
         treatment_started_6m_ago = screenings.filter(
             diagnosis__tb_treatment=1,
             diagnosis__tb_treatment_date__isnull=False,
             diagnosis__tb_treatment_date__lte=six_months_ago
         )
+        pending_tb_outcomes = treatment_started_6m_ago.filter(diagnosis__tb_outcome2__isnull=True)
+        pending_tb_outcomes_date = treatment_started_6m_ago.filter(diagnosis__tb_outcome2_date__isnull=True)
 
-        # Pending TB outcomes (missing tb_outcome2)
-        pending_tb_outcomes = treatment_started_6m_ago.filter(
-            Q(diagnosis__tb_outcome2__isnull=True)
-        )
+        # --- Initialize context ---
+        context = {"total_screenings": screenings.count()}
 
-        # Pending TB outcome dates (missing tb_outcome2_date)
-        pending_tb_outcomes_date = treatment_started_6m_ago.filter(
-            Q(diagnosis__tb_outcome2_date__isnull=True)
-        )
+        # --- Substudy2 (Zonal lab missing) ---
+        # Only visible to zonal lab, admin, superuser, or reviewer
+        if is_zonal_lab or is_admin or request.user.is_superuser or is_reviewer:
+            context["enrolled_substudy2_missing_zonal_lab"] = [
+                serialize_screening(s) for s in screenings.filter(
+                    clinic_laboratory__xpert_mtb_rif_conducted=1,
+                    clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+                    zonal_laboratory__isnull=True
+                )
+            ]
+        else:
+            context["enrolled_substudy2_missing_zonal_lab"] = []
 
-        # Build context
-        context = {
-            "total_screenings": total_screenings,
-            "not_eligible": [serialize_screening(s) for s in screenings.filter(eligible=False)],
-            "eligible_not_enrolled": [serialize_screening(s) for s in screenings.filter(eligible=True, enrollment__isnull=True)],
-            "enrolled_missing_clinic_laboratory_data": [serialize_screening(s) for s in screenings.filter(eligible=True, clinic_laboratory__isnull=True)],
-            "enrolled_missing_diagnosis_data": [serialize_screening(s) for s in screenings.filter(eligible=True, diagnosis__isnull=True)],
-            "diagnosis_regimen_changed_missing_regimen": [serialize_screening(s) for s in screenings.filter(
-                eligible=True,
-                diagnosis__regimen_changed=True
-            ).filter(~Q(regimen_changes__isnull=False)).distinct()],
-            "enrolled_substudy2_missing_zonal_lab": [serialize_screening(s) for s in screenings.filter(
-                clinic_laboratory__xpert_mtb_rif_conducted=1,
-                clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
-                zonal_laboratory__isnull=True
-            )],
-            "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
-            "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date]
-        }
+        # --- Other sections ---
+        if is_zonal_lab and not (is_admin or request.user.is_superuser):
+            # Zonal lab sees ONLY Substudy2
+            for key in [
+                "not_eligible",
+                "eligible_not_enrolled",
+                "enrolled_missing_clinic_laboratory_data",
+                "enrolled_missing_diagnosis_data",
+                "diagnosis_regimen_changed_missing_regimen",
+                "pending_outcomes",
+                "pending_outcomes_date",
+            ]:
+                context.pop(key, None)
+        else:
+            # Admin / reviewer / normal user sees all other sections
+            context.update({
+                "not_eligible": [serialize_screening(s) for s in screenings.filter(eligible=False)],
+                "eligible_not_enrolled": [serialize_screening(s) for s in screenings.filter(eligible=True, enrollment__isnull=True)],
+                "enrolled_missing_clinic_laboratory_data": [serialize_screening(s) for s in screenings.filter(eligible=True, clinic_laboratory__isnull=True)],
+                "enrolled_missing_diagnosis_data": [serialize_screening(s) for s in screenings.filter(eligible=True, diagnosis__isnull=True)],
+                "diagnosis_regimen_changed_missing_regimen": [serialize_screening(s) for s in screenings.filter(
+                    eligible=True, diagnosis__regimen_changed=True).filter(~Q(regimen_changes__isnull=False)).distinct()],
+                "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
+                "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date],
+            })
 
-        # Add months since treatment for both pending outcomes
-        for key in ['pending_outcomes', 'pending_outcomes_date']:
-            for s in context[key]:
-                if s.get('tb_treatment_date'):
+        # --- Compute visible sections only ---
+        visible_sections = [
+            k for k, v in context.items() if isinstance(v, list) and k != "not_eligible"
+        ]
+        report_total = sum(len(context[k]) for k in visible_sections)
+        context["report_total"] = report_total
+
+        # --- Add months_since_treatment ---
+        for group in ["pending_outcomes", "pending_outcomes_date"]:
+            for s in context.get(group, []):
+                if s['tb_treatment_date']:
                     delta = timezone.now().date() - s['tb_treatment_date']
                     s['months_since_treatment'] = delta.days // 30
 
-        # Render HTML
+        # --- Render PDF ---
         html_string = render_to_string(
-            'reports/data_quality/data_quality_report.html',  # your template path
+            'reports/data_quality/data_quality_report.html',
             context,
             request=request
         )
-
-        # Generate PDF
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="data_quality_report.pdf"'
         weasyprint.HTML(string=html_string).write_pdf(response)
-
         return response
