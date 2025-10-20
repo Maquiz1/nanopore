@@ -97,15 +97,15 @@ ZONAL_LABELS = {
     "sequencing_delayed":"21(f). Was there a delay in sequencing the sample?",
     "sequencing_delayed_days":"21(g). If yes, number of days delayed:",
     "sequencing_delayed_reasons":"21(h). Reason(s) for delay in sequencing the sample:",
-    "sequencing_delayed_others":"21(i). If others, please specify:"
+    "sequencing_delayed_others":"21(i). If others, please specify:",
 
     # Nanopore sequencing Results
     "nano_amikacin":"22(a). Amikacin(AMK)",
     "nano_bedaquiline":"22(b). Bedaquiline(BDQ)",
     "nano_capreomycin":"22(c). Capreomycin (CAP)",
     "nano_clofazimine":"22(d). Clofazimine(CFZ)",
-    "nano_delamanid":" 22(e). Delamanid(DLM)",
-    "nano_ethambutol":"22(F). Ethambutol(EMB)",
+    "nano_delamanid":"22(e). Delamanid(DLM)",
+    "nano_ethambutol":"22(f). Ethambutol(EMB)",
     "nano_ethionamide":"22(g). Ethionamide(ETO)",
     "nano_isoniazid":"22(h). Isoniazid (INH)",
     "nano_kanamycin":"22(i).Kanamycin (KAN)",
