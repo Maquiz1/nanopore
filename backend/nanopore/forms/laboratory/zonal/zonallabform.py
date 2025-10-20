@@ -200,7 +200,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "nanopore_results": forms.Select(attrs={"class": "form-select"}),
             "sequencing_delayed": forms.Select(attrs={"class": "form-select"}),
             "sequencing_delayed_days": forms.NumberInput(attrs={"class": "form-control"}),
-            "sequencing_delayed_reasons": forms.Select(attrs={"class": "form-select"}),
+            "sequencing_delayed_reasons": forms.CheckboxSelectMultiple(),
             "sequencing_delayed_others": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
 
             
