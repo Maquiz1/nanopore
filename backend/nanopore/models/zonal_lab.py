@@ -19,7 +19,9 @@ from options.models import (
     MTBResultsLPA,
     RIFResultLPA,
     INHResultLPA,
-    NanoporeResults
+    NanoporeResults,
+    NanoporeSequencingResults,
+    NanoporeSequencingDelayedReasons,
 )
 User = get_user_model()
 
@@ -109,12 +111,20 @@ class ZonalLaboratory(models.Model):
     lpa2_aminoglycosides = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_aminoglycosides")
     lpa2_kanamycin = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_kanamycin")
 
+
     # Nanopore sequencing
     nanopore_done = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_done")
-    sequencing_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_results")
+    nanopore_sequencing_date = models.DateField(null=True, blank=True)
     epi_to_me = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_epi_to_me")
+    epi_to_me_date = models.DateField(null=True, blank=True)
     epi_to_me_version = models.CharField(max_length=255,null=True,blank=True)
-    
+    sequencing_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_results")
+    nanopore_results = models.ForeignKey(NanoporeSequencingResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_results")
+    sequencing_delayed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_delayed")
+    sequencing_delayed_days = models.IntegerField(null=True, blank=True)
+    sequencing_delayed_reasons = models.ForeignKey(NanoporeSequencingDelayedReasons, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_delayed_reasons")
+    sequencing_delayed_others = models.TextField(null=True, blank=True)
+
     # Nanopore sequencing (no explicit db_index)
     nano_amikacin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_amikacin")
     nano_bedaquiline = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_bedaquiline")

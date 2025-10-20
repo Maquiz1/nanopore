@@ -263,7 +263,33 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                            {% if field.name in "nanopore_done,sequencing_results,epi_to_me,epi_to_me_version"|cut:"," %}
+                            {% if field.name in "nanopore_done,nanopore_sequencing_date"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                            {% if field.name in "epi_to_me,epi_to_me_date,epi_to_me_version,sequencing_results,nanopore_results"|cut:"," %}
+                            <div class="col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                            {% if field.name in "sequencing_delayed,sequencing_delayed_days,sequencing_delayed_reasons,sequencing_delayed_others"|cut:"," %}
                             <div class="col-md-6">
                                 {{ field.label_tag }}
                                 {{ field }}

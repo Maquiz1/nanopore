@@ -6,7 +6,6 @@ from common.labels.laboratory.clinic.clinic_labels import (
 )  # ✅ import from core app
 from options.models import SampleReason
 
-
 class ClinicLaboratoryForm(forms.ModelForm):
     class Meta:
         model = ClinicLaboratory

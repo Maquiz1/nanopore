@@ -87,17 +87,24 @@ ZONAL_LABELS = {
     "lpa2_kanamycin":"19(f). Kanamycin",
     
     # Nanopore sequencing
-    "nanopore_done":"20. Was nanopore sequencing done for this patient?",
-    "sequencing_results":"21(a). Were the sequencing results exported to a *.csv-file?",
-    "epi_to_me":"21(b). Did you analyse your data using the EPI2ME workflow?",
+    "nanopore_done":"20(a). Was nanopore sequencing done for this patient?",
+    "nanopore_sequencing_date":"20(b). Date of Nanopore sequencing conducted",
+    "epi_to_me":"21(a). Did you analyse your data using the EPI2ME workflow?",
+    "epi_to_me_date":"21(b). EPI2ME analysis date:",
     "epi_to_me_version":"21(c). EPI2ME software version used for the analysis (free text):",
-    
+    "sequencing_results":"21(d). Were the sequencing results exported to a *.csv-file?",
+    "nanopore_results":"21(e). Nanopore sequencing results",
+    "sequencing_delayed":"21(f). Was there a delay in sequencing the sample?",
+    "sequencing_delayed_days":"21(g). If yes, number of days delayed:",
+    "sequencing_delayed_reasons":"21(h). Reason(s) for delay in sequencing the sample:",
+    "sequencing_delayed_others":"21(i). If others, please specify:"
+
     # Nanopore sequencing Results
     "nano_amikacin":"22(a). Amikacin(AMK)",
-    "nano_bedaquiline":"22(b).Bedaquiline(BDQ)",
-    "nano_capreomycin":"22(c).Capreomycin (CAP)",
+    "nano_bedaquiline":"22(b). Bedaquiline(BDQ)",
+    "nano_capreomycin":"22(c). Capreomycin (CAP)",
     "nano_clofazimine":"22(d). Clofazimine(CFZ)",
-    "nano_delamanid":"22(e). Delamanid(DLM)",
+    "nano_delamanid":" 22(e). Delamanid(DLM)",
     "nano_ethambutol":"22(F). Ethambutol(EMB)",
     "nano_ethionamide":"22(g). Ethionamide(ETO)",
     "nano_isoniazid":"22(h). Isoniazid (INH)",

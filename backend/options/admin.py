@@ -65,7 +65,8 @@ from .models import (
     RIFResultLPA,
     INHResultLPA,
     NanoporeResults,
-    
+    NanoporeSequencingResults,
+    NanoporeSequencingDelayedReasons,
 )
 
 # ALL
@@ -459,6 +460,21 @@ class INHResultLPAAdmin(admin.ModelAdmin):
     
 @admin.register(NanoporeResults)
 class NanoporeResultsAdmin(admin.ModelAdmin):
+    list_display = ('id','value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+@admin.register(NanoporeSequencingResults)
+class NanoporeSequencingResultsAdmin(admin.ModelAdmin):
+    list_display = ('id','value', 'name', 'created_at')
+    list_filter = ('value',)
+    search_fields = ('name',)
+    ordering = ('value',)
+    
+    
+@admin.register(NanoporeSequencingDelayedReasons)
+class NanoporeSequencingDelayedReasonsAdmin(admin.ModelAdmin):
     list_display = ('id','value', 'name', 'created_at')
     list_filter = ('value',)
     search_fields = ('name',)
