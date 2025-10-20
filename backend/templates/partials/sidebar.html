@@ -105,27 +105,27 @@
                 <span class="badge bg-danger rounded-pill">{{ report_total }}</span>
                 {% endif %}
             </a>
-            <a href="{% url 'reports:data_quality_report' %}">
+            <a href="{% url 'reports:screening_quality_report' %}">
                 <i class="fas fa-user-check"></i> Screening
                 {% if report_screening %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_screening }}</span>{% endif %}
             </a>
-            <a href="{% url 'reports:data_quality_report' %}">
+            <a href="{% url 'reports:enrollment_quality_report' %}">
                 <i class="fas fa-user-plus"></i> Enrollment
                 {% if report_enrollment %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_enrollment }}</span>{% endif %}
             </a>
-            <a href="{% url 'reports:data_quality_report' %}">
+            <a href="{% url 'reports:clinic_quality_report' %}">
                 <i class="fas fa-vial"></i> Clinic
                 {% if report_clinic %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_clinic }}</span>{% endif %}
             </a>
-            <a href="{% url 'reports:data_quality_report' %}">
+            <a href="{% url 'reports:diagnosis_quality_report' %}">
                 <i class="fas fa-stethoscope"></i> Diagnosis
                 {% if report_diagnosis %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_diagnosis }}</span>{% endif %}
             </a>
-            <a href="{% url 'reports:data_quality_report' %}">
+            <a href="{% url 'reports:regimen_quality_report' %}">
                 <i class="fas fa-exchange-alt"></i> Regimen
                 {% if report_regimen %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_regimen }}</span>{% endif %}
             </a>
-            <a href="{% url 'reports:data_quality_report' %}">
+            <a href="{% url 'reports:zonal_quality_report' %}">
                 <i class="fas fa-microscope"></i> Zonal
                 {% if report_zonal %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_zonal }}</span>{% endif %}
             </a>
