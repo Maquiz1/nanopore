@@ -27,12 +27,12 @@ from reports.views import (
     
     
     DataQualityReportView,
-    ScreeningQualityReportView,
-    EnrollmentQualityReportView,
-    ClinicQualityReportView,
-    DiagnosisQualityReportView,
-    RegimenQualityReportView,
-    ZonalQualityReportView,
+    ScreeningDataQualityReportView,
+    EnrollmentDataQualityReportView,
+    ClinicDataQualityReportView,
+    DiagnosisDataQualityReportView,
+    RegimenDataQualityReportView,
+    ZonalDataQualityReportView,
     
     
     DataQualityReportPDFView,
@@ -86,12 +86,12 @@ urlpatterns = [
     
     
     path('data-quality/', DataQualityReportView.as_view(), name='data_quality_report'),
-    path('screening-quality/', ScreeningQualityReportView.as_view(), name='screening_quality_report'),
-    path('enrollment-quality/', EnrollmentQualityReportView.as_view(), name='enrollment_quality_report'),
-    path('clinic-quality/', ClinicQualityReportView.as_view(), name='clinic_quality_report'),
-    path('diagnosis-quality/', DiagnosisQualityReportView.as_view(), name='diagnosis_quality_report'),
-    path('regimen-quality/', RegimenQualityReportView.as_view(), name='regimen_quality_report'),
-    path('zonal-quality/', ZonalQualityReportView.as_view(), name='zonal_quality_report'),
+    path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
+    path('enrollment-quality/', EnrollmentDataQualityReportView.as_view(), name='enrollment_quality_report'),
+    path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
+    path('diagnosis-quality/', DiagnosisDataQualityReportView.as_view(), name='diagnosis_quality_report'),
+    path('regimen-quality/', RegimenDataQualityReportView.as_view(), name='regimen_quality_report'),
+    path('zonal-quality/', ZonalDataQualityReportView.as_view(), name='zonal_quality_report'),
 
     path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
     path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),
