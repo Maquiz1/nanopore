@@ -953,6 +953,43 @@ class NanoporeResults(models.Model):
 
     def __str__(self):
         return self.name
+
+class NanoporeSequencingResults(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Nanopore Sequencing Results Option"
+        verbose_name_plural = "Nanopore Sequencing Results Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+    
+    
+class NanoporeSequencingDelayedReasons(models.Model):
+    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_created")
+    # updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="yesno_na_options_updated")
+
+    class Meta:
+        verbose_name = "Nanopore Sequencing Delayed Reasons Option"
+        verbose_name_plural = "Nanopore Sequencing Delayed Reasons Options"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
     
     
     

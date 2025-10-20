@@ -65,9 +65,16 @@ class ZonalLaboratoryForm(forms.ModelForm):
             
             # Nanopore sequencing
             "nanopore_done",
-            "sequencing_results",
+            "nanopore_sequencing_date",
             "epi_to_me",
+            "epi_to_me_date",
             "epi_to_me_version",
+            "sequencing_results",
+            "nanopore_results",
+            "sequencing_delayed",
+            "sequencing_delayed_days",
+            "sequencing_delayed_reasons",
+            "sequencing_delayed_others",
             
             # Nanopore sequencing Results
 
@@ -185,10 +192,17 @@ class ZonalLaboratoryForm(forms.ModelForm):
             
             # Nanopore sequencing
             "nanopore_done": forms.Select(attrs={"class": "form-select"}),
-            "sequencing_results": forms.Select(attrs={"class": "form-select"}),
+            "nanopore_sequencing_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "epi_to_me": forms.Select(attrs={"class": "form-select"}),
+            "epi_to_me_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "epi_to_me_version": forms.TextInput(attrs={"class": "form-control"}),
-            
+            "sequencing_results": forms.Select(attrs={"class": "form-select"}),
+            "nanopore_results": forms.Select(attrs={"class": "form-select"}),
+            "sequencing_delayed": forms.Select(attrs={"class": "form-select"}),
+            "sequencing_delayed_days": forms.NumberInput(attrs={"class": "form-control"}),
+            "sequencing_delayed_reasons": forms.Select(attrs={"class": "form-select"}),
+            "sequencing_delayed_others": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+
             
             # Nanopore sequencing Results
             "nano_amikacin": forms.Select(attrs={"class": "form-select"}),
