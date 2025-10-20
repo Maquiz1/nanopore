@@ -122,7 +122,7 @@ class ZonalLaboratory(models.Model):
     nanopore_results = models.ForeignKey(NanoporeSequencingResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_results")
     sequencing_delayed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_delayed")
     sequencing_delayed_days = models.IntegerField(null=True, blank=True)
-    sequencing_delayed_reasons = models.ForeignKey(NanoporeSequencingDelayedReasons, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_delayed_reasons")
+    sequencing_delayed_reasons = models.ManyToManyField(NanoporeSequencingDelayedReasons, blank=True, related_name="zonal_laboratory_sequencing_delayed_reasons")
     sequencing_delayed_others = models.TextField(null=True, blank=True)
 
     # Nanopore sequencing (no explicit db_index)
