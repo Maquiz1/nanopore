@@ -1,7 +1,9 @@
 {% load static %}
 
 <div class="sidebar" id="sidebar">
-    <h2><i class="fas fa-book-medical"></i> DREAM FUND - <br> NANOPORE</h2>
+    <h2 class="sidebar-title">
+        <i class="fas fa-book-medical"></i> DREAM FUND<br> - NANOPORE
+    </h2>
 
     <!-- Dashboard -->
     <a href="{% url 'dashboard:dashboard' %}">
@@ -14,7 +16,6 @@
         <i class="fas fa-globe-africa"></i><span> Countries</span>
     </a>
 
-    <!-- Superuser -->
     {% if user.is_superuser %}
     <a href="{% url 'users:staff_list' %}">
         <i class="fas fa-user-shield"></i><span> Users</span>
@@ -36,21 +37,11 @@
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
         <div class="submenu">
-            <a href="{% url 'reports:summary' %}">
-                <i class="fas fa-file-alt"></i><span> Summary</span>
-            </a>
-            <a href="{% url 'reports:forms' %}">
-                <i class="fas fa-clipboard-list"></i><span> Forms</span>
-            </a>
-            <a href="{% url 'reports:enrollment-summary' %}">
-                <i class="fas fa-user-plus"></i><span> Enrollment</span>
-            </a>
-            <a href="{% url 'reports:completed_study_summary' %}">
-                <i class="fas fa-check-circle"></i><span> Completed</span>
-            </a>
-            <a href="{% url 'reports:eligibility_summary' %}">
-                <i class="fas fa-clipboard-check"></i><span> Eligibility</span>
-            </a>
+            <a href="{% url 'reports:summary' %}"><i class="fas fa-file-alt"></i> Summary</a>
+            <a href="{% url 'reports:forms' %}"><i class="fas fa-clipboard-list"></i> Forms</a>
+            <a href="{% url 'reports:enrollment-summary' %}"><i class="fas fa-user-plus"></i> Enrollment</a>
+            <a href="{% url 'reports:completed_study_summary' %}"><i class="fas fa-check-circle"></i> Completed</a>
+            <a href="{% url 'reports:eligibility_summary' %}"><i class="fas fa-clipboard-check"></i> Eligibility</a>
         </div>
     </div>
     {% endif %}
@@ -73,24 +64,12 @@
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
         <div class="submenu">
-            <a href="{% url 'nanopore:form-status-list' %}">
-                <i class="fas fa-list-ul"></i><span> All</span>
-            </a>
-            <a href="{% url 'nanopore:screening-list' %}">
-                <i class="fas fa-user-check"></i><span> Screenings</span>
-            </a>
-            <a href="{% url 'nanopore:enrollment-list' %}">
-                <i class="fas fa-user-plus"></i><span> Enrollment</span>
-            </a>
-            <a href="{% url 'nanopore:clinic-laboratory-list' %}">
-                <i class="fas fa-vial"></i><span> Clinic Laboratory</span>
-            </a>
-            <a href="{% url 'nanopore:zonal-laboratory-list' %}">
-                <i class="fas fa-microscope"></i><span> Zonal Laboratory</span>
-            </a>
-            <a href="{% url 'nanopore:diagnosis-list' %}">
-                <i class="fas fa-stethoscope"></i><span> Diagnosis</span>
-            </a>
+            <a href="{% url 'nanopore:form-status-list' %}"><i class="fas fa-list-ul"></i> All</a>
+            <a href="{% url 'nanopore:screening-list' %}"><i class="fas fa-user-check"></i> Screenings</a>
+            <a href="{% url 'nanopore:enrollment-list' %}"><i class="fas fa-user-plus"></i> Enrollment</a>
+            <a href="{% url 'nanopore:clinic-laboratory-list' %}"><i class="fas fa-vial"></i> Clinic Laboratory</a>
+            <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i> Zonal Laboratory</a>
+            <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
         </div>
     </div>
     {% endif %}
@@ -104,9 +83,7 @@
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
         <div class="submenu">
-            <a href="{% url 'reports:list_models' %}">
-                <i class="fas fa-file-csv"></i><span> Download</span>
-            </a>
+            <a href="{% url 'reports:list_models' %}"><i class="fas fa-file-csv"></i> Download</a>
         </div>
     </div>
     {% endif %}
@@ -114,12 +91,11 @@
 
     <!-- Queries -->
     <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center">
-            <i class="fas fa-search me-2"></i>
-            <span>Queries</span>
+        <a href="javascript:void(0);" class="menu-toggle">
+            <i class="fas fa-search"></i><span> Queries</span>
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
-        <div class="submenu ps-4 mt-1">
+        <div class="submenu">
             <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
                 <div>
                     <i class="fas fa-file-csv me-2"></i>
@@ -129,75 +105,32 @@
                 <span class="badge bg-danger rounded-pill">{{ report_total }}</span>
                 {% endif %}
             </a>
-        </div>
-        <div class="submenu ps-4 mt-1">
-            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-csv me-2"></i>
-                    <span>Screening</span>
-                </div>
-                {% if report_screening %}
-                <span class="badge bg-danger rounded-pill">{{ report_screening }}</span>
-                {% endif %}
+            <a href="{% url 'reports:data_quality_report' %}">
+                <i class="fas fa-user-check"></i> Screening
+                {% if report_screening %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_screening }}</span>{% endif %}
             </a>
-        </div>
-        <div class="submenu ps-4 mt-1">
-            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-csv me-2"></i>
-                    <span>Enrollment</span>
-                </div>
-                {% if report_enrollment %}
-                <span class="badge bg-danger rounded-pill">{{ report_enrollment }}</span>
-                {% endif %}
+            <a href="{% url 'reports:data_quality_report' %}">
+                <i class="fas fa-user-plus"></i> Enrollment
+                {% if report_enrollment %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_enrollment }}</span>{% endif %}
             </a>
-        </div>
-        <div class="submenu ps-4 mt-1">
-            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-csv me-2"></i>
-                    <span>Clinical</span>
-                </div>
-                {% if report_clinical %}
-                <span class="badge bg-danger rounded-pill">{{ report_clinical }}</span>
-                {% endif %}
+            <a href="{% url 'reports:data_quality_report' %}">
+                <i class="fas fa-vial"></i> Clinic
+                {% if report_clinic %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_clinic }}</span>{% endif %}
             </a>
-        </div>
-        <div class="submenu ps-4 mt-1">
-            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-csv me-2"></i>
-                    <span>Diagnosis</span>
-                </div>
-                {% if report_diagnosis %}
-                <span class="badge bg-danger rounded-pill">{{ report_diagnosis }}</span>
-                {% endif %}
+            <a href="{% url 'reports:data_quality_report' %}">
+                <i class="fas fa-stethoscope"></i> Diagnosis
+                {% if report_diagnosis %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_diagnosis }}</span>{% endif %}
             </a>
-        </div>
-        <div class="submenu ps-4 mt-1">
-            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-csv me-2"></i>
-                    <span>Regimen</span>
-                </div>
-                {% if report_regimen %}
-                <span class="badge bg-danger rounded-pill">{{ report_regimen }}</span>
-                {% endif %}
+            <a href="{% url 'reports:data_quality_report' %}">
+                <i class="fas fa-exchange-alt"></i> Regimen
+                {% if report_regimen %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_regimen }}</span>{% endif %}
             </a>
-        </div>
-        <div class="submenu ps-4 mt-1">
-            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-csv me-2"></i>
-                    <span>Zonal</span>
-                </div>
-                {% if report_zonal %}
-                <span class="badge bg-danger rounded-pill">{{ report_zonal }}</span>
-                {% endif %}
+            <a href="{% url 'reports:data_quality_report' %}">
+                <i class="fas fa-microscope"></i> Zonal
+                {% if report_zonal %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_zonal }}</span>{% endif %}
             </a>
         </div>
     </div>
-
 
     {% if user.is_superuser %}
     <!-- Uploads -->
@@ -207,37 +140,14 @@
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
         <div class="submenu">
-            <a href="{% url 'nanopore:screening-upload-values' %}">
-                <i class="fas fa-user-check"></i><span> Screenings</span>
-            </a>
-            <a href="{% url 'nanopore:enrollment-upload-csv' %}">
-                <i class="fas fa-user-plus"></i><span> Enrollments</span>
-            </a>
-            <a href="{% url 'nanopore:clinic-upload-csv' %}">
-                <i class="fas fa-vial"></i><span> Clinic Lab</span>
-            </a>
-            <a href="{% url 'nanopore:diagnosis-upload-csv' %}">
-                <i class="fas fa-stethoscope"></i><span> Diagnosis</span>
-            </a>
-            <a href="{% url 'nanopore:zonal-upload-csv' %}">
-                <i class="fas fa-microscope"></i><span> Zonal Lab</span>
-            </a>
-            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}">
-                <i class="fas fa-exchange-alt"></i><span> Regimen Changes</span>
-            </a>
+            <a href="{% url 'nanopore:screening-upload-values' %}"><i class="fas fa-user-check"></i> Screenings</a>
+            <a href="{% url 'nanopore:enrollment-upload-csv' %}"><i class="fas fa-user-plus"></i> Enrollments</a>
+            <a href="{% url 'nanopore:clinic-upload-csv' %}"><i class="fas fa-vial"></i> Clinic Lab</a>
+            <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
+            <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
+            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
         </div>
     </div>
-    {% endif %}
-
-    <!-- Auth -->
-    {% if user.is_authenticated %}
-    <!-- <a href="{% url 'users:logout' %}">
-        <i class="fas fa-sign-out-alt"></i><span> Logout</span>
-    </a> -->
-    {% else %}
-    <!-- <a href="{% url 'users:login' %}">
-        <i class="fas fa-sign-in-alt"></i><span> Login</span>
-    </a> -->
     {% endif %}
 </div>
 
@@ -249,31 +159,84 @@
                 const submenu = this.nextElementSibling;
                 submenu.classList.toggle("open");
 
-                // Rotate the chevron icon
                 const chevron = this.querySelector(".fa-chevron-down");
-                if (chevron) {
-                    chevron.classList.toggle("rotate");
-                }
+                if (chevron) chevron.classList.toggle("rotate");
             });
         });
     });
 </script>
 
 <style>
-    /* Initially hide submenus */
+    .sidebar {
+        background-color: #1e1e2d;
+        color: #fff;
+        width: 250px;
+        min-height: 100vh;
+        padding: 15px;
+    }
+
+    .sidebar h2 {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        color: #f0f0f0;
+    }
+
+    .sidebar a {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        color: #ccc;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
+
+    .sidebar a.active,
+    .sidebar a:hover {
+        background: #2b2b3d;
+        color: #fff;
+    }
+
+    .sidebar a i {
+        margin-right: 10px;
+        font-size: 1rem;
+    }
+
+    .menu-group {
+        margin-top: 10px;
+    }
+
+    .menu-toggle {
+        cursor: pointer;
+    }
+
     .submenu {
         display: none;
-        margin-left: 15px;
+        flex-direction: column;
+        padding-left: 15px;
+        transition: max-height 0.3s ease-in-out;
     }
 
-    /* Show when open */
     .submenu.open {
-        display: block;
+        display: flex;
     }
 
-    /* Rotate animation for chevron */
+    .submenu a {
+        padding: 8px 0;
+        color: #bbb;
+    }
+
+    .submenu a:hover {
+        color: #fff;
+    }
+
+    .fa-chevron-down {
+        margin-left: auto;
+        transition: transform 0.3s ease;
+    }
+
     .fa-chevron-down.rotate {
         transform: rotate(180deg);
-        transition: transform 0.3s ease;
     }
 </style>
