@@ -50,14 +50,14 @@ class DreamFundQueriesPDFView(View):
                 'months_since_treatment': (timezone.now().date() - getattr(getattr(s, 'diagnosis', None), 'tb_treatment_date', timezone.now().date())).days // 30 if getattr(getattr(s, 'diagnosis', None), 'tb_treatment_date', None) else None
             }
 
-        six_months_ago = timezone.now().date() - timedelta(days=180)
-        treatment_started_6m_ago = screenings.filter(
+        seven_months_ago = timezone.now().date() - timedelta(days=210)
+        treatment_started_7m_ago = screenings.filter(
             diagnosis__tb_treatment=1,
             diagnosis__tb_treatment_date__isnull=False,
-            diagnosis__tb_treatment_date__lte=six_months_ago
+            diagnosis__tb_treatment_date__lte=seven_months_ago
         )
-        pending_tb_outcomes = treatment_started_6m_ago.filter(diagnosis__tb_outcome2__isnull=True)
-        pending_tb_outcomes_date = treatment_started_6m_ago.filter(diagnosis__tb_outcome2_date__isnull=True)
+        pending_tb_outcomes = treatment_started_7m_ago.filter(diagnosis__tb_outcome2__isnull=True)
+        pending_tb_outcomes_date = treatment_started_7m_ago.filter(diagnosis__tb_outcome2_date__isnull=True)
 
         # --- Context ---
         context = {

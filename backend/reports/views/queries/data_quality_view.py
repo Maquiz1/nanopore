@@ -92,14 +92,14 @@ class DataQualityReportView(View):
             }
 
         # --- Filters ---
-        six_months_ago = timezone.now().date() - timedelta(days=180)
-        treatment_started_6m_ago = screenings.filter(
+        seven_months_ago = timezone.now().date() - timedelta(days=210)
+        treatment_started_7m_ago = screenings.filter(
             diagnosis__tb_treatment=1,
             diagnosis__tb_treatment_date__isnull=False,
-            diagnosis__tb_treatment_date__lte=six_months_ago
+            diagnosis__tb_treatment_date__lte=seven_months_ago
         )
-        pending_tb_outcomes = treatment_started_6m_ago.filter(Q(diagnosis__tb_outcome2__isnull=True))
-        pending_tb_outcomes_date = treatment_started_6m_ago.filter(Q(diagnosis__tb_outcome2_date__isnull=True))
+        pending_tb_outcomes = treatment_started_7m_ago.filter(Q(diagnosis__tb_outcome2__isnull=True))
+        pending_tb_outcomes_date = treatment_started_7m_ago.filter(Q(diagnosis__tb_outcome2_date__isnull=True))
 
         # --- Role Context ---
         role_context = get_role_context(request.user)
