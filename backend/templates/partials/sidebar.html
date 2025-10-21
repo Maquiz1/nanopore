@@ -2,22 +2,22 @@
 
 <div class="sidebar" id="sidebar">
     <h2 class="sidebar-title">
-        <i class="fas fa-book-medical"></i> DREAM FUND<br> - NANOPORE
+        <i class="fas fa-book-medical"></i> Task
     </h2>
 
-    <!-- Dashboard -->
-    <a href="{% url 'dashboard:dashboard' %}">
+    Dashboard
+    <!-- <a href="{% url 'dashboard:dashboard' %}">
         <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
-    </a>
+    </a> -->
 
     <!-- Locations -->
-    <a href="{% url 'locations:country-list' %}"
+    <!-- <a href="{% url 'locations:country-list' %}"
         class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Countries</span>
-    </a>
+    </a> -->
 
     {% if user.is_superuser %}
-    <a href="{% url 'users:staff_list' %}">
+    <!-- <a href="{% url 'users:staff_list' %}">
         <i class="fas fa-user-shield"></i><span> Users</span>
     </a>
     <a href="{% url 'clinical:disease-list' %}">
@@ -25,13 +25,13 @@
     </a>
     <a href="{% url 'nanopore:form-status-list' %}">
         <i class="fas fa-calendar-check"></i><span> Visits</span>
-    </a>
+    </a> -->
     {% endif %}
 
     {% with user_group=request.user.groups.first.name|upper %}
     {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
     <!-- Reports -->
-    <div class="menu-group">
+    <!-- <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
             <i class="fas fa-chart-line"></i><span> Reports</span>
             <i class="fas fa-chevron-down ms-auto"></i>
@@ -43,21 +43,21 @@
             <a href="{% url 'reports:completed_study_summary' %}"><i class="fas fa-check-circle"></i> Completed</a>
             <a href="{% url 'reports:eligibility_summary' %}"><i class="fas fa-clipboard-check"></i> Eligibility</a>
         </div>
-    </div>
+    </div> -->
     {% endif %}
     {% endwith %}
 
     {% if user.is_superuser %}
-    <a href="{% url 'household:household-list' %}">
+    <!-- <a href="{% url 'household:household-list' %}">
         <i class="fas fa-home"></i><span> Household</span>
     </a>
     <a href="{% url 'documents:usermanual-list' %}">
         <i class="fas fa-book-open"></i><span> User Manuals</span>
-    </a>
+    </a> -->
     {% endif %}
 
     {% if user.is_superuser %}
-    <!-- Forms -->
+    <!-- Forms
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
             <i class="fas fa-clipboard-list"></i><span> Forms</span>
@@ -71,13 +71,13 @@
             <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i> Zonal Laboratory</a>
             <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
         </div>
-    </div>
+    </div> -->
     {% endif %}
 
     {% with user_group=request.user.groups.first.name|upper %}
     {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
     <!-- Exports -->
-    <div class="menu-group">
+    <!-- <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
             <i class="fas fa-file-export"></i><span> Exports</span>
             <i class="fas fa-chevron-down ms-auto"></i>
@@ -85,12 +85,12 @@
         <div class="submenu">
             <a href="{% url 'reports:list_models' %}"><i class="fas fa-file-csv"></i> Download</a>
         </div>
-    </div>
+    </div> -->
     {% endif %}
     {% endwith %}
 
     <!-- Queries -->
-    <div class="menu-group">
+    <!-- <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
             <i class="fas fa-search"></i><span> Queries</span>
             <i class="fas fa-chevron-down ms-auto"></i>
@@ -132,11 +132,11 @@
             </a>
             {% endif %}
         </div>
-    </div>
+    </div> -->
 
     {% if user.is_superuser %}
     <!-- Uploads -->
-    <div class="menu-group">
+    <!-- <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle">
             <i class="fas fa-upload"></i><span> Uploads</span>
             <i class="fas fa-chevron-down ms-auto"></i>
@@ -149,8 +149,18 @@
             <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
             <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
         </div>
-    </div>
+    </div> -->
     {% endif %}
+
+    <div class="menu-group">
+        <a href="javascript:void(0);" class="menu-toggle">
+            <i class="fas fa-upload"></i><span> Task management</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+        </a>
+        <div class="submenu">
+            <a href="{% url 'task:task_index' %}"><i class="fas fa-user-check"></i> List Tasks</a>
+        </div>
+    </div>
 </div>
 
 <!-- Sidebar toggle script -->

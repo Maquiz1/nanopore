@@ -6,19 +6,20 @@ from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 from django.contrib import admin
 
-admin.site.site_header = "Dream Fund - Nanopore Database Admin"
-admin.site.site_title = "Dream Fund - Nanopore Database Admin Portal"
-admin.site.index_title = "Welcome to the Dream Fund - Nanopore Database Admin Panel"
+# admin.site.site_header = "Dream Fund - Nanopore Database Admin"
+# admin.site.site_title = "Dream Fund - Nanopore Database Admin Portal"
+# admin.site.index_title = "Welcome to the Dream Fund - Nanopore Database Admin Panel"
 
 def root_redirect(request):
     if request.user.is_authenticated:
-        return redirect('dashboard:dashboard')  # your dashboard home url name
+        return redirect('task:task_index')  # your dashboard home url name
     else:
         return redirect('users:login')  # your login url name
 
 urlpatterns = [
     path('', root_redirect, name='root_redirect'),
     # path('options/', include('options.urls')),
+    path('task/', include('task.urls')),
     path('nanopore/', include('nanopore.urls')),
     path('household/', include('household.urls')),
     path('manuals/', include('documents.urls', namespace='documents')),
