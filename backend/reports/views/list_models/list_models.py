@@ -17,6 +17,7 @@ def list_models_view(request):
     models_list = [
         {
             "name": "Screening",
+            "count": Screening.objects.count(),
             "description": "All Screening records",
             "download_url": reverse("reports:download_model_data", args=["Screening"]),
             "labels_url": reverse("reports:download_model_labels", args=["Screening"]),
@@ -24,6 +25,7 @@ def list_models_view(request):
         },
         {
             "name": "Enrollment",
+            "count": Enrollment.objects.count(),
             "description": "All Enrollment records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["Enrollment"]),
             "labels_url": reverse("reports:download_model_labels", args=["Enrollment"]),
@@ -31,6 +33,7 @@ def list_models_view(request):
         },
         {
             "name": "ClinicLaboratory",
+            "count": ClinicLaboratory.objects.count(),
             "description": "All ClinicLaboratory records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["ClinicLaboratory"]),
             "labels_url": reverse("reports:download_model_labels", args=["ClinicLaboratory"]),
@@ -38,6 +41,7 @@ def list_models_view(request):
         },
         {
             "name": "Diagnosis",
+            "count": Diagnosis.objects.count(),
             "description": "All Diagnosis records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["Diagnosis"]),
             "labels_url": reverse("reports:download_model_labels", args=["Diagnosis"]),
@@ -45,6 +49,7 @@ def list_models_view(request):
         },
         {
             "name": "ZonalLaboratory",
+            "count": ZonalLaboratory.objects.count(),
             "description": "All ZonalLaboratory records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["ZonalLaboratory"]),
             "labels_url": reverse("reports:download_model_labels", args=["ZonalLaboratory"]),
@@ -52,6 +57,7 @@ def list_models_view(request):
         },
         {
             "name": "RegimenChanges",
+            "count": RegimenChanges.objects.count(),
             "description": "All RegimenChanges records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["RegimenChanges"]),
             "labels_url": reverse("reports:download_model_labels", args=["RegimenChanges"]),
