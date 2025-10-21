@@ -40,7 +40,9 @@ DATABASES = {
 
 # Installed apps
 INSTALLED_APPS = [
+    'task',
     'rest_framework',
+    'rest_framework_simplejwt',
     'common.apps.CommonConfig',
     'options.apps.OptionsConfig',
     'demographic.apps.DemographicConfig',
@@ -62,6 +64,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
 
 # Middleware
 MIDDLEWARE = [
@@ -134,7 +145,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Store sessions in DB (
 
 # ✅ Authentication Redirects
 LOGIN_URL = 'users:login'                   # Redirect here if not logged in
-LOGIN_REDIRECT_URL = 'dashboard:dashboard'  # Go here after successful login
+LOGIN_REDIRECT_URL = 'task:task_index'  # Go here after successful login
 LOGOUT_REDIRECT_URL = 'users:login'         # Redirect here after logout
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
