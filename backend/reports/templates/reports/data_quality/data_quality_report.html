@@ -29,6 +29,7 @@
 
     {% if not is_zonal_lab %}
         <!-- Sections visible to everyone except zonal lab -->
+        {% if user.is_superuser %}
         <!-- 1️⃣ Not Eligible -->
         {% if not_eligible %}
         <div class="mb-4">
@@ -46,6 +47,7 @@
                 </tbody>
             </table>
         </div>
+        {% endif %}
         {% endif %}
 
         <!-- 2️⃣ Eligible but Not Enrolled -->
