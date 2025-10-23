@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">🧾 DREAM FUND - NANOPORE TB SEQUENCING SCREENING DATA QUALITY REPORT (TANZANIA)</h2>
+    </div>
+
+    <p class="text-muted">Date: {{ report_date|date:"d M Y H:i" }}</p>
+
+    <div class="d-flex gap-2 mb-4">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'reports:data_quality_pdf' %}" class="btn btn-primary">
+            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF View
+        </a>
+        {% endif %}
+        <a href="{% url 'reports:data_quality_pdf_document' %}" class="btn btn-success">
+            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF Document
+        </a>
+    </div>
+
+    <p>Total Screenings: <strong>{{ total_screenings }}</strong></p>
+    <p><strong>Total Screening Data Quality Issues:</strong> {{ screening_report_total }}</p>
+
+    <!-- 1️⃣ Not Eligible -->
+    {% if not_eligible %}
+    <div class="mb-4">
+        <h4>1️⃣ Not Eligible ({{ not_eligible|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in not_eligible %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- 2️⃣ Missing Required Fields -->
+    {% if missing_fields %}
+    <div class="mb-4">
+        <h4>2️⃣ Missing Required Fields ({{ missing_fields|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                    <th>Missing Fields</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_fields %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.missing_fields|join:", " }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- 3️⃣ Duplicate PIDs -->
+    {% if duplicate_pids %}
+    <div class="mb-4">
+        <h4>3️⃣ Duplicate PIDs ({{ duplicate_pids|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in duplicate_pids %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- 4️⃣ Mismatched PID1 and PID2 -->
+    {% if mismatched_pids %}
+    <div class="mb-4">
+        <h4>4️⃣ PID1 ≠ PID2 ({{ mismatched_pids|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>PID1</th>
+                    <th>PID2</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in mismatched_pids %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.pid1 }}</td>
+                    <td>{{ s.pid2 }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- 5️⃣ Invalid PID Length -->
+    {% if invalid_length_pids %}
+    <div class="mb-4">
+        <h4>5️⃣ Invalid PID Length ({{ invalid_length_pids|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in invalid_length_pids %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

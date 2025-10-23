@@ -95,40 +95,85 @@
             <i class="fas fa-search"></i><span> Queries</span>
             <i class="fas fa-chevron-down ms-auto"></i>
         </a>
+        {% if total_issues %}
+        <span class="badge bg-danger rounded-pill">{{ total_issues }}</span>
+        {% endif %}
         <div class="submenu">
+            {% if user.is_superuser %}
+
+            <!-- Total issues badge -->
+            <a href="#" class="d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fas fa-exclamation-triangle"></i> Total Issues
+                </div>
+                {% if forms_report_total|add:screening_report_total|add:enrollment_report_total %}
+                <span class="badge bg-danger rounded-pill">
+                    {{ forms_report_total|add:screening_report_total|add:enrollment_report_total }}
+                </span>
+                {% endif %}
+            </a>
+            {% endif %}
+
             <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
                 <div>
                     <i class="fas fa-file-csv me-2"></i>
                     <span>Forms</span>
                 </div>
-                {% if report_total %}
-                <span class="badge bg-danger rounded-pill">{{ report_total }}</span>
+                {% if forms_report_total %}
+                <span class="badge bg-danger rounded-pill">
+                    {{ forms_report_total }}
+                </span>
                 {% endif %}
             </a>
             {% if user.is_superuser %}
+
             <a href="{% url 'reports:screening_quality_report' %}">
                 <i class="fas fa-user-check"></i> Screening
-                {% if report_screening %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_screening }}</span>{% endif %}
+                {% if screening_report_total %}
+                <span class="badge bg-danger rounded-pill ms-auto">
+                    {{ screening_report_total }}
+                </span>
+                {% endif %}
             </a>
             <a href="{% url 'reports:enrollment_quality_report' %}">
                 <i class="fas fa-user-plus"></i> Enrollment
-                {% if report_enrollment %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_enrollment }}</span>{% endif %}
+                {% if enrollment_report_total %}
+                <span class="badge bg-danger rounded-pill ms-auto">
+                    {{ enrollment_report_total }}
+                </span>
+                {% endif %}
             </a>
             <a href="{% url 'reports:clinic_quality_report' %}">
                 <i class="fas fa-vial"></i> Clinic
-                {% if report_clinic %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_clinic }}</span>{% endif %}
+                {% if report_clinic %}
+                <span class="badge bg-danger rounded-pill ms-auto">
+                    {{ report_clinic }}
+                </span>
+                {% endif %}
             </a>
             <a href="{% url 'reports:diagnosis_quality_report' %}">
                 <i class="fas fa-stethoscope"></i> Diagnosis
-                {% if report_diagnosis %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_diagnosis }}</span>{% endif %}
+                {% if report_diagnosis %}
+                <span class="badge bg-danger rounded-pill ms-auto">
+                    {{ report_diagnosis }}
+                </span>
+                {% endif %}
             </a>
             <a href="{% url 'reports:regimen_quality_report' %}">
                 <i class="fas fa-exchange-alt"></i> Regimen
-                {% if report_regimen %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_regimen }}</span>{% endif %}
+                {% if report_regimen %}
+                <span class="badge bg-danger rounded-pill ms-auto">
+                    {{ report_regimen }}
+                </span>
+                {% endif %}
             </a>
             <a href="{% url 'reports:zonal_quality_report' %}">
                 <i class="fas fa-microscope"></i> Zonal
-                {% if report_zonal %}<span class="badge bg-danger rounded-pill ms-auto">{{ report_zonal }}</span>{% endif %}
+                {% if report_zonal %}
+                <span class="badge bg-danger rounded-pill ms-auto">
+                    {{ report_zonal }}
+                </span>
+                {% endif %}
             </a>
             {% endif %}
         </div>
@@ -147,7 +192,8 @@
             <a href="{% url 'nanopore:clinic-upload-csv' %}"><i class="fas fa-vial"></i> Clinic Lab</a>
             <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
             <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
-            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
+            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen
+                Changes</a>
         </div>
     </div>
     {% endif %}

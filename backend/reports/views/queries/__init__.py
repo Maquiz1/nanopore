@@ -1,6 +1,6 @@
-from .data_quality_view import DataQualityReportView
+from .data_form_quality_view import FormsDataQualityReportView
 from .data_uality_pdf import DataQualityReportPDFView
-from .data_quality_pdf_document import DreamFundQueriesPDFView
+from .data_form_quality_pdf_document import DreamFundQueriesPDFView
 from .data_screening_quality_view import ScreeningDataQualityReportView
 from .data_enrollment_quality_view import EnrollmentDataQualityReportView
 from .data_clinic_quality_view import ClinicDataQualityReportView
@@ -10,7 +10,7 @@ from .data_zonal_quality_view import ZonalDataQualityReportView
 
 
 __all__ = [
-    "DataQualityReportView",
+    "FormsDataQualityReportView",
     "DataQualityReportPDFView",
     "DreamFundQueriesPDFView",
     "ScreeningDataQualityReportView",
