@@ -1,15 +1,14 @@
 from django.utils import timezone
-from datetime import timedelta
 from django.apps import apps
 from django.db.models import F, Q, Count
 from utils.permissions import filter_queryset_by_user_role
-from utils.roles import get_role_context
 
 
 def screening_report_total(request):
     """
     Returns screening data quality issues count for navbar.
-    Includes missing fields, duplicates, mismatched PIDs, invalid lengths, and non-eligible cases.
+    Includes missing fields, duplicates, mismatched PIDs, invalid lengths, non-eligible cases,
+    and missing produce_resp_sample or genexpert_confirmation.
     """
     screening_report_total = 0
 
@@ -26,7 +25,9 @@ def screening_report_total(request):
         Q(sex__isnull=True) | Q(site__isnull=True) |
         Q(screening_date__isnull=True) |
         (Q(age__isnull=True) & Q(dob__isnull=True)) |
-        Q(consent__isnull=True)
+        Q(consent__isnull=True) |
+        Q(produce_resp_sample__isnull=True) |
+        Q(genexpert_confirmation__isnull=True)
     )
 
     duplicate_pids = (

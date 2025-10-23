@@ -3,19 +3,18 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.apps import apps
 from django.db.models import Count
-
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
 class ScreeningDataQualityReportView(View):
     """Data Quality Report for Screening model:
-    - Checks missing fields
+    - Checks missing fields (including produce_resp_sample and genexpert_confirmation)
     - Detects duplicate or invalid PIDs
     - Role-based and zone/site filtering
     """
 
-    template_name = "reports/data_quality/screening/data_screening_quality_report.html"
+    template_name = "reports/data_quality/screenings/data_screening_quality_report.html"
 
     def get(self, request, *args, **kwargs):
         Screening = apps.get_model('nanopore', 'Screening')
@@ -25,14 +24,6 @@ class ScreeningDataQualityReportView(View):
             'site',
             'site__district__region__zone',
             'sex',
-            'age18years',
-            'present_symptoms',
-            'produce_resp_sample',
-            'genexpert_confirmation',
-            'consent',
-            'unable_understand',
-            'not_willing',
-            'enrolled',
         ).order_by(
             'site__district__region__zone__name',
             'site__name',
@@ -88,6 +79,8 @@ class ScreeningDataQualityReportView(View):
                 "screening_date": s.screening_date,
                 "age_or_dob": s.age or s.dob,
                 "consent": s.consent,
+                "produce_resp_sample": s.produce_resp_sample,
+                "genexpert_confirmation": s.genexpert_confirmation,
             }
             for field_name, value in required_fields.items():
                 if not value:
@@ -98,8 +91,6 @@ class ScreeningDataQualityReportView(View):
 
         # --- 2️⃣ PID Issues ---
         pid_issues = []
-
-        # Duplicate PIDs
         duplicate_pids = (
             screenings.values('pid')
             .annotate(pid_count=Count('id'))

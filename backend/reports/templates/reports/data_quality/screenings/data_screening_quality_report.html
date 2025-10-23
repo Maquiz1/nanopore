@@ -70,7 +70,17 @@
                     <td>{{ s.pid }}</td>
                     <td>{{ s.zone_name }}</td>
                     <td>{{ s.site_name }}</td>
-                    <td>{{ s.missing_fields|join:", " }}</td>
+                    <td>
+                        {% for field in s.missing_fields %}
+                            {% if field == 'produce_resp_sample' %}
+                                Produce Resp Sample<br>
+                            {% elif field == 'genexpert_confirmation' %}
+                                Genexpert Confirmation<br>
+                            {% else %}
+                                {{ field|capfirst }}<br>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
