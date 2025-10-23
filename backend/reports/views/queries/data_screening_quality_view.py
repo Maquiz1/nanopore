@@ -75,7 +75,8 @@ class ScreeningDataQualityReportView(View):
         missing_pid1 = []
         missing_pid2 = []
         missing_sex = []
-        missing_age_or_dob = []
+        missing_age = []
+        missing_dob = []
         missing_consent = []
         missing_age18years = []
         missing_present_symptoms = []
@@ -93,10 +94,15 @@ class ScreeningDataQualityReportView(View):
                 missing_pid1.append(serialize_screening(s))
             if not getattr(s, 'pid2', None):
                 missing_pid2.append(serialize_screening(s))
+                
             if not getattr(s, 'sex', None):
                 missing_sex.append(serialize_screening(s))
-            if not (getattr(s, 'age', None) or getattr(s, 'dob', None)):
-                missing_age_or_dob.append(serialize_screening(s))
+                
+            if not getattr(s, 'age', None):
+                missing_age.append(serialize_screening(s))
+            if not getattr(s, 'dob', None):
+                missing_dob.append(serialize_screening(s))
+
             if getattr(s, 'consent', None) is None:
                 missing_consent.append(serialize_screening(s))
             if getattr(s, 'age18years', None) is None:
@@ -113,18 +119,16 @@ class ScreeningDataQualityReportView(View):
             else:
                 if getattr(s, 'genexpert_confirmation', None) is None:
                     missing_genexpert_confirmation.append(serialize_screening(s))
-                
-                
-                
+                               
             if getattr(s, 'produce_resp_sample', None) is None:
                 missing_produce_resp_sample.append(serialize_screening(s))
                 
-                
-                
             if getattr(s, 'unable_understand', None) is None:
                 missing_unable_understand.append(serialize_screening(s))
+                
             if getattr(s, 'not_willing', None) is None:
                 missing_not_willing.append(serialize_screening(s))
+                
             if getattr(s, 'enrolled', None) is None:
                 missing_enrolled.append(serialize_screening(s))
                 
