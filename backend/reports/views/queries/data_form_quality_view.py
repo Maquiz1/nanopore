@@ -9,10 +9,10 @@ from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
-class DataQualityReportView(View):
+class FormsDataQualityReportView(View):
     """Generate categorized data quality report for screenings and related models (role-aware)."""
 
-    template_name = "reports/data_quality/data_quality_report.html"
+    template_name = "reports/data_quality/forms/forms_data_quality_report.html"
 
     def get(self, request, *args, **kwargs):
         Screening = apps.get_model('nanopore', 'Screening')

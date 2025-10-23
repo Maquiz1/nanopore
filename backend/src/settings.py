@@ -27,23 +27,23 @@ ALLOWED_HOSTS = ast.literal_eval(env("ALLOWED_HOSTS", default="[]"))
 #     }
 # else:
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
         # 'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT"),
     }
 }
 
 # Installed apps
 INSTALLED_APPS = [
-    'rest_framework',
-    'common.apps.CommonConfig',
-    'options.apps.OptionsConfig',
-    'demographic.apps.DemographicConfig',
+    "rest_framework",
+    "common.apps.CommonConfig",
+    "options.apps.OptionsConfig",
+    "demographic.apps.DemographicConfig",
     # 'status.apps.StatusConfig',
     # 'reasons.apps.ReasonsConfig',
     "nanopore.apps.NanoporeConfig",
@@ -55,71 +55,75 @@ INSTALLED_APPS = [
     "locations.apps.LocationsConfig",
     # "mentorship.apps.MentorshipConfig",
     "users.apps.UsersConfig",
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
 ]
 
 # Middleware
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     # 'users.middleware.AutoLogoutMiddleware',  # ✅ Auto logout
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 # URLs and templates
-ROOT_URLCONF = 'src.urls'
+ROOT_URLCONF = "src.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'reports.context_processors.global_report_total',  # Add this line
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "reports.context_processors.forms_context.forms_report_total",
+                "reports.context_processors.screening_context.screening_report_total",
+                "reports.context_processors.enrollment_context.enrollment_report_total",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'src.wsgi.application'
+WSGI_APPLICATION = "src.wsgi.application"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
 # Static and media files
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'uploads'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "uploads"
 
 # Default primary key
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # # Auth redirect settings
 # LOGIN_URL = '/users/login/'
@@ -127,22 +131,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # LOGOUT_REDIRECT_URL = '/users/login/'
 
 # ✅ Session Settings
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True      # Log out user when browser closes
-SESSION_COOKIE_AGE = 600                    # Session timeout (in seconds) → 10 minutes
-SESSION_SAVE_EVERY_REQUEST = True           # Extend session on each user activity
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Log out user when browser closes
+SESSION_COOKIE_AGE = 600  # Session timeout (in seconds) → 10 minutes
+SESSION_SAVE_EVERY_REQUEST = True  # Extend session on each user activity
 SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Store sessions in DB (default)
 
 # ✅ Authentication Redirects
-LOGIN_URL = 'users:login'                   # Redirect here if not logged in
-LOGIN_REDIRECT_URL = 'dashboard:dashboard'  # Go here after successful login
-LOGOUT_REDIRECT_URL = 'users:login'         # Redirect here after logout
+LOGIN_URL = "users:login"  # Redirect here if not logged in
+LOGIN_REDIRECT_URL = "dashboard:dashboard"  # Go here after successful login
+LOGOUT_REDIRECT_URL = "users:login"  # Redirect here after logout
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 
 # Email settings
 if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-    EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+    EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 else:
     EMAIL_BACKEND = env("EMAIL_BACKEND")
     EMAIL_HOST = env("EMAIL_HOST")
@@ -154,33 +158,31 @@ else:
 
 # Logging
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {'class': 'logging.StreamHandler'},
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
     },
-    'loggers': {
-        'logbook.models': {
-            'handlers': ['console'],
-            'level': 'WARNING',
+    "loggers": {
+        "logbook.models": {
+            "handlers": ["console"],
+            "level": "WARNING",
         },
     },
 }
 
 # Message tags for Bootstrap compatibility
 MESSAGE_TAGS = {
-    messages.DEBUG: 'secondary',
-    messages.INFO: 'info',
-    messages.SUCCESS: 'success',
-    messages.WARNING: 'warning',
-    messages.ERROR: 'danger',
+    messages.DEBUG: "secondary",
+    messages.INFO: "info",
+    messages.SUCCESS: "success",
+    messages.WARNING: "warning",
+    messages.ERROR: "danger",
 }
 
 # External API keys
 AT_USERNAME = env("AT_USERNAME")
 AT_API_KEY = env("AT_API_KEY")
-
-
 
 
 # Allow up to 10,000 form fields
@@ -195,7 +197,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # # ✅ Or expire after 1 hour (3600 seconds)
-# SESSION_COOKIE_AGE = 10 
+# SESSION_COOKIE_AGE = 10
 
 # # ✅ Refresh expiry time with every request (active users stay logged in)
 # SESSION_SAVE_EVERY_REQUEST = True
@@ -204,9 +206,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # SESSION_COOKIE_SECURE = False  # Set True in production (HTTPS only)
 # SESSION_COOKIE_HTTPONLY = True
 # SESSION_ENGINE = "django.contrib.sessions.backends.db"
-
-
-
 
 
 # # ✅ Sessions
@@ -219,4 +218,3 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # LOGIN_URL = 'users:login'
 # LOGIN_REDIRECT_URL = 'dashboard:dashboard'   # where to go after login
 # LOGOUT_REDIRECT_URL = 'users:login'          # where to go after logout
-

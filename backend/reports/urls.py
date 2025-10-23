@@ -26,7 +26,7 @@ from reports.views import (
     ExportAllModelsRawDataView,  # <-- New view
     
     
-    DataQualityReportView,
+    FormsDataQualityReportView,
     ScreeningDataQualityReportView,
     EnrollmentDataQualityReportView,
     ClinicDataQualityReportView,
@@ -85,7 +85,7 @@ urlpatterns = [
     path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
     
     
-    path('data-quality/', DataQualityReportView.as_view(), name='data_quality_report'),
+    path('data-quality/', FormsDataQualityReportView.as_view(), name='data_quality_report'),
     path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
     path('enrollment-quality/', EnrollmentDataQualityReportView.as_view(), name='enrollment_quality_report'),
     path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
@@ -95,8 +95,10 @@ urlpatterns = [
 
     path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
     path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),
+    path('enrollment/data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='enrollment_data_quality_pdf'),
 
-    path('notifications/', DataQualityReportView.as_view(), name='notifications-list'),
+
+    path('notifications/', FormsDataQualityReportView.as_view(), name='notifications-list'),
     path('alerts/', DataQualityReportPDFView.as_view(), name='alerts-list'),
 
 
