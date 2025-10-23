@@ -26,16 +26,17 @@
     <p>Total Screenings: <strong>{{ total_screenings }}</strong></p>
     <p><strong>Total Screening Data Quality Issues:</strong> {{ screening_report_total }}</p>
 
-    <!-- 1️⃣ Not Eligible -->
+
     {% if not_eligible %}
     <div class="mb-4">
-        <h4>1️⃣ Not Eligible ({{ not_eligible|length }})</h4>
+        <h4>Not Eligible ({{ not_eligible|length }})</h4>
         <table class="table table-sm table-bordered">
             <thead>
                 <tr>
                     <th>PID</th>
                     <th>Zone</th>
                     <th>Site</th>
+                    <th>Eligibility</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,6 +45,11 @@
                     <td>{{ s.pid }}</td>
                     <td>{{ s.zone_name }}</td>
                     <td>{{ s.site_name }}</td>
+                    {% if not s.eligible %}
+                    <td>Not Eligible</td>
+                    {% else %}
+                    <td>Eligible</td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -51,47 +57,11 @@
     </div>
     {% endif %}
 
-    <!-- 2️⃣ Missing Required Fields -->
-    {% if missing_fields %}
-    <div class="mb-4">
-        <h4>2️⃣ Missing Required Fields ({{ missing_fields|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>Missing Fields</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_fields %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                    <td>
-                        {% for field in s.missing_fields %}
-                            {% if field == 'produce_resp_sample' %}
-                                Produce Resp Sample<br>
-                            {% elif field == 'genexpert_confirmation' %}
-                                Genexpert Confirmation<br>
-                            {% else %}
-                                {{ field|capfirst }}<br>
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
 
-    <!-- 3️⃣ Duplicate PIDs -->
+    {# --- PID Issues --- #}
     {% if duplicate_pids %}
     <div class="mb-4">
-        <h4>3️⃣ Duplicate PIDs ({{ duplicate_pids|length }})</h4>
+        <h4>Duplicate PIDs ({{ duplicate_pids|length }})</h4>
         <table class="table table-sm table-bordered">
             <thead>
                 <tr>
@@ -113,10 +83,9 @@
     </div>
     {% endif %}
 
-    <!-- 4️⃣ Mismatched PID1 and PID2 -->
     {% if mismatched_pids %}
     <div class="mb-4">
-        <h4>4️⃣ PID1 ≠ PID2 ({{ mismatched_pids|length }})</h4>
+        <h4>PID1 ≠ PID2 ({{ mismatched_pids|length }})</h4>
         <table class="table table-sm table-bordered">
             <thead>
                 <tr>
@@ -142,10 +111,9 @@
     </div>
     {% endif %}
 
-    <!-- 5️⃣ Invalid PID Length -->
     {% if invalid_length_pids %}
     <div class="mb-4">
-        <h4>5️⃣ Invalid PID Length ({{ invalid_length_pids|length }})</h4>
+        <h4>Invalid PID Length ({{ invalid_length_pids|length }})</h4>
         <table class="table table-sm table-bordered">
             <thead>
                 <tr>
@@ -166,6 +134,391 @@
         </table>
     </div>
     {% endif %}
+
+    {# --- Missing Screening Date --- #}
+    {% if missing_screening_date %}
+    <div class="mb-4">
+        <h4>Missing Screening Date ({{ missing_screening_date|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                    <th>Screening Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_screening_date %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.screening_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing PID1 --- #}
+    {% if missing_pid1 %}
+    <div class="mb-4">
+        <h4>Missing PID1 ({{ missing_pid1|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_pid1 %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing PID2 --- #}
+    {% if missing_pid2 %}
+    <div class="mb-4">
+        <h4>Missing PID2 ({{ missing_pid2|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_pid2 %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Sex --- #}
+    {% if missing_sex %}
+    <div class="mb-4">
+        <h4>Missing Sex ({{ missing_sex|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                    <th>Sex</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_sex %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.sex }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Age --- #}
+    {% if missing_age %}
+    <div class="mb-4">
+        <h4>Missing Age ({{ missing_age|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_age %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.age }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+
+    {# --- Missing DOB --- #}
+    {% if missing_dob %}
+    <div class="mb-4">
+        <h4>Missing Date of Birth ({{ missing_dob|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                    <th>DOB</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_dob %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                    <td>{{ s.dob }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Consent --- #}
+    {% if missing_consent %}
+    <div class="mb-4">
+        <h4>Missing Consent ({{ missing_consent|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_consent %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Zone-Specific Missing Field --- #}
+    {% if missing_present_symptoms or missing_genexpert_confirmation %}
+    <div class="mb-4">
+        {% if missing_present_symptoms %}
+        <h4>Missing Present Symptoms ({{ missing_present_symptoms|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_present_symptoms %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% elif missing_genexpert_confirmation %}
+        <h4>Missing Genexpert Confirmation ({{ missing_genexpert_confirmation|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_genexpert_confirmation %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# --- Missing Produce Resp Sample --- #}
+    {% if missing_produce_resp_sample %}
+    <div class="mb-4">
+        <h4>Missing Produce Resp Sample ({{ missing_produce_resp_sample|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_produce_resp_sample %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Age18Years --- #}
+    {% if missing_age18years %}
+    <div class="mb-4">
+        <h4>Missing Age18Years ({{ missing_age18years|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_age18years %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Unable to Understand --- #}
+    {% if missing_unable_understand %}
+    <div class="mb-4">
+        <h4>Missing Unable to Understand ({{ missing_unable_understand|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_unable_understand %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Not Willing --- #}
+    {% if missing_not_willing %}
+    <div class="mb-4">
+        <h4>Missing Not Willing ({{ missing_not_willing|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_not_willing %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Enrolled --- #}
+    {% if missing_enrolled %}
+    <div class="mb-4">
+        <h4>Missing Enrolled ({{ missing_enrolled|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_enrolled %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# --- Missing Reasons --- #}
+    {% if missing_reasons %}
+    <div class="mb-4">
+        <h4>Missing Reasons ({{ missing_reasons|length }})</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>Zone</th>
+                    <th>Site</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in missing_reasons %}
+                <tr>
+                    <td>{{ s.pid }}</td>
+                    <td>{{ s.zone_name }}</td>
+                    <td>{{ s.site_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+
+
+
 
 </div>
 {% endblock %}
