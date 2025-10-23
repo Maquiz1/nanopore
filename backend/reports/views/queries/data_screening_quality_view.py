@@ -98,10 +98,16 @@ class ScreeningDataQualityReportView(View):
             if not getattr(s, 'sex', None):
                 missing_sex.append(serialize_screening(s))
                 
-            if not getattr(s, 'age', None):
+            # Missing Age / DOB
+            if not getattr(s, 'age', None) and not getattr(s, 'dob', None):
+                # Both missing → flag both
                 missing_age.append(serialize_screening(s))
-            if not getattr(s, 'dob', None):
                 missing_dob.append(serialize_screening(s))
+            elif not getattr(s, 'age', None):
+                missing_age.append(serialize_screening(s))
+            elif not getattr(s, 'dob', None):
+                missing_dob.append(serialize_screening(s))
+
 
             if getattr(s, 'consent', None) is None:
                 missing_consent.append(serialize_screening(s))
@@ -168,7 +174,8 @@ class ScreeningDataQualityReportView(View):
             "missing_pid1": missing_pid1,
             "missing_pid2": missing_pid2,
             "missing_sex": missing_sex,
-            "missing_age_or_dob": missing_age_or_dob,
+            "missing_age": missing_age,
+            "missing_dob": missing_dob,
             "missing_consent": missing_consent,
             "missing_age18years": missing_age18years,
             "missing_present_symptoms": missing_present_symptoms,
@@ -192,7 +199,8 @@ class ScreeningDataQualityReportView(View):
             len(missing_pid1) +
             len(missing_pid2) +
             len(missing_sex) +
-            len(missing_age_or_dob) +
+            len(missing_age) +
+            len(missing_dob) +
             len(missing_consent) +
             len(missing_age18years) +
             len(missing_present_symptoms) +
