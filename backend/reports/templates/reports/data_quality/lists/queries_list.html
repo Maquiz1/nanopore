@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">🧾 DREAM FUND - NANOPORE TB SEQUENCING DATA QUALITY SUMMARY (TANZANIA)</h2>
+    </div>
+
+    <p class="text-muted">Date: {{ report_date|date:"d M Y H:i" }}</p>
+
+    <div class="d-flex gap-2 mb-4">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'reports:data_quality_pdf' %}" class="btn btn-primary">
+            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF View
+        </a>
+        {% endif %}
+        <a href="{% url 'reports:data_quality_pdf_document' %}" class="btn btn-success">
+            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF Document
+        </a>
+    </div>
+
+    <p>Total Screenings: <strong>{{ total_screenings }}</strong></p>
+    <p><strong>Total Data Quality Issues:</strong> {{ screening_report_total }}</p>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Field / Issue</th>
+                    <th>Number of Queries</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Not Eligible</td>
+                    <td>{{ not_eligible|length }}</td>
+                </tr>
+                <tr>
+                    <td>Duplicate PIDs</td>
+                    <td>{{ duplicate_pids|length }}</td>
+                </tr>
+                <tr>
+                    <td>PID1 ≠ PID2</td>
+                    <td>{{ mismatched_pids|length }}</td>
+                </tr>
+                <tr>
+                    <td>Invalid PID Length</td>
+                    <td>{{ invalid_length_pids|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Screening Date</td>
+                    <td>{{ missing_screening_date|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing PID1</td>
+                    <td>{{ missing_pid1|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing PID2</td>
+                    <td>{{ missing_pid2|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Sex</td>
+                    <td>{{ missing_sex|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Age</td>
+                    <td>{{ missing_age|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing DOB</td>
+                    <td>{{ missing_dob|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Consent</td>
+                    <td>{{ missing_consent|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Present Symptoms</td>
+                    <td>{{ missing_present_symptoms|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Genexpert Confirmation</td>
+                    <td>{{ missing_genexpert_confirmation|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Produce Resp Sample</td>
+                    <td>{{ missing_produce_resp_sample|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Age18Years</td>
+                    <td>{{ missing_age18years|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Unable to Understand</td>
+                    <td>{{ missing_unable_understand|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Not Willing</td>
+                    <td>{{ missing_not_willing|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Enrolled</td>
+                    <td>{{ missing_enrolled|length }}</td>
+                </tr>
+                <tr>
+                    <td>Missing Reasons</td>
+                    <td>{{ missing_reasons|length }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
