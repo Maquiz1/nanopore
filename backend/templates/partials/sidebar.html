@@ -102,7 +102,7 @@
             {% if user.is_superuser %}
 
             <!-- Total issues badge -->
-            <a href="#" class="d-flex align-items-center justify-content-between">
+            <a href="{% url 'reports:queries_dashboard' %}" class="d-flex align-items-center justify-content-between">
                 <div>
                     <i class="fas fa-exclamation-triangle"></i> Total Issues
                 </div>
@@ -114,7 +114,7 @@
             </a>
             {% endif %}
             {% if forms_report_total %}
-            <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
+            <a href="{% url 'reports:forms_quality_report' %}" class="d-flex align-items-center justify-content-between">
                 <div>
                     <i class="fas fa-file-csv me-2"></i>
                     <span>Forms</span>

@@ -16,7 +16,7 @@
     <div style="display: flex; align-items: center; gap: 20px; position: relative;">
 
         <!-- Notifications / Messages Icon -->
-        <a href="{% url 'reports:notifications-list' %}" class="icon-btn">
+        <a href="{% url 'reports:queries_dashboard' %}" class="icon-btn">
             <i class="fas fa-envelope"></i>
             {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
             <span class="badge">
@@ -26,7 +26,7 @@
         </a>
 
         <!-- Alerts Icon -->
-        <a href="{% url 'reports:alerts-list' %}" class="icon-btn">
+        <a href="{% url 'reports:queries_dashboard' %}" class="icon-btn">
             <i class="fas fa-bell"></i>
             {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
             <span class="badge">

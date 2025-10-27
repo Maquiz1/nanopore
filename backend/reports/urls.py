@@ -25,7 +25,7 @@ from reports.views import (
     DownloadModelFieldsView,
     ExportAllModelsRawDataView,  # <-- New view
     
-    
+    QueriesDashboardView,
     FormsDataQualityReportView,
     ScreeningDataQualityReportView,
     EnrollmentDataQualityReportView,
@@ -83,9 +83,10 @@ urlpatterns = [
     path('all/download/csv/', AllCsvDownloadView.as_view(), name='download-all-csv'),
     path('screenings/download/csv/', ScreeningCsvDownloadView.as_view(), name='download-screenings-csv'),
     path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
-    
-    
-    path('data-quality/', FormsDataQualityReportView.as_view(), name='data_quality_report'),
+
+
+    path("queries/", QueriesDashboardView.as_view(), name="queries_dashboard"),
+    path('data-quality/', FormsDataQualityReportView.as_view(), name='forms_quality_report'),
     path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
     path('enrollment-quality/', EnrollmentDataQualityReportView.as_view(), name='enrollment_quality_report'),
     path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
