@@ -130,7 +130,7 @@
 
 
         <!-- 6️⃣ Only for zonal lab users -->
-        {% if not is_zonal_lab %}
+        {% if is_zonal_lab %}
         {% if enrolled_substudy2_missing_zonal_lab %}
         <div class="mb-4">
             <h4>6️⃣ Substudy2 Missing Zonal Lab ({{ enrolled_substudy2_missing_zonal_lab|length }})</h4>
