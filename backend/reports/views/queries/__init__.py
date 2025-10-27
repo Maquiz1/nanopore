@@ -7,9 +7,10 @@ from .data_clinic_quality_view import ClinicDataQualityReportView
 from .data_diagnosis_quality_view import DiagnosisDataQualityReportView
 from .data_regimen_quality_view import RegimenDataQualityReportView
 from .data_zonal_quality_view import ZonalDataQualityReportView
-
+from .queries_dashboard_view import QueriesDashboardView
 
 __all__ = [
+    "QueriesDashboardView",
     "FormsDataQualityReportView",
     "DataQualityReportPDFView",
     "DreamFundQueriesPDFView",
