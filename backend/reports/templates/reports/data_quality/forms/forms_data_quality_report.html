@@ -27,7 +27,6 @@
     <p>Total Screenings: <strong>{{ total_screenings }}</strong></p>
     <p><strong>Total Data Quality Issues:</strong> {{ report_total }}</p>
 
-    {% if not is_zonal_lab %}
         <!-- Sections visible to everyone except zonal lab -->
         {% if user.is_superuser %}
         <!-- 1️⃣ Not Eligible -->
@@ -129,6 +128,29 @@
         </div>
         {% endif %}
 
+
+        <!-- 6️⃣ Only for zonal lab users -->
+        {% if not is_zonal_lab %}
+        {% if enrolled_substudy2_missing_zonal_lab %}
+        <div class="mb-4">
+            <h4>6️⃣ Substudy2 Missing Zonal Lab ({{ enrolled_substudy2_missing_zonal_lab|length }})</h4>
+            <table class="table table-sm table-bordered">
+                <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Xpert MTB</th></tr></thead>
+                <tbody>
+                    {% for s in enrolled_substudy2_missing_zonal_lab %}
+                    <tr>
+                        <td>{{ s.pid }}</td>
+                        <td>{{ s.zone_name }}</td>
+                        <td>{{ s.site_name }}</td>
+                        <td>{{ s.xpert_mtb }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% endif %}
+
         <!-- 7️⃣ Pending TB Outcomes -->
         {% if pending_outcomes %}
         <div class="mb-4">
@@ -191,27 +213,6 @@
         </div>
         {% endif %}
 
-    {% else %}
-        <!-- 6️⃣ Only for zonal lab users -->
-        {% if enrolled_substudy2_missing_zonal_lab %}
-        <div class="mb-4">
-            <h4>6️⃣ Substudy2 Missing Zonal Lab ({{ enrolled_substudy2_missing_zonal_lab|length }})</h4>
-            <table class="table table-sm table-bordered">
-                <thead><tr><th>PID</th><th>Zone</th><th>Site</th><th>Xpert MTB</th></tr></thead>
-                <tbody>
-                    {% for s in enrolled_substudy2_missing_zonal_lab %}
-                    <tr>
-                        <td>{{ s.pid }}</td>
-                        <td>{{ s.zone_name }}</td>
-                        <td>{{ s.site_name }}</td>
-                        <td>{{ s.xpert_mtb }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
-    {% endif %}
 
 </div>
 {% endblock %}
