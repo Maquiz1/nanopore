@@ -1,4 +1,3 @@
-# utils/context_processors.py
 from django.apps import apps
 from django.db.models import Q
 from utils.permissions import filter_queryset_by_user_role
@@ -6,7 +5,7 @@ from utils.permissions import filter_queryset_by_user_role
 def clinic_report_total(request):
     """
     Returns total clinic issues count for navbar:
-    - Counts clinics with missing required fields
+    - Counts ClinicLaboratory records with missing required fields
     """
     clinic_total = 0
 
@@ -19,15 +18,25 @@ def clinic_report_total(request):
 
     # --- Required fields to check ---
     required_fields = [
-        'enrollment_date', 'cough2weeks', 'poor_weight', 'coughing_blood',
-        'unexplained_fever', 'night_sweats', 'neck_lymph', 'history_tb',
-        'date_information_collected', 'tx_previous'
+        "sample_received",
+        "number_received",
+        "afb_microscopy_conducted",
+        "xpert_mtb_rif_conducted",
+        "date_sample1_collected",
+        "date_sample1_received",
+        "appearance_sample1",
+        "afb_a_date",
+        "technique_a",
+        "afb_a_results",
+        "xpert_date",
+        "xpert_mtb",
+        "xpert_rif",
     ]
-
 
     for c in clinics:
         for field in required_fields:
-            if not getattr(c, field):
+            value = getattr(c, field)
+            if value in [None, "", False]:
                 clinic_total += 1
                 break  # Count each clinic only once
 

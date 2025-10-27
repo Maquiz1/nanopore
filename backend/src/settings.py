@@ -92,9 +92,9 @@ TEMPLATES = [
                 "reports.context_processors.forms_context.forms_report_total",
                 "reports.context_processors.screening_context.screening_report_total",
                 "reports.context_processors.enrollment_context.enrollment_report_total",
-                "reports.context_processors.clinic_lab_context.clinic_report_total",
+                "reports.context_processors.clinic_laboratory_context.clinic_report_total",
                 "reports.context_processors.diagnosis_context.diagnosis_report_total",
-                "reports.context_processors.zonal_lab_context.zonal_report_total",
+                "reports.context_processors.zonal_laboratory_context.zonal_report_total",
                 "reports.context_processors.regimen_context.regimen_report_total",
             ],
         },
@@ -136,7 +136,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ✅ Session Settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Log out user when browser closes
-SESSION_COOKIE_AGE = 600  # Session timeout (in seconds) → 10 minutes
+SESSION_COOKIE_AGE = 1800  # Session timeout (in seconds) → 30 minutes
 SESSION_SAVE_EVERY_REQUEST = True  # Extend session on each user activity
 SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Store sessions in DB (default)
 

@@ -106,75 +106,74 @@
                 <div>
                     <i class="fas fa-exclamation-triangle"></i> Total Issues
                 </div>
-                {% if forms_report_total|add:screening_report_total|add:enrollment_report_total %}
+                {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
                 <span class="badge bg-danger rounded-pill">
-                    {{ forms_report_total|add:screening_report_total|add:enrollment_report_total }}
+                    {{ forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total }}
                 </span>
                 {% endif %}
             </a>
             {% endif %}
-
+            {% if forms_report_total %}
             <a href="{% url 'reports:data_quality_report' %}" class="d-flex align-items-center justify-content-between">
                 <div>
                     <i class="fas fa-file-csv me-2"></i>
                     <span>Forms</span>
                 </div>
-                {% if forms_report_total %}
                 <span class="badge bg-danger rounded-pill">
                     {{ forms_report_total }}
                 </span>
-                {% endif %}
             </a>
+            {% endif %}
             {% if user.is_superuser %}
+            {% if screening_report_total %}
 
             <a href="{% url 'reports:screening_quality_report' %}">
                 <i class="fas fa-user-check"></i> Screening
-                {% if screening_report_total %}
                 <span class="badge bg-danger rounded-pill ms-auto">
                     {{ screening_report_total }}
                 </span>
-                {% endif %}
             </a>
+            {% endif %}
+            {% if enrollment_report_total %}
             <a href="{% url 'reports:enrollment_quality_report' %}">
                 <i class="fas fa-user-plus"></i> Enrollment
-                {% if enrollment_report_total %}
                 <span class="badge bg-danger rounded-pill ms-auto">
                     {{ enrollment_report_total }}
                 </span>
-                {% endif %}
             </a>
+            {% endif %}
+            {% if clinic_report_total %}
             <a href="{% url 'reports:clinic_quality_report' %}">
                 <i class="fas fa-vial"></i> Clinic
-                {% if report_clinic %}
                 <span class="badge bg-danger rounded-pill ms-auto">
-                    {{ report_clinic }}
+                    {{ clinic_report_total }}
                 </span>
-                {% endif %}
             </a>
+            {% endif %}
+            {% if diagnosis_report_total %}
             <a href="{% url 'reports:diagnosis_quality_report' %}">
                 <i class="fas fa-stethoscope"></i> Diagnosis
-                {% if report_diagnosis %}
                 <span class="badge bg-danger rounded-pill ms-auto">
-                    {{ report_diagnosis }}
+                    {{ diagnosis_report_total }}
                 </span>
-                {% endif %}
             </a>
+            {% endif %}
+            {% if regimen_report_total %}
             <a href="{% url 'reports:regimen_quality_report' %}">
                 <i class="fas fa-exchange-alt"></i> Regimen
-                {% if report_regimen %}
                 <span class="badge bg-danger rounded-pill ms-auto">
-                    {{ report_regimen }}
+                    {{ regimen_report_total }}
                 </span>
-                {% endif %}
             </a>
+            {% endif %}
+            {% if zonal_report_total %}
             <a href="{% url 'reports:zonal_quality_report' %}">
                 <i class="fas fa-microscope"></i> Zonal
-                {% if report_zonal %}
                 <span class="badge bg-danger rounded-pill ms-auto">
-                    {{ report_zonal }}
+                    {{ zonal_report_total }}
                 </span>
-                {% endif %}
             </a>
+            {% endif %}
             {% endif %}
         </div>
     </div>

@@ -1,4 +1,3 @@
-# utils/context_processors.py
 from django.apps import apps
 from django.db.models import Q
 from utils.permissions import filter_queryset_by_user_role
@@ -6,7 +5,7 @@ from utils.permissions import filter_queryset_by_user_role
 def diagnosis_report_total(request):
     """
     Returns total diagnosis issues count for navbar:
-    - Counts diagnoses with missing required fields
+    - Counts Diagnosis records with missing required fields
     """
     diagnosis_total = 0
 
@@ -19,14 +18,21 @@ def diagnosis_report_total(request):
 
     # --- Required fields to check ---
     required_fields = [
-        'enrollment_date', 'cough2weeks', 'poor_weight', 'coughing_blood',
-        'unexplained_fever', 'night_sweats', 'neck_lymph', 'history_tb',
-        'date_information_collected', 'tx_previous'
+        "tb_diagnosis",
+        "tb_diagnosis_date",
+        "tb_diagnosis_made",
+        "bacteriological_diagnosis",
+        "tb_treatment",
+        "tb_treatment_date",
+        "tb_facility",
+        "tb_regimen",
+        "tb_outcome2",
     ]
 
     for d in diagnoses:
         for field in required_fields:
-            if not getattr(d, field):
+            value = getattr(d, field)
+            if value in [None, "", False]:
                 diagnosis_total += 1
                 break  # Count each diagnosis only once
 

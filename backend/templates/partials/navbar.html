@@ -1,8 +1,9 @@
-<div class="navbar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #003366; color: white; border-bottom: 2px solid #002244;">
+<div class="navbar"
+    style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #003366; color: white; border-bottom: 2px solid #002244;">
     <!-- Left side: toggle + title -->
     <div style="display: flex; align-items: center;">
-        <button class="toggle-btn" onclick="toggleSidebar()" 
-                style="margin-right: 15px; background: none; border: none; color: white; cursor: pointer; font-size: 1.4rem;">
+        <button class="toggle-btn" onclick="toggleSidebar()"
+            style="margin-right: 15px; background: none; border: none; color: white; cursor: pointer; font-size: 1.4rem;">
             <i class="fas fa-bars"></i>
         </button>
 
@@ -17,14 +18,22 @@
         <!-- Notifications / Messages Icon -->
         <a href="{% url 'reports:notifications-list' %}" class="icon-btn">
             <i class="fas fa-envelope"></i>
-            <span class="badge">{{ report_total }}</span>
+            {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
+            <span class="badge">
+                {{ forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total }}
+            </span>
+            {% endif %}
         </a>
 
         <!-- Alerts Icon -->
         <a href="{% url 'reports:alerts-list' %}" class="icon-btn">
             <i class="fas fa-bell"></i>
-            <span class="badge">{{ report_total }}</span>
-        </a>
+            {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
+            <span class="badge">
+                {{ forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total }}
+            </span>
+            {% endif %}
+         </a>
 
         <!-- Profile Dropdown -->
         {% if user.is_authenticated %}
@@ -44,65 +53,70 @@
 
 <!-- CSS -->
 <style>
-.icon-btn {
-    position: relative;
-    color: white;
-    font-size: 1.2rem;
-    text-decoration: none;
-}
-.icon-btn .badge {
-    position: absolute;
-    top: -5px;
-    right: -10px;
-    background: red;
-    color: white;
-    border-radius: 50%;
-    font-size: 0.7rem;
-    padding: 2px 5px;
-}
+    .icon-btn {
+        position: relative;
+        color: white;
+        font-size: 1.2rem;
+        text-decoration: none;
+    }
 
-/* Profile dropdown */
-.dropdown {
-    position: relative;
-}
-.btn-profile {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 1.2rem;
-}
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    background: white;
-    color: black;
-    border-radius: 5px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    min-width: 150px;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.dropdown-menu a {
-    display: block;
-    padding: 10px 15px;
-    text-decoration: none;
-    color: black;
-}
-.dropdown-menu a:hover {
-    background-color: #f0f0f0;
-}
+    .icon-btn .badge {
+        position: absolute;
+        top: -5px;
+        right: -10px;
+        background: red;
+        color: white;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        padding: 2px 5px;
+    }
 
-/* Show dropdown on hover */
-.dropdown:hover .dropdown-menu {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
+    /* Profile dropdown */
+    .dropdown {
+        position: relative;
+    }
+
+    .btn-profile {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 1.2rem;
+    }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        background: white;
+        color: black;
+        border-radius: 5px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        min-width: 150px;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .dropdown-menu a {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: black;
+    }
+
+    .dropdown-menu a:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* Show dropdown on hover */
+    .dropdown:hover .dropdown-menu {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
 </style>
