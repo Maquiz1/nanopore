@@ -11,7 +11,6 @@ from utils.roles import get_role_context
 
 
 class DashboardHomeView(ListView):
-    # pass
     model = Screening
     template_name = "dashboard/dashboard.html"
     context_object_name = "object_list"
@@ -34,13 +33,6 @@ class DashboardHomeView(ListView):
             qs = qs.filter(site__district__region__zone_id=zone_id)
         if site_id:
             qs = qs.filter(site_id=site_id)
-            
-        # if zone_id and zone_id.isdigit():
-        #     qs = qs.filter(site__district__region__zone_id=int(zone_id))
-
-        # if site_id and site_id.isdigit():
-        #     qs = qs.filter(site_id=int(site_id))
-
         if start_date and end_date:
             qs = qs.filter(screening_date__range=[start_date, end_date])
         if order_by:
