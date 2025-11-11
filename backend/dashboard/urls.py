@@ -6,6 +6,6 @@ from .views import DashboardHomeView
 app_name = "dashboard"
 
 urlpatterns = [
-    path("", DashboardHomeView.as_view(), name="dashboard"),
+    path("Dashboard", DashboardHomeView.as_view(), name="dashboard"),
     # path("", ScreeningListView.as_view(), name="dashboard"),
 ]
