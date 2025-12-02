@@ -125,6 +125,7 @@ class ZonalLaboratory(models.Model):
     sequencing_delayed_reasons = models.ManyToManyField(NanoporeSequencingDelayedReasons, blank=True, related_name="zonal_laboratory_sequencing_delayed_reasons")
     sequencing_delayed_others = models.TextField(null=True, blank=True)
 
+
     # Nanopore sequencing (no explicit db_index)
     nano_amikacin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_amikacin")
     nano_bedaquiline = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_bedaquiline")
