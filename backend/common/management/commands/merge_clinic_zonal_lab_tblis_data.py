@@ -243,6 +243,7 @@ class Command(BaseCommand):
             
         merged_df.drop(columns=["lj_date"], inplace=True, errors="ignore")
         
+        
         # --- Map microscopy_results to numeric codes ---
         lj_results_map = {
             **dict.fromkeys([
@@ -256,42 +257,41 @@ class Command(BaseCommand):
                 "POSITIVE - 36 Colonies","POSITIVE - 37 Colonies","POSITIVE - 38 Colonies","POSITIVE - 39 Colonies","POSITIVE - 40 Colonies",
                 "POSITIVE - 41 Colonies","POSITIVE - 42 Colonies","POSITIVE - 43 Colonies","POSITIVE - 44 Colonies","POSITIVE - 45 Colonies",
                 "POSITIVE - 46 Colonies","POSITIVE - 47 Colonies","POSITIVE - 48 Colonies","POSITIVE - 49 Colonies","POSITIVE - 50 Colonies",
-                ], 1),
+            ], 1),
             **dict.fromkeys(["POSITIVE - 1+ Colonies"], 2),
             **dict.fromkeys(["POSITIVE - 2+ Colonies","POSITIVE - More than 20 Colonies"], 3),
             **dict.fromkeys(["POSITIVE - 3+ Colonies","POSITIVE","POSITIVE - Confluent Growth","POSITIVE - Innumerable Colonies"], 4),
             **dict.fromkeys(["NEGATIVE"], 5),
             **dict.fromkeys(["CONTAMINATED"], 6),
             **dict.fromkeys(["POSITIVE   4+ AFBs Seen"], 0),
-            }
-        
-        id_results_map = {          
+        }
+
+        id_results_map = {
             **dict.fromkeys(["Mycobacteria other than M.tuberculosis","Negative"], 7),
             **dict.fromkeys([
-                "Mycobacteria tuberculosis complex","Not Applicable","Not done","Positive","Presumptive M.tuberculosis complex","See comment",
-                ], 0),
-            }
-        
-        # Map TBLIS lj_results to numeric codes
+                "Mycobacteria tuberculosis complex","Not Applicable","Not done",
+                "Positive","Presumptive M.tuberculosis complex","See comment"
+            ], 0),
+        }
+
+        # --- Map id_results ---
+        if "id_res" in merged_df.columns:
+            merged_df["id_res"] = merged_df["id_res"].map(id_results_map)
+
+        # --- Map LJ results ---
         if "lj_res" in merged_df.columns:
             merged_df["lj_res"] = merged_df["lj_res"].map(lj_results_map)
 
-        # --- Replace EDCS lj_results with TBLIS values if available ---
-        if "lj_res" in merged_df.columns:
-            merged_df["lj_results"] = merged_df["lj_res"]
+        # --- Set final lj_results from TBLIS initially ---
+        merged_df["lj_results"] = merged_df["lj_res"]
 
-        # --- Rename final lj_results column ---
-        # merged_df.rename(columns={"lj_results_edcs": "lj_results"}, inplace=True)
-        
-        # --- Drop TBLIS lj_res column ---
+        # --- Override rule: if id_res == 7, replace lj_results with 7 ---
+        merged_df.loc[merged_df["id_res"] == 7, "lj_results"] = 7
+
+        # --- Drop intermediate column ---
         merged_df.drop(columns=["lj_res"], inplace=True, errors="ignore")
-        
+        merged_df.drop(columns=["id_res"], inplace=True, errors="ignore")
 
-        # --- Replace EDCS date with TBLIS rctdate if available ---
-        if "mgit_entrydate" in merged_df.columns:
-            merged_df["mgit_inoculation_date"] = merged_df["mgit_entrydate"]
-            
-        merged_df.drop(columns=["mgit_entrydate"], inplace=True, errors="ignore")
         
         
         # --- Replace EDCS date with TBLIS rctdate if available ---
