@@ -342,7 +342,7 @@ class Command(BaseCommand):
             **dict.fromkeys(["MTB Not Detected"], 5),
         }
         
-        #13(c). Rifampicin
+        #13(a). Rifampicin
         # --- Step 1:  ---
         if "ljdst1_rifampicin" in merged_df.columns:
             merged_df["rifampicin"] = merged_df["ljdst1_rifampicin"].map(phenotypic_results_map)
@@ -366,6 +366,122 @@ class Command(BaseCommand):
             merged_df.drop(columns=["ljdst1_rifampicin"], inplace=True, errors="ignore")
             merged_df.drop(columns=["mgitdst1_rifampicin"], inplace=True, errors="ignore")
 
+        #Xpert XDR
+        # Map TBLIS Xpert XDR RESULTS to numeric codes       
+        xpert_xdr_results_map = {
+            **dict.fromkeys(["Resistance Detected","Resistance Inferred","Resistant"], 1),
+            **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
+            **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
+            **dict.fromkeys(["MTB Not Detected"], 0),
+        }
+        
+        #15(a). Isoniazid
+        # --- Step 1:  ---
+        if "gxxdr_isoniazid" in merged_df.columns:
+            merged_df["isoniazid3"] = merged_df["gxxdr_isoniazid"].map(xpert_xdr_results_map)
+            
+        merged_df.drop(columns=["gxxdr_isoniazid"], inplace=True, errors="ignore")
+        
+        
+        #First-Line LPA
+        # Map TBLIS 17(c). MTB result on LPA1: to numeric codes       
+        lpa1_mtb_results_map = {
+            **dict.fromkeys(["MTBC Detected"], 1),
+            **dict.fromkeys(["MTBC Not Detected"], 2),
+            **dict.fromkeys(["Invalid"], 3),
+        }
+        
+        #17(c). MTB result on LPA1:
+        # --- Step 1:  ---
+        if "lpa1_mtbc" in merged_df.columns:
+            merged_df["lpa1_mtb"] = merged_df["lpa1_mtbc"].map(lpa1_mtb_results_map)
+            
+        merged_df.drop(columns=["lpa1_mtbc"], inplace=True, errors="ignore")
+        
+        
+        # Map TBLIS 17(d). RIF result: to numeric codes       
+        lpa1_rif_results_map = {
+            **dict.fromkeys(["Resistance Detected","Resistant"], 1),
+            **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
+            **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
+            **dict.fromkeys(["Resistance Inferred"], 4),
+            **dict.fromkeys(["MTB Not Detected"], 0),
+        }
+        
+        #17(d). RIF result:
+        # --- Step 1:  ---
+        if "lpa1_rifampicin" in merged_df.columns:
+            merged_df["lpa1_rif"] = merged_df["lpa1_rifampicin"].map(lpa1_rif_results_map)
+            
+        merged_df.drop(columns=["lpa1_rifampicin"], inplace=True, errors="ignore")
+        
+        
+        # Map TBLIS 17(e). INH result: to numeric codes       
+        lpa1_inh_results_map = {
+            **dict.fromkeys(["Resistance Detected","Resistant"], 1),
+            **dict.fromkeys(["Resistance not Detected","Sensitive"], 3),
+            **dict.fromkeys(["Resistance Indeterminate","Indeterminate"], 4),
+            **dict.fromkeys(["Resistance Inferred"], 5),
+            **dict.fromkeys(["MTB Not Detected"], 0),
+        }
+        
+        #17(e). INH result:
+        # --- Step 1:  ---
+        if "lpa1_isoniazid" in merged_df.columns:
+            merged_df["lpa1_inh"] = merged_df["lpa1_isoniazid"].map(lpa1_inh_results_map)
+            
+        merged_df.drop(columns=["lpa1_isoniazid"], inplace=True, errors="ignore")
+        
+        
+        #Second-Line LPA
+        # Map TBLIS 19(c). MTB result on LPA2 to numeric codes       
+        lpa2_mtb_results_map = {
+            **dict.fromkeys(["MTBC Detected"], 1),
+            **dict.fromkeys(["MTBC Not Detected"], 2),
+            **dict.fromkeys(["Invalid"], 3),
+        }
+        
+        #19(c). MTB result on LPA2
+        # --- Step 1:  ---
+        if "lpa2_mtbc" in merged_df.columns:
+            merged_df["lpa2_mtb"] = merged_df["lpa2_mtbc"].map(lpa2_mtb_results_map)
+            
+        merged_df.drop(columns=["lpa2_mtbc"], inplace=True, errors="ignore")
+        
+        
+        # Map TBLIS 19(d). RFluoroquinolones on LPA2 to numeric codes       
+        lpa2_rfluoroquinolones_results_map = {
+            **dict.fromkeys(["Resistance Detected","Resistant"], 1),
+            **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
+            **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
+            **dict.fromkeys(["Resistance Inferred"], 4),
+            **dict.fromkeys(["MTB Not Detected"], 0),
+        }
+        
+        #19(d). RFluoroquinolones on LPA2
+        # --- Step 1:  ---
+        if "lpa2_flq" in merged_df.columns:
+            merged_df["lpa2_rfluoroquinolones"] = merged_df["lpa2_flq"].map(lpa2_rfluoroquinolones_results_map)
+            
+        merged_df.drop(columns=["lpa2_flq"], inplace=True, errors="ignore")
+        
+        
+        # Map TBLIS 19(d). RFluoroquinolones on LPA2 to numeric codes       
+        lpa2_rfluoroquinolones_results_map = {
+            **dict.fromkeys(["Resistance Detected","Resistant"], 1),
+            **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
+            **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
+            **dict.fromkeys(["Resistance Inferred"], 4),
+            **dict.fromkeys(["MTB Not Detected"], 0),
+        }
+        
+        #19(e). Aminoglycosides on LPA2
+        # --- Step 1:  ---
+        if "lpa2_ag_cp" in merged_df.columns:
+            merged_df["lpa2_aminoglycosides"] = merged_df["lpa2_ag_cp"].map(lpa2_rfluoroquinolones_results_map)
+            
+        merged_df.drop(columns=["lpa2_ag_cp"], inplace=True, errors="ignore")
+        
             
         # --- Keep only specific EDCS columns + all TBLIS columns ---
         edcs_cols = ["pid", "date_sputum_received", "unique_lab_no", "culture_performed"]
