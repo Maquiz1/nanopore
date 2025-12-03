@@ -342,11 +342,12 @@ class Command(BaseCommand):
             **dict.fromkeys(["MTB Not Detected"], 5),
         }
         
+        #13(c). Rifampicin
         # --- Step 1:  ---
         if "ljdst1_rifampicin" in merged_df.columns:
-            merged_df["phenotypic_results"] = merged_df["ljdst1_rifampicin"].map(phenotypic_results_map)
+            merged_df["rifampicin"] = merged_df["ljdst1_rifampicin"].map(phenotypic_results_map)
         else:
-            merged_df["phenotypic_results"] = None
+            merged_df["rifampicin"] = None
         
         # --- Step 2: Override using MGIT DST if needed ---
         if "mgitdst1_rifampicin" in merged_df.columns:
@@ -355,9 +356,9 @@ class Command(BaseCommand):
 
             # Override if phenotypic_results is 5 OR NaN/empty
             merged_df.loc[
-                (merged_df["phenotypic_results"].isna()) | 
-                (merged_df["phenotypic_results"] == 5),
-                "phenotypic_results"
+                (merged_df["rifampicin"].isna()) | 
+                (merged_df["rifampicin"] == 5),
+                "rifampicin"
             ] = merged_df["mgit_pheno_tmp"]
 
             # Clean temporary column
