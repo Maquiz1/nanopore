@@ -290,8 +290,7 @@ class Command(BaseCommand):
             **dict.fromkeys(["POSITIVE"], 1),
             **dict.fromkeys(["NEGATIVE"], 2),
             **dict.fromkeys(["Contaminated"], 3),
-            **dict.fromkeys(["NEGATIVE"], 4),
-            **dict.fromkeys(["POSITIVE   4+ AFBs Seen"], 0),
+            **dict.fromkeys(["POSITIVE FOR NTM"], 4),
             }
         
         # Map TBLIS mgit_results to numeric codes
