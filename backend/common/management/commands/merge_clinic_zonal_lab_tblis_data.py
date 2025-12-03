@@ -285,6 +285,29 @@ class Command(BaseCommand):
             
         merged_df.drop(columns=["mgit_date"], inplace=True, errors="ignore")
         
+        # --- Map mgit_results to numeric codes ---
+        mgit_results_map = {
+            **dict.fromkeys(["POSITIVE"], 1),
+            **dict.fromkeys(["NEGATIVE"], 2),
+            **dict.fromkeys(["Contaminated"], 3),
+            **dict.fromkeys(["NEGATIVE"], 4),
+            **dict.fromkeys(["POSITIVE   4+ AFBs Seen"], 0),
+            }
+        
+        # Map TBLIS mgit_results to numeric codes
+        if "mgit_res" in merged_df.columns:
+            merged_df["mgit_res"] = merged_df["mgit_res"].map(mgit_results_map)
+
+        # --- Replace EDCS mgit_results with TBLIS values if available ---
+        if "mgit_res" in merged_df.columns:
+            merged_df["mgit_results"] = merged_df["mgit_res"]
+
+        # --- Rename final mgit_results column ---
+        # merged_df.rename(columns={"mgit_results_edcs": "mgit_results"}, inplace=True)
+
+        # --- Drop TBLIS appearance column ---
+        merged_df.drop(columns=["mgit_res"], inplace=True, errors="ignore")
+        
 
         # --- Keep only specific EDCS columns + all TBLIS columns ---
         edcs_cols = ["pid", "date_sputum_received", "unique_lab_no", "culture_performed"]
