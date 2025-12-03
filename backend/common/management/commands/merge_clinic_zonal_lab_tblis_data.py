@@ -271,6 +271,21 @@ class Command(BaseCommand):
                 "Mycobacteria tuberculosis complex","Not Applicable","Not done","Positive","Presumptive M.tuberculosis complex","See comment",
                 ], 0),
             }
+        
+        # Map TBLIS lj_results to numeric codes
+        if "lj_res" in merged_df.columns:
+            merged_df["lj_res"] = merged_df["lj_res"].map(lj_results_map)
+
+        # --- Replace EDCS lj_results with TBLIS values if available ---
+        if "lj_res" in merged_df.columns:
+            merged_df["lj_results"] = merged_df["lj_res"]
+
+        # --- Rename final lj_results column ---
+        # merged_df.rename(columns={"lj_results_edcs": "lj_results"}, inplace=True)
+        
+        # --- Drop TBLIS lj_res column ---
+        merged_df.drop(columns=["lj_res"], inplace=True, errors="ignore")
+        
 
         # --- Replace EDCS date with TBLIS rctdate if available ---
         if "mgit_entrydate" in merged_df.columns:
