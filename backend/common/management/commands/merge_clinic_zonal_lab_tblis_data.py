@@ -319,10 +319,33 @@ class Command(BaseCommand):
         # --- Rename final mgit_results column ---
         # merged_df.rename(columns={"mgit_results_edcs": "mgit_results"}, inplace=True)
 
-        # --- Drop TBLIS appearance column ---
+        # --- Drop TBLIS mgit_res column ---
         merged_df.drop(columns=["mgit_res"], inplace=True, errors="ignore")
         
 
+        # Standardize empty strings to NaN
+        merged_df["mgitdst1_date"] = merged_df["mgitdst1_date"].replace("", None)
+        merged_df["mgitdst2_date"] = merged_df["mgitdst2_date"].replace("", None)
+
+        # Create final phenotypic_date_results using fm_date first, then zn_date
+        merged_df["phenotypic_date_results"] = merged_df["mgitdst1_date"].combine_first(merged_df["mgitdst2_date"])
+
+        # Drop original columns
+        merged_df.drop(columns=["mgitdst1_date", "mgitdst2_date"], inplace=True, errors="ignore")
+        
+        #Phenotypic DST RESULTS
+        # Map TBLIS phenotypic_results to numeric codes       
+        phenotypic_results_map = {
+            **dict.fromkeys(["Resistance Detected","Resistance Inferred","Resistant"], 1),
+            **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
+            **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
+            **dict.fromkeys(["MTB Not Detected"], 5),
+        }
+        
+        if "mgitdst1_res" in merged_df.columns:
+            merged_df["phenotypic_results"] = merged_df["mgitdst1_res"].map(phenotypic_results_map)
+        
+        
         # --- Keep only specific EDCS columns + all TBLIS columns ---
         edcs_cols = ["pid", "date_sputum_received", "unique_lab_no", "culture_performed"]
         existing_edcs_cols = [col for col in edcs_cols if col in merged_df.columns]
