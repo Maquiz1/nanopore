@@ -342,10 +342,30 @@ class Command(BaseCommand):
             **dict.fromkeys(["MTB Not Detected"], 5),
         }
         
-        if "mgitdst1_res" in merged_df.columns:
-            merged_df["phenotypic_results"] = merged_df["mgitdst1_res"].map(phenotypic_results_map)
+        # --- Step 1:  ---
+        if "ljdst1_rifampicin" in merged_df.columns:
+            merged_df["phenotypic_results"] = merged_df["ljdst1_rifampicin"].map(phenotypic_results_map)
+        else:
+            merged_df["phenotypic_results"] = None
         
-        
+        # --- Step 2: Override using MGIT DST if needed ---
+        if "mgitdst1_rifampicin" in merged_df.columns:
+        # Map mgit dst results first
+            merged_df["mgit_pheno_tmp"] = merged_df["mgitdst1_rifampicin"].map(phenotypic_results_map)
+
+            # Override if phenotypic_results is 5 OR NaN/empty
+            merged_df.loc[
+                (merged_df["phenotypic_results"].isna()) | 
+                (merged_df["phenotypic_results"] == 5),
+                "phenotypic_results"
+            ] = merged_df["mgit_pheno_tmp"]
+
+            # Clean temporary column
+            merged_df.drop(columns=["mgit_pheno_tmp"], inplace=True, errors="ignore")
+            merged_df.drop(columns=["ljdst1_rifampicin"], inplace=True, errors="ignore")
+            merged_df.drop(columns=["mgitdst1_rifampicin"], inplace=True, errors="ignore")
+
+            
         # --- Keep only specific EDCS columns + all TBLIS columns ---
         edcs_cols = ["pid", "date_sputum_received", "unique_lab_no", "culture_performed"]
         existing_edcs_cols = [col for col in edcs_cols if col in merged_df.columns]
