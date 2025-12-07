@@ -87,15 +87,6 @@ class Command(BaseCommand):
             return 1       # LJ present → culture performed (1)
 
         merged_df["culture_performed"] = merged_df.apply(get_culture_performed, axis=1)
-
-
-        # Appearance Mapping to numeric codes
-        # appearance_map = {
-        #     "Salivary": 1,
-        #     "Mucoid": 2,
-        #     "Purulent": 3,
-        #     "Bloody": 5
-        # }
         
         appearance_map = {
             **dict.fromkeys(["Salivary", "Clear", "Colourless","Mucosalivary","Salivary"], 1),
@@ -191,15 +182,6 @@ class Command(BaseCommand):
 
         # --- Culture Method Logic ---
         # # Standardize blanks
-        # merged_df["lj_innocdate"] = merged_df["lj_innocdate"].replace("", pd.NA)
-        # merged_df["mgit_entrydate"] = merged_df["mgit_entrydate"].replace("", pd.NA)
-
-        # # Initialize culture_method based on lj_innocdate
-        # merged_df["culture_method"] = merged_df["lj_innocdate"].notna().map({True: 1, False: 2})
-
-        # # Override with mgit_entrydate if exists
-        # merged_df.loc[merged_df["mgit_entrydate"].notna(), "culture_method"] = 2
-
         def get_culture_method(row):
             lj = row.get("lj_innocdate")
             mgit = row.get("mgit_entrydate")
@@ -396,25 +378,7 @@ class Command(BaseCommand):
         # --- Step 1:  ---
         if "mgitdst2_levofloxacin" in merged_df.columns:
             merged_df["levofloxacin"] = merged_df["mgitdst2_levofloxacin"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["levofloxacin"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_levofloxacin"], inplace=True, errors="ignore")
         
         
@@ -422,50 +386,14 @@ class Command(BaseCommand):
         # --- Step 1:  ---
         if "mgitdst2_bedaquiline" in merged_df.columns:
             merged_df["bedaquiline"] = merged_df["mgitdst2_bedaquiline"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["bedaquiline"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_bedaquiline"], inplace=True, errors="ignore")
 
         #13(f). Linezolid
         # --- Step 1:  ---
         if "mgitdst2_linezolid" in merged_df.columns:
             merged_df["linezolid"] = merged_df["mgitdst2_linezolid"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["linezolid"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_linezolid"], inplace=True, errors="ignore")
         
         
@@ -473,50 +401,14 @@ class Command(BaseCommand):
         # --- Step 1:  ---
         if "mgitdst2_clofazimine" in merged_df.columns:
             merged_df["clofazimine"] = merged_df["mgitdst2_clofazimine"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["clofazimine"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_clofazimine"], inplace=True, errors="ignore")
      
         #13(h). Cycloserine
         # --- Step 1:  ---
         if "mgitdst2_cycloserine" in merged_df.columns:
             merged_df["cycloserine"] = merged_df["mgitdst2_cycloserine"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["cycloserine"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_cycloserine"], inplace=True, errors="ignore")   
         
         #13(j). Ethambutol
@@ -549,25 +441,7 @@ class Command(BaseCommand):
         # --- Step 1:  ---
         if "mgitdst2_delamanid" in merged_df.columns:
             merged_df["delamanid"] = merged_df["mgitdst2_delamanid"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["cycloserine"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_delamanid"], inplace=True, errors="ignore") 
         
         
@@ -575,25 +449,7 @@ class Command(BaseCommand):
         # --- Step 1:  ---
         if "mgitdst2_ethionamide" in merged_df.columns:
             merged_df["ethionamide"] = merged_df["mgitdst2_ethionamide"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["cycloserine"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_ethionamide"], inplace=True, errors="ignore")
         
         
@@ -601,25 +457,7 @@ class Command(BaseCommand):
         # --- Step 1:  ---
         if "mgitdst2_prothionamide" in merged_df.columns:
             merged_df["prothionamide"] = merged_df["mgitdst2_prothionamide"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["cycloserine"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
-
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
             
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_prothionamide"], inplace=True, errors="ignore")
         
         
@@ -627,25 +465,7 @@ class Command(BaseCommand):
         # --- Step 1:  ---
         if "mgitdst2_pas" in merged_df.columns:
             merged_df["para_aminosalicylic_acid"] = merged_df["mgitdst2_pas"].map(phenotypic_results_map)
-        # else:
-        #     merged_df["cycloserine"] = None
-        
-        # # --- Step 2: Override using MGIT DST if needed ---
-        # if "mgitdst1_levofloxacin" in merged_df.columns:
-        # # Map mgit dst results first
-        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
 
-        #     # Override if phenotypic_results is 5 OR NaN/empty
-        #     merged_df.loc[
-        #         (merged_df["levofloxacin"].isna()) | 
-        #         (merged_df["levofloxacin"] == 5),
-        #         "levofloxacin"
-        #     ] = merged_df["mgit_levofloxacin_tmp"]
-
-        #     # Clean temporary column
-        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
-            
-        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_pas"], inplace=True, errors="ignore")
         
         #Xpert XDR
@@ -660,9 +480,6 @@ class Command(BaseCommand):
         # 14(b). Date of performing Xpert XDR testing?
         
         if "gxxdr_date" in merged_df.columns:
-            # merged_df["date_sputum_received"] = merged_df["rctdate"].combine_first(
-            #     merged_df["date_sputum_received"]
-            # )
             merged_df["xpert_xdr_date_performed"] = merged_df["gxxdr_date"]
             
         merged_df.drop(columns=["gxxdr_date"], inplace=True, errors="ignore")
@@ -842,7 +659,7 @@ class Command(BaseCommand):
             "appearance",
             "sample_volume",
             "unique_lab_no",
-            "labno",
+            # "labno",
 
             "culture_performed",
             "culture_method",
@@ -951,6 +768,7 @@ class Command(BaseCommand):
         merged_df.to_csv(output_csv, index=False)
 
         total_columns = len(merged_df.columns)
+        # print("Total number of columns:", len(selected_columns))
 
         # --- Output summary ---
         self.stdout.write(self.style.SUCCESS("\n✅ Merge Completed Successfully!"))
