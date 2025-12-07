@@ -244,7 +244,7 @@ class Command(BaseCommand):
         merged_df.drop(columns=["lj_date"], inplace=True, errors="ignore")
         
         
-        # --- Map microscopy_results to numeric codes ---
+        # --- Map LJ CULTURE results to numeric codes ---
         lj_results_map = {
             **dict.fromkeys([
                 "POSITIVE - 1 Colony","POSITIVE - 2 Colonies","POSITIVE - 3 Colonies","POSITIVE - 4 Colonies","POSITIVE - 5 Colonies",
@@ -649,6 +649,19 @@ class Command(BaseCommand):
         merged_df.drop(columns=["mgitdst2_pas"], inplace=True, errors="ignore")
         
         #Xpert XDR
+        
+        # --- Replace EDCS xpert_xdr_performed with TBLIS gxxdr_date if available ---
+        # 14(b). Date of performing Xpert XDR testing?
+        
+        if "gxxdr_date" in merged_df.columns:
+            # merged_df["date_sputum_received"] = merged_df["rctdate"].combine_first(
+            #     merged_df["date_sputum_received"]
+            # )
+            merged_df["xpert_xdr_date_performed"] = merged_df["gxxdr_date"]
+            
+        merged_df.drop(columns=["gxxdr_date"], inplace=True, errors="ignore")
+        
+        
         # Map TBLIS Xpert XDR RESULTS to numeric codes       
         xpert_xdr_results_map = {
             **dict.fromkeys(["Resistance Detected","Resistance Inferred","Resistant"], 1),
@@ -660,9 +673,45 @@ class Command(BaseCommand):
         #15(a). Isoniazid
         # --- Step 1:  ---
         if "gxxdr_isoniazid" in merged_df.columns:
-            merged_df["isoniazid3"] = merged_df["gxxdr_isoniazid"].map(xpert_xdr_results_map)
+            merged_df["xpert_xdr_isoniazid"] = merged_df["gxxdr_isoniazid"].map(xpert_xdr_results_map)
             
         merged_df.drop(columns=["gxxdr_isoniazid"], inplace=True, errors="ignore")
+        
+        #15(b). Fluoroquinolones
+        # --- Step 1:  ---
+        if "gxxdr_flq" in merged_df.columns:
+            merged_df["xpert_xdr_fluoroquinolones"] = merged_df["gxxdr_flq"].map(xpert_xdr_results_map)
+            
+        merged_df.drop(columns=["gxxdr_flq"], inplace=True, errors="ignore")
+        
+        #15(c). Amikacin
+        # --- Step 1:  ---
+        if "gxxdr_amikacin" in merged_df.columns:
+            merged_df["xpert_xdr_amikacin"] = merged_df["gxxdr_amikacin"].map(xpert_xdr_results_map)
+            
+        merged_df.drop(columns=["gxxdr_amikacin"], inplace=True, errors="ignore")
+        
+        #15(d). Kanamycin
+        # --- Step 1:  ---
+        if "gxxdr_kanamycin" in merged_df.columns:
+            merged_df["xpert_xdr_kanamycin"] = merged_df["gxxdr_kanamycin"].map(xpert_xdr_results_map)
+            
+        merged_df.drop(columns=["gxxdr_kanamycin"], inplace=True, errors="ignore")
+        
+        
+        #15(e). Capreomycin
+        # --- Step 1:  ---
+        if "gxxdr_capreomycin" in merged_df.columns:
+            merged_df["xpert_xdr_capreomycin"] = merged_df["gxxdr_capreomycin"].map(xpert_xdr_results_map)
+            
+        merged_df.drop(columns=["gxxdr_capreomycin"], inplace=True, errors="ignore")
+        
+        #15(f). Ethionamide
+        # --- Step 1:  ---
+        if "gxxdr_ethionamide" in merged_df.columns:
+            merged_df["xpert_xdr_ethionamide"] = merged_df["gxxdr_ethionamide"].map(xpert_xdr_results_map)
+            
+        merged_df.drop(columns=["gxxdr_ethionamide"], inplace=True, errors="ignore")
         
         
         #First-Line LPA
@@ -732,7 +781,7 @@ class Command(BaseCommand):
         
         
         # Map TBLIS 19(d). RFluoroquinolones on LPA2 to numeric codes       
-        lpa2_rfluoroquinolones_results_map = {
+        lpa2_results_map = {
             **dict.fromkeys(["Resistance Detected","Resistant"], 1),
             **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
             **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
@@ -743,26 +792,24 @@ class Command(BaseCommand):
         #19(d). RFluoroquinolones on LPA2
         # --- Step 1:  ---
         if "lpa2_flq" in merged_df.columns:
-            merged_df["lpa2_rfluoroquinolones"] = merged_df["lpa2_flq"].map(lpa2_rfluoroquinolones_results_map)
+            merged_df["lpa2_rfluoroquinolones"] = merged_df["lpa2_flq"].map(lpa2_results_map)
             
         merged_df.drop(columns=["lpa2_flq"], inplace=True, errors="ignore")
         
         
-        # Map TBLIS 19(d). RFluoroquinolones on LPA2 to numeric codes       
-        lpa2_rfluoroquinolones_results_map = {
-            **dict.fromkeys(["Resistance Detected","Resistant"], 1),
-            **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
-            **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
-            **dict.fromkeys(["Resistance Inferred"], 4),
-            **dict.fromkeys(["MTB Not Detected"], 0),
-        }
-        
         #19(e). Aminoglycosides on LPA2
         # --- Step 1:  ---
         if "lpa2_ag_cp" in merged_df.columns:
-            merged_df["lpa2_aminoglycosides"] = merged_df["lpa2_ag_cp"].map(lpa2_rfluoroquinolones_results_map)
+            merged_df["lpa2_aminoglycosides"] = merged_df["lpa2_ag_cp"].map(lpa2_results_map)
             
         merged_df.drop(columns=["lpa2_ag_cp"], inplace=True, errors="ignore")
+        
+        #19(f). Kanamycin on LPA2
+        # --- Step 1:  ---
+        if "lpa2_low_kan" in merged_df.columns:
+            merged_df["lpa2_kanamycin"] = merged_df["lpa2_low_kan"].map(lpa2_results_map)
+            
+        merged_df.drop(columns=["lpa2_low_kan"], inplace=True, errors="ignore")
         
             
         # --- Keep only specific EDCS columns + all TBLIS columns ---
