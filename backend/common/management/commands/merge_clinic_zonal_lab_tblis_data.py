@@ -835,6 +835,8 @@ class Command(BaseCommand):
             missing_summary = merged_df[merged_df['labno'].isna()][["unique_lab_no"]]
             missing_summary.to_csv(output_csv.replace(".csv", "_missing.csv"), index=False)
 
+        merged_df = merged_df[["pid", "date_sputum_received", "unique_lab_no", "culture_performed"]]
+
         # --- Save output ---
         merged_df.to_csv(output_csv, index=False)
 
