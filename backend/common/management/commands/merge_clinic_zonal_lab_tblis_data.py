@@ -649,7 +649,13 @@ class Command(BaseCommand):
         merged_df.drop(columns=["mgitdst2_pas"], inplace=True, errors="ignore")
         
         #Xpert XDR
-        
+        # Standardize blanks
+        # 14(a). Was Xpert XDR performed?
+        merged_df["gxxdr_date"] = merged_df["gxxdr_date"].replace("", pd.NA)
+
+        # Map xpert_xdr_performed
+        merged_df["xpert_xdr_performed"] = merged_df["gxxdr_date"].notna().map({True: 1, False: 2})
+
         # --- Replace EDCS xpert_xdr_performed with TBLIS gxxdr_date if available ---
         # 14(b). Date of performing Xpert XDR testing?
         
