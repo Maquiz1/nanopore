@@ -596,6 +596,58 @@ class Command(BaseCommand):
         # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
         merged_df.drop(columns=["mgitdst2_ethionamide"], inplace=True, errors="ignore")
         
+        
+        #13(s). Prothionamide
+        # --- Step 1:  ---
+        if "mgitdst2_prothionamide" in merged_df.columns:
+            merged_df["prothionamide"] = merged_df["mgitdst2_prothionamide"].map(phenotypic_results_map)
+        # else:
+        #     merged_df["cycloserine"] = None
+        
+        # # --- Step 2: Override using MGIT DST if needed ---
+        # if "mgitdst1_levofloxacin" in merged_df.columns:
+        # # Map mgit dst results first
+        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
+
+        #     # Override if phenotypic_results is 5 OR NaN/empty
+        #     merged_df.loc[
+        #         (merged_df["levofloxacin"].isna()) | 
+        #         (merged_df["levofloxacin"] == 5),
+        #         "levofloxacin"
+        #     ] = merged_df["mgit_levofloxacin_tmp"]
+
+        #     # Clean temporary column
+        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
+            
+        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
+        merged_df.drop(columns=["mgitdst2_prothionamide"], inplace=True, errors="ignore")
+        
+        
+        #13(t). Para-aminosalicylic acid
+        # --- Step 1:  ---
+        if "mgitdst2_pas" in merged_df.columns:
+            merged_df["para_aminosalicylic_acid"] = merged_df["mgitdst2_pas"].map(phenotypic_results_map)
+        # else:
+        #     merged_df["cycloserine"] = None
+        
+        # # --- Step 2: Override using MGIT DST if needed ---
+        # if "mgitdst1_levofloxacin" in merged_df.columns:
+        # # Map mgit dst results first
+        #     merged_df["mgit_levofloxacin_tmp"] = merged_df["mgitdst1_levofloxacin"].map(phenotypic_results_map)
+
+        #     # Override if phenotypic_results is 5 OR NaN/empty
+        #     merged_df.loc[
+        #         (merged_df["levofloxacin"].isna()) | 
+        #         (merged_df["levofloxacin"] == 5),
+        #         "levofloxacin"
+        #     ] = merged_df["mgit_levofloxacin_tmp"]
+
+        #     # Clean temporary column
+        #     merged_df.drop(columns=["mgit_levofloxacin_tmp"], inplace=True, errors="ignore")
+            
+        # merged_df.drop(columns=["ljdst1_levofloxacin"], inplace=True, errors="ignore")
+        merged_df.drop(columns=["mgitdst2_pas"], inplace=True, errors="ignore")
+        
         #Xpert XDR
         # Map TBLIS Xpert XDR RESULTS to numeric codes       
         xpert_xdr_results_map = {
