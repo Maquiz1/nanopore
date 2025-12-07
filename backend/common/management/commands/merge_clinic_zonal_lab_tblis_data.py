@@ -835,13 +835,126 @@ class Command(BaseCommand):
             missing_summary = merged_df[merged_df['labno'].isna()][["unique_lab_no"]]
             missing_summary.to_csv(output_csv.replace(".csv", "_missing.csv"), index=False)
 
-        merged_df = merged_df[["pid", "date_sputum_received", "unique_lab_no", "culture_performed"]]
+        # merged_df = merged_df[["pid", "date_sputum_received", "unique_lab_no", "labno","appearance","sample_volume","volume","culture_performed","culture_method","microscopy_type"]]
+        merged_df = merged_df[[
+            "pid",
+            "date_sputum_received",
+            "appearance",
+            "sample_volume",
+            "unique_lab_no",
+            "labno",
+
+            "culture_performed",
+            "culture_method",
+
+            "microscopy_type",
+            "microscopy_date",
+            "microscopy_results",
+
+            "lj_inoculation_date",
+            "lj_results_date",
+            "lj_results",
+
+            "mgit_inoculation_date",
+            "mgit_results_date",
+            "mgit_results",
+
+            "culture_isolate",
+            "isolate_date",
+
+            "phenotypic_performed",
+            "phenotypic_date_performed",
+            "phenotypic_date_results",
+
+            # Phenotypic DST drugs
+            "rifampicin",
+            "isoniazid",
+            "levofloxacin",
+            "moxifloxacin",
+            "bedaquiline",
+            "linezolid",
+            "clofazimine",
+            "cycloserine",
+            "terizidone",
+            "ethambutol",
+            "delamanid",
+            "pyrazinamide",
+            "imipenem",
+            "cilastatin",
+            "meropenem",
+            "amikacin",
+            "streptomycin",
+            "ethionamide",
+            "prothionamide",
+            "para_aminosalicylic_acid",
+
+            # Xpert XDR
+            "xpert_xdr_performed",
+            "xpert_xdr_date_performed",
+            "xpert_xdr_isoniazid",
+            "xpert_xdr_fluoroquinolones",
+            "xpert_xdr_amikacin",
+            "xpert_xdr_kanamycin",
+            "xpert_xdr_capreomycin",
+            "xpert_xdr_ethionamide",
+
+            # First-line LPA
+            "first_line_lpa",
+            "first_line_lpa_date",
+            "first_line_drugs",
+            "lpa1_mtb",
+            "lpa1_rif",
+            "lpa1_inh",
+
+            # Second-line LPA
+            "second_line_lpa",
+            "second_line_lpa_date",
+            "second_line_drugs",
+            "lpa2_mtb",
+            "lpa2_rfluoroquinolones",
+            "lpa2_aminoglycosides",
+            "lpa2_kanamycin",
+
+            # Nanopore sequencing
+            "nanopore_done",
+            "sequencing_results",
+            "epi_to_me",
+            "epi_to_me_version",
+            "nanopore_sequencing_date",
+            "epi_to_me_date",
+            "nanopore_results",
+            "sequencing_delayed",
+            "sequencing_delayed_days",
+            "sequencing_delayed_reasons",
+            "sequencing_delayed_others",
+
+            # Nanopore DST results
+            "nano_amikacin",
+            "nano_bedaquiline",
+            "nano_capreomycin",
+            "nano_clofazimine",
+            "nano_delamanid",
+            "nano_ethambutol",
+            "nano_ethionamide",
+            "nano_isoniazid",
+            "nano_kanamycin",
+            "nano_levofloxacin",
+            "nano_linezolid",
+            "nano_moxifloxacin",
+            "nano_pretomanid",
+            "nano_pyrazinamide",
+            "nano_rifampicin",
+            "nano_streptomycin",
+        ]]
 
         # --- Save output ---
         merged_df.to_csv(output_csv, index=False)
 
+        total_columns = len(merged_df.columns)
+
         # --- Output summary ---
         self.stdout.write(self.style.SUCCESS("\n✅ Merge Completed Successfully!"))
+        self.stdout.write(f"📊 Total Columns: {total_columns}")
         self.stdout.write(f"📊 Total records: {total_records}")
         self.stdout.write(f"✅ Matched records: {matched_records}")
         self.stdout.write(f"⚠️ Missing records: {missing_records}")
