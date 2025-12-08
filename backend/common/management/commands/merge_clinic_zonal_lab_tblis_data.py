@@ -119,10 +119,10 @@ class Command(BaseCommand):
 
 
         # --- Replace EDCS dsample_volume with TBLIS volume if available ---
-        if "volume" in merged_df.columns:
-            merged_df["sample_volume"] = merged_df["volume"]
+        # if "volume" in merged_df.columns:
+        #     merged_df["sample_volume"] = merged_df["volume"]
             
-        merged_df.drop(columns=["volume"], inplace=True, errors="ignore")
+        # merged_df.drop(columns=["volume"], inplace=True, errors="ignore")
 
 
         # --- Handle microscopy_type ---
@@ -658,6 +658,7 @@ class Command(BaseCommand):
             "date_sputum_received",
             "appearance",
             "sample_volume",
+            # "volume",
             "unique_lab_no",
             # "labno",
 
