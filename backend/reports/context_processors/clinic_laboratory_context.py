@@ -44,8 +44,8 @@ def clinic_report_total(request):
     # ).count()
 
     # --- Total Issues ---
-    missing_sample_received = 0
-    missing_number_received = 0
+    # missing_sample_received = 0
+    # missing_number_received = 0
     clinic_report_total = missing_sample_received + missing_number_received
 
     return {
