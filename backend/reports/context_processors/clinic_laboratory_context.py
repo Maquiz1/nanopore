@@ -27,6 +27,21 @@ def clinic_report_total(request):
     # missing_number_received = clinics.filter(
     #     Q(number_received__isnull=True) | Q(number_received='') | Q(number_received=False)
     # ).count()
+    
+    # sample_received = ForeignKey
+    missing_sample_received = clinics.filter(
+        sample_received__isnull=True
+    ).count()
+    
+    # number_received = ForeignKey
+    missing_number_received = clinics.filter(
+        number_received__isnull=True
+    ).count()
+
+    # number_received = IntegerField
+    # missing_number_received = clinics.filter(
+    #     Q(number_received__isnull=True) | Q(number_received=0)
+    # ).count()
 
     # --- Total Issues ---
     missing_sample_received = 0
