@@ -20,15 +20,17 @@ def clinic_report_total(request):
     clinics = filter_queryset_by_user_role(request.user, clinics, site_field="screening__site")
 
     # --- Missing Fields Counts ---
-    missing_sample_received = clinics.filter(
-        Q(sample_received__isnull=True) | Q(sample_received='') | Q(sample_received=False)
-    ).count()
+    # missing_sample_received = clinics.filter(
+    #     Q(sample_received__isnull=True) | Q(sample_received='') | Q(sample_received=False)
+    # ).count()
 
-    missing_number_received = clinics.filter(
-        Q(number_received__isnull=True) | Q(number_received='') | Q(number_received=False)
-    ).count()
+    # missing_number_received = clinics.filter(
+    #     Q(number_received__isnull=True) | Q(number_received='') | Q(number_received=False)
+    # ).count()
 
     # --- Total Issues ---
+    missing_sample_received = 0
+    missing_number_received = 0
     clinic_report_total = missing_sample_received + missing_number_received
 
     return {

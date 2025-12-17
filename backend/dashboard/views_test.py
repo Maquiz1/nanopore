@@ -8,9 +8,12 @@ from datetime import timedelta
 from nanopore.models import Screening, Enrollment, Diagnosis, ClinicLaboratory
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
+from django.http import HttpResponse
+from django.shortcuts import render
 
 
 class DashboardHomeView(ListView):
+    pass
     model = Screening
     template_name = "dashboard/dashboard.html"
     context_object_name = "object_list"
@@ -27,18 +30,26 @@ class DashboardHomeView(ListView):
         site_id = self.request.GET.get("site")
         start_date = self.request.GET.get("start_date")
         end_date = self.request.GET.get("end_date")
-        order_by = self.request.GET.get("order_by", "-screening_date")
 
-        if zone_id:
-            qs = qs.filter(site__district__region__zone_id=zone_id)
-        if site_id:
-            qs = qs.filter(site_id=site_id)
+        # --- FIX order_by issue ---
+        order_by = self.request.GET.get("order_by")
+        if not order_by:  # catches "", None, " "
+            order_by = "-screening_date"
+
+        # --- FIX zone and site empty values ---
+        if zone_id and zone_id.strip().isdigit():
+            qs = qs.filter(site__district__region__zone_id=int(zone_id.strip()))
+
+        if site_id and site_id.strip().isdigit():
+            qs = qs.filter(site_id=int(site_id.strip()))
+
+        # Date range
         if start_date and end_date:
             qs = qs.filter(screening_date__range=[start_date, end_date])
-        if order_by:
-            qs = qs.order_by(order_by)
 
+        qs = qs.order_by(order_by)
         return qs
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -75,7 +86,13 @@ class DashboardHomeView(ListView):
         )
 
         # --- Zone or Site Aggregation ---
-        zone_id = self.request.GET.get("zone")
+        # zone_id = self.request.GET.get("zone")
+        zone_id_raw = self.request.GET.get("zone", "")
+        zone_id = zone_id_raw if (zone_id_raw and zone_id_raw.isdigit()) else None
+
+        site_id_raw = self.request.GET.get("site", "")
+        site_id = site_id_raw if (site_id_raw and site_id_raw.isdigit()) else None
+
         if screened_count == 0:
             context["zone_labels_json"] = json.dumps([])
             context["zone_values_json"] = json.dumps([])
