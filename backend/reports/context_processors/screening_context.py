@@ -75,23 +75,23 @@ def screening_report_total(request):
     # Grand total (sum of all issue types)
     # ──────────────────────────────────────────────────────────────
     total_issues = (
-        # missing_screening_date +
-        # missing_pid1 +
-        # missing_pid2 +
+        missing_screening_date +
+        missing_pid1 +
+        missing_pid2 +
         missing_sex +
         missing_age_or_dob +
         # missing_consent +
-        # missing_age18years +
+        missing_age18years +
         # missing_present_symptoms +
-        # missing_produce_resp_sample +
+        missing_produce_resp_sample +
         # missing_genexpert_confirm +
-        # missing_unable_understand +
-        # missing_not_willing +
+        missing_unable_understand +
+        missing_not_willing +
         # missing_enrolled +
         # missing_reasons_when_yes +
-        # duplicate_pid_count +
-        # mismatched_pid_count +
-        # invalid_length_pid_count +
+        duplicate_pid_count +
+        mismatched_pid_count +
+        invalid_length_pid_count +
         not_eligible_count
     )
 
