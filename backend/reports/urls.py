@@ -25,7 +25,10 @@ from reports.views import (
     DownloadModelFieldsView,
     ExportAllModelsRawDataView,  # <-- New view
     
-    QueriesDashboardView,
+    AllOverviewQueriesDashboardView,
+    MissingFormQueriesDashboardView,
+    SpecificFormQueriesDashboardView,
+    
     FormsDataQualityReportView,
     ScreeningDataQualityReportView,
     EnrollmentDataQualityReportView,
@@ -33,7 +36,6 @@ from reports.views import (
     DiagnosisDataQualityReportView,
     RegimenDataQualityReportView,
     ZonalDataQualityReportView,
-    
     
     DataQualityReportPDFView,
     
@@ -84,8 +86,10 @@ urlpatterns = [
     path('screenings/download/csv/', ScreeningCsvDownloadView.as_view(), name='download-screenings-csv'),
     path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
 
-
-    path("queries/", QueriesDashboardView.as_view(), name="queries_dashboard"),
+    path('data-quality/all-issues/', AllOverviewQueriesDashboardView.as_view(), name='all_form_issues'),
+    path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
+    path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
+    
     path('data-quality/', FormsDataQualityReportView.as_view(), name='forms_quality_report'),
     path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
     path('enrollment-quality/', EnrollmentDataQualityReportView.as_view(), name='enrollment_quality_report'),
@@ -101,6 +105,4 @@ urlpatterns = [
 
     path('notifications/', FormsDataQualityReportView.as_view(), name='notifications-list'),
     path('alerts/', DataQualityReportPDFView.as_view(), name='alerts-list'),
-
-
 ]

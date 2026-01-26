@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-5">
+    <h2 class="mb-4">All Form Quality Issues</h2>
+    <p class="lead text-muted mb-5">Total known issues: <strong class="text-danger">{{ total_issues }}</strong></p>
+
+    <!-- Example: Bootstrap accordion -->
+    <div class="accordion" id="issuesAccordion">
+
+        <!-- Missing Enrollment -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnrollment">
+                    Missing Enrollment Forms ({{ missing_enrollments.count }})
+                </button>
+            </h2>
+            <div id="collapseEnrollment" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    {% if missing_enrollments %}
+                        <table class="table table-sm table-hover">
+                            <thead><tr><th>PID</th><th>Screening Date</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for s in missing_enrollments %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:screening-detail' s.id %}">{{ s.pid }}</a></td>
+                                    <td>{{ s.screening_date|date:"Y-m-d" }}</td>
+                                    <td>{{ s.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-success">No missing enrollment forms.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Repeat similar blocks for clinic, diagnosis, zonal, regimen -->
+
+    </div>
+
+    <div class="mt-5 text-center">
+        <a href="{% url 'reports:forms_quality_report' %}" class="btn btn-outline-primary">
+            ← Back to Missing Forms Breakdown
+        </a>
+    </div>
+</div>
+
+{% endblock %}

@@ -100,9 +100,8 @@
         {% endif %}
         <div class="submenu">
             {% if user.is_superuser %}
-
             <!-- Total issues badge -->
-            <a href="{% url 'reports:queries_dashboard' %}" class="d-flex align-items-center justify-content-between">
+            <a href="{% url 'reports:all_form_issues' %}" class="d-flex align-items-center justify-content-between">
                 <div>
                     <i class="fas fa-exclamation-triangle"></i> Total Issues
                 </div>

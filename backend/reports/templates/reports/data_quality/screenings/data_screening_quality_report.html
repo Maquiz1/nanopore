@@ -1,524 +1,283 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">🧾 DREAM FUND - NANOPORE TB SEQUENCING SCREENING DATA QUALITY REPORT (TANZANIA)</h2>
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <h2 class="mb-3 mb-md-0">🧾 DREAM FUND - NANOPORE TB SEQUENCING<br>
+            <span class="fs-5 fw-normal text-muted">Screening Data Quality Report (Tanzania)</span>
+        </h2>
+
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+            </a>
+
+            {% if user.is_superuser %}
+            <a href="{% url 'reports:data_quality_pdf' %}" class="btn btn-primary">
+                <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
+            </a>
+            {% endif %}
+        </div>
     </div>
 
-    <p class="text-muted">Date: {{ report_date|date:"d M Y H:i" }}</p>
+    <div class="text-muted mb-4">
+        Report generated: {{ report_date|date:"d M Y H:i" }} EAT
+    </div>
 
-    <div class="d-flex gap-2 mb-4">
-        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
-        </a>
-        {% if user.is_superuser %}
-        <a href="{% url 'reports:data_quality_pdf' %}" class="btn btn-primary">
-            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF View
-        </a>
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Total Screenings</h5>
+                    <p class="display-5 fw-bold">{{ total_screenings|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger">Total Quality Issues</h5>
+                    <p class="display-5 fw-bold text-danger">{{ screening_report_total|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Issues Accordion -->
+    <div class="accordion" id="screeningIssuesAccordion">
+
+        <!-- Not Eligible -->
+        {% if not_eligible %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotEligible">
+                    Not Eligible Participants ({{ not_eligible|length }})
+                </button>
+            </h2>
+            <div id="collapseNotEligible" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                    <th>Eligibility</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in not_eligible %}
+                                <tr>
+                                    <td>{{ s.pid }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                    <td><span class="badge bg-warning">Not Eligible</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endif %}
-        <a href="{% url 'reports:data_quality_pdf_document' %}" class="btn btn-success">
-            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF Document
-        </a>
-    </div>
 
-    <p>Total Screenings: <strong>{{ total_screenings }}</strong></p>
-    <p><strong>Total Screening Data Quality Issues:</strong> {{ screening_report_total }}</p>
-
-
-    {% if not_eligible %}
-    <div class="mb-4">
-        <h4>Not Eligible ({{ not_eligible|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>Eligibility</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in not_eligible %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                    {% if not s.eligible %}
-                    <td>Not Eligible</td>
-                    {% else %}
-                    <td>Eligible</td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-
-    {# --- PID Issues --- #}
-    {% if duplicate_pids %}
-    <div class="mb-4">
-        <h4>Duplicate PIDs ({{ duplicate_pids|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in duplicate_pids %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {% if mismatched_pids %}
-    <div class="mb-4">
-        <h4>PID1 ≠ PID2 ({{ mismatched_pids|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>PID1</th>
-                    <th>PID2</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in mismatched_pids %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.pid1 }}</td>
-                    <td>{{ s.pid2 }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {% if invalid_length_pids %}
-    <div class="mb-4">
-        <h4>Invalid PID Length ({{ invalid_length_pids|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in invalid_length_pids %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Screening Date --- #}
-    {% if missing_screening_date %}
-    <div class="mb-4">
-        <h4>Missing Screening Date ({{ missing_screening_date|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>Screening Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_screening_date %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                    <td>{{ s.screening_date }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing PID1 --- #}
-    {% if missing_pid1 %}
-    <div class="mb-4">
-        <h4>Missing PID1 ({{ missing_pid1|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_pid1 %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing PID2 --- #}
-    {% if missing_pid2 %}
-    <div class="mb-4">
-        <h4>Missing PID2 ({{ missing_pid2|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_pid2 %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Sex --- #}
-    {% if missing_sex %}
-    <div class="mb-4">
-        <h4>Missing Sex ({{ missing_sex|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>Sex</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_sex %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                    <td>{{ s.sex }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Age --- #}
-    {% if missing_age %}
-    <div class="mb-4">
-        <h4>Missing Age ({{ missing_age|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>Age</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_age %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                    <td>{{ s.age }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-
-    {# --- Missing DOB --- #}
-    {% if missing_dob %}
-    <div class="mb-4">
-        <h4>Missing Date of Birth ({{ missing_dob|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>DOB</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_dob %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                    <td>{{ s.dob }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Consent --- #}
-    {% if missing_consent %}
-    <div class="mb-4">
-        <h4>Missing Consent ({{ missing_consent|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_consent %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Zone-Specific Missing Field --- #}
-    {% if missing_present_symptoms or missing_genexpert_confirmation %}
-    <div class="mb-4">
-        {% if missing_present_symptoms %}
-        <h4>Missing Present Symptoms ({{ missing_present_symptoms|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_present_symptoms %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% elif missing_genexpert_confirmation %}
-        <h4>Missing Genexpert Confirmation ({{ missing_genexpert_confirmation|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_genexpert_confirmation %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Duplicate PIDs -->
+        {% if duplicate_pids %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDuplicates">
+                    Duplicate PIDs ({{ duplicate_pids|length }})
+                </button>
+            </h2>
+            <div id="collapseDuplicates" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in duplicate_pids %}
+                                <tr>
+                                    <td>{{ s.pid }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endif %}
+
+        <!-- Mismatched PIDs -->
+        {% if mismatched_pids %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMismatched">
+                    PID1 ≠ PID2 ({{ mismatched_pids|length }})
+                </button>
+            </h2>
+            <div id="collapseMismatched" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>PID1</th>
+                                    <th>PID2</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in mismatched_pids %}
+                                <tr>
+                                    <td>{{ s.pid }}</td>
+                                    <td>{{ s.pid1 }}</td>
+                                    <td>{{ s.pid2 }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Invalid PID Length -->
+        {% if invalid_length_pids %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInvalidLength">
+                    Invalid PID Length ({{ invalid_length_pids|length }})
+                </button>
+            </h2>
+            <div id="collapseInvalidLength" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in invalid_length_pids %}
+                                <tr>
+                                    <td>{{ s.pid }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Screening Date -->
+        {% if missing_screening_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseScreeningDate">
+                    Missing Screening Date ({{ missing_screening_date|length }})
+                </button>
+            </h2>
+            <div id="collapseScreeningDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in missing_screening_date %}
+                                <tr>
+                                    <td>{{ s.pid }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add similar accordion items for other missing fields -->
+        <!-- Example for Missing PID1 -->
+        {% if missing_pid1 %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMissingPID1">
+                    Missing PID1 ({{ missing_pid1|length }})
+                </button>
+            </h2>
+            <div id="collapseMissingPID1" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in missing_pid1 %}
+                                <tr>
+                                    <td>{{ s.pid }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- You can continue adding more sections for missing_pid2, missing_sex, missing_age, etc. -->
+
+        <!-- If no issues at all -->
+        {% if not not_eligible and not duplicate_pids and not mismatched_pids and not invalid_length_pids and not missing_screening_date and not missing_pid1 and not missing_pid2 and not missing_sex and not missing_age and not missing_dob and not missing_consent and not missing_age18years and not missing_present_symptoms and not missing_genexpert_confirmation and not missing_produce_resp_sample and not missing_unable_understand and not missing_not_willing and not missing_enrolled and not missing_reasons %}
+        <div class="alert alert-success text-center py-5">
+            <i class="bi bi-check-circle-fill fs-1"></i>
+            <h4 class="mt-3">All Screening Records Look Clean!</h4>
+            <p class="text-muted">No quality issues detected in the current scope.</p>
+        </div>
+        {% endif %}
+
     </div>
-    {% endif %}
-
-    {# --- Missing Produce Resp Sample --- #}
-    {% if missing_produce_resp_sample %}
-    <div class="mb-4">
-        <h4>Missing Produce Resp Sample ({{ missing_produce_resp_sample|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_produce_resp_sample %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Age18Years --- #}
-    {% if missing_age18years %}
-    <div class="mb-4">
-        <h4>Missing Age18Years ({{ missing_age18years|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_age18years %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Unable to Understand --- #}
-    {% if missing_unable_understand %}
-    <div class="mb-4">
-        <h4>Missing Unable to Understand ({{ missing_unable_understand|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_unable_understand %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Not Willing --- #}
-    {% if missing_not_willing %}
-    <div class="mb-4">
-        <h4>Missing Not Willing ({{ missing_not_willing|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_not_willing %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Enrolled --- #}
-    {% if missing_enrolled %}
-    <div class="mb-4">
-        <h4>Missing Enrolled ({{ missing_enrolled|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_enrolled %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {# --- Missing Reasons --- #}
-    {% if missing_reasons %}
-    <div class="mb-4">
-        <h4>Missing Reasons ({{ missing_reasons|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in missing_reasons %}
-                <tr>
-                    <td>{{ s.pid }}</td>
-                    <td>{{ s.zone_name }}</td>
-                    <td>{{ s.site_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-
-
-
 
 </div>
 {% endblock %}

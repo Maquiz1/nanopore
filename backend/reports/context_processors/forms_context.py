@@ -1,63 +1,114 @@
-from django.utils import timezone
-from datetime import timedelta
+# utils/context_processors.py
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q,F
 from utils.permissions import filter_queryset_by_user_role
-from utils.roles import get_role_context
 
 
 def forms_report_total(request):
     """
-    Returns clinical workflow / form completion issues count for navbar.
-    Includes missing enrollments, labs, diagnosis, regimen, and pending TB outcomes.
+    Computes counts of eligible screenings missing each major downstream form/stage.
+    
+    Returns nested dictionary under "forms_report_total" so existing templates
+    continue to work without changes.
+    
+    Missing forms are only counted for screenings where:
+    - eligible = True
+    - the user has permission to see the screening (via filter_queryset_by_user_role)
+    
+    Special rule for regimen changes:
+      - Only considered "missing" when Diagnosis.regimen_changed == Yes
+        AND no RegimenChanges records exist for that screening.
     """
-    forms_report_total = 0
-
     if not request.user.is_authenticated:
-        return {"forms_report_total": forms_report_total}
+        return {
+            "forms_report_total": {
+                "missing_enrollment_count": 0,
+                "missing_clinic_count":     0,
+                "missing_diagnosis_count":  0,
+                "missing_regimen_count":    0,
+                "missing_zonal_count":      0,
+                "total_missing":            0,
+            }
+        }
 
-    Screening = apps.get_model('nanopore', 'Screening')
-    screenings = Screening.objects.all()
-    screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
+    # ── Load models dynamically ─────────────────────────────────────────────
+    Screening       = apps.get_model("nanopore", "Screening")
+    ClinicLaboratory = apps.get_model("nanopore", "ClinicLaboratory")
+    Diagnosis       = apps.get_model("nanopore", "Diagnosis")
+    RegimenChanges  = apps.get_model("nanopore", "RegimenChanges")
+    ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
 
-    role_context = get_role_context(request.user)
-    is_zonal_lab = role_context.get("is_zonal_lab", False)
-    is_admin = role_context.get("is_admin", False)
-    is_reviewer = role_context.get("is_reviewer", False)
+    # ── Base queryset: all screenings the current user is allowed to see ────
+    screenings = Screening.objects.select_related(
+        "site",
+        "site__district__region__zone",
+        "enrollment",
+        "clinic_laboratory",
+        "diagnosis",
+        "zonal_laboratory",
+    ).prefetch_related("regimen_changes")
 
-    six_months_ago = timezone.now().date() - timedelta(days=180)
-    treatment_started_6m_ago = screenings.filter(
-        diagnosis__tb_treatment=1,
-        diagnosis__tb_treatment_date__isnull=False,
-        diagnosis__tb_treatment_date__lte=six_months_ago
+    screenings = filter_queryset_by_user_role(
+        request.user,
+        screenings,
+        site_field="site"
     )
 
-    pending_tb_outcomes = treatment_started_6m_ago.filter(diagnosis__tb_outcome2__isnull=True)
-    pending_tb_outcomes_date = treatment_started_6m_ago.filter(diagnosis__tb_outcome2_date__isnull=True)
+    # ── Only eligible screenings are considered for quality issues ──────────
+    eligible_screenings = screenings.filter(eligible=True)
 
-    eligible_not_enrolled_count = screenings.filter(eligible=True, enrollment__isnull=True).count()
-    missing_clinic_count = screenings.filter(eligible=True, clinic_laboratory__isnull=True).count()
-    missing_diagnosis_count = screenings.filter(eligible=True, diagnosis__isnull=True).count()
-    missing_regimen_count = screenings.filter(eligible=True, diagnosis__regimen_changed=True)\
-                                     .filter(~Q(regimen_changes__isnull=False)).distinct().count()
-    pending_outcomes_count = pending_tb_outcomes.count()
-    pending_outcomes_date_count = pending_tb_outcomes_date.count()
+    # ── 1. Missing Enrollment ───────────────────────────────────────────────
+    missing_enrollment_count = eligible_screenings.filter(
+        enrollment__isnull=True
+    ).count()
 
-    forms_report_total = (
-        eligible_not_enrolled_count +
+    # ── 2. Missing Clinic Laboratory ───────────────────────────────────────
+    missing_clinic_count = eligible_screenings.filter(
+        clinic_laboratory__isnull=True
+    ).count()
+
+    # ── 3. Missing Diagnosis ────────────────────────────────────────────────
+    missing_diagnosis_count = eligible_screenings.filter(
+        diagnosis__isnull=True
+    ).count()
+
+    # ── 4. Missing Zonal Laboratory ────────────────────────────────────────
+    missing_zonal_count = eligible_screenings.filter(
+        zonal_laboratory__isnull=True
+    ).count()
+
+    # ── 5. Missing Regimen Changes ──────────────────────────────────────────
+    # Only screenings where regimen change was indicated (Yes),
+    # but no actual change records were created.
+    has_regimen_changes_subquery = RegimenChanges.objects.filter(
+        screening=OuterRef("pk")
+    )
+
+    missing_regimen_qs = eligible_screenings.filter(
+        ~Exists(has_regimen_changes_subquery),           # ← positional Q object first
+        diagnosis__isnull=False,
+        diagnosis__regimen_changed__name="Yes",          # ← keywords after
+    )
+
+    missing_regimen_count = missing_regimen_qs.distinct().count()
+
+    # ── Total missing forms (simple sum – one count per missing form type) ──
+    total_missing = (
+        missing_enrollment_count +
         missing_clinic_count +
         missing_diagnosis_count +
         missing_regimen_count +
-        pending_outcomes_count +
-        pending_outcomes_date_count
+        missing_zonal_count
     )
 
-    # --- Include Substudy2 for higher roles ---
-    if is_zonal_lab or is_admin or is_reviewer or request.user.is_superuser:
-        forms_report_total += screenings.filter(
-            clinic_laboratory__xpert_mtb_rif_conducted=1,
-            clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
-            zonal_laboratory__isnull=True
-        ).count()
+    # ── Final result structure (matches your dashboard template) ─────────────
+    result = {
+        "missing_enrollment_count": missing_enrollment_count,
+        "missing_clinic_count":     missing_clinic_count,
+        "missing_diagnosis_count":  missing_diagnosis_count,
+        "missing_regimen_count":    missing_regimen_count,
+        "missing_zonal_count":      missing_zonal_count,
+        "total_missing":            total_missing,
+    }
 
-    return {"forms_report_total": forms_report_total}
+    return {"forms_report_total": result}
