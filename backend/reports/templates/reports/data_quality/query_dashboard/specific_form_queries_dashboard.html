@@ -2,50 +2,174 @@
 {% block content %}
 
 <div class="container py-5">
-    <h2 class="mb-4">All Form Quality Issues</h2>
-    <p class="lead text-muted mb-5">Total known issues: <strong class="text-danger">{{ total_issues }}</strong></p>
+    <h2 class="mb-5 text-center">🧾 Data Quality Overview – All Forms</h2>
 
-    <!-- Example: Bootstrap accordion -->
-    <div class="accordion" id="issuesAccordion">
+    <p class="text-center text-muted lead mb-5">
+        Summary of missing fields and quality issues across core participant and laboratory forms
+    </p>
 
-        <!-- Missing Enrollment -->
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnrollment">
-                    Missing Enrollment Forms ({{ missing_enrollments.count }})
-                </button>
-            </h2>
-            <div id="collapseEnrollment" class="accordion-collapse collapse show">
-                <div class="accordion-body">
-                    {% if missing_enrollments %}
-                        <table class="table table-sm table-hover">
-                            <thead><tr><th>PID</th><th>Screening Date</th><th>Site</th></tr></thead>
-                            <tbody>
-                                {% for s in missing_enrollments %}
-                                <tr>
-                                    <td><a href="{% url 'nanopore:screening-detail' s.id %}">{{ s.pid }}</a></td>
-                                    <td>{{ s.screening_date|date:"Y-m-d" }}</td>
-                                    <td>{{ s.site.name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p class="text-success">No missing enrollment forms.</p>
-                    {% endif %}
+    <div class="row g-4 justify-content-center">
+
+        <!-- Card: Screening -->
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <a href="{% url 'reports:screening_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-primary hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-primary">Screening</h4>
+                    <p class="display-4 fw-bold text-primary mb-2">
+                        {{ screening_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing fields, consent, PID issues, etc.
+                    </p>
+                    <small class="text-muted">
+                        Click for detailed breakdown
+                    </small>
                 </div>
-            </div>
+            </a>
         </div>
 
-        <!-- Repeat similar blocks for clinic, diagnosis, zonal, regimen -->
+        <!-- Card: Enrollment -->
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <a href="{% url 'reports:enrollment_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-danger hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-danger">Enrollment</h4>
+                    <p class="display-4 fw-bold text-danger mb-2">
+                        {{ enrollment_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing required fields / incomplete records
+                    </p>
+                    <small class="text-muted">
+                        Click to view affected records
+                    </small>
+                </div>
+            </a>
+        </div>
+
+        <!-- Card: Regimen Changes -->
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <a href="{% url 'reports:regimen_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-warning hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-warning">Regimen Changes</h4>
+                    <p class="display-4 fw-bold text-warning mb-2">
+                        {{ regimen_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing date, drug, reason, etc.
+                    </p>
+                    <small class="text-muted">
+                        Click for incomplete changes list
+                    </small>
+                </div>
+            </a>
+        </div>
+
+        <!-- Card: Diagnosis -->
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <a href="{% url 'reports:diagnosis_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-info hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-info">Diagnosis</h4>
+                    <p class="display-4 fw-bold text-info mb-2">
+                        {{ diagnosis_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing TB diagnosis, regimen, outcome, etc.
+                    </p>
+                    <small class="text-muted">
+                        Click to see details
+                    </small>
+                </div>
+            </a>
+        </div>
+
+        <!-- Card: Clinic Laboratory -->
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <a href="{% url 'reports:clinic_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-success hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-success">Clinic Lab</h4>
+                    <p class="display-4 fw-bold text-success mb-2">
+                        {{ clinic_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing sample / number received
+                    </p>
+                    <small class="text-muted">
+                        Click for breakdown
+                    </small>
+                </div>
+            </a>
+        </div>
+
+        <!-- Card: Zonal Laboratory -->
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <a href="{% url 'reports:zonal_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-secondary hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-secondary">Zonal Lab</h4>
+                    <p class="display-4 fw-bold text-secondary mb-2">
+                        {{ zonal_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing receipt, culture, sequencing fields
+                    </p>
+                    <small class="text-muted">
+                        Click to view incomplete records
+                    </small>
+                </div>
+            </a>
+        </div>
 
     </div>
 
-    <div class="mt-5 text-center">
-        <a href="{% url 'reports:forms_quality_report' %}" class="btn btn-outline-primary">
-            ← Back to Missing Forms Breakdown
+    <!-- Combined total summary -->
+    <div class="text-center mt-5 pt-5 border-top">
+        <h4 class="mb-3">Total Known Quality Issues (All Forms)</h4>
+        <span class="badge bg-dark fs-2 px-5 py-4">
+            {{ specific_queries_total|default:"—" }}
+        </span>
+        <p class="text-muted mt-3 small">
+            Sum of issues across Screening + Enrollment + Regimen + Diagnosis + Clinic + Zonal
+        </p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="text-center mt-5">
+        <a href="{% url 'reports:all_queries_overview' %}" class="btn btn-outline-primary px-5 py-3">
+            View All Detailed Reports →
         </a>
     </div>
+
 </div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+        transition: all 0.28s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 45px rgba(0,0,0,0.14) !important;
+    }
+
+    .card-title {
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        color: #1f2a44;
+    }
+
+    .display-4 {
+        line-height: 1;
+        margin-bottom: 0.4rem;
+    }
+</style>
 
 {% endblock %}

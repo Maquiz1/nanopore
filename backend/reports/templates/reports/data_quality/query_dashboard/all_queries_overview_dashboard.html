@@ -6,41 +6,88 @@
 
     <div class="row g-4 justify-content-center">
 
-        <!-- Card 1: Missing Forms (links to detailed categories) -->
-        <div class="col-md-5 col-lg-4">
-            <a href="{% url 'reports:missing_form_queries' %}" 
-               class="card text-decoration-none shadow-lg h-100 border-danger hover-lift">
+        <!-- GRAND TOTAL – Most prominent -->
+        <div class="col-12 col-lg-10">
+            <a href="{% url 'reports:all_queries_overview' %}" 
+               class="card text-decoration-none shadow-xl h-100 border-warning border-3 hover-lift bg-light">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
-                    <h4 class="card-title mb-4 text-danger">Missing Forms</h4>
-                    <p class="display-3 fw-bold text-danger mb-2">
-                        {{ forms_report_total.total_missing|default:0 }}
+                    <h3 class="card-title mb-4 text-warning fw-bold">Total Data Quality Issues</h3>
+                    <p class="display-2 fw-bolder text-warning mb-2">
+                        {{ total_issues|default:0 }}
                     </p>
-                    <p class="lead text-muted mb-0">
-                        Eligible screenings missing one or more forms
+                    <p class="lead text-muted mb-2">
+                        All detected problems across the system
                     </p>
-                    <small class="text-muted mt-3">(click to see breakdown by type)</small>
+                    <p class="text-muted mb-3" style="font-size: 1.1rem;">
+                        = Missing Forms + Issues in Screening + Enrollment + Regimen + Diagnosis + Clinic + Zonal
+                    </p>
+                    <small class="text-muted mt-3">
+                        (click to see complete breakdown by category)
+                    </small>
                 </div>
             </a>
         </div>
 
-        <!-- Card 2: All Form Queries / Issues -->
-        <div class="col-md-5 col-lg-4">
-            <a href="{% url 'reports:specific_form_queries' %}" 
-               class="card text-decoration-none shadow-lg h-100 border-primary hover-lift">
+        <!-- Spacing -->
+        <div class="col-12 my-5"></div>
+
+        <!-- Card: Missing Forms -->
+        <div class="col-md-6 col-lg-5">
+            <a href="{% url 'reports:missing_form_queries' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-danger hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
-                    <h4 class="card-title mb-4 text-primary">Form Queries</h4>
-                    <p class="display-3 fw-bold text-primary mb-2">
+                    <h4 class="card-title mb-4 text-danger fw-bold">Missing Forms</h4>
+                    <p class="display-3 fw-bold text-danger mb-2">
                         {{ forms_report_total.total_missing|default:0 }}
                     </p>
-                    <p class="lead text-muted mb-0">
-                        Detailed list of all quality queries
+                    <p class="lead text-muted mb-2">
+                        Eligible screenings without required form(s)
                     </p>
-                    <small class="text-muted mt-3">(click to view full issue list grouped by form)</small>
+                    <p class="text-muted mb-0" style="font-size: 1.05rem;">
+                        (Consent, Baseline, Follow-up, etc.)
+                    </p>
+                    <small class="text-muted mt-4">
+                        Click for breakdown by form type
+                    </small>
+                </div>
+            </a>
+        </div>
+
+        <!-- Card: Form Queries / Completeness Issues -->
+        <div class="col-md-6 col-lg-5">
+            <a href="{% url 'reports:specific_form_queries' %}" 
+               class="card text-decoration-none shadow-xl h-100 border-primary border-2 hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-primary fw-bold">Form Queries</h4>
+                    <p class="display-3 fw-bold text-primary mb-2">
+                        {{ specific_queries_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-2">
+                        Missing or invalid fields in submitted forms
+                    </p>
+                    <p class="text-muted mb-0" style="font-size: 1.05rem;">
+                        Screening • Enrollment • Regimen • Diagnosis • Clinic • Zonal • ...
+                    </p>
+                    <small class="text-muted mt-4">
+                        Click to view detailed list by form/category
+                    </small>
                 </div>
             </a>
         </div>
 
     </div>
+
+    <!-- Optional summary note -->
+    <div class="text-center mt-5 pt-4 text-muted small">
+        <p>
+            <strong>Note:</strong> Total includes both <em>forms that are completely missing</em> 
+            and <em>quality issues in forms that were submitted</em>.
+        </p>
+        <p class="mb-0">
+            Some records may contribute to both categories.
+        </p>
+    </div>
+
 </div>
 
 <style>
@@ -54,6 +101,19 @@
     .card {
         border-radius: 16px;
         overflow: hidden;
+        background: white;
+    }
+    .border-2 {
+        border-width: 2px !important;
+    }
+    .border-3 {
+        border-width: 3px !important;
+    }
+    .display-2 {
+        line-height: 1;
+    }
+    .display-3 {
+        line-height: 1;
     }
 </style>
 

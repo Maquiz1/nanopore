@@ -29,7 +29,7 @@ from reports.views import (
     MissingFormQueriesDashboardView,
     SpecificFormQueriesDashboardView,
     
-    FormsDataQualityReportView,
+    # FormsDataQualityReportView,
     ScreeningDataQualityReportView,
     EnrollmentDataQualityReportView,
     ClinicDataQualityReportView,
@@ -37,7 +37,7 @@ from reports.views import (
     RegimenDataQualityReportView,
     ZonalDataQualityReportView,
     
-    DataQualityReportPDFView,
+    # DataQualityReportPDFView,
     
     NotificationsView,
     AlertsView,
@@ -86,11 +86,11 @@ urlpatterns = [
     path('screenings/download/csv/', ScreeningCsvDownloadView.as_view(), name='download-screenings-csv'),
     path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
 
-    path('data-quality/all-issues/', AllOverviewQueriesDashboardView.as_view(), name='all_form_issues'),
+    path('data-quality/all-issues/', AllOverviewQueriesDashboardView.as_view(), name='all_queries_overview'),
     path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
     path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
     
-    path('data-quality/', FormsDataQualityReportView.as_view(), name='forms_quality_report'),
+    # path('data-quality/', FormsDataQualityReportView.as_view(), name='forms_quality_report'),
     path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
     path('enrollment-quality/', EnrollmentDataQualityReportView.as_view(), name='enrollment_quality_report'),
     path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
@@ -98,11 +98,11 @@ urlpatterns = [
     path('regimen-quality/', RegimenDataQualityReportView.as_view(), name='regimen_quality_report'),
     path('zonal-quality/', ZonalDataQualityReportView.as_view(), name='zonal_quality_report'),
 
-    path('data-quality/pdf/', DataQualityReportPDFView.as_view(), name='data_quality_pdf'),
+    path('data-quality/pdf/', AllOverviewQueriesDashboardView.as_view(), name='data_quality_pdf'),
     path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),
     path('enrollment/data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='enrollment_data_quality_pdf'),
 
 
-    path('notifications/', FormsDataQualityReportView.as_view(), name='notifications-list'),
-    path('alerts/', DataQualityReportPDFView.as_view(), name='alerts-list'),
+    path('notifications/', AllOverviewQueriesDashboardView.as_view(), name='notifications-list'),
+    path('alerts/', AllOverviewQueriesDashboardView.as_view(), name='alerts-list'),
 ]

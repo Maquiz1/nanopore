@@ -10,19 +10,11 @@ from utils.roles import get_role_context
 
 
 class ScreeningDataQualityReportView(View):
-    """
-    Detailed Screening Data Quality Report.
-    
-    Shows categorized lists of records with specific quality issues.
-    Uses efficient querysets (no full Python loop over all records).
-    """
-
     template_name = "reports/data_quality/screenings/data_screening_quality_report.html"
 
     def get(self, request, *args, **kwargs):
         Screening = apps.get_model("nanopore", "Screening")
 
-        # ── Base queryset ────────────────────────────────────────────────────
         screenings = Screening.objects.select_related(
             "site",
             "site__district__region__zone",
@@ -40,10 +32,8 @@ class ScreeningDataQualityReportView(View):
             "pid",
         )
 
-        # Apply permission scoping
         screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
 
-        # ── Optional filters ─────────────────────────────────────────────────
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
         if zone_id:
@@ -53,7 +43,6 @@ class ScreeningDataQualityReportView(View):
 
         total_screenings = screenings.count()
 
-        # ── Helper: serialize record (used for all issue lists) ─────────────
         def serialize_screening(s):
             zone_obj = getattr(
                 getattr(getattr(getattr(s, "site", None), "district", None), "region", None), "zone", None
@@ -76,8 +65,7 @@ class ScreeningDataQualityReportView(View):
                 "enrolled": getattr(getattr(s, "enrolled", None), "name", ""),
             }
 
-        # ── 1. Missing / null fields ─────────────────────────────────────────
-        # We use .values() + .distinct() to avoid loading full objects twice
+        # Missing fields queries
         missing_screening_date_qs = screenings.filter(screening_date__isnull=True)
         missing_pid1_qs           = screenings.filter(pid1__isnull=True)
         missing_pid2_qs           = screenings.filter(pid2__isnull=True)
@@ -92,58 +80,37 @@ class ScreeningDataQualityReportView(View):
         missing_not_willing_qs    = screenings.filter(not_willing__isnull=True)
         missing_enrolled_qs       = screenings.filter(enrolled__isnull=True)
 
-        # Missing reasons only when enrolled = "No"
         missing_reasons_qs = screenings.filter(
             enrolled__name__iexact="no",
             reasons__isnull=True
         )
 
-        # ── 2. PID issues ────────────────────────────────────────────────────
-        # Duplicates
-        duplicate_pids = (
-            screenings.values("pid")
-            .annotate(pid_count=Count("id"))
-            .filter(pid_count__gt=1)
-        )
+        # PID issues
+        duplicate_pids = screenings.values("pid").annotate(pid_count=Count("id")).filter(pid_count__gt=1)
         duplicate_pids_set = {d["pid"] for d in duplicate_pids}
-        duplicate_pids_list = [
-            serialize_screening(s) for s in screenings if s.pid in duplicate_pids_set
-        ]
 
-        # Mismatched pid1 != pid2
-        mismatched_pids_list = [
-            serialize_screening(s) for s in screenings.filter(
-                ~Q(pid1=F("pid2")),
-                pid1__isnull=False,
-                pid2__isnull=False
-            )
-        ]
+        mismatched_pids_qs = screenings.filter(
+            ~Q(pid1=F("pid2")),
+            pid1__isnull=False,
+            pid2__isnull=False
+        )
 
-        # Invalid PID length (not exactly 16 chars)
-        invalid_length_pids_list = [
-            serialize_screening(s) for s in screenings.filter(
-                pid__isnull=False,
-                pid__regex=r"^(?!.{16}$).*$"   # not exactly 16 chars
-            )
-        ]
+        invalid_length_pids_qs = screenings.filter(
+            pid__isnull=False,
+            pid__regex=r"^(?!.{16}$).*$"
+        )
 
-        # ── 3. Not eligible ──────────────────────────────────────────────────
-        not_eligible_list = [
-            serialize_screening(s) for s in screenings.filter(eligible=False)
-        ]
+        not_eligible_qs = screenings.filter(eligible=False)
 
-        # ── Zone-specific logic (Dar es Salaam vs others) ────────────────────
-        dar_es_salaam_missing_symptoms = screenings.filter(
+        dar_es_salaam_missing_symptoms_qs = screenings.filter(
             site__district__region__zone__name__iexact="dar es salaam",
             present_symptoms__isnull=True
         )
-        other_zones_missing_genexpert = screenings.exclude(
-            site__district__region__zone__name__iexact="dar es salaam"
-        ).filter(
-            genexpert_confirmation__isnull=True
-        )
 
-        # ── Role context & dropdowns ─────────────────────────────────────────
+        other_zones_missing_genexpert_qs = screenings.exclude(
+            site__district__region__zone__name__iexact="dar es salaam"
+        ).filter(genexpert_confirmation__isnull=True)
+
         role_context = get_role_context(request.user)
 
         context = {
@@ -158,7 +125,7 @@ class ScreeningDataQualityReportView(View):
             "selected_zone": zone_id or "",
             "selected_site": site_id or "",
 
-            # Missing fields (limited to avoid huge pages)
+            # Lists (limited to 100)
             "missing_screening_date": [serialize_screening(s) for s in missing_screening_date_qs[:100]],
             "missing_pid1": [serialize_screening(s) for s in missing_pid1_qs[:100]],
             "missing_pid2": [serialize_screening(s) for s in missing_pid2_qs[:100]],
@@ -166,33 +133,51 @@ class ScreeningDataQualityReportView(View):
             "missing_age_dob": [serialize_screening(s) for s in missing_age_dob_qs[:100]],
             "missing_consent": [serialize_screening(s) for s in missing_consent_qs[:100]],
             "missing_age18years": [serialize_screening(s) for s in missing_age18years_qs[:100]],
-            "missing_present_symptoms": [serialize_screening(s) for s in dar_es_salaam_missing_symptoms[:100]],
-            "missing_genexpert_confirmation": [serialize_screening(s) for s in other_zones_missing_genexpert[:100]],
+            "missing_present_symptoms": [serialize_screening(s) for s in dar_es_salaam_missing_symptoms_qs[:100]],
+            "missing_genexpert_confirmation": [serialize_screening(s) for s in other_zones_missing_genexpert_qs[:100]],
             "missing_produce_resp_sample": [serialize_screening(s) for s in missing_produce_resp_sample_qs[:100]],
             "missing_unable_understand": [serialize_screening(s) for s in missing_unable_qs[:100]],
             "missing_not_willing": [serialize_screening(s) for s in missing_not_willing_qs[:100]],
             "missing_enrolled": [serialize_screening(s) for s in missing_enrolled_qs[:100]],
             "missing_reasons": [serialize_screening(s) for s in missing_reasons_qs[:100]],
 
-            # Other issues
-            "duplicate_pids": duplicate_pids_list[:100],
-            "mismatched_pids": mismatched_pids_list[:100],
-            "invalid_length_pids": invalid_length_pids_list[:100],
-            "not_eligible": not_eligible_list[:100],
+            "duplicate_pids": [serialize_screening(s) for s in screenings.filter(pid__in=duplicate_pids_set)[:100]],
+            "mismatched_pids": [serialize_screening(s) for s in mismatched_pids_qs[:100]],
+            "invalid_length_pids": [serialize_screening(s) for s in invalid_length_pids_qs[:100]],
+            "not_eligible": [serialize_screening(s) for s in not_eligible_qs[:100]],
 
-            # Counts (for badges / summary)
+            # Counts – important for badges and dashboard
             "count_missing_screening_date": missing_screening_date_qs.count(),
             "count_missing_pid1": missing_pid1_qs.count(),
-            # ... add counts for all other categories you want to show
+            "count_missing_pid2": missing_pid2_qs.count(),
+            "count_missing_sex": missing_sex_qs.count(),
+            "count_missing_age_dob": missing_age_dob_qs.count(),
+            "count_missing_consent": missing_consent_qs.count(),
+            "count_missing_age18years": missing_age18years_qs.count(),
+            "count_missing_present_symptoms": dar_es_salaam_missing_symptoms_qs.count(),
+            "count_missing_genexpert_confirmation": other_zones_missing_genexpert_qs.count(),
+            "count_missing_produce_resp_sample": missing_produce_resp_sample_qs.count(),
+            "count_missing_unable_understand": missing_unable_qs.count(),
+            "count_missing_not_willing": missing_not_willing_qs.count(),
+            "count_missing_enrolled": missing_enrolled_qs.count(),
+            "count_missing_reasons": missing_reasons_qs.count(),
             "count_duplicate_pids": len(duplicate_pids_set),
-            "count_mismatched_pids": len(mismatched_pids_list),
-            "count_invalid_length_pids": len(invalid_length_pids_list),
-            "count_not_eligible": len(not_eligible_list),
+            "count_mismatched_pids": mismatched_pids_qs.count(),
+            "count_invalid_length_pids": invalid_length_pids_qs.count(),
+            "count_not_eligible": not_eligible_qs.count(),
         }
 
-        # Optional: total issues count (if you want to show it)
+        # Total issues for this filtered queryset
         context["total_issues"] = sum(
-            context[f"count_{k}"] for k in context if k.startswith("count_")
+            context.get(f"count_{k}", 0)
+            for k in [
+                "missing_screening_date", "missing_pid1", "missing_pid2", "missing_sex",
+                "missing_age_dob", "missing_consent", "missing_age18years",
+                "missing_present_symptoms", "missing_genexpert_confirmation",
+                "missing_produce_resp_sample", "missing_unable_understand",
+                "missing_not_willing", "missing_enrolled", "missing_reasons",
+                "duplicate_pids", "mismatched_pids", "invalid_length_pids", "not_eligible"
+            ]
         )
 
         return render(request, self.template_name, context)
