@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-5">
+    <h2 class="mb-5 text-center">🧾 Data Quality Overview</h2>
+
+    <div class="row g-4 justify-content-center">
+
+        <!-- Card 1: Missing Forms (links to detailed categories) -->
+        <div class="col-md-5 col-lg-4">
+            <a href="{% url 'reports:missing_form_queries' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-danger hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-danger">Missing Forms</h4>
+                    <p class="display-3 fw-bold text-danger mb-2">
+                        {{ forms_report_total.total_missing|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-0">
+                        Eligible screenings missing one or more forms
+                    </p>
+                    <small class="text-muted mt-3">(click to see breakdown by type)</small>
+                </div>
+            </a>
+        </div>
+
+        <!-- Card 2: All Form Queries / Issues -->
+        <div class="col-md-5 col-lg-4">
+            <a href="{% url 'reports:specific_form_queries' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-primary hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-primary">Form Queries</h4>
+                    <p class="display-3 fw-bold text-primary mb-2">
+                        {{ forms_report_total.total_missing|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-0">
+                        Detailed list of all quality queries
+                    </p>
+                    <small class="text-muted mt-3">(click to view full issue list grouped by form)</small>
+                </div>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: all 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.18) !important;
+    }
+    .card {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+</style>
+
+{% endblock %}
