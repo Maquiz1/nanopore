@@ -18,9 +18,9 @@
         <!-- Notifications / Messages Icon -->
         <a href="{% url 'reports:all_queries_overview' %}" class="icon-btn">
             <i class="fas fa-envelope"></i>
-            {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
+            {% if total_issues %}
             <span class="badge">
-                {{ forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total }}
+                {{ total_issues }}
             </span>
             {% endif %}
         </a>
@@ -28,9 +28,9 @@
         <!-- Alerts Icon -->
         <a href="{% url 'reports:all_queries_overview' %}" class="icon-btn">
             <i class="fas fa-bell"></i>
-            {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
+            {% if total_issues %}
             <span class="badge">
-                {{ forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total }}
+                {{ total_issues }}
             </span>
             {% endif %}
          </a>
