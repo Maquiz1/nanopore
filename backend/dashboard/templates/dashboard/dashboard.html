@@ -72,11 +72,11 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 </p>
             </div>
 
-            {% if forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total %}
+            {% if total_issues %}
             <!-- Blinking Badge -->
             <div>
                 <span class="badge bg-danger blink">
-                    Current Pending Queries: {{ forms_report_total|add:screening_report_total|add:enrollment_report_total|add:clinic_report_total|add:diagnosis_report_total|add:regimen_report_total|add:zonal_report_total }}
+                    Current Pending Queries: {{ total_issues }}
                 </span>
             </div>
             {% endif %}
@@ -96,11 +96,11 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                     <strong>Position:</strong>
                     {{ request.user.profile.position }}</p>
             </div>
-            {% if report_total %}
+            {% if total_issues %}
             <!-- Blinking Badge -->
             <div>
                 <span class="badge bg-danger blink">
-                    Current Pending Queries: {{ report_total }}
+                    Current Pending Queries: {{ total_issues }}
                 </span>
             </div>
             {% endif %}
