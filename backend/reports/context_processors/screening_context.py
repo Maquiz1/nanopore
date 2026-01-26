@@ -1,6 +1,6 @@
-# utils/context_processors.py  (or wherever you keep these)
+# utils/context_processors.py
 from django.apps import apps
-from django.db.models import Q, Count, Exists, OuterRef,F
+from django.db.models import Q, Count, F
 from utils.permissions import filter_queryset_by_user_role
 
 
@@ -8,13 +8,8 @@ def screening_report_total(request):
     """
     Computes total data quality issues in Screening records visible to the current user.
     
-    Issues include:
-    - Missing required/important fields
-    - PID-related problems (duplicates, mismatch, invalid length)
-    - Non-eligible records (if you want to flag them as quality concern)
-    - Inconsistent enrollment logic (e.g. enrolled=Yes but no reason)
-    
-    Returns flat number under "screening_report_total" for navbar/dashboard use.
+    Returns a dict with key 'screening_report_total' containing the sum of all detected issues.
+    Some records may contribute to multiple categories (hence it's not a distinct record count).
     """
     if not request.user.is_authenticated:
         return {"screening_report_total": 0}
@@ -22,64 +17,63 @@ def screening_report_total(request):
     Screening = apps.get_model("nanopore", "Screening")
 
     # Base queryset — scoped by user role/site
-    screenings = Screening.objects.select_related(
-        "sex",           # helps with missing_sex
-        "enrolled",      # helps with enrolled__name
-    ).prefetch_related(  # optional — only if you later need related objects
-        # "site", "site__district__region__zone",  # already handled by filter_queryset
+    qs = Screening.objects.select_related(
+        "sex",
+        "enrolled",
     )
 
-    screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
+    qs = filter_queryset_by_user_role(request.user, qs, site_field="site")
 
-    # ── Missing / null fields ────────────────────────────────────────────────
-    missing_screening_date      = screenings.filter(screening_date__isnull=True).count()
-    missing_pid1                = screenings.filter(pid1__isnull=True).count()
-    missing_pid2                = screenings.filter(pid2__isnull=True).count()
-    missing_sex                 = screenings.filter(sex__isnull=True).count()
-    missing_age_or_dob          = screenings.filter(age__isnull=True, dob__isnull=True).count()
-    missing_consent             = screenings.filter(consent__isnull=True).count()
-    missing_age18years          = screenings.filter(age18years__isnull=True).count()
-    missing_present_symptoms    = screenings.filter(present_symptoms__isnull=True).count()
-    missing_produce_resp_sample = screenings.filter(produce_resp_sample__isnull=True).count()
-    missing_genexpert_confirm   = screenings.filter(genexpert_confirmation__isnull=True).count()
-    missing_unable_understand   = screenings.filter(unable_understand__isnull=True).count()
-    missing_not_willing         = screenings.filter(not_willing__isnull=True).count()
-    missing_enrolled            = screenings.filter(enrolled__isnull=True).count()
+    # ──────────────────────────────────────────────────────────────
+    # Missing / null fields
+    # ──────────────────────────────────────────────────────────────
+    missing_screening_date      = qs.filter(screening_date__isnull=True).count()
+    missing_pid1                = qs.filter(pid1__isnull=True).count()
+    missing_pid2                = qs.filter(pid2__isnull=True).count()
+    missing_sex                 = qs.filter(sex__isnull=True).count()
+    missing_age_or_dob          = qs.filter(age__isnull=True, dob__isnull=True).count()
+    missing_consent             = qs.filter(consent__isnull=True).count()
+    missing_age18years          = qs.filter(age18years__isnull=True).count()
+    missing_present_symptoms    = qs.filter(present_symptoms__isnull=True).count()
+    missing_produce_resp_sample = qs.filter(produce_resp_sample__isnull=True).count()
+    missing_genexpert_confirm   = qs.filter(genexpert_confirmation__isnull=True).count()
+    missing_unable_understand   = qs.filter(unable_understand__isnull=True).count()
+    missing_not_willing         = qs.filter(not_willing__isnull=True).count()
+    missing_enrolled            = qs.filter(enrolled__isnull=True).count()
 
-    # Only count missing reasons when enrolled = Yes
-    missing_reasons_when_enrolled = screenings.filter(
+    # Only when enrolled = "Yes" but no reason
+    missing_reasons_when_yes = qs.filter(
         enrolled__name__iexact="yes",
         reasons__isnull=True
     ).count()
 
-    # ── PID quality issues ──────────────────────────────────────────────────
-    # Duplicates (same pid used more than once)
-    duplicate_pids = screenings.values("pid").annotate(
-        pid_count=Count("id")
-    ).filter(pid_count__gt=1)
-    duplicate_pid_count = duplicate_pids.count()
+    # ──────────────────────────────────────────────────────────────
+    # PID quality issues
+    # ──────────────────────────────────────────────────────────────
+    duplicate_pid_count = qs.values("pid").annotate(
+        cnt=Count("id")
+    ).filter(cnt__gt=1).count()
 
-    # PID1 != PID2 (when both filled)
-    mismatched_pid_count = screenings.filter(
+    mismatched_pid_count = qs.filter(
         ~Q(pid1=F("pid2")),
         pid1__isnull=False,
         pid2__isnull=False
     ).count()
 
-    # Invalid PID length (not exactly 16 chars)
-    invalid_length_pid_count = screenings.filter(
+    # Fixed: pid__exact="" was wrong – we want non-exact length 16
+    invalid_length_pid_count = qs.filter(
         pid__isnull=False,
-        pid__exact=""
-    ).exclude(
-        pid__regex=r"^.{16}$"
+        pid__regex=r'^(?!.{16}$).*$'   # anything that is NOT exactly 16 characters
     ).count()
 
-    # ── Eligibility flag ────────────────────────────────────────────────────
-    # Optional: count non-eligible as a quality concern
-    # (you can remove this line if you don't want to include it)
-    not_eligible_count = screenings.filter(eligible=False).count()
+    # ──────────────────────────────────────────────────────────────
+    # Optional: non-eligible as quality issue
+    # ──────────────────────────────────────────────────────────────
+    not_eligible_count = qs.filter(eligible=False).count()
 
-    # ── Total issues ────────────────────────────────────────────────────────
+    # ──────────────────────────────────────────────────────────────
+    # Grand total (sum of all issue types)
+    # ──────────────────────────────────────────────────────────────
     total_issues = (
         missing_screening_date +
         missing_pid1 +
@@ -94,7 +88,7 @@ def screening_report_total(request):
         missing_unable_understand +
         missing_not_willing +
         missing_enrolled +
-        missing_reasons_when_enrolled +
+        missing_reasons_when_yes +
         duplicate_pid_count +
         mismatched_pid_count +
         invalid_length_pid_count +

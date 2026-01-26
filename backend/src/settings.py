@@ -96,6 +96,8 @@ TEMPLATES = [
                 "reports.context_processors.diagnosis_context.diagnosis_report_total",
                 "reports.context_processors.zonal_laboratory_context.zonal_report_total",
                 "reports.context_processors.regimen_context.regimen_report_total",
+                "reports.context_processors.specific_queries_total.specific_queries_total",   # ← add this line
+                'reports.context_processors.total_context.global_total_issues',
             ],
         },
     },
