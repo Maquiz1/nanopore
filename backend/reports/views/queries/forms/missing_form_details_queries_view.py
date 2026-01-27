@@ -13,24 +13,32 @@ class MissingFormDetailsQueriesView(View):
     """
     Detailed forms data quality report.
 
-    This view mirrors the logic in utils.context_processors.forms_report_total
-    but returns both:
-      - summary counts (keys matching the context processor)
-      - lists of problematic records (serialized minimal dicts)
-
-    The lists are limited to the full queryset (no hard limit here) so templates
-    can paginate or slice if needed. All queries are scoped by the same
-    permission helper so numbers remain consistent.
+    Accepts an optional `form_id` URL kwarg (1..5) or `form_type` GET param.
+    When a specific form is requested the template can render only that form's
+    list/count while still having access to the other summary counts.
     """
 
     template_name = "reports/data_quality/forms/missing_form_details_queries.html"
 
+    # map numeric id (from dashboard tiles) to canonical form_type
+    FORM_ID_MAP = {
+        1: "enrollment",
+        2: "clinic",
+        3: "diagnosis",
+        4: "regimen",
+        5: "zonal",
+    }
+
     def get(self, request, *args, **kwargs):
+        # determine requested form (URL kwarg takes precedence)
+        form_id = kwargs.get("form_id")
+        form_type = request.GET.get("form_type")
+        if form_id:
+            form_type = self.FORM_ID_MAP.get(int(form_id), form_type)
+        form_type = form_type or "enrollment"
+
         Screening = apps.get_model("nanopore", "Screening")
-        Diagnosis = apps.get_model("nanopore", "Diagnosis")
         RegimenChanges = apps.get_model("nanopore", "RegimenChanges")
-        ClinicLaboratory = apps.get_model("nanopore", "ClinicLaboratory")
-        ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
 
         # Base queryset — mirror the context processor as closely as possible
         screenings = Screening.objects.select_related(
@@ -127,9 +135,8 @@ class MissingFormDetailsQueriesView(View):
         missing_zonal_records = [_serialize_screening(s) for s in missing_zonal_qs]
         missing_regimen_records = [_serialize_screening(s) for s in missing_regimen_qs]
 
-        # Role context + filter dropdown choices
-        role_context = get_role_context(request.user)
-
+        # For backward compatibility with templates that expect different variable names,
+        # expose both *_records and the shorter names (missing_enrollment, etc.)
         context = {
             # Metadata
             "report_date": timezone.now(),
@@ -150,21 +157,31 @@ class MissingFormDetailsQueriesView(View):
             "missing_regimen_records": missing_regimen_records,
             "missing_zonal_records": missing_zonal_records,
 
+            # Short names (legacy templates)
+            "missing_enrollment": missing_enrollment_records,
+            "missing_clinic": missing_clinic_records,
+            "missing_diagnosis": missing_diagnosis_records,
+            "missing_regimen": missing_regimen_records,
+            "missing_zonal": missing_zonal_records,
+
             # Totals and filters
             "total_screenings": eligible_screenings.count(),
             "selected_zone": zone_id or "",
             "selected_site": site_id or "",
 
             # Role flags and dropdown choices
-            "is_admin": role_context.get("is_admin", False),
-            "is_zonal_lab": role_context.get("is_zonal_lab", False),
-            "is_reviewer": role_context.get("is_reviewer", False),
+            "is_admin": get_role_context(request.user).get("is_admin", False),
+            "is_zonal_lab": get_role_context(request.user).get("is_zonal_lab", False),
+            "is_reviewer": get_role_context(request.user).get("is_reviewer", False),
             "is_superuser": request.user.is_superuser,
-            "zones": {z.id: z.name for z in role_context.get("zones", [])},
-            "sites": {s.id: s.name for s in role_context.get("sites", [])},
+            "zones": {z.id: z.name for z in get_role_context(request.user).get("zones", [])},
+            "sites": {s.id: s.name for s in get_role_context(request.user).get("sites", [])},
 
             # Page info
             "page_description": "Eligible participants screened but missing downstream forms",
+
+            # Which form to show on the details page
+            "form_type": form_type,
         }
 
         return render(request, self.template_name, context)
