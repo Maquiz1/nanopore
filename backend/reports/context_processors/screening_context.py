@@ -1,32 +1,29 @@
-# utils/context_processors.py
+# reports/context_processors.py
 from django.apps import apps
 from django.db.models import Q, Count, F
 from utils.permissions import filter_queryset_by_user_role
 
 
+DAR_ES_SALAAM_ZONE_ID = 1  # Dar es Salaam zone ID
+
+
 def screening_report_total(request):
-    """
-    Computes total data quality issues in Screening records visible to the current user.
-    
-    Returns a dict with key 'screening_report_total' containing the sum of all detected issues.
-    Some records may contribute to multiple categories (hence it's not a distinct record count).
-    """
     if not request.user.is_authenticated:
         return {"screening_report_total": 0}
 
     Screening = apps.get_model("nanopore", "Screening")
 
-    # Base queryset — scoped by user role/site
     qs = Screening.objects.select_related(
         "sex",
         "enrolled",
+        "consent",
+        "reasons",
+        "site__district__region__zone",
     )
 
     qs = filter_queryset_by_user_role(request.user, qs, site_field="site")
 
-    # ──────────────────────────────────────────────────────────────
-    # Missing / null fields
-    # ──────────────────────────────────────────────────────────────
+    # Missing/null fields
     missing_screening_date      = qs.filter(screening_date__isnull=True).count()
     missing_pid1                = qs.filter(pid1__isnull=True).count()
     missing_pid2                = qs.filter(pid2__isnull=True).count()
@@ -41,15 +38,35 @@ def screening_report_total(request):
     missing_not_willing         = qs.filter(not_willing__isnull=True).count()
     missing_enrolled            = qs.filter(enrolled__isnull=True).count()
 
-    # Only when enrolled = "Yes" but no reason
-    missing_reasons_when_yes = qs.filter(
-        enrolled__name__iexact="yes",
+    # Conditional missing fields
+    missing_reasons_when_no = qs.filter(
+        enrolled__name__iexact="no",
         reasons__isnull=True
     ).count()
 
-    # ──────────────────────────────────────────────────────────────
+    missing_consent_date_when_yes = qs.filter(
+        consent__name__iexact="yes",
+        consent_date__isnull=True
+    ).count()
+
+    missing_reasons_other = qs.filter(
+        reasons__value=96,
+        reasons_other__isnull=True
+    ).count()
+
+    # Zone-specific rules
+    missing_present_symptoms_dsm = qs.filter(
+        site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID,
+        present_symptoms__isnull=True
+    ).count()
+
+    missing_genexpert_other_zones = qs.exclude(
+        site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID
+    ).filter(
+        genexpert_confirmation__isnull=True
+    ).count()
+
     # PID quality issues
-    # ──────────────────────────────────────────────────────────────
     duplicate_pid_count = qs.values("pid").annotate(
         cnt=Count("id")
     ).filter(cnt__gt=1).count()
@@ -60,39 +77,60 @@ def screening_report_total(request):
         pid2__isnull=False
     ).count()
 
-    # Fixed: pid__exact="" was wrong – we want non-exact length 16
     invalid_length_pid_count = qs.filter(
         pid__isnull=False,
-        pid__regex=r'^(?!.{16}$).*$'   # anything that is NOT exactly 16 characters
+        pid__regex=r'^(?!.{16}$).*$'
     ).count()
 
-    # ──────────────────────────────────────────────────────────────
-    # Optional: non-eligible as quality issue
-    # ──────────────────────────────────────────────────────────────
+    # Non-eligible
     not_eligible_count = qs.filter(eligible=False).count()
 
-    # ──────────────────────────────────────────────────────────────
-    # Grand total (sum of all issue types)
-    # ──────────────────────────────────────────────────────────────
+    # Grand total – in your specified order
     total_issues = (
-        missing_screening_date +
+        duplicate_pid_count +
+        invalid_length_pid_count +
+        mismatched_pid_count +
         missing_pid1 +
         missing_pid2 +
+        not_eligible_count +
+        missing_screening_date +
         missing_sex +
         missing_age_or_dob +
-        # missing_consent +
+        missing_consent +
+        missing_consent_date_when_yes +
         missing_age18years +
-        # missing_present_symptoms +
+        missing_present_symptoms +
+        missing_genexpert_confirm +
         missing_produce_resp_sample +
-        # missing_genexpert_confirm +
         missing_unable_understand +
         missing_not_willing +
-        # missing_enrolled +
-        # missing_reasons_when_yes +
-        duplicate_pid_count +
-        mismatched_pid_count +
-        invalid_length_pid_count +
-        not_eligible_count
+        missing_enrolled +
+        missing_reasons_when_no +
+        missing_reasons_other
     )
 
-    return {"screening_report_total": total_issues}
+    return {
+        "screening_report_total": total_issues,
+        "missing_consent_date_when_yes": missing_consent_date_when_yes,
+        "missing_reasons_other": missing_reasons_other,
+        "missing_present_symptoms_dsm": missing_present_symptoms_dsm,
+        "missing_genexpert_other_zones": missing_genexpert_other_zones,
+        "duplicate_pid_count": duplicate_pid_count,
+        "mismatched_pid_count": mismatched_pid_count,
+        "invalid_length_pid_count": invalid_length_pid_count,
+        "not_eligible_count": not_eligible_count,
+        "missing_screening_date": missing_screening_date,
+        "missing_pid1": missing_pid1,
+        "missing_pid2": missing_pid2,
+        "missing_sex": missing_sex,
+        "missing_age_or_dob": missing_age_or_dob,
+        "missing_consent": missing_consent,
+        "missing_age18years": missing_age18years,
+        "missing_present_symptoms": missing_present_symptoms,
+        "missing_produce_resp_sample": missing_produce_resp_sample,
+        "missing_genexpert_confirm": missing_genexpert_confirm,
+        "missing_unable_understand": missing_unable_understand,
+        "missing_not_willing": missing_not_willing,
+        "missing_enrolled": missing_enrolled,
+        "missing_reasons_when_no": missing_reasons_when_no,
+    }
