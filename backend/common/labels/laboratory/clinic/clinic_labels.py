@@ -10,7 +10,7 @@ CLINIC_LABELS = {
     "new_reason":"3(b) If no new sample collected ,what was the reason ?",
     "number_received":"4. Number of samples received",
     "date_sample1_collected":"5(a). Date sample collected",
-    "date_sample1_received":"2(b). If no what was the reason?",
+    "date_sample1_received":"5(a). Date sample received",
     "appearance_sample1":"6. Appearance",
     "sample1_volume":"7. Sample Volume (mL)",
     "date_sample2_collected":"5(a). Date sample collected",

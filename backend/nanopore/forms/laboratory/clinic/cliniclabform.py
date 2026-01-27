@@ -68,6 +68,9 @@ class ClinicLaboratoryForm(forms.ModelForm):
             "date_sample2_collected": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
+            "date_sample1_received": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}
+            ),
             "date_sample2_received": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
