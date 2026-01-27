@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <!-- Navigation -->
+            <div class="d-flex justify-content-between mb-4 gap-2">
+                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary flex-grow-1">
+                    🔙 Back to List
+                </a>
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary flex-grow-1">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ object|default:"New" }} Screening</h4>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ user_zone.id|default:'0' }}"
+                        data-zone-name="{{ user_zone.name|default:'' }}">
+                        {% csrf_token %}
+
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-warning">
+                            {% for error in form.non_field_errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- DEMOGRAPHIC SECTION -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Demographic Information</h5>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.screening_date.label_tag }} {{ form.screening_date }}
+                                {% for error in form.screening_date.errors %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.pid1.label_tag }} {{ form.pid1 }}
+                                {% for error in form.pid1.errors %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.pid2.label_tag }} {{ form.pid2 }}
+                                {% for error in form.pid2.errors %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.sex.label_tag }} {{ form.sex }}
+                                {% for error in form.sex.errors %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.dob.label_tag }} {{ form.dob }}
+                                {% for error in form.dob.errors %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.age.label_tag }} {{ form.age }}
+                                {% if form.instance.dob %}
+                                <small class="text-muted">(Current age: {{ current_age }} yrs)</small>
+                                {% endif %}
+                                {% for error in form.age.errors %}
+                                <div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- INCLUSION SECTION -->
+                        <div class="p-2 mb-3 bg-success text-white rounded">
+                            <h5 class="mb-0">Inclusion Criteria</h5>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            {% with user_group=request.user.groups.first.name|upper %}
+                            {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+                            <!-- Admins & reviewers see both -->
+                            <div class="col-md-6">
+                                {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
+                            </div>
+                            {% elif user_zone %}
+                            {% if user_zone.id == 1 %}
+                            <!-- Zone 1 → Present symptoms -->
+                            <div class="col-md-6">
+                                {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
+                            </div>
+                            {% elif user_zone.id in zone_group_2_5 %}
+                            <!-- Zone 2–5 → GeneXpert -->
+                            <div class="col-md-6">
+                                {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
+                            </div>
+                            {% else %}
+                            <div class="col-md-12 text-muted">
+                                <em>No inclusion criteria required for this zone.</em>
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <div class="col-md-12 text-muted">
+                                <em>No site information available.</em>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.produce_resp_sample.label_tag }} {{ form.produce_resp_sample }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.age18years.label_tag }} {{ form.age18years }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.consent.label_tag }} {{ form.consent }}
+                            </div>
+                            <div class="col-md-4" id="consent-date-wrapper">
+                                {{ form.consent_date.label_tag }} {{ form.consent_date }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- EXCLUSION SECTION -->
+                        <div class="p-2 mb-3 bg-danger text-white rounded">
+                            <h5 class="mb-0">Exclusion Criteria</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                {{ form.not_willing.label_tag }} {{ form.not_willing }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.unable_understand.label_tag }} {{ form.unable_understand }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- ENROLLMENT SECTION -->
+                        <div id="enrollment-section" style="display:none;">
+                            <div class="p-2 mb-3 bg-warning text-white rounded">
+                                <h5 class="mb-0">Enrollment</h5>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    {{ form.enrolled.label_tag }} {{ form.enrolled }}
+                                </div>
+                                <div class="col-md-4" id="reasons-wrapper" style="display:none;">
+                                    {{ form.reasons.label_tag }} {{ form.reasons }}
+                                </div>
+                                <div class="col-md-4" id="reasons-other-wrapper" style="display:none;">
+                                    {{ form.reasons_other.label_tag }} {{ form.reasons_other }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- GENERAL COMMENTS -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">General Comments</h5>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.remarks.label_tag }} {{ form.remarks }}
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">❌ Cancel</a>
+                            <button type="submit" class="btn btn-success">💾 Save Screening</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const consentField = document.getElementById("id_consent");
+        const consentDateWrapper = document.getElementById("consent-date-wrapper");
+        function toggleConsentDate() {
+            if (consentField?.value === "1") consentDateWrapper.style.display = "block";
+            else {
+                consentDateWrapper.style.display = "none";
+                const dateInput = document.getElementById("id_consent_date");
+                if (dateInput) dateInput.value = "";
+            }
+        }
+        consentField?.addEventListener("change", toggleConsentDate);
+        toggleConsentDate();
+
+        const form = document.getElementById("screeningForm");
+        const zoneId = parseInt(form.dataset.zoneId || 0);
+        const darZoneId = parseInt("{{ dar_es_salaam_zone.id|default:'0' }}", 10);
+
+        const presentSymptoms = document.getElementById("id_present_symptoms");
+        const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
+
+        const enrollmentSection = document.getElementById("enrollment-section");
+        const enrolledField = document.getElementById("id_enrolled");
+        const reasonsWrapper = document.getElementById("reasons-wrapper");
+        const reasonsField = document.getElementById("id_reasons");
+        const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
+        const reasonsOtherField = document.getElementById("id_reasons_other");
+
+        function toggleEnrollmentVisibility() {
+            let eligible = false;
+            if (zoneId === darZoneId) eligible = presentSymptoms?.value === "1";
+            else eligible = genexpertConfirmation?.value === "1";
+
+            enrollmentSection.style.display = eligible ? "block" : "none";
+        }
+
+        function toggleReasonsVisibility() {
+            if (enrolledField?.value === "2") {
+                reasonsWrapper.style.display = "block";
+            } else {
+                reasonsWrapper.style.display = "none";
+                reasonsField.value = "";
+                toggleReasonsOtherVisibility();
+            }
+        }
+
+        function toggleReasonsOtherVisibility() {
+            if (reasonsField?.value === "96") reasonsOtherWrapper.style.display = "block";
+            else {
+                reasonsOtherWrapper.style.display = "none";
+                reasonsOtherField.value = "";
+            }
+        }
+
+        presentSymptoms?.addEventListener("change", toggleEnrollmentVisibility);
+        genexpertConfirmation?.addEventListener("change", toggleEnrollmentVisibility);
+        enrolledField?.addEventListener("change", toggleReasonsVisibility);
+        reasonsField?.addEventListener("change", toggleReasonsOtherVisibility);
+
+        toggleEnrollmentVisibility();
+    });
+</script>
+{% endblock %}
