@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Header -->
+  <h2 class="mb-3 text-center">
+    🧾 DREAM FUND - FORMS DATA QUALITY<br>
+    <span class="fs-6 fw-normal text-muted">Eligible screenings missing downstream forms</span>
+  </h2>
+
+  <!-- Top controls: filters + actions -->
+  <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+      <form method="get" class="d-flex gap-2 align-items-center">
+        <label class="me-1 text-muted">Zone</label>
+        <select name="zone" class="form-select form-select-sm me-2" style="width:220px;">
+          <option value="">All zones</option>
+          {% for id, name in zones.items %}
+            <option value="{{ id }}" {% if selected_zone|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="me-1 text-muted">Site</label>
+        <select name="site" class="form-select form-select-sm me-2" style="width:220px;">
+          <option value="">All sites</option>
+          {% for id, name in sites.items %}
+            <option value="{{ id }}" {% if selected_site|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-outline-primary btn-sm">Filter</button>
+      </form>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{% url 'reports:missing_form_details_queries' %}" class="btn btn-outline-secondary btn-sm">Refresh</a>
+      {% if is_superuser %}
+      <a href="{% url 'reports:forms_data_quality_pdf' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Report meta -->
+  <div class="mb-3 text-muted">
+    <small>Report generated: {{ report_date|date:"d M Y H:i" }} EAT</small>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <div class="text-muted small">Eligible screenings</div>
+          <div class="h3 fw-bold">{{ total_screenings|default:"0" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm border-warning">
+        <div class="card-body text-center">
+          <div class="text-muted small">Total missing form types</div>
+          <div class="h3 fw-bold text-warning">{{ total_form_missing|default:"0" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm border-danger">
+        <div class="card-body text-center">
+          <div class="text-muted small">Missing enrollments</div>
+          <div class="h3 fw-bold text-danger">{{ missing_enrollment_count|default:"0" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accordion: only show sections that have items -->
+  <div class="accordion" id="formsQualityAccordion">
+
+    {# Missing Enrollment #}
+    {% if missing_enrollment_count %}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnrollment">
+          Missing Enrollment ({{ missing_enrollment_count|default:"0" }})
+        </button>
+      </h2>
+      <div id="collapseEnrollment" class="accordion-collapse collapse show">
+        <div class="accordion-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th>PID</th>
+                  <th>Screening date</th>
+                  <th>Zone</th>
+                  <th>Site</th>
+                  <th>Sex</th>
+                  <th>Age</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in missing_enrollment_records|default:"" %}
+                <tr>
+                  <td>
+                    <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                      {{ s.pid }}
+                    </a>
+                  </td>
+                  <td>{{ s.screening_date|date:"d M Y" }}</td>
+                  <td>{{ s.zone_name }}</td>
+                  <td>{{ s.site_name }}</td>
+                  <td>{{ s.sex }}</td>
+                  <td>{{ s.age }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Missing Clinic Laboratory #}
+    {% if missing_clinic_count %}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClinic">
+          Missing Clinic Laboratory ({{ missing_clinic_count|default:"0" }})
+        </button>
+      </h2>
+      <div id="collapseClinic" class="accordion-collapse collapse">
+        <div class="accordion-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover table-bordered">
+              <thead class="table-light">
+                <tr><th>PID</th><th>Screening date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th></tr>
+              </thead>
+              <tbody>
+                {% for s in missing_clinic_records|default:"" %}
+                <tr>
+                  <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">{{ s.pid }}</a></td>
+                  <td>{{ s.screening_date|date:"d M Y" }}</td>
+                  <td>{{ s.zone_name }}</td>
+                  <td>{{ s.site_name }}</td>
+                  <td>{{ s.sex }}</td>
+                  <td>{{ s.age }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Missing Diagnosis #}
+    {% if missing_diagnosis_count %}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDiagnosis">
+          Missing Diagnosis ({{ missing_diagnosis_count|default:"0" }})
+        </button>
+      </h2>
+      <div id="collapseDiagnosis" class="accordion-collapse collapse">
+        <div class="accordion-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover table-bordered">
+              <thead class="table-light">
+                <tr><th>PID</th><th>Screening date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th></tr>
+              </thead>
+              <tbody>
+                {% for s in missing_diagnosis_records|default:"" %}
+                <tr>
+                  <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">{{ s.pid }}</a></td>
+                  <td>{{ s.screening_date|date:"d M Y" }}</td>
+                  <td>{{ s.zone_name }}</td>
+                  <td>{{ s.site_name }}</td>
+                  <td>{{ s.sex }}</td>
+                  <td>{{ s.age }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Missing Regimen Changes #}
+    {% if missing_regimen_count %}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRegimen">
+          Missing Regimen Changes (diagnosis.regimen_changed = Yes) ({{ missing_regimen_count|default:"0" }})
+        </button>
+      </h2>
+      <div id="collapseRegimen" class="accordion-collapse collapse">
+        <div class="accordion-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover table-bordered">
+              <thead class="table-light">
+                <tr><th>PID</th><th>Screening date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th></tr>
+              </thead>
+              <tbody>
+                {% for s in missing_regimen_records|default:"" %}
+                <tr>
+                  <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">{{ s.pid }}</a></td>
+                  <td>{{ s.screening_date|date:"d M Y" }}</td>
+                  <td>{{ s.zone_name }}</td>
+                  <td>{{ s.site_name }}</td>
+                  <td>{{ s.sex }}</td>
+                  <td>{{ s.age }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Missing Zonal Laboratory #}
+    {% if missing_zonal_count %}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZonal">
+          Missing Zonal Laboratory ({{ missing_zonal_count|default:"0" }})
+        </button>
+      </h2>
+      <div id="collapseZonal" class="accordion-collapse collapse">
+        <div class="accordion-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover table-bordered">
+              <thead class="table-light">
+                <tr><th>PID</th><th>Screening date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th></tr>
+              </thead>
+              <tbody>
+                {% for s in missing_zonal_records|default:"" %}
+                <tr>
+                  <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">{{ s.pid }}</a></td>
+                  <td>{{ s.screening_date|date:"d M Y" }}</td>
+                  <td>{{ s.zone_name }}</td>
+                  <td>{{ s.site_name }}</td>
+                  <td>{{ s.sex }}</td>
+                  <td>{{ s.age }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- No issues message -->
+  {% if total_form_missing|default:"0" == "0" %}
+  <div class="alert alert-success text-center mt-4">
+    <i class="bi bi-check-circle-fill fs-1"></i>
+    <h5 class="mt-2">No missing forms detected for the current scope.</h5>
+    <p class="text-muted">All eligible screenings have the expected downstream forms.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

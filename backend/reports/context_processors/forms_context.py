@@ -93,7 +93,7 @@ def forms_report_total(request):
     missing_regimen_count = missing_regimen_qs.distinct().count()
 
     # ── Total missing forms (simple sum – one count per missing form type) ──
-    total_missing = (
+    total_form_missing = (
         missing_enrollment_count +
         missing_clinic_count +
         missing_diagnosis_count +
@@ -103,12 +103,12 @@ def forms_report_total(request):
 
     # ── Final result structure (matches your dashboard template) ─────────────
     result = {
+        "total_form_missing":       total_form_missing,
         "missing_enrollment_count": missing_enrollment_count,
         "missing_clinic_count":     missing_clinic_count,
         "missing_diagnosis_count":  missing_diagnosis_count,
         "missing_regimen_count":    missing_regimen_count,
         "missing_zonal_count":      missing_zonal_count,
-        "total_missing":            total_missing,
     }
 
     return {"forms_report_total": result}

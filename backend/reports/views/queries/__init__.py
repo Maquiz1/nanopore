@@ -1,4 +1,4 @@
-from .forms.data_form_quality_view import FormsDataQualityReportView
+from .forms.missing_form_details_queries_view import MissingFormDetailsQueriesView
 from .forms.data_form_quality_pdf_document import DreamFundQueriesPDFView
 from .screening.data_screening_quality_view import ScreeningDataQualityReportView
 from .enrollment.data_enrollment_quality_view import EnrollmentDataQualityReportView
@@ -15,7 +15,8 @@ __all__ = [
     "AllOverviewQueriesDashboardView",
     "MissingFormQueriesDashboardView",
     "SpecificFormQueriesDashboardView",
-    "FormsDataQualityReportView",
+    # "FormsDataQualityReportView",
+    "MissingFormDetailsQueriesView",
     # "DataQualityReportPDFView",
     "DreamFundQueriesPDFView",
     "ScreeningDataQualityReportView",
