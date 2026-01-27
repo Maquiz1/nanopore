@@ -2,7 +2,14 @@
 {% block content %}
 
 <div class="container py-5">
-    <h2 class="mb-5 text-center">🧾 Data Quality Overview</h2>
+
+    <!-- Header with Back Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0">🧾 Data Quality Overview</h2>
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+            ← Back to Dashboard
+        </a>
+    </div>
 
     <div class="row g-4 justify-content-center">
 

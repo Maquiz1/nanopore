@@ -2,7 +2,18 @@
 {% block content %}
 
 <div class="container py-5">
-    <h2 class="mb-5 text-center">🧾 Data Quality Overview – All Forms</h2>
+
+    <h2 class="mb-3 text-center">🧾 Specific Form Queries Dashboard</h2>
+
+    <!-- Navigation buttons placed directly below the title -->
+    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+            ← Back to Dashboard
+        </a>
+        <a href="{% url 'reports:all_queries_overview' %}" class="btn btn-outline-primary btn-lg px-4">
+            Queries Overview →
+        </a>
+    </div>
 
     <p class="text-center text-muted lead mb-5">
         Summary of missing fields and quality issues across core participant and laboratory forms
@@ -137,7 +148,7 @@
         </p>
     </div>
 
-    <!-- Navigation -->
+    <!-- Optional extra navigation (can be removed if top buttons are enough) -->
     <div class="text-center mt-5">
         <a href="{% url 'reports:all_queries_overview' %}" class="btn btn-outline-primary px-5 py-3">
             View All Detailed Reports →
