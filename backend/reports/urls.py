@@ -28,6 +28,7 @@ from reports.views import (
     AllOverviewQueriesDashboardView,
     MissingFormQueriesDashboardView,
     SpecificFormQueriesDashboardView,
+    MissingFormDetailsQueriesView,
     
     # FormsDataQualityReportView,
     ScreeningDataQualityReportView,
@@ -90,6 +91,8 @@ urlpatterns = [
     path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
     path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
     
+    path("missing-form-details-queries/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
+
     # path('data-quality/', FormsDataQualityReportView.as_view(), name='forms_quality_report'),
     path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
     path('enrollment-quality/', EnrollmentDataQualityReportView.as_view(), name='enrollment_quality_report'),
