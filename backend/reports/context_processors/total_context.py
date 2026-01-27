@@ -11,7 +11,7 @@ def global_total_issues(request):
     missing_forms_total = (
         forms_report_total(request)
         .get('forms_report_total', {})
-        .get('total_missing', 0)
+        .get('total_form_missing', 0)
     )
 
     form_queries_total = (
