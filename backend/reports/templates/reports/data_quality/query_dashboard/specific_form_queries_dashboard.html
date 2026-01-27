@@ -22,7 +22,7 @@
     <div class="row g-4 justify-content-center">
 
         <!-- Card: Screening -->
-        <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="col-md-4 col-lg-4 col-xl-4">
             <a href="{% url 'reports:screening_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-primary hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -41,7 +41,7 @@
         </div>
 
         <!-- Card: Enrollment -->
-        <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="col-md-4 col-lg-4 col-xl-4">
             <a href="{% url 'reports:enrollment_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-danger hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -59,46 +59,8 @@
             </a>
         </div>
 
-        <!-- Card: Regimen Changes -->
-        <div class="col-md-6 col-lg-4 col-xl-3">
-            <a href="{% url 'reports:regimen_quality_report' %}" 
-               class="card text-decoration-none shadow-lg h-100 border-warning hover-lift">
-                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
-                    <h4 class="card-title mb-4 text-warning">Regimen Changes</h4>
-                    <p class="display-4 fw-bold text-warning mb-2">
-                        {{ regimen_report_total|default:0 }}
-                    </p>
-                    <p class="lead text-muted mb-3">
-                        Missing date, drug, reason, etc.
-                    </p>
-                    <small class="text-muted">
-                        Click for incomplete changes list
-                    </small>
-                </div>
-            </a>
-        </div>
-
-        <!-- Card: Diagnosis -->
-        <div class="col-md-6 col-lg-4 col-xl-3">
-            <a href="{% url 'reports:diagnosis_quality_report' %}" 
-               class="card text-decoration-none shadow-lg h-100 border-info hover-lift">
-                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
-                    <h4 class="card-title mb-4 text-info">Diagnosis</h4>
-                    <p class="display-4 fw-bold text-info mb-2">
-                        {{ diagnosis_report_total|default:0 }}
-                    </p>
-                    <p class="lead text-muted mb-3">
-                        Missing TB diagnosis, regimen, outcome, etc.
-                    </p>
-                    <small class="text-muted">
-                        Click to see details
-                    </small>
-                </div>
-            </a>
-        </div>
-
-        <!-- Card: Clinic Laboratory -->
-        <div class="col-md-6 col-lg-4 col-xl-3">
+                <!-- Card: Clinic Laboratory -->
+        <div class="col-md-4 col-lg-4 col-xl-4">
             <a href="{% url 'reports:clinic_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-success hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -116,8 +78,46 @@
             </a>
         </div>
 
+        <!-- Card: Diagnosis -->
+        <div class="col-md-4 col-lg-4 col-xl-4">
+            <a href="{% url 'reports:diagnosis_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-info hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-info">Diagnosis</h4>
+                    <p class="display-4 fw-bold text-info mb-2">
+                        {{ diagnosis_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing TB diagnosis, regimen, outcome, etc.
+                    </p>
+                    <small class="text-muted">
+                        Click to see details
+                    </small>
+                </div>
+            </a>
+        </div>
+
+                <!-- Card: Regimen Changes -->
+        <div class="col-md-4 col-lg-4 col-xl-4">
+            <a href="{% url 'reports:regimen_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-warning hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-warning">Regimen Changes</h4>
+                    <p class="display-4 fw-bold text-warning mb-2">
+                        {{ regimen_report_total|default:0 }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing date, drug, reason, etc.
+                    </p>
+                    <small class="text-muted">
+                        Click for incomplete changes list
+                    </small>
+                </div>
+            </a>
+        </div>
+
         <!-- Card: Zonal Laboratory -->
-        <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="col-md-4 col-lg-4 col-xl-4">
             <a href="{% url 'reports:zonal_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-secondary hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
