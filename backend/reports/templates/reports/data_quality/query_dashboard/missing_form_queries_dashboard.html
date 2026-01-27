@@ -2,16 +2,26 @@
 {% block content %}
 
 <div class="container py-5">
-    <h2 class="mb-5 text-center">🧾 Data Quality Dashboard</h2>
+    <h2 class="m-0 text-center flex-grow-1">🧾 Missing Forms Queries Dashboard</h2>
+
+    <!-- Navigation Links: Dashboard (left) + Queries Overview (right) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+            ← Back to Dashboard
+        </a>
+        <a href="{% url 'reports:all_queries_overview' %}" class="btn btn-outline-primary btn-lg px-4">
+            Queries Overview →
+        </a>
+    </div>
 
     <div class="row g-4 justify-content-center">
 
         <!-- Forms / Missing Enrollment -->
-        <div class="col-md-4 col-lg-3">
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:missing_form_queries' %}" 
                class="card text-decoration-none shadow-sm h-100 border-danger">
                 <div class="card-body text-center d-flex flex-column justify-content-center">
-                    <h5 class="card-title mb-3">Forms<br><small>Missing Enrollment</small></h5>
+                    <h5 class="card-title mb-3">Enrollment</h5>
                     <p class="display-4 fw-bold text-danger mb-1">
                         {{ forms_report_total.missing_enrollment_count|default:0 }}
                     </p>
@@ -21,7 +31,7 @@
         </div>
 
         <!-- Clinic Lab -->
-        <div class="col-md-4 col-lg-3">
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:clinic_quality_report' %}" 
                class="card text-decoration-none shadow-sm h-100 border-warning">
                 <div class="card-body text-center d-flex flex-column justify-content-center">
@@ -35,7 +45,7 @@
         </div>
 
         <!-- Diagnosis -->
-        <div class="col-md-4 col-lg-3">
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:diagnosis_quality_report' %}" 
                class="card text-decoration-none shadow-sm h-100 border-warning">
                 <div class="card-body text-center d-flex flex-column justify-content-center">
@@ -49,7 +59,7 @@
         </div>
 
         <!-- Regimen Changes -->
-        <div class="col-md-4 col-lg-3">
+        <div class="col-md-6 col-lg-6">
             <a href="{% url 'reports:regimen_quality_report' %}" 
                class="card text-decoration-none shadow-sm h-100 border-warning">
                 <div class="card-body text-center d-flex flex-column justify-content-center">
@@ -63,7 +73,7 @@
         </div>
 
         <!-- Zonal Lab -->
-        <div class="col-md-4 col-lg-3">
+        <div class="col-md-6 col-lg-6">
             <a href="{% url 'reports:zonal_quality_report' %}" 
                class="card text-decoration-none shadow-sm h-100 border-warning">
                 <div class="card-body text-center d-flex flex-column justify-content-center">
@@ -88,6 +98,7 @@
             Sum of missing forms across eligible screenings
         </p>
     </div>
+
 </div>
 
 <style>
