@@ -198,88 +198,66 @@
 
 {% block extra_scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    // ────────────────────────────────────────────────
-    // Consent date toggle
-    // ────────────────────────────────────────────────
-    const consentField = document.getElementById("id_consent");
-    const consentDateWrapper = document.getElementById("consent-date-wrapper");
-
-    function toggleConsentDate() {
-        if (consentField?.value === "1") {
-            consentDateWrapper.style.display = "block";
-        } else {
-            consentDateWrapper.style.display = "none";
-            const dateInput = document.getElementById("id_consent_date");
-            if (dateInput) dateInput.value = "";
+    document.addEventListener("DOMContentLoaded", function () {
+        const consentField = document.getElementById("id_consent");
+        const consentDateWrapper = document.getElementById("consent-date-wrapper");
+        function toggleConsentDate() {
+            if (consentField?.value === "1") consentDateWrapper.style.display = "block";
+            else {
+                consentDateWrapper.style.display = "none";
+                const dateInput = document.getElementById("id_consent_date");
+                if (dateInput) dateInput.value = "";
+            }
         }
-    }
-    consentField?.addEventListener("change", toggleConsentDate);
-    toggleConsentDate();
+        consentField?.addEventListener("change", toggleConsentDate);
+        toggleConsentDate();
 
-    // ────────────────────────────────────────────────
-    // Zone & enrollment visibility
-    // ────────────────────────────────────────────────
-    const form = document.getElementById("screeningForm");
-    const zoneId = parseInt(form?.dataset.zoneId || "0");
-    const darZoneId = parseInt("{{ dar_es_salaam_zone.id|default:'0' }}", 10);
+        const form = document.getElementById("screeningForm");
+        const zoneId = parseInt(form.dataset.zoneId || 0);
+        const darZoneId = parseInt("{{ dar_es_salaam_zone.id|default:'0' }}", 10);
 
-    const presentSymptoms       = document.getElementById("id_present_symptoms");
-    const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
-    const enrollmentSection     = document.getElementById("enrollment-section");
+        const presentSymptoms = document.getElementById("id_present_symptoms");
+        const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
 
-    function toggleEnrollmentVisibility() {
-        let eligible = false;
-        if (zoneId === darZoneId) eligible = presentSymptoms?.value === "1";
-        else eligible = genexpertConfirmation?.value === "1";
+        const enrollmentSection = document.getElementById("enrollment-section");
+        const enrolledField = document.getElementById("id_enrolled");
+        const reasonsWrapper = document.getElementById("reasons-wrapper");
+        const reasonsField = document.getElementById("id_reasons");
+        const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
+        const reasonsOtherField = document.getElementById("id_reasons_other");
 
-        enrollmentSection.style.display = eligible ? "block" : "none";
-    }
+        function toggleEnrollmentVisibility() {
+            let eligible = false;
+            if (zoneId === darZoneId) eligible = presentSymptoms?.value === "1";
+            else eligible = genexpertConfirmation?.value === "1";
 
-    presentSymptoms?.addEventListener("change", toggleEnrollmentVisibility);
-    genexpertConfirmation?.addEventListener("change", toggleEnrollmentVisibility);
-    toggleEnrollmentVisibility();
-
-    // ────────────────────────────────────────────────
-    // Enrolled → Reasons → Reasons Other logic
-    // ────────────────────────────────────────────────
-    const enrolledField       = document.getElementById("id_enrolled");
-    const reasonsWrapper      = document.getElementById("reasons-wrapper");
-    const reasonsField        = document.getElementById("id_reasons");
-    const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
-    const reasonsOtherField   = document.getElementById("id_reasons_other");
-
-    function toggleReasonsVisibility() {
-        if (enrolledField?.value === "2") {  // "No" = "2" (adjust if different)
-            reasonsWrapper.style.display = "block";
-            toggleReasonsOtherVisibility();  // check initial/selected value
-        } else {
-            reasonsWrapper.style.display = "none";
-            reasonsField.value = "";
-            reasonsOtherWrapper.style.display = "none";
-            reasonsOtherField.value = "";
+            enrollmentSection.style.display = eligible ? "block" : "none";
         }
-    }
 
-    function toggleReasonsOtherVisibility() {
-        // Get the selected option and its data-value (which is EnrolledReason.value)
-        const selectedOption = reasonsField?.options[reasonsField.selectedIndex];
-        const reasonValue = selectedOption ? selectedOption.getAttribute("data-value") : null;
-
-        if (reasonValue === "96") {
-            reasonsOtherWrapper.style.display = "block";
-        } else {
-            reasonsOtherWrapper.style.display = "none";
-            reasonsOtherField.value = "";  // clear when hidden
+        function toggleReasonsVisibility() {
+            if (enrolledField?.value === "2") {
+                reasonsWrapper.style.display = "block";
+            } else {
+                reasonsWrapper.style.display = "none";
+                reasonsField.value = "";
+                toggleReasonsOtherVisibility();
+            }
         }
-    }
 
-    // Event listeners
-    enrolledField?.addEventListener("change", toggleReasonsVisibility);
-    reasonsField?.addEventListener("change", toggleReasonsOtherVisibility);
+        function toggleReasonsOtherVisibility() {
+            if (reasonsField?.value === "96") reasonsOtherWrapper.style.display = "block";
+            else {
+                reasonsOtherWrapper.style.display = "none";
+                reasonsOtherField.value = "";
+            }
+        }
 
-    // Run on page load (very important for edit forms)
-    toggleReasonsVisibility();
-});
+        presentSymptoms?.addEventListener("change", toggleEnrollmentVisibility);
+        genexpertConfirmation?.addEventListener("change", toggleEnrollmentVisibility);
+        enrolledField?.addEventListener("change", toggleReasonsVisibility);
+        reasonsField?.addEventListener("change", toggleReasonsOtherVisibility);
+
+        toggleEnrollmentVisibility();
+    });
 </script>
 {% endblock %}

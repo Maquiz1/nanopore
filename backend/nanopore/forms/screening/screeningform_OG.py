@@ -6,24 +6,6 @@ from options.models import YesNo, EnrolledReason
 from demographic.models import Sex
 
 
-class ReasonsSelectWidget(forms.Select):
-    """
-    Custom widget for reasons field that adds data-value attribute to each option.
-    """
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        option_dict = super().create_option(name, value, label, selected, index, subindex, attrs)
-        
-        if value:  # skip empty/blank option
-            try:
-                # Get the actual EnrolledReason object
-                reason_obj = EnrolledReason.objects.get(pk=value)
-                option_dict['attrs']['data-value'] = str(reason_obj.value)
-            except EnrolledReason.DoesNotExist:
-                pass  # no data-value if object missing (shouldn't happen)
-        
-        return option_dict
-    
-    
 class ScreeningForm(forms.ModelForm):
     sex = forms.ModelChoiceField(
         queryset=Sex.objects.all(),
@@ -108,7 +90,6 @@ class ScreeningForm(forms.ModelForm):
         empty_label="Select",
         label="11(b). If not, what was the reason?",
         widget=forms.Select(attrs={"class": "form-select"}),
-        # widget=ReasonsSelectWidget(attrs={"class": "form-select"}),  # ← custom widget
         required=False,
     )
 
