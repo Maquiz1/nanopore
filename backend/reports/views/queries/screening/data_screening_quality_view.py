@@ -64,7 +64,6 @@ class ScreeningDataQualityReportView(View):
                 "eligible": s.eligible,
                 "consent": getattr(getattr(s, "consent", None), "name", ""),
                 "produce_resp_sample": getattr(getattr(s, "produce_resp_sample", None), "name", ""),
-                "genexpert_confirmation": getattr(getattr(s, "genexpert_confirmation", None), "name", ""),
                 "enrolled": getattr(getattr(s, "enrolled", None), "name", ""),
             }
 
@@ -76,9 +75,7 @@ class ScreeningDataQualityReportView(View):
         missing_age_dob_qs        = screenings.filter(age__isnull=True, dob__isnull=True)
         missing_consent_qs        = screenings.filter(consent__isnull=True)
         missing_age18years_qs     = screenings.filter(age18years__isnull=True)
-        missing_present_symptoms_qs = screenings.filter(present_symptoms__isnull=True)
         missing_produce_resp_sample_qs = screenings.filter(produce_resp_sample__isnull=True)
-        missing_genexpert_qs      = screenings.filter(genexpert_confirmation__isnull=True)
         missing_unable_qs         = screenings.filter(unable_understand__isnull=True)
         missing_not_willing_qs    = screenings.filter(not_willing__isnull=True)
         missing_enrolled_qs       = screenings.filter(enrolled__isnull=True)
@@ -100,12 +97,12 @@ class ScreeningDataQualityReportView(View):
         )
 
         # Zone-specific (using constant for Dar es Salaam)
-        dar_es_salaam_missing_symptoms_qs = screenings.filter(
+        missing_present_symptoms_qs = screenings.filter(
             site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID,
             present_symptoms__isnull=True
         )
 
-        other_zones_missing_genexpert_qs = screenings.exclude(
+        missing_genexpert_qs = screenings.exclude(
             site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID
         ).filter(genexpert_confirmation__isnull=True)
 
@@ -148,8 +145,8 @@ class ScreeningDataQualityReportView(View):
             "missing_age_dob": [serialize_screening(s) for s in missing_age_dob_qs[:100]],
             "missing_consent": [serialize_screening(s) for s in missing_consent_qs[:100]],
             "missing_age18years": [serialize_screening(s) for s in missing_age18years_qs[:100]],
-            "missing_present_symptoms": [serialize_screening(s) for s in dar_es_salaam_missing_symptoms_qs[:100]],
-            "missing_genexpert_confirmation": [serialize_screening(s) for s in other_zones_missing_genexpert_qs[:100]],
+            "missing_present_symptoms": [serialize_screening(s) for s in missing_present_symptoms_qs[:100]],
+            "missing_genexpert_confirmation": [serialize_screening(s) for s in missing_genexpert_qs[:100]],
             "missing_produce_resp_sample": [serialize_screening(s) for s in missing_produce_resp_sample_qs[:100]],
             "missing_unable_understand": [serialize_screening(s) for s in missing_unable_qs[:100]],
             "missing_not_willing": [serialize_screening(s) for s in missing_not_willing_qs[:100]],
@@ -171,8 +168,8 @@ class ScreeningDataQualityReportView(View):
             "count_missing_age_dob": missing_age_dob_qs.count(),
             "count_missing_consent": missing_consent_qs.count(),
             "count_missing_age18years": missing_age18years_qs.count(),
-            "count_missing_present_symptoms": dar_es_salaam_missing_symptoms_qs.count(),
-            "count_missing_genexpert_confirmation": other_zones_missing_genexpert_qs.count(),
+            "count_missing_present_symptoms": missing_present_symptoms_qs.count(),
+            "count_missing_genexpert_confirmation": missing_genexpert_qs.count(),
             "count_missing_produce_resp_sample": missing_produce_resp_sample_qs.count(),
             "count_missing_unable_understand": missing_unable_qs.count(),
             "count_missing_not_willing": missing_not_willing_qs.count(),
