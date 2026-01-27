@@ -31,7 +31,6 @@ def screening_report_total(request):
     missing_age_or_dob          = qs.filter(age__isnull=True, dob__isnull=True).count()
     missing_consent             = qs.filter(consent__isnull=True).count()
     missing_age18years          = qs.filter(age18years__isnull=True).count()
-    missing_present_symptoms    = qs.filter(present_symptoms__isnull=True).count()
     missing_produce_resp_sample = qs.filter(produce_resp_sample__isnull=True).count()
     missing_genexpert_confirm   = qs.filter(genexpert_confirmation__isnull=True).count()
     missing_unable_understand   = qs.filter(unable_understand__isnull=True).count()
@@ -55,12 +54,12 @@ def screening_report_total(request):
     ).count()
 
     # Zone-specific rules
-    missing_present_symptoms_dsm = qs.filter(
+    missing_present_symptoms = qs.filter(
         site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID,
         present_symptoms__isnull=True
     ).count()
 
-    missing_genexpert_other_zones = qs.exclude(
+    missing_genexpert_confirm = qs.exclude(
         site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID
     ).filter(
         genexpert_confirmation__isnull=True
@@ -113,8 +112,6 @@ def screening_report_total(request):
         "screening_report_total": total_issues,
         "missing_consent_date_when_yes": missing_consent_date_when_yes,
         "missing_reasons_other": missing_reasons_other,
-        "missing_present_symptoms_dsm": missing_present_symptoms_dsm,
-        "missing_genexpert_other_zones": missing_genexpert_other_zones,
         "duplicate_pid_count": duplicate_pid_count,
         "mismatched_pid_count": mismatched_pid_count,
         "invalid_length_pid_count": invalid_length_pid_count,
