@@ -81,7 +81,7 @@ ZONAL_LABELS = {
     "second_line_lpa":"18. Was second-line LPA conducted?",
     "second_line_lpa_date":"19(a). Date of performing second-line LPA?",
     "second_line_drugs":"19(b). Line probe assay (2nd line drugs) (GenoType MTBDRsl V2)",
-    "lpa2_mtb":"19(c). MTB result on LPA1",
+    "lpa2_mtb":"19(c). MTB result on LPA2",
     "lpa2_rfluoroquinolones":"19(d). RFluoroquinolones",
     "lpa2_aminoglycosides":"19(e). Aminoglycosides",
     "lpa2_kanamycin":"19(f). Kanamycin",
