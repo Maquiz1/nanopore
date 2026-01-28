@@ -8,57 +8,6 @@ from utils.permissions import filter_queryset_by_user_role
 def enrollment_report_total(request):
     """
     Navbar count for Enrollment data quality issues.
-
-    Rules implemented:
-
-    ---------------------------------------------------
-    BASIC MISSING CHECKS
-    ---------------------------------------------------
-    - hiv_status
-    - other_diseases / diseases_medical / diseases_specify
-    - sputum_collected / sputum_date / sputum_reasons
-
-    ---------------------------------------------------
-    TREATMENT DATA
-    ---------------------------------------------------
-    - tx_year
-    - dr_ds
-    - ltf_months / ltf_months_unknown
-    - tb_regimen / tb_regimen_specify
-    - tb_category / tb_category_specify
-    - regimen_months / regimen_months_unknown
-    - tb_outcome
-
-    ---------------------------------------------------
-    PREVIOUS TREATMENT LOGIC (tx_previous = 1)
-    ---------------------------------------------------
-
-    Required:
-        - tx_month OR tx_unknown_month = True
-        - tx_year  OR tx_unknown_year  = True
-        - regimen_months OR regimen_months_unknown = True
-
-    Rules:
-        • If tx_month is missing → tx_unknown_month MUST be True
-        • If tx_unknown_month is True → tx_month must be NULL or 99
-        • If tx_year is missing → tx_unknown_year MUST be True
-        • If tx_unknown_year is True:
-              - tx_year must be NULL or 99
-              - tx_month must be NULL or 99
-              - tx_unknown_month MUST be True
-        • If regimen_months is missing → regimen_months_unknown MUST be True
-        • If regimen_months_unknown is True → regimen_months must be NULL
-        • If tb_regimen=8 → tb_regimen_specify MUST NOT be NULL
-        • If tb_regimen=96 → tb_regimen_specify MUST NOT be NULL
-        • If tb_category=96 → tb_category_specify MUST NOT be NULL
-        • If tb_category=2 or 3 → 
-              - ltf_months MUST NOT be NULL and ltf_months_unknown=False
-              OR
-              - ltf_months IS NULL and ltf_months_unknown=True
-        • If sputum_collected=1 → sputum_date MUST NOT be NULL
-        • If sputum_collected=2 → sputum_reasons MUST NOT be NULL
-        • If other_diseases=1 → diseases_medical MUST NOT be NULL
-        • If diseases_medical=96 → diseases_specify MUST NOT be NULL
     """
 
     if not request.user.is_authenticated:
@@ -98,22 +47,17 @@ def enrollment_report_total(request):
         diseases_medical__isnull=True
     ).count()
 
-    # diseases_medical = 96 requires diseases_specify
     missing_diseases_specify = enrollments.filter(
         diseases_medical=96,
         diseases_specify__isnull=True
     ).count()
 
     # =====================================================
-    # TB TREATMENT FIELDS
+    # TB TREATMENT FIELDS (simple null checks)
     # =====================================================
-
-    missing_tx_year = enrollments.filter(tx_year__isnull=True).count()
-    missing_dr_ds = enrollments.filter(dr_ds__isnull=True).count()
-    missing_ltf_months = enrollments.filter(regimen_months__isnull=True).count()
-    missing_tb_regimen = enrollments.filter(tb_regimen__isnull=True).count()
-    missing_regimen_months = enrollments.filter(regimen_months__isnull=True).count()
-    missing_tb_outcome = enrollments.filter(tb_otcome__isnull=True).count()
+    missing_dr_ds = enrollments.filter(tx_previous=1,dr_ds__isnull=True).count()
+    missing_tb_regimen = enrollments.filter(tx_previous=1,tb_regimen__isnull=True).count()
+    missing_tb_outcome = enrollments.filter(tx_previous=1,tb_otcome__isnull=True).count()  # fixed typo
 
     # TB Regimen = Other (96) requires specification
     missing_tb_regimen_specify = enrollments.filter(
@@ -144,7 +88,6 @@ def enrollment_report_total(request):
     # =====================================================
     # PREVIOUS TB TREATMENT LOGIC
     # =====================================================
-
     previous_tx = enrollments.filter(tx_previous=1)
 
     missing_tx_month_without_unknown = previous_tx.filter(
@@ -181,7 +124,6 @@ def enrollment_report_total(request):
     # =====================================================
     # TOTAL ISSUES
     # =====================================================
-
     enrollment_report_total = sum([
         missing_hiv_status,
         missing_other_diseases,
@@ -191,11 +133,8 @@ def enrollment_report_total(request):
         missing_diseases_medical,
         missing_diseases_specify,
 
-        missing_tx_year,
         missing_dr_ds,
-        missing_ltf_months,
         missing_tb_regimen,
-        missing_regimen_months,
         missing_tb_outcome,
 
         missing_tb_regimen_specify,
@@ -225,11 +164,8 @@ def enrollment_report_total(request):
         "missing_diseases_medical": missing_diseases_medical,
         "missing_diseases_specify": missing_diseases_specify,
 
-        "missing_tx_year": missing_tx_year,
         "missing_dr_ds": missing_dr_ds,
-        "missing_ltf_months": missing_ltf_months,
         "missing_tb_regimen": missing_tb_regimen,
-        "missing_regimen_months": missing_regimen_months,
         "missing_tb_outcome": missing_tb_outcome,
 
         "missing_tb_regimen_specify": missing_tb_regimen_specify,
