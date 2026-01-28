@@ -2,7 +2,7 @@ from django.views import View
 from django.shortcuts import render
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Q, ExpressionWrapper, IntegerField, F
+from django.db.models import Q
 from django.apps import apps
 
 from utils.permissions import filter_queryset_by_user_role
@@ -10,119 +10,172 @@ from utils.permissions import filter_queryset_by_user_role
 
 class DiagnosisDataQualityReportView(View):
     """
-    Role-aware data quality report focused on Diagnosis model issues.
-    Prepares context for the diagnosis-specific template with accordion sections.
+    Diagnosis data quality report
+    — fully aligned with diagnosis_report_total context processor
     """
+
     template_name = "reports/data_quality/diagnosis/data_diagnosis_quality_report.html"
 
     def get(self, request, *args, **kwargs):
-        Diagnosis = apps.get_model('nanopore', 'Diagnosis')
-        Screening  = apps.get_model('nanopore', 'Screening')
 
-        # ── Base Diagnosis QuerySet ─────────────────────────────────────────────
+        Diagnosis = apps.get_model("nanopore", "Diagnosis")
+
+        # ─────────────────────────────────────────────────────────────
+        # Base queryset
+        # ─────────────────────────────────────────────────────────────
         diagnoses = Diagnosis.objects.select_related(
-            'screening',
-            'screening__site',
-            'screening__site__district__region__zone',
+            "screening",
+            "screening__site",
+            "screening__site__district__region__zone",
         ).order_by(
-            'screening__site__district__region__zone__name',
-            'screening__site__name',
-            'screening__pid'
+            "screening__site__district__region__zone__name",
+            "screening__site__name",
+            "screening__pid",
         )
 
-        # Role-based filtering (assuming site is reachable via screening)
         diagnoses = filter_queryset_by_user_role(
             request.user,
             diagnoses,
             site_field="screening__site"
         )
 
-        # Optional GET filters
-        zone_id = request.GET.get("zone")
-        site_id = request.GET.get("site")
-        if zone_id:
-            diagnoses = diagnoses.filter(screening__site__district__region__zone_id=zone_id)
-        if site_id:
-            diagnoses = diagnoses.filter(screening__site_id=site_id)
-
-        total_records = diagnoses.count()
-
-        # ── Define critical missing fields ──────────────────────────────────────
-        critical_fields = [
-            "tb_diagnosis",
-            "tb_diagnosis_date",
-            "tb_treatment",
-            "tb_treatment_date",
-            "tb_regimen",
-            # "tb_facility",           # optional – uncomment if critical
-            # "bacteriological_diagnosis",
-        ]
-
-        # ── Missing individual fields ───────────────────────────────────────────
-        missing_tb_diagnosis       = diagnoses.filter(tb_diagnosis__isnull=True)
-        missing_tb_diagnosis_date  = diagnoses.filter(tb_diagnosis_date__isnull=True)
-        missing_tb_treatment       = diagnoses.filter(tb_diagnosis__isnull=False, tb_treatment__isnull=True)
-        missing_tb_treatment_date  = diagnoses.filter(tb_treatment=1, tb_treatment_date__isnull=True)
-        missing_tb_regimen         = diagnoses.filter(tb_treatment=1, tb_regimen__isnull=True)
-
-        # ── Pending outcomes (treatment ≥ 6 months ago) ─────────────────────────
-        six_months_ago = timezone.now().date() - timedelta(days=180)
-
-        long_treatment = diagnoses.filter(
-            tb_treatment=1,
-            tb_treatment_date__isnull=False,
-            tb_treatment_date__lte=six_months_ago
-        ).annotate(
-            months_on_treatment=ExpressionWrapper(
-                (timezone.now().date() - F('tb_treatment_date')) / 30,
-                output_field=IntegerField()
-            )
+        # ─────────────────────────────────────────────────────────────
+        # Shared logic with navbar
+        # ─────────────────────────────────────────────────────────────
+        tb_treatment_is_1_q = (
+            Q(tb_treatment__value=1)
+            | Q(tb_treatment__name__iexact="1")
         )
 
-        pending_outcome     = long_treatment.filter(tb_outcome2__isnull=True)
-        pending_outcome_date = long_treatment.filter(tb_outcome2_date__isnull=True)
+        # ─────────────────────────────────────────────────────────────
+        # Missing core fields
+        # ─────────────────────────────────────────────────────────────
+        missing_tb_diagnosis = diagnoses.filter(
+            tb_diagnosis__isnull=True
+        )
 
-        # ── Calculate total issues ──────────────────────────────────────────────
-        # (each record can contribute to multiple categories → we count issues, not unique records)
-        total_issues = sum([
-            missing_tb_diagnosis.count(),
-            missing_tb_diagnosis_date.count(),
-            missing_tb_treatment.count(),
-            missing_tb_treatment_date.count(),
-            missing_tb_regimen.count(),
-            pending_outcome.count(),
-            pending_outcome_date.count(),
-        ])
+        missing_tb_diagnosis_date = diagnoses.filter(
+            tb_diagnosis_date__isnull=True
+        )
 
-        # ── Prepare context ─────────────────────────────────────────────────────
+        missing_tb_diagnosis_made = diagnoses.filter(
+            tb_diagnosis_made__isnull=True
+        )
+
+        missing_bacteriological_diagnosis = diagnoses.filter(
+            bacteriological_diagnosis__isnull=True
+        )
+
+        missing_tb_treatment = diagnoses.filter(
+            tb_treatment__isnull=True
+        )
+
+        missing_tb_treatment_date = diagnoses.filter(
+            tb_treatment_is_1_q,
+            tb_treatment_date__isnull=True
+        )
+
+        missing_tb_facility = diagnoses.filter(
+            tb_facility__isnull=True
+        )
+
+        missing_tb_regimen = diagnoses.filter(
+            tb_treatment_is_1_q,
+            tb_regimen__isnull=True
+        )
+
+        missing_tb_outcome2 = diagnoses.filter(
+            tb_outcome2__isnull=True
+        )
+
+        missing_tb_outcome2_date = diagnoses.filter(
+            tb_outcome2__isnull=False,
+            tb_outcome2_date__isnull=True
+        )
+
+        # ─────────────────────────────────────────────────────────────
+        # ≥ 6 months treatment logic
+        # ─────────────────────────────────────────────────────────────
+        six_months_ago = timezone.now().date() - timedelta(days=180)
+
+        long_treatment_base = diagnoses.filter(
+            tb_treatment_is_1_q,
+            tb_treatment_date__isnull=False,
+            tb_treatment_date__lte=six_months_ago
+        )
+
+        pending_tb_outcome = long_treatment_base.filter(
+            tb_outcome2__isnull=True
+        )
+
+        pending_tb_outcome_date = long_treatment_base.filter(
+            tb_outcome2_date__isnull=True
+        )
+
+        # ─────────────────────────────────────────────────────────────
+        # Total issue count (same as navbar)
+        # ─────────────────────────────────────────────────────────────
+        total_issues = (
+            missing_tb_diagnosis.count()
+            + missing_tb_diagnosis_date.count()
+            + missing_tb_diagnosis_made.count()
+            + missing_bacteriological_diagnosis.count()
+            + missing_tb_treatment.count()
+            + missing_tb_treatment_date.count()
+            + missing_tb_facility.count()
+            + missing_tb_regimen.count()
+            + missing_tb_outcome2.count()
+            + missing_tb_outcome2_date.count()
+            + pending_tb_outcome.count()
+            + pending_tb_outcome_date.count()
+        )
+
+        # ─────────────────────────────────────────────────────────────
+        # Context
+        # ─────────────────────────────────────────────────────────────
         context = {
             "report_date": timezone.now(),
 
-            "total_diagnosis_records": total_records,
-            "total_diagnosis_issues":  total_issues,
+            "total_diagnosis_records": diagnoses.count(),
+            "total_diagnosis_issues": total_issues,
 
-            # Missing fields sections
-            "count_missing_tb_diagnosis":      missing_tb_diagnosis.count(),
-            "missing_tb_diagnosis":            missing_tb_diagnosis,
+            # Missing core fields
+            "missing_tb_diagnosis": missing_tb_diagnosis,
+            "count_missing_tb_diagnosis": missing_tb_diagnosis.count(),
 
+            "missing_tb_diagnosis_date": missing_tb_diagnosis_date,
             "count_missing_tb_diagnosis_date": missing_tb_diagnosis_date.count(),
-            "missing_tb_diagnosis_date":       missing_tb_diagnosis_date,
 
-            "count_missing_tb_treatment":      missing_tb_treatment.count(),
-            "missing_tb_treatment":            missing_tb_treatment,
+            "missing_tb_diagnosis_made": missing_tb_diagnosis_made,
+            "count_missing_tb_diagnosis_made": missing_tb_diagnosis_made.count(),
 
-            # You can add more missing fields here (tb_regimen, tb_facility, etc.)
+            "missing_bacteriological_diagnosis": missing_bacteriological_diagnosis,
+            "count_missing_bacteriological_diagnosis": missing_bacteriological_diagnosis.count(),
 
-            # Long-term treatment – outcome missing
-            "count_pending_tb_outcome":     pending_outcome.count(),
-            "pending_tb_outcome":           pending_outcome,
+            "missing_tb_treatment": missing_tb_treatment,
+            "count_missing_tb_treatment": missing_tb_treatment.count(),
 
-            "count_pending_tb_outcome_date": pending_outcome_date.count(),
-            "pending_tb_outcome_date":       pending_outcome_date,
+            "missing_tb_treatment_date": missing_tb_treatment_date,
+            "count_missing_tb_treatment_date": missing_tb_treatment_date.count(),
+
+            "missing_tb_facility": missing_tb_facility,
+            "count_missing_tb_facility": missing_tb_facility.count(),
+
+            "missing_tb_regimen": missing_tb_regimen,
+            "count_missing_tb_regimen": missing_tb_regimen.count(),
+
+            "missing_tb_outcome2": missing_tb_outcome2,
+            "count_missing_tb_outcome2": missing_tb_outcome2.count(),
+
+            "missing_tb_outcome2_date": missing_tb_outcome2_date,
+            "count_missing_tb_outcome2_date": missing_tb_outcome2_date.count(),
+
+            # ≥ 6 months workflow
+            "pending_tb_outcome": pending_tb_outcome,
+            "count_pending_tb_outcome": pending_tb_outcome.count(),
+
+            "pending_tb_outcome_date": pending_tb_outcome_date,
+            "count_pending_tb_outcome_date": pending_tb_outcome_date.count(),
         }
-
-        # Optional: add zone/site filter choices if needed in template
-        # context["zones"] = ... 
-        # context["sites"] = ...
 
         return render(request, self.template_name, context)
