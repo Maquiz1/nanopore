@@ -19,120 +19,125 @@ class EnrollmentDataQualityReportView(View):
     def get(self, request, *args, **kwargs):
         Enrollment = apps.get_model('nanopore', 'Enrollment')
 
-        # Base queryset – only select_related what's actually useful
         enrollments = Enrollment.objects.select_related(
-            'screening',                # for PID, site, etc.
-            'screening__site',
-            # Boolean/choice fields usually don't need select_related
-        ).order_by('-enrollment_date')
+            "screening",
+            "screening__site",
+            "screening__site__district__region__zone",
+        ).order_by(
+            "screening__site__district__region__zone__name",
+            "screening__site__name",
+            "screening__pid",
+        )
 
+        # Apply user role-based filtering
         enrollments = filter_queryset_by_user_role(
             request.user,
             enrollments,
             site_field="screening__site"
-        )
+        )        
 
         total_enrollments = enrollments.count()
 
-        # ── Explicit missing field counts (matches context processor style) ─────
-        missing_enrollment_date          = enrollments.filter(enrollment_date__isnull=True).count()
-        missing_cough2weeks              = enrollments.filter(cough2weeks__isnull=True).count()
-        missing_poor_weight              = enrollments.filter(poor_weight__isnull=True).count()
-        missing_coughing_blood           = enrollments.filter(coughing_blood__isnull=True).count()
-        missing_unexplained_fever        = enrollments.filter(unexplained_fever__isnull=True).count()
-        missing_night_sweats             = enrollments.filter(night_sweats__isnull=True).count()
-        missing_neck_lymph               = enrollments.filter(neck_lymph__isnull=True).count()
-        missing_history_tb               = enrollments.filter(history_tb__isnull=True).count()
-        missing_date_information_collected = enrollments.filter(date_information_collected__isnull=True).count()
-        missing_tx_previous              = enrollments.filter(tx_previous__isnull=True).count()
+        # ── Explicit missing / conditional field querysets ─────────
+        missing_hiv_status = enrollments.filter(hiv_status__isnull=True)
+        missing_other_diseases = enrollments.filter(other_diseases__isnull=True)
+        missing_sputum_collected = enrollments.filter(sputum_collected__isnull=True)
 
-        # Total issues = sum of all missing counts (same record can contribute multiple)
-        total_issues = (
-            missing_enrollment_date +
-            missing_cough2weeks +
-            missing_poor_weight +
-            missing_coughing_blood +
-            missing_unexplained_fever +
-            missing_night_sweats +
-            missing_neck_lymph +
-            missing_history_tb +
-            missing_date_information_collected +
-            missing_tx_previous
+        missing_sputum_date = enrollments.filter(sputum_collected=1, sputum_date__isnull=True)
+        missing_sputum_reasons = enrollments.filter(sputum_collected=2, sputum_reasons__isnull=True)
+
+        missing_diseases_medical = enrollments.filter(other_diseases=1, diseases_medical__isnull=True)
+        missing_diseases_specify = enrollments.filter(diseases_medical=96, diseases_specify__isnull=True)
+
+        missing_tx_year = enrollments.filter(tx_year__isnull=True)
+        missing_dr_ds = enrollments.filter(dr_ds__isnull=True)
+        missing_ltf_months = enrollments.filter(regimen_months__isnull=True)
+        missing_tb_regimen = enrollments.filter(tb_regimen__isnull=True)
+        missing_regimen_months = enrollments.filter(regimen_months__isnull=True)
+        missing_tb_outcome = enrollments.filter(tb_otcome__isnull=True)
+
+        missing_tb_regimen_specify = enrollments.filter(tb_regimen=96, tb_regimen_specify__isnull=True)
+        missing_tb_regimen_specify_8 = enrollments.filter(tb_regimen=8, tb_regimen_specify__isnull=True)
+        missing_tb_category_specify = enrollments.filter(tb_category=96, tb_category_specify__isnull=True)
+
+        # Invalid / inconsistent fields
+        invalid_ltf_months = enrollments.filter(
+            tb_category__in=[2, 3]
+        ).exclude(
+            Q(ltf_months__isnull=False, ltf_months_unknown=False) |
+            Q(ltf_months__isnull=True, ltf_months_unknown=True)
         )
 
-        # ── Problematic records for display (limited) ───────────────────────────
-        # We use Q to find records with at least one missing field
-        has_missing_q = (
-            Q(enrollment_date__isnull=True) |
-            Q(cough2weeks__isnull=True) |
-            Q(poor_weight__isnull=True) |
-            Q(coughing_blood__isnull=True) |
-            Q(unexplained_fever__isnull=True) |
-            Q(night_sweats__isnull=True) |
-            Q(neck_lymph__isnull=True) |
-            Q(history_tb__isnull=True) |
-            Q(date_information_collected__isnull=True) |
-            Q(tx_previous__isnull=True)
-        )
+        previous_tx = enrollments.filter(tx_previous=1)
+        missing_tx_month_without_unknown = previous_tx.filter(tx_month__isnull=True, tx_unknown_month=False)
+        invalid_tx_month_with_unknown = previous_tx.filter(tx_unknown_month=True).exclude(Q(tx_month__isnull=True) | Q(tx_month=99))
+        missing_tx_year_without_unknown = previous_tx.filter(tx_year__isnull=True, tx_unknown_year=False)
+        invalid_tx_year_with_unknown = previous_tx.filter(tx_unknown_year=True).exclude(Q(tx_year__isnull=True) | Q(tx_year=99))
+        invalid_unknown_year_dependencies = previous_tx.filter(tx_unknown_year=True).exclude(Q(tx_month__isnull=True) | Q(tx_month=99), tx_unknown_month=True)
+        missing_regimen_months_without_unknown = previous_tx.filter(regimen_months__isnull=True, regimen_months_unknown=False)
+        invalid_regimen_months_with_unknown = previous_tx.filter(regimen_months_unknown=True).exclude(Q(regimen_months__isnull=True))
 
-        problematic_enrollments = enrollments.filter(has_missing_q)[:150]  # safety limit
-
-        missing_records_display = []
-        for e in problematic_enrollments:
-            missing = []
-            if e.enrollment_date is None:
-                missing.append("enrollment_date")
-            if e.cough2weeks is None:
-                missing.append("cough2weeks")
-            # ... repeat for all fields (or use a helper list + loop)
-            if e.poor_weight is None:
-                missing.append("poor_weight")
-            if e.coughing_blood is None:
-                missing.append("coughing_blood")
-            if e.unexplained_fever is None:
-                missing.append("unexplained_fever")
-            if e.night_sweats is None:
-                missing.append("night_sweats")
-            if e.neck_lymph is None:
-                missing.append("neck_lymph")
-            if e.history_tb is None:
-                missing.append("history_tb")
-            if e.date_information_collected is None:
-                missing.append("date_information_collected")
-            if e.tx_previous is None:
-                missing.append("tx_previous")
-
-            if missing:
-                missing_records_display.append({
-                    'enrollment_id': e.id,
-                    'pid': getattr(e.screening, 'pid', '—'),
-                    'site': getattr(getattr(e.screening, 'site', None), 'name', '—'),
-                    'enrollment_date': e.enrollment_date,
-                    'missing_fields': missing,
-                })
+        # ── Total issues ───────────────────────────────────────
+        total_issues = sum([
+            missing_hiv_status.count(),
+            missing_other_diseases.count(),
+            missing_sputum_collected.count(),
+            missing_sputum_date.count(),
+            missing_sputum_reasons.count(),
+            missing_diseases_medical.count(),
+            missing_diseases_specify.count(),
+            missing_tx_year.count(),
+            missing_dr_ds.count(),
+            missing_ltf_months.count(),
+            missing_tb_regimen.count(),
+            missing_regimen_months.count(),
+            missing_tb_outcome.count(),
+            missing_tb_regimen_specify.count(),
+            missing_tb_regimen_specify_8.count(),
+            missing_tb_category_specify.count(),
+            invalid_ltf_months.count(),
+            missing_tx_month_without_unknown.count(),
+            invalid_tx_month_with_unknown.count(),
+            missing_tx_year_without_unknown.count(),
+            invalid_tx_year_with_unknown.count(),
+            invalid_unknown_year_dependencies.count(),
+            missing_regimen_months_without_unknown.count(),
+            invalid_regimen_months_with_unknown.count(),
+        ])
 
         role_context = get_role_context(request.user)
 
         context = {
             "report_date": timezone.now(),
             "total_enrollments": total_enrollments,
-            "total_issues": total_issues,                      # matches context processor logic
-            "enrollment_report_total": total_issues,           # for consistency with navbar
+            "total_issues": total_issues,
+            "enrollment_report_total": total_issues,  # for navbar consistency
 
-            # Individual counts – match keys from context processor
-            "missing_enrollment_date": missing_enrollment_date,
-            "missing_cough2weeks": missing_cough2weeks,
-            "missing_poor_weight": missing_poor_weight,
-            "missing_coughing_blood": missing_coughing_blood,
-            "missing_unexplained_fever": missing_unexplained_fever,
-            "missing_night_sweats": missing_night_sweats,
-            "missing_neck_lymph": missing_neck_lymph,
-            "missing_history_tb": missing_history_tb,
-            "missing_date_information_collected": missing_date_information_collected,
-            "missing_tx_previous": missing_tx_previous,
-
-            # Records to display in table/accordion
-            "problematic_enrollments": missing_records_display,
+            # Individual querysets (template can loop over these)
+            "missing_hiv_status": missing_hiv_status,
+            "missing_other_diseases": missing_other_diseases,
+            "missing_sputum_collected": missing_sputum_collected,
+            "missing_sputum_date": missing_sputum_date,
+            "missing_sputum_reasons": missing_sputum_reasons,
+            "missing_diseases_medical": missing_diseases_medical,
+            "missing_diseases_specify": missing_diseases_specify,
+            "missing_tx_year": missing_tx_year,
+            "missing_dr_ds": missing_dr_ds,
+            "missing_ltf_months": missing_ltf_months,
+            "missing_tb_regimen": missing_tb_regimen,
+            "missing_regimen_months": missing_regimen_months,
+            "missing_tb_outcome": missing_tb_outcome,
+            "missing_tb_regimen_specify": missing_tb_regimen_specify,
+            "missing_tb_regimen_specify_8": missing_tb_regimen_specify_8,
+            "missing_tb_category_specify": missing_tb_category_specify,
+            "invalid_ltf_months": invalid_ltf_months,
+            "missing_tx_month_without_unknown": missing_tx_month_without_unknown,
+            "invalid_tx_month_with_unknown": invalid_tx_month_with_unknown,
+            "missing_tx_year_without_unknown": missing_tx_year_without_unknown,
+            "invalid_tx_year_with_unknown": invalid_tx_year_with_unknown,
+            "invalid_unknown_year_dependencies": invalid_unknown_year_dependencies,
+            "missing_regimen_months_without_unknown": missing_regimen_months_without_unknown,
+            "invalid_regimen_months_with_unknown": invalid_regimen_months_with_unknown,
 
             # Role flags
             "is_admin": role_context.get("is_admin", False),

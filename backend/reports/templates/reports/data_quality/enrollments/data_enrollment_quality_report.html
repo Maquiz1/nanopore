@@ -52,42 +52,30 @@
         </div>
     </div>
 
-    <!-- No issues → success message | Issues → accordion with per-field sections -->
     {% if total_issues %}
     <div class="accordion" id="enrollmentIssuesAccordion">
 
-        <!-- Missing Enrollment Date -->
-        {% if missing_enrollment_date %}
+        {% comment %} Each field gets its own accordion {% endcomment %}
+
+        <!-- Missing HIV Status -->
+        {% if missing_hiv_status %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnrollmentDate">
-                    Missing Enrollment Date ({{ missing_enrollment_date }})
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHIVStatus">
+                    Missing HIV Status ({{ missing_hiv_status.count }})
                 </button>
             </h2>
-            <div id="collapseEnrollmentDate" class="accordion-collapse collapse show">
+            <div id="collapseHIVStatus" class="accordion-collapse collapse show">
                 <div class="accordion-body">
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Enrolled</th>
-                                </tr>
-                            </thead>
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for rec in problematic_enrollments %}
-                                {% if "enrollment_date" in rec.missing_fields %}
+                                {% for rec in missing_hiv_status %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:enrollment-update' pk=rec.enrollment_id %}" class="text-primary fw-bold">
-                                            {{ rec.pid }}
-                                        </a>
-                                    </td>
-                                    <td>{{ rec.site }}</td>
-                                    <td>—</td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
                                 </tr>
-                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -97,34 +85,25 @@
         </div>
         {% endif %}
 
-        <!-- Missing Cough 2 Weeks -->
-        {% if missing_cough2weeks %}
+        <!-- Missing Other Diseases -->
+        {% if missing_other_diseases %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCough2weeks">
-                    Missing Cough ≥ 2 Weeks ({{ missing_cough2weeks }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOtherDiseases">
+                    Missing Other Diseases ({{ missing_other_diseases.count }})
                 </button>
             </h2>
-            <div id="collapseCough2weeks" class="accordion-collapse collapse">
+            <div id="collapseOtherDiseases" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Enrolled</th>
-                                </tr>
-                            </thead>
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for rec in problematic_enrollments %}
-                                {% if "cough2weeks" in rec.missing_fields %}
+                                {% for rec in missing_other_diseases %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.enrollment_id %}">{{ rec.pid }}</a></td>
-                                    <td>{{ rec.site }}</td>
-                                    <td>{{ rec.enrollment_date|date:"d/m/Y"|default:"—" }}</td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
                                 </tr>
-                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -134,35 +113,25 @@
         </div>
         {% endif %}
 
-        <!-- Repeat pattern for other fields -->
-        {% if missing_poor_weight %}
+        <!-- Missing Sputum Collected -->
+        {% if missing_sputum_collected %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePoorWeight">
-                    Missing Poor Weight Gain ({{ missing_poor_weight }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumCollected">
+                    Missing Sputum Collected ({{ missing_sputum_collected.count }})
                 </button>
             </h2>
-            <div id="collapsePoorWeight" class="accordion-collapse collapse">
+            <div id="collapseSputumCollected" class="accordion-collapse collapse">
                 <div class="accordion-body">
-                    <!-- same table structure -->
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Enrolled</th>
-                                </tr>
-                            </thead>
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for rec in problematic_enrollments %}
-                                {% if "poor_weight" in rec.missing_fields %}
+                                {% for rec in missing_sputum_collected %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.enrollment_id %}">{{ rec.pid }}</a></td>
-                                    <td>{{ rec.site }}</td>
-                                    <td>{{ rec.enrollment_date|date:"d/m/Y"|default:"—" }}</td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
                                 </tr>
-                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -172,35 +141,584 @@
         </div>
         {% endif %}
 
-        <!-- You can continue for: coughing_blood, unexplained_fever, night_sweats, neck_lymph, history_tb, date_information_collected, tx_previous -->
-
-        <!-- Optional: one section for "Multiple missing fields" if you want to group -->
-        {% if problematic_enrollments %}
+        <!-- Missing Sputum Date -->
+        {% if missing_sputum_date %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAllAffected">
-                    All Affected Enrollments ({{ problematic_enrollments|length }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumDate">
+                    Missing Sputum Date ({{ missing_sputum_date.count }})
                 </button>
             </h2>
-            <div id="collapseAllAffected" class="accordion-collapse collapse">
+            <div id="collapseSputumDate" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Enrolled</th>
-                                    <th>Missing Fields</th>
-                                </tr>
-                            </thead>
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for rec in problematic_enrollments %}
+                                {% for rec in missing_sputum_date %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.enrollment_id %}">{{ rec.pid }}</a></td>
-                                    <td>{{ rec.site }}</td>
-                                    <td>{{ rec.enrollment_date|date:"d/m/Y"|default:"—" }}</td>
-                                    <td>{{ rec.missing_fields|join:", " }}</td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Sputum Reasons -->
+        {% if missing_sputum_reasons %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumReasons">
+                    Missing Sputum Reasons ({{ missing_sputum_reasons.count }})
+                </button>
+            </h2>
+            <div id="collapseSputumReasons" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_sputum_reasons %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Diseases Medical -->
+        {% if missing_diseases_medical %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDiseasesMedical">
+                    Missing Diseases Medical ({{ missing_diseases_medical.count }})
+                </button>
+            </h2>
+            <div id="collapseDiseasesMedical" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_diseases_medical %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Diseases Specify -->
+        {% if missing_diseases_specify %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDiseasesSpecify">
+                    Missing Diseases Specify ({{ missing_diseases_specify.count }})
+                </button>
+            </h2>
+            <div id="collapseDiseasesSpecify" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_diseases_specify %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TX Year -->
+        {% if missing_tx_year %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTXYear">
+                    Missing ( Year ) 10c. When did the patient’s last treatment episode end? ({{ missing_tx_year.count }})
+                </button>
+            </h2>
+            <div id="collapseTXYear" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tx_year %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing DR/DS -->
+        {% if missing_dr_ds %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDRDS">
+                    Missing DR/DS ({{ missing_dr_ds.count }})
+                </button>
+            </h2>
+            <div id="collapseDRDS" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_dr_ds %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing LTF Months -->
+        {% if missing_ltf_months %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLTFMonths">
+                    Missing LTF Months ({{ missing_ltf_months.count }})
+                </button>
+            </h2>
+            <div id="collapseLTFMonths" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_ltf_months %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TB Regimen -->
+        {% if missing_tb_regimen %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTBRegimen">
+                    Missing TB Regimen ({{ missing_tb_regimen.count }})
+                </button>
+            </h2>
+            <div id="collapseTBRegimen" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tb_regimen %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Regimen Months -->
+        {% if missing_regimen_months %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRegimenMonths">
+                    Missing Regimen Months ({{ missing_regimen_months.count }})
+                </button>
+            </h2>
+            <div id="collapseRegimenMonths" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_regimen_months %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TB Outcome -->
+        {% if missing_tb_outcome %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTBOutcome">
+                    Missing TB Outcome ({{ missing_tb_outcome.count }})
+                </button>
+            </h2>
+            <div id="collapseTBOutcome" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tb_outcome %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TB Regimen Specify -->
+        {% if missing_tb_regimen_specify %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTBRegimenSpecify">
+                    Missing TB Regimen Specify ({{ missing_tb_regimen_specify.count }})
+                </button>
+            </h2>
+            <div id="collapseTBRegimenSpecify" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tb_regimen_specify %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TB Regimen Specify 8 -->
+        {% if missing_tb_regimen_specify_8 %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTBRegimenSpecify8">
+                    Missing TB Regimen Specify 8 ({{ missing_tb_regimen_specify_8.count }})
+                </button>
+            </h2>
+            <div id="collapseTBRegimenSpecify8" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tb_regimen_specify_8 %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TB Category Specify -->
+        {% if missing_tb_category_specify %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTBCategorySpecify">
+                    Missing TB Category Specify ({{ missing_tb_category_specify.count }})
+                </button>
+            </h2>
+            <div id="collapseTBCategorySpecify" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tb_category_specify %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Invalid LTF Months -->
+        {% if invalid_ltf_months %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInvalidLTFMonths">
+                    Invalid LTF Months ({{ invalid_ltf_months.count }})
+                </button>
+            </h2>
+            <div id="collapseInvalidLTFMonths" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in invalid_ltf_months %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TX Month Without Unknown -->
+        {% if missing_tx_month_without_unknown %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTXMonthWithoutUnknown">
+                    Missing TX Month Without Unknown ({{ missing_tx_month_without_unknown.count }})
+                </button>
+            </h2>
+            <div id="collapseTXMonthWithoutUnknown" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tx_month_without_unknown %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Invalid TX Month With Unknown -->
+        {% if invalid_tx_month_with_unknown %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInvalidTXMonthWithUnknown">
+                    Invalid TX Month With Unknown ({{ invalid_tx_month_with_unknown.count }})
+                </button>
+            </h2>
+            <div id="collapseInvalidTXMonthWithUnknown" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in invalid_tx_month_with_unknown %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing TX Year Without Unknown -->
+        {% if missing_tx_year_without_unknown %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTXYearWithoutUnknown">
+                    Missing TX Year Without Unknown ({{ missing_tx_year_without_unknown.count }})
+                </button>
+            </h2>
+            <div id="collapseTXYearWithoutUnknown" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_tx_year_without_unknown %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Invalid TX Year With Unknown -->
+        {% if invalid_tx_year_with_unknown %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInvalidTXYearWithUnknown">
+                    Invalid TX Year With Unknown ({{ invalid_tx_year_with_unknown.count }})
+                </button>
+            </h2>
+            <div id="collapseInvalidTXYearWithUnknown" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in invalid_tx_year_with_unknown %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Invalid Unknown Year Dependencies -->
+        {% if invalid_unknown_year_dependencies %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInvalidUnknownYearDependencies">
+                    Invalid Unknown Year Dependencies ({{ invalid_unknown_year_dependencies.count }})
+                </button>
+            </h2>
+            <div id="collapseInvalidUnknownYearDependencies" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in invalid_unknown_year_dependencies %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Regimen Months Without Unknown -->
+        {% if missing_regimen_months_without_unknown %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRegimenMonthsWithoutUnknown">
+                    Missing Regimen Months Without Unknown ({{ missing_regimen_months_without_unknown.count }})
+                </button>
+            </h2>
+            <div id="collapseRegimenMonthsWithoutUnknown" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_regimen_months_without_unknown %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Invalid Regimen Months With Unknown -->
+        {% if invalid_regimen_months_with_unknown %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInvalidRegimenMonthsWithUnknown">
+                    Invalid Regimen Months With Unknown ({{ invalid_regimen_months_with_unknown.count }})
+                </button>
+            </h2>
+            <div id="collapseInvalidRegimenMonthsWithUnknown" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in invalid_regimen_months_with_unknown %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
