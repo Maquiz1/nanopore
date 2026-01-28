@@ -278,7 +278,11 @@
                         <!-- Bottom Buttons -->
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
+                            {% with user_group=request.user.groups.first.name|upper %}
+                            {% if not user_group == "REVIEWER" %}
                             <button type="submit" class="btn btn-success">💾 Save Diagnosis</button>
+                            {% endif %}
+                            {% endwith %}
                         </div>
                     </form>
                 </div>

@@ -185,9 +185,12 @@
                         <!-- Buttons -->
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">❌ Cancel</a>
+                            {% with user_group=request.user.groups.first.name|upper %}
+                            {% if not user_group == "REVIEWER" %}
                             <button type="submit" class="btn btn-success">💾 Save Screening</button>
+                            {% endif %}
+                            {% endwith %}
                         </div>
-
                     </form>
                 </div>
             </div>
