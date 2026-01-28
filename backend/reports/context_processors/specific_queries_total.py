@@ -1,11 +1,6 @@
 # reports/context_processors.py
-# ──────────────────────────────────────────────────────────────
-# Central place to combine all form-specific quality issue counts
-# ──────────────────────────────────────────────────────────────
 
-from django.apps import apps
-from django.db.models import Q
-from utils.permissions import filter_queryset_by_user_role
+from utils.roles import get_role_context
 
 # Import all individual report total functions
 # Adjust file names / module paths according to your actual structure
@@ -19,41 +14,50 @@ from .zonal_laboratory_context import zonal_report_total       # assuming separa
 
 def specific_queries_total(request):
     """
-    Aggregates quality issue counts across all major forms for:
-    - Dashboard overviews
-    - Navbar badges
-    - Data quality summary cards
+    Aggregates quality issue counts across all major forms with role-aware visibility.
     
-    Returns a single integer total.
+    Returns only {'specific_queries_total': total}
     """
     if not request.user.is_authenticated:
         return {'specific_queries_total': 0}
 
-    total = 0
+    # Role context
+    role_context = get_role_context(request.user)
+    is_zonal_lab = role_context.get("is_zonal_lab", False)
+    is_admin     = role_context.get("is_admin", False)
+    is_reviewer  = role_context.get("is_reviewer", False)
+    is_privileged = is_admin or is_reviewer
 
-    # ── Screening ────────────────────────────────────────
-    screening_data = screening_report_total(request)
-    total += screening_data.get('screening_report_total', 0)
+    # Get individual report totals (these functions should already be role-aware)
+    screening_total  = screening_report_total(request).get('screening_report_total', 0)
+    enrollment_total = enrollment_report_total(request).get('enrollment_report_total', 0)
+    regimen_total    = regimen_report_total(request).get('regimen_report_total', 0)
+    diagnosis_total  = diagnosis_report_total(request).get('diagnosis_report_total', 0)
+    clinic_total     = clinic_report_total(request).get('clinic_report_total', 0)
+    zonal_total      = zonal_report_total(request).get('zonal_report_total', 0)
 
-    # ── Enrollment ───────────────────────────────────────
-    enrollment_data = enrollment_report_total(request)
-    total += enrollment_data.get('enrollment_report_total', 0)
-
-    # ── Regimen Changes ──────────────────────────────────
-    regimen_data = regimen_report_total(request)
-    total += regimen_data.get('regimen_report_total', 0)
-
-    # ── Diagnosis ────────────────────────────────────────
-    diagnosis_data = diagnosis_report_total(request)
-    total += diagnosis_data.get('diagnosis_report_total', 0)
-
-    # ── Clinic Laboratory ────────────────────────────────
-    clinic_data = clinic_report_total(request)
-    # Use the aggregated total if available, otherwise sum components
-    total += clinic_data.get('clinic_report_total', 0)
-
-    # ── Zonal Laboratory ─────────────────────────────────
-    zonal_data = zonal_report_total(request)
-    total += zonal_data.get('zonal_report_total', 0)
+    # Compute total based on role
+    if is_privileged:
+        # Admins / Reviewers see everything
+        total = (
+            screening_total +
+            enrollment_total +
+            regimen_total +
+            diagnosis_total +
+            clinic_total +
+            zonal_total
+        )
+    elif is_zonal_lab:
+        # Zonal lab users only see zonal issues
+        total = zonal_total
+    else:
+        # Normal users see everything except zonal
+        total = (
+            screening_total +
+            enrollment_total +
+            regimen_total +
+            diagnosis_total +
+            clinic_total
+        )
 
     return {'specific_queries_total': total}

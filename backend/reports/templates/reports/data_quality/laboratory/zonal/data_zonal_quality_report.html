@@ -1,58 +1,223 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">🧾 DREAM FUND - NANOPORE TB SEQUENCING ENROLLMENT DATA QUALITY REPORT (TANZANIA)</h2>
-    </div>
+    <!-- Title – centered at the very top -->
+    <h2 class="mb-3 text-center">
+        🧾 DREAM FUND - ZONAL LABORATORY<br>
+        <span class="fs-5 fw-normal text-muted">Zonal Laboratory Data Quality Report (Tanzania)</span>
+    </h2>
 
-    <p class="text-muted">Date: {{ report_date|date:"d M Y H:i" }}</p>
-
-    <div class="d-flex gap-2 mb-4">
-        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
+    <!-- Navigation buttons row -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <!-- Left: Back to Dashboard -->
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
             <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
         </a>
-        {% if user.is_superuser %}
-        <a href="{% url 'reports:enrollment_data_quality_pdf' %}" class="btn btn-primary">
-            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF View
-        </a>
-        {% endif %}
-        <a href="{% url 'reports:enrollment_data_quality_pdf' %}" class="btn btn-success">
-            <i class="bi bi-file-earmark-arrow-down"></i> Download PDF Document
-        </a>
+
+        <!-- Right side buttons: Download PDF -->
+        <div class="d-flex gap-2 flex-wrap">
+            {% if user.is_superuser or is_admin or is_zonal_lab %}
+            <a href="#" class="btn btn-primary btn-lg px-4">
+                <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
+            </a>
+            {% endif %}
+        </div>
     </div>
 
-    <p><strong>Total Enrollment Records Checked:</strong> {{ total_enrollments }}</p>
-    <p><strong>Total Enrollment Data Quality Issues:</strong> {{ enrollment_report_total }}</p>
+    <!-- Report generated date – centered -->
+    <div class="text-center text-muted mb-4">
+        Report generated: {{ report_date|date:"d M Y H:i" }} EAT
+    </div>
 
-    <!-- Missing Required Fields -->
-    {% if enrollment_missing_records %}
-    <div class="mb-4">
-        <h4>Missing Required Fields ({{ enrollment_missing_records|length }})</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>Missing Fields</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for e in enrollment_missing_records %}
-                <tr>
-                    <td>{{ e.pid }}</td>
-                    <td>{{ e.zone_name }}</td>
-                    <td>{{ e.site_name }}</td>
-                    <td>{{ e.missing_fields|join:", " }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Total Screening Records Checked</h5>
+                    <p class="display-5 fw-bold">{{ total_records|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger">Total Zonal Data Quality Issues</h5>
+                    <p class="display-5 fw-bold text-danger">{{ total_issues|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- If there are no issues at all, show a friendly message; otherwise show accordion -->
+    {% if total_issues %}
+    <div class="accordion" id="zonalIssuesAccordion">
+
+        {# Missing Date Sputum Received #}
+        {% if count_missing_date_sputum_received %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDateSputum">
+                    Missing Date Sputum Received ({{ count_missing_date_sputum_received|default:"0" }})
+                </button>
+            </h2>
+            <div id="collapseDateSputum" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_date_sputum_received|default:"" %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Missing Appearance #}
+        {% if count_missing_appearance %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppearance">
+                    Missing Appearance ({{ count_missing_appearance|default:"0" }})
+                </button>
+            </h2>
+            <div id="collapseAppearance" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_appearance|default:"" %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Missing Sample Volume #}
+        {% if count_missing_sample_volume %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSampleVolume">
+                    Missing Sample Volume ({{ count_missing_sample_volume|default:"0" }})
+                </button>
+            </h2>
+            <div id="collapseSampleVolume" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_sample_volume|default:"" %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Missing Unique Lab Number #}
+        {% if count_missing_unique_lab_no %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUniqueLabNo">
+                    Missing Unique Lab Number ({{ count_missing_unique_lab_no|default:"0" }})
+                </button>
+            </h2>
+            <div id="collapseUniqueLabNo" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_unique_lab_no|default:"" %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
     {% else %}
-    <p class="text-success">No missing fields detected in enrollment records.</p>
+    <div class="alert alert-success text-center py-5">
+        <i class="bi bi-check-circle-fill fs-1"></i>
+        <h4 class="mt-3">✅ No zonal data quality issues found.</h4>
+        <p class="text-muted">All checked linkages and fields are complete.</p>
+    </div>
     {% endif %}
 
 </div>
