@@ -21,6 +21,7 @@
 
     <div class="row g-4 justify-content-center">
 
+        {% if is_privileged or not is_zonal_lab %}
         <!-- Screening -->
         <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:screening_quality_report' %}" 
@@ -115,6 +116,8 @@
                 </div>
             </a>
         </div>
+        {% endif %}
+
 
         <!-- Zonal Laboratory – only for privileged or zonal users -->
         {% if is_privileged or is_zonal_lab %}

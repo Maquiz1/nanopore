@@ -7,64 +7,43 @@ def zonal_report_total(request):
     """
     Navbar count for Zonal Laboratory issues.
 
-    Includes:
-    1) Incomplete zonal laboratory forms (missing required fields)
-    2) Eligible screenings sent to zonal lab but with NO zonal form created
+    Counts incomplete existing ZonalLaboratory forms by checking each required field
+    individually using the same style as screening_report_total.
+    Does NOT include "missing zonal forms" — that is handled in forms_report_total.
     """
-
     zonal_total = 0
 
     if not request.user.is_authenticated:
         return {"zonal_report_total": zonal_total}
 
-    # --------------------------------------------------
-    # Models
-    # --------------------------------------------------
+    # ── Models ────────────────────────────────────────────────────────
     ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
-    Screening = apps.get_model("nanopore", "Screening")
 
-    # --------------------------------------------------
-    # Role context
-    # --------------------------------------------------
-    role_context = get_role_context(request.user)
+    # ── Fetch zonal forms visible to the current user ─────────────────
+    qs = ZonalLaboratory.objects.all()
 
-    is_zonal_lab = role_context.get("is_zonal_lab", False)
-    is_admin = role_context.get("is_admin", False)
-    is_reviewer = role_context.get("is_reviewer", False)
-
-    # --------------------------------------------------
-    # Required zonal completeness fields
-    # --------------------------------------------------
-    required_fields = [
-        "date_sputum_received",
-        "appearance",
-        "sample_volume",
-        "unique_lab_no",
-    ]
-
-    # --------------------------------------------------
-    # 1️⃣ Incomplete zonal laboratory forms
-    # --------------------------------------------------
-    zonals = ZonalLaboratory.objects.all()
-
-    zonals = filter_queryset_by_user_role(
+    qs = filter_queryset_by_user_role(
         request.user,
-        zonals,
+        qs,
         site_field="screening__site"
     )
 
-    incomplete_zonal_forms = 0
+    # ── Missing / Null fields (each checked separately) ───────────────
+    missing_date_sputum_received = qs.filter(date_sputum_received__isnull=True).count()
+    missing_appearance           = qs.filter(appearance__isnull=True).count()
+    missing_sample_volume        = qs.filter(sample_volume__isnull=True).count()
+    missing_unique_lab_no        = qs.filter(unique_lab_no__isnull=True).count()
 
-    for z in zonals:
-        for field in required_fields:
-            value = getattr(z, field, None)
-            if value in (None, "", False):
-                incomplete_zonal_forms += 1
-                break  # count once per form
+    # ── Grand total ───────────────────────────────────────────────────
+    total_issues = (
+        missing_date_sputum_received +
+        missing_appearance +
+        missing_sample_volume +
+        missing_unique_lab_no
+    )
 
-    zonal_total += incomplete_zonal_forms
+    zonal_total += total_issues
 
-    # --------------------------------------------------
     return {
         "zonal_report_total": zonal_total
     }

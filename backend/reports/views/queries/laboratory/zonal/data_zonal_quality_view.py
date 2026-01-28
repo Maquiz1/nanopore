@@ -1,39 +1,46 @@
+# reports/views/laboratory/zonal/zonal_data_quality_report_view.py
 from django.views import View
 from django.shortcuts import render
 from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Q
 from django.apps import apps
+from django.db.models import Q
 
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
 class ZonalDataQualityReportView(View):
-    """Generate categorized data quality report for screenings and related models (role-aware)."""
-
+    """
+    Data quality report focused on linkage between Screening and ZonalLaboratory records,
+    plus completeness of key ZonalLaboratory fields — role-aware with filtering.
+    """
     template_name = "reports/data_quality/laboratory/zonal/data_zonal_quality_report.html"
 
     def get(self, request, *args, **kwargs):
-        Screening = apps.get_model('nanopore', 'Screening')
+        Screening = apps.get_model("nanopore", "Screening")
+        ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
 
-        # --- Base QuerySet ---
+        # ── Base queryset ─────────────────────────────────────────────────────
         screenings = Screening.objects.select_related(
-            'site',
-            'site__district__region__zone',
-            'clinic_laboratory',
-            'diagnosis',
-            'zonal_laboratory'
+            "site",
+            "site__district__region__zone",
+            "zonal_laboratory",
+            # Note: removed "zonal_laboratory__appearance" from select_related
+            # because appearance is most likely NOT a ForeignKey
         ).order_by(
-            'site__district__region__zone__name',
-            'site__name',
-            'pid'
+            "site__district__region__zone__name",
+            "site__name",
+            "pid",
         )
 
-        # --- Role-Based Filtering ---
-        screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
+        # Role-based filtering
+        screenings = filter_queryset_by_user_role(
+            request.user,
+            screenings,
+            site_field="site"
+        )
 
-        # Optional filters via GET
+        # Optional zone/site filters
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
         if zone_id:
@@ -41,138 +48,105 @@ class ZonalDataQualityReportView(View):
         if site_id:
             screenings = screenings.filter(site_id=site_id)
 
-        total_screenings = screenings.count()
+        total_records = screenings.count()
 
-        # --- Helper: Convert screening to dict ---
-        def serialize_screening(s):
-            zone_name = getattr(getattr(getattr(getattr(s, 'site', None), 'district', None), 'region', None), 'zone', None)
-            zone_name = zone_name.name if zone_name else ''
-            site_name = getattr(getattr(s, 'site', None), 'name', '')
+        # ── Serialization helper ──────────────────────────────────────────────
+        def serialize_record(s):
+            zl = getattr(s, "zonal_laboratory", None)
+            site = getattr(s, "site", None)
 
-            clinic_lab_name = getattr(getattr(s, 'clinic_laboratory', None), 'name', '')
-            zonal_lab_name = getattr(getattr(s, 'zonal_laboratory', None), 'name', '')
-            diagnosis_name = getattr(getattr(s, 'diagnosis', None), 'name', '')
+            # Safe zone name extraction
+            zone_name = ""
+            if site:
+                district = getattr(site, "district", None)
+                if district:
+                    region = getattr(district, "region", None)
+                    if region:
+                        zone = getattr(region, "zone", None)
+                        if zone:
+                            zone_name = getattr(zone, "name", "")
 
-            missing_fields = []
-            if not clinic_lab_name:
-                missing_fields.append("Clinic")
-            if not diagnosis_name:
-                missing_fields.append("Diagnosis")
-
-            regimen_missing = False
-            if getattr(s, 'diagnosis', None) and getattr(s.diagnosis, 'regimen_changed', False):
-                if not getattr(s, 'regimen_changes', None) or not s.regimen_changes.exists():
-                    regimen_missing = True
-
-            tb_treatment_date = getattr(getattr(s, 'diagnosis', None), 'tb_treatment_date', None)
-            tb_outcome2 = getattr(getattr(s, 'diagnosis', None), 'tb_outcome2', '')
-            regimen_changed = getattr(getattr(s, 'diagnosis', None), 'regimen_changed', '')
-
-            months_since_treatment = None
-            if tb_treatment_date:
-                delta = timezone.now().date() - tb_treatment_date
-                months_since_treatment = delta.days // 30
-
-            xpert_mtb = getattr(getattr(s, 'clinic_laboratory', None), 'xpert_mtb', '')
+            # Appearance: most likely a CharField → just take the value directly
+            appearance_value = ""
+            if zl:
+                appearance = getattr(zl, "appearance", None)
+                if appearance:
+                    # If it's a model instance → use .name, otherwise use the value
+                    if hasattr(appearance, "name"):
+                        appearance_value = appearance.name
+                    else:
+                        # CharField, string, etc.
+                        appearance_value = str(appearance)
 
             return {
-                'pid': getattr(s, 'pid', ''),
-                'zone_name': zone_name,
-                'site_name': site_name,
-                'clinic_lab_name': clinic_lab_name,
-                'zonal_lab_name': zonal_lab_name,
-                'diagnosis_name': diagnosis_name,
-                'missing_fields': missing_fields,
-                'regimen_missing': regimen_missing,
-                'tb_treatment_date': tb_treatment_date,
-                'tb_outcome2': tb_outcome2,
-                'months_since_treatment': months_since_treatment,
-                'regimen_changed': regimen_changed,
-                'xpert_mtb': xpert_mtb,
+                "id": s.id,
+                "pid": getattr(s, "pid", ""),
+                "screening_date": getattr(s, "screening_date", None),
+                "zone_name": zone_name,
+                "site_name": getattr(site, "name", ""),
+                "zonal_lab_id": zl.id if zl else None,
+                "date_sputum_received": getattr(zl, "date_sputum_received", None),
+                "unique_lab_no": getattr(zl, "unique_lab_no", ""),
+                "appearance": appearance_value,
+                "sample_volume": getattr(zl, "sample_volume", None),
+                "has_zonal_lab": bool(zl),
             }
 
-        # --- Filters ---
-        six_months_ago = timezone.now().date() - timedelta(days=180)
-        treatment_started_6m_ago = screenings.filter(
-            diagnosis__tb_treatment=1,
-            diagnosis__tb_treatment_date__isnull=False,
-            diagnosis__tb_treatment_date__lte=six_months_ago
-        )
-        pending_tb_outcomes = treatment_started_6m_ago.filter(Q(diagnosis__tb_outcome2__isnull=True))
-        pending_tb_outcomes_date = treatment_started_6m_ago.filter(Q(diagnosis__tb_outcome2_date__isnull=True))
+        # ── ZonalLaboratory field-level checks (only when form exists) ────────
+        with_zonal = screenings.filter(zonal_laboratory__isnull=False)
 
-        # --- Role Context ---
+        missing_date_sputum_received_qs = with_zonal.filter(
+            zonal_laboratory__date_sputum_received__isnull=True
+        )
+        missing_appearance_qs = with_zonal.filter(
+            zonal_laboratory__appearance__isnull=True
+        )
+        missing_sample_volume_qs = with_zonal.filter(
+            zonal_laboratory__sample_volume__isnull=True
+        )
+        missing_unique_lab_no_qs = with_zonal.filter(
+            zonal_laboratory__unique_lab_no__isnull=True
+        )
+
+        # ── Role context & main context ───────────────────────────────────────
         role_context = get_role_context(request.user)
-        is_zonal_lab = role_context.get("is_zonal_lab", False)
-        is_admin = role_context.get("is_admin", False)
-        is_reviewer = role_context.get("is_reviewer", False)
 
-        # --- Context Data ---
-        context = {"total_screenings": total_screenings}
-
-        # --- Substudy2 Missing Zonal Lab (for superuser/admin/reviewer/zonal lab) ---
-        if request.user.is_superuser or is_admin or is_reviewer or is_zonal_lab:
-            context["enrolled_substudy2_missing_zonal_lab"] = [
-                serialize_screening(s) for s in screenings.filter(
-                    clinic_laboratory__xpert_mtb_rif_conducted=1,
-                    clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
-                    zonal_laboratory__isnull=True
-                )
-            ]
-        else:
-            context["enrolled_substudy2_missing_zonal_lab"] = []
-
-        # --- Other sections ---
-        if is_zonal_lab and not (is_admin or request.user.is_superuser):
-            # Zonal lab only sees Substudy2
-            for key in [
-                "not_eligible",
-                "eligible_not_enrolled",
-                "enrolled_missing_clinic_laboratory_data",
-                "enrolled_missing_diagnosis_data",
-                "diagnosis_regimen_changed_missing_regimen",
-                "pending_outcomes",
-                "pending_outcomes_date",
-            ]:
-                context.pop(key, None)
-        else:
-            # Normal users see all sections
-            context.update({
-                "not_eligible": [serialize_screening(s) for s in screenings.filter(eligible=False)],
-                "eligible_not_enrolled": [serialize_screening(s) for s in screenings.filter(eligible=True, enrollment__isnull=True)],
-                "enrolled_missing_clinic_laboratory_data": [serialize_screening(s) for s in screenings.filter(eligible=True, clinic_laboratory__isnull=True)],
-                "enrolled_missing_diagnosis_data": [serialize_screening(s) for s in screenings.filter(eligible=True, diagnosis__isnull=True)],
-                "diagnosis_regimen_changed_missing_regimen": [serialize_screening(s) for s in screenings.filter(
-                    eligible=True, diagnosis__regimen_changed=True).filter(~Q(regimen_changes__isnull=False)).distinct()],
-                "pending_outcomes": [serialize_screening(s) for s in pending_tb_outcomes],
-                "pending_outcomes_date": [serialize_screening(s) for s in pending_tb_outcomes_date],
-            })
-
-        # --- Recalculate report_total for visible sections only ---
-        report_total = sum(
-            len(v) for k, v in context.items() if isinstance(v, list) and k != "not_eligible"
-        )
-        context["report_total"] = report_total
-
-        # --- Add months_since_treatment ---
-        for group in ["pending_outcomes", "pending_outcomes_date"]:
-            for s in context.get(group, []):
-                if s['tb_treatment_date']:
-                    delta = timezone.now().date() - s['tb_treatment_date']
-                    s['months_since_treatment'] = delta.days // 30
-
-        # --- Add role flags for template ---
-        context.update({
-            "is_admin": is_admin,
-            "is_zonal_lab": is_zonal_lab,
-            "is_national_lab": role_context.get("is_national_lab", False),
-            "is_site_only": role_context.get("is_site_only", False),
-            "zones": {z.id: z.name for z in role_context["zones"]},
-            "sites": {s.id: s.name for s in role_context["sites"]},
-        })
-        
-        context.update({
+        context = {
+            "total_records": total_records,
             "report_date": timezone.now(),
-        })
+            "report_title": "Zonal Laboratory Linkage & Data Quality Report",
+            "is_admin": role_context.get("is_admin", False),
+            "is_zonal_lab": role_context.get("is_zonal_lab", False),
+            "is_reviewer": role_context.get("is_reviewer", False),
+            "is_national_lab": role_context.get("is_national_lab", False),
+            "zones": {z.id: z.name for z in role_context.get("zones", [])},
+            "sites": {s.id: s.name for s in role_context.get("sites", [])},
+            "selected_zone": zone_id or "",
+            "selected_site": site_id or "",
+
+            # ── Problem lists (limited to 100) ────────────────────────────────
+            "missing_date_sputum_received": [serialize_record(s) for s in missing_date_sputum_received_qs[:100]],
+            "missing_appearance": [serialize_record(s) for s in missing_appearance_qs[:100]],
+            "missing_sample_volume": [serialize_record(s) for s in missing_sample_volume_qs[:100]],
+            "missing_unique_lab_no": [serialize_record(s) for s in missing_unique_lab_no_qs[:100]],
+        }
+
+        # ── Counts (dynamic generation) ───────────────────────────────────────
+        count_keys = [
+            "missing_date_sputum_received",
+            "missing_appearance",
+            "missing_sample_volume",
+            "missing_unique_lab_no",
+        ]
+
+        for key in count_keys:
+            qs_name = f"{key}_qs"
+            if qs_name in locals():
+                context[f"count_{key}"] = locals()[qs_name].count()
+
+        # ── Total issues ──────────────────────────────────────────────────────
+        context["total_issues"] = sum(
+            context.get(f"count_{key}", 0) for key in count_keys
+        )
 
         return render(request, self.template_name, context)
