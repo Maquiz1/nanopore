@@ -55,31 +55,31 @@
     {% if total_diagnosis_issues %}
     <div class="accordion" id="diagnosisIssuesAccordion">
 
-        <!-- Missing TB Diagnosis -->
+        <!-- 1. Missing TB Diagnosis -->
         {% if count_missing_tb_diagnosis %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbDiagnosis">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbDiagnosis">
                     Missing TB Diagnosis ({{ count_missing_tb_diagnosis }})
                 </button>
             </h2>
-            <div id="collapseTbDiagnosis" class="accordion-collapse collapse">
+            <div id="collapseTbDiagnosis" class="accordion-collapse collapse show">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Screening Date</th>
-                                </tr>
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
                             </thead>
                             <tbody>
                                 {% for item in missing_tb_diagnosis %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}" class="text-primary fw-bold">{{ item.screening.pid }}</a></td>
+                                    <td>
+                                        <a href="{% url 'nanopore:diagnosis-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.screening.pid }}
+                                        </a>
+                                    </td>
                                     <td>{{ item.screening.site.name }}</td>
-                                    <td>{{ item.screening.screening_date|date:"d/m/Y" }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -90,7 +90,7 @@
         </div>
         {% endif %}
 
-        <!-- Missing TB Diagnosis Date -->
+        <!-- 2. Missing Date of TB Diagnosis -->
         {% if count_missing_tb_diagnosis_date %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -103,18 +103,14 @@
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Screening Date</th>
-                                </tr>
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
                             </thead>
                             <tbody>
                                 {% for item in missing_tb_diagnosis_date %}
                                 <tr>
                                     <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
-                                    <td>{{ item.screening.screening_date|date:"d/m/Y" }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -125,31 +121,27 @@
         </div>
         {% endif %}
 
-        <!-- Missing TB Treatment -->
-        {% if count_missing_tb_treatment %}
+        <!-- 3. Missing TB Diagnosis Made -->
+        {% if count_missing_tb_diagnosis_made %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbTreatment">
-                    Diagnosed but Missing Treatment Started ({{ count_missing_tb_treatment }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbDiagnosisMade">
+                    Missing TB Diagnosis Made ({{ count_missing_tb_diagnosis_made }})
                 </button>
             </h2>
-            <div id="collapseTbTreatment" class="accordion-collapse collapse">
+            <div id="collapseTbDiagnosisMade" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Diagnosis Date</th>
-                                </tr>
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
                             </thead>
                             <tbody>
-                                {% for item in missing_tb_treatment %}
+                                {% for item in missing_tb_diagnosis_made %}
                                 <tr>
                                     <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
-                                    <td>{{ item.tb_diagnosis_date|date:"d/m/Y"|default:"—" }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -160,24 +152,330 @@
         </div>
         {% endif %}
 
-        <!-- Missing TB Regimen -->
-        {% if count_missing_tb_regimen %}
+        <!-- 4. Missing Diagnosis Made (Other specify) -->
+        {% if count_missing_diagnosis_made_other %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbRegimen">
-                    Missing TB Regimen ({{ count_missing_tb_regimen }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDiagnosisMadeOther">
+                    Diagnosis Made = Other (missing specify) ({{ count_missing_diagnosis_made_other }})
                 </button>
             </h2>
-            <div id="collapseTbRegimen" class="accordion-collapse collapse">
+            <div id="collapseDiagnosisMadeOther" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_diagnosis_made_other %}
                                 <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Treatment Start</th>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 5. Missing Clinical Diagnosis (tb_diagnosed_clinically) -->
+        {% if count_missing_tb_diagnosed_clinically %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbDiagnosedClinically">
+                    Missing Clinical Diagnosis ({{ count_missing_tb_diagnosed_clinically }})
+                </button>
+            </h2>
+            <div id="collapseTbDiagnosedClinically" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_diagnosed_clinically %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 6. Missing Clinical Other (checkbox 96) -->
+        {% if count_missing_tb_clinically_other %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbClinicallyOther">
+                    Clinical Other (96) missing specify ({{ count_missing_tb_clinically_other }})
+                </button>
+            </h2>
+            <div id="collapseTbClinicallyOther" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_clinically_other %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 7. Missing Bacteriological Diagnosis -->
+        {% if count_missing_bacteriological_diagnosis %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBacteriological">
+                    Missing Bacteriological Diagnosis ({{ count_missing_bacteriological_diagnosis }})
+                </button>
+            </h2>
+            <div id="collapseBacteriological" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_bacteriological_diagnosis %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 8. Missing Clinician Received Date (bacteriological workflow) -->
+        {% if count_missing_clinician_received_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClinicianReceived">
+                    Missing Clinician Received Date ({{ count_missing_clinician_received_date }})
+                </button>
+            </h2>
+            <div id="collapseClinicianReceived" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_clinician_received_date %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 9. Missing Other Diagnosis (tb_diagnosis = 2) -->
+        {% if count_missing_tb_other_diagnosis %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbOtherDiagnosis">
+                    Missing Other TB Diagnosis ({{ count_missing_tb_other_diagnosis }})
+                </button>
+            </h2>
+            <div id="collapseTbOtherDiagnosis" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_other_diagnosis %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 10. Missing Diagnosis Made 2 (for tb_diagnosis = 2) -->
+        {% if count_missing_tb_diagnosis_made2 %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbDiagnosisMade2">
+                    Missing TB Diagnosis Made 2 ({{ count_missing_tb_diagnosis_made2 }})
+                </button>
+            </h2>
+            <div id="collapseTbDiagnosisMade2" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_diagnosis_made2 %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 11. Missing Other Specify (tb_other_diagnosis = 96) -->
+        {% if count_missing_tb_other_specify %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbOtherSpecify">
+                    Missing 'Other specify' for tb_other_diagnosis=96 ({{ count_missing_tb_other_specify }})
+                </button>
+            </h2>
+            <div id="collapseTbOtherSpecify" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Screening Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_other_specify %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 12. Missing TB Treatment Date -->
+        {% if count_missing_tb_treatment_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbTreatmentDate">
+                    Missing TB Treatment Date ({{ count_missing_tb_treatment_date }})
+                </button>
+            </h2>
+            <div id="collapseTbTreatmentDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_treatment_date %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 13. Missing TB Register Number -->
+        {% if count_missing_tb_register_number %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbRegisterNumber">
+                    Missing TB Register Number ({{ count_missing_tb_register_number }})
+                </button>
+            </h2>
+            <div id="collapseTbRegisterNumber" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_register_number %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 14. Missing TB Regimen -->
+        {% if count_missing_tb_regimen %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbRegimen2">
+                    Missing TB Regimen ({{ count_missing_tb_regimen }})
+                </button>
+            </h2>
+            <div id="collapseTbRegimen2" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th></tr>
                             </thead>
                             <tbody>
                                 {% for item in missing_tb_regimen %}
@@ -195,7 +493,132 @@
         </div>
         {% endif %}
 
-        <!-- Pending Outcomes ≥ 6 months -->
+        <!-- 15. Missing Regimen Changed -->
+        {% if count_missing_regimen_changed %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRegimenChanged">
+                    Missing Regimen Changed ({{ count_missing_regimen_changed }})
+                </button>
+            </h2>
+            <div id="collapseRegimenChanged" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_regimen_changed %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 16. Missing TB Facility (tb_treatment=2) -->
+        {% if count_missing_tb_facility %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbFacility">
+                    Missing TB Facility (tb_treatment = 2) ({{ count_missing_tb_facility }})
+                </button>
+            </h2>
+            <div id="collapseTbFacility" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_facility %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 17. Missing TB Reason (tb_treatment=96) -->
+        {% if count_missing_tb_reason %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbReason">
+                    Missing TB Reason (tb_treatment = 96) ({{ count_missing_tb_reason }})
+                </button>
+            </h2>
+            <div id="collapseTbReason" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_reason %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 18. Missing Outcome Date (for outcomes 1-5) -->
+        {% if count_missing_tb_outcome2_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbOutcomeDate">
+                    Missing Outcome Date (for outcomes 1–5) ({{ count_missing_tb_outcome2_date }})
+                </button>
+            </h2>
+            <div id="collapseTbOutcomeDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Outcome</th><th>Outcome Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_outcome2_date %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.get_tb_outcome2_display|default:"—" }}</td>
+                                    <td>{{ item.tb_outcome2_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 19. Pending outcome: treatment ≥ 6 months – missing outcome -->
         {% if count_pending_tb_outcome %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -208,19 +631,46 @@
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light">
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Site</th>
-                                    <th>Treatment Start</th>
-                                    <th>Months on Tx</th>
-                                </tr>
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th><th>Months on Tx</th></tr>
                             </thead>
                             <tbody>
                                 {% for item in pending_tb_outcome %}
                                 <tr>
                                     <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
-                                    <td>{{ item.tb_treatment_date|date:"d/m/Y" }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                    <td class="text-center">{{ item.months_on_treatment|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 20. Pending outcome date: treatment ≥6 months with outcome but missing date -->
+        {% if count_pending_tb_outcome_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePendingOutcomeDate">
+                    Treatment ≥ 6 months – Outcome date missing ({{ count_pending_tb_outcome_date }})
+                </button>
+            </h2>
+            <div id="collapsePendingOutcomeDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th><th>Months on Tx</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in pending_tb_outcome_date %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                     <td class="text-center">{{ item.months_on_treatment|default:"—" }}</td>
                                 </tr>
                                 {% endfor %}
@@ -233,6 +683,7 @@
         {% endif %}
 
     </div>
+
     {% else %}
     <div class="alert alert-success text-center py-5">
         <i class="bi bi-check-circle-fill fs-1"></i>
