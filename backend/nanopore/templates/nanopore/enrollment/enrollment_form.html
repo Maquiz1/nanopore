@@ -283,9 +283,11 @@
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">
                                 ❌ Cancel
                             </a>
-                            <button type="submit" class="btn btn-success">
-                                💾 Save Enrollment
-                            </button>
+                            {% with user_group=request.user.groups.first.name|upper %}
+                            {% if not user_group == "REVIEWER" %}
+                            <button type="submit" class="btn btn-success">💾 Save Enrollment</button>
+                            {% endif %}
+                            {% endwith %}
                         </div>
 
                     </form>
