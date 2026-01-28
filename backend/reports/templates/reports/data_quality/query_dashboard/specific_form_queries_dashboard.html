@@ -3,9 +3,9 @@
 
 <div class="container py-5">
 
-    <h2 class="mb-3 text-center">🧾 Specific Form Queries Dashboard</h2>
+    <h2 class="mb-4 text-center">🧾 Specific Form Queries Dashboard</h2>
 
-    <!-- Navigation buttons placed directly below the title -->
+    <!-- Navigation buttons -->
     <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
             ← Back to Dashboard
@@ -21,8 +21,8 @@
 
     <div class="row g-4 justify-content-center">
 
-        <!-- Card: Screening -->
-        <div class="col-md-4 col-lg-4 col-xl-4">
+        <!-- Screening -->
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:screening_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-primary hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -40,8 +40,8 @@
             </a>
         </div>
 
-        <!-- Card: Enrollment -->
-        <div class="col-md-4 col-lg-4 col-xl-4">
+        <!-- Enrollment -->
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:enrollment_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-danger hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -59,8 +59,8 @@
             </a>
         </div>
 
-                <!-- Card: Clinic Laboratory -->
-        <div class="col-md-4 col-lg-4 col-xl-4">
+        <!-- Clinic Laboratory -->
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:clinic_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-success hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -78,8 +78,8 @@
             </a>
         </div>
 
-        <!-- Card: Diagnosis -->
-        <div class="col-md-4 col-lg-4 col-xl-4">
+        <!-- Diagnosis -->
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:diagnosis_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-info hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -97,8 +97,8 @@
             </a>
         </div>
 
-                <!-- Card: Regimen Changes -->
-        <div class="col-md-4 col-lg-4 col-xl-4">
+        <!-- Regimen Changes -->
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:regimen_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-warning hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -116,8 +116,9 @@
             </a>
         </div>
 
-        <!-- Card: Zonal Laboratory -->
-        <div class="col-md-4 col-lg-4 col-xl-4">
+        <!-- Zonal Laboratory – only for privileged or zonal users -->
+        {% if is_privileged or is_zonal_lab %}
+        <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:zonal_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-secondary hover-lift">
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
@@ -134,6 +135,7 @@
                 </div>
             </a>
         </div>
+        {% endif %}
 
     </div>
 
@@ -148,7 +150,7 @@
         </p>
     </div>
 
-    <!-- Optional extra navigation (can be removed if top buttons are enough) -->
+    <!-- Extra navigation -->
     <div class="text-center mt-5">
         <a href="{% url 'reports:all_queries_overview' %}" class="btn btn-outline-primary px-5 py-3">
             View All Detailed Reports →
@@ -181,6 +183,13 @@
         line-height: 1;
         margin-bottom: 0.4rem;
     }
+
+    .border-primary { border-left: 6px solid #0d6efd !important; }
+    .border-danger   { border-left: 6px solid #dc3545 !important; }
+    .border-success  { border-left: 6px solid #198754 !important; }
+    .border-info     { border-left: 6px solid #0dcaf0 !important; }
+    .border-warning  { border-left: 6px solid #ffc107 !important; }
+    .border-secondary{ border-left: 6px solid #6c757d !important; }
 </style>
 
 {% endblock %}
