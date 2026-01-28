@@ -99,10 +99,17 @@
                             <!-- TB sections -->
                             <div id="tb-category-section">
                                 <div class="row mb-3">
+                                    {% for field in form %}
+                                    {% if field.name in "tb_category"|cut:"," %}
                                     <div class="col-md-6">
                                         {{ form.tb_category.label_tag }}
                                         {{ form.tb_category }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
                                     </div>
+                                    {% endif %}
+                                    {% endfor %}
                                     <div class="col-md-6" id="tb-category-specify-section">
                                         {{ form.tb_category_specify.label_tag }}
                                         {{ form.tb_category_specify }}
