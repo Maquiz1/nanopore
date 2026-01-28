@@ -6,7 +6,7 @@
     </h2>
 
     <!-- Dashboard -->
-    <a href="{% url 'dashboard:dashboard' %}">
+    <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
     </a>
 
@@ -32,9 +32,9 @@
     {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
     <!-- Reports -->
     <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle">
-            <i class="fas fa-chart-line"></i><span> Reports</span>
-            <i class="fas fa-chevron-down ms-auto"></i>
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-chart-line"></i> Reports</span>
+            <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
             <a href="{% url 'reports:summary' %}"><i class="fas fa-file-alt"></i> Summary</a>
@@ -48,20 +48,11 @@
     {% endwith %}
 
     {% if user.is_superuser %}
-    <a href="{% url 'household:household-list' %}">
-        <i class="fas fa-home"></i><span> Household</span>
-    </a>
-    <a href="{% url 'documents:usermanual-list' %}">
-        <i class="fas fa-book-open"></i><span> User Manuals</span>
-    </a>
-    {% endif %}
-
-    {% if user.is_superuser %}
     <!-- Forms -->
     <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle">
-            <i class="fas fa-clipboard-list"></i><span> Forms</span>
-            <i class="fas fa-chevron-down ms-auto"></i>
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-clipboard-list"></i> Forms</span>
+            <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
             <a href="{% url 'nanopore:form-status-list' %}"><i class="fas fa-list-ul"></i> All</a>
@@ -78,9 +69,9 @@
     {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
     <!-- Exports -->
     <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle">
-            <i class="fas fa-file-export"></i><span> Exports</span>
-            <i class="fas fa-chevron-down ms-auto"></i>
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-file-export"></i> Exports</span>
+            <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
             <a href="{% url 'reports:list_models' %}"><i class="fas fa-file-csv"></i> Download</a>
@@ -89,84 +80,65 @@
     {% endif %}
     {% endwith %}
 
-    <!-- Queries (fixed & role-aware) -->
+    <!-- Queries -->
     <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle">
-            <i class="fas fa-search"></i><span> Queries</span>
-            <i class="fas fa-chevron-down ms-auto"></i>
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-search"></i> Queries</span>
+            <span class="d-flex align-items-center">
+                {% if total_issues %}
+                <span class="badge bg-danger rounded-pill me-2">{{ total_issues }}</span>
+                {% endif %}
+                <i class="fas fa-chevron-down"></i>
+            </span>
         </a>
-        {% if total_issues %}
-            <span class="badge bg-danger rounded-pill">{{ total_issues }}</span>
-        {% endif %}
         <div class="submenu">
-            <!-- Total Issues (admins/reviewers/superusers only) -->
-            {% if is_privileged or user.is_superuser %}
-            <a href="{% url 'reports:all_queries_overview' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-exclamation-triangle"></i> Total Issues
-                </div>
-                <span class="badge bg-danger rounded-pill ms-auto">
-                    {{ total_issues|default:"0" }}
-                </span>
+            <a href="{% url 'reports:all_queries_overview' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-exclamation-triangle"></i> Total Issues</span>
+                <span class="badge bg-danger rounded-pill">{{ total_issues|default:"0" }}</span>
             </a>
-            {% endif %}
 
-            <!-- Forms (visible to everyone, count already role-filtered) -->
-            <a href="{% url 'reports:missing_form_queries' %}" class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-csv me-2"></i>
-                    <span>Forms</span>
-                </div>
+            <a href="{% url 'reports:missing_form_queries' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-file-csv me-2"></i> Missing Forms</span>
                 {% if forms_report_total.total_form_missing %}
-                <span class="badge bg-danger rounded-pill ms-auto">
-                    {{ forms_report_total.total_form_missing }}
-                </span>
+                <span class="badge bg-danger rounded-pill">{{ forms_report_total.total_form_missing }}</span>
                 {% endif %}
             </a>
 
-            <!-- Other quality reports – only for superusers -->
-            {% if user.is_superuser %}
             {% if screening_report_total %}
-            <a href="{% url 'reports:screening_quality_report' %}">
-                <i class="fas fa-user-check"></i> Screening
-                <span class="badge bg-danger rounded-pill ms-auto">{{ screening_report_total }}</span>
+            <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-user-check"></i> Screening</span>
+                <span class="badge bg-danger rounded-pill">{{ screening_report_total }}</span>
             </a>
             {% endif %}
-
             {% if enrollment_report_total %}
-            <a href="{% url 'reports:enrollment_quality_report' %}">
-                <i class="fas fa-user-plus"></i> Enrollment
-                <span class="badge bg-danger rounded-pill ms-auto">{{ enrollment_report_total }}</span>
+            <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-user-plus"></i> Enrollment</span>
+                <span class="badge bg-danger rounded-pill">{{ enrollment_report_total }}</span>
             </a>
             {% endif %}
-
             {% if clinic_report_total %}
-            <a href="{% url 'reports:clinic_quality_report' %}">
-                <i class="fas fa-vial"></i> Clinic
-                <span class="badge bg-danger rounded-pill ms-auto">{{ clinic_report_total }}</span>
+            <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-vial"></i> Clinic</span>
+                <span class="badge bg-danger rounded-pill">{{ clinic_report_total }}</span>
             </a>
             {% endif %}
-
             {% if diagnosis_report_total %}
-            <a href="{% url 'reports:diagnosis_quality_report' %}">
-                <i class="fas fa-stethoscope"></i> Diagnosis
-                <span class="badge bg-danger rounded-pill ms-auto">{{ diagnosis_report_total }}</span>
+            <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-stethoscope"></i> Diagnosis</span>
+                <span class="badge bg-danger rounded-pill">{{ diagnosis_report_total }}</span>
             </a>
             {% endif %}
-
             {% if regimen_report_total %}
-            <a href="{% url 'reports:regimen_quality_report' %}">
-                <i class="fas fa-exchange-alt"></i> Regimen
-                <span class="badge bg-danger rounded-pill ms-auto">{{ regimen_report_total }}</span>
+            <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-exchange-alt"></i> Regimen</span>
+                <span class="badge bg-danger rounded-pill">{{ regimen_report_total }}</span>
             </a>
             {% endif %}
-
             {% if zonal_report_total %}
-            <a href="{% url 'reports:zonal_quality_report' %}">
-                <i class="fas fa-microscope"></i> Zonal
-                <span class="badge bg-danger rounded-pill ms-auto">{{ zonal_report_total }}</span>
+            <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-microscope"></i> Zonal</span>
+                <span class="badge bg-danger rounded-pill">{{ zonal_report_total }}</span>
             </a>
-            {% endif %}
             {% endif %}
         </div>
     </div>
@@ -174,9 +146,9 @@
     {% if user.is_superuser %}
     <!-- Uploads -->
     <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle">
-            <i class="fas fa-upload"></i><span> Uploads</span>
-            <i class="fas fa-chevron-down ms-auto"></i>
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-upload"></i> Uploads</span>
+            <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
             <a href="{% url 'nanopore:screening-upload-values' %}"><i class="fas fa-user-check"></i> Screenings</a>
@@ -192,90 +164,94 @@
 
 <!-- Sidebar toggle script -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".menu-toggle").forEach(toggle => {
-            toggle.addEventListener("click", function () {
-                const submenu = this.nextElementSibling;
-                submenu.classList.toggle("open");
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".menu-toggle").forEach(toggle => {
+        toggle.addEventListener("click", function () {
+            const submenu = this.nextElementSibling;
+            if (!submenu) return; // safety
+            submenu.classList.toggle("open");
 
-                const chevron = this.querySelector(".fa-chevron-down");
-                if (chevron) chevron.classList.toggle("rotate");
-            });
+            const chevron = this.querySelector(".fa-chevron-down");
+            if (chevron) chevron.classList.toggle("rotate");
         });
     });
+});
 </script>
 
 <style>
-    .sidebar {
-        background-color: #1e1e2d;
-        color: #fff;
-        width: 250px;
-        min-height: 100vh;
-        padding: 15px;
-    }
+.sidebar {
+    background-color: #1e1e2d;
+    color: #fff;
+    width: 250px;
+    min-height: 100vh;
+    padding: 15px;
+}
 
-    .sidebar h2 {
-        font-size: 1.1rem;
-        margin-bottom: 1.5rem;
-        text-align: center;
-        color: #f0f0f0;
-    }
+.sidebar h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #f0f0f0;
+}
 
-    .sidebar a {
-        display: flex;
-        align-items: center;
-        padding: 10px 12px;
-        color: #ccc;
-        text-decoration: none;
-        border-radius: 6px;
-        transition: background 0.2s;
-    }
+.sidebar a {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    color: #ccc;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
 
-    .sidebar a.active,
-    .sidebar a:hover {
-        background: #2b2b3d;
-        color: #fff;
-    }
+.sidebar a.active,
+.sidebar a:hover {
+    background: #2b2b3d;
+    color: #fff;
+}
 
-    .sidebar a i {
-        margin-right: 10px;
-        font-size: 1rem;
-    }
+.sidebar a i {
+    margin-right: 10px;
+    font-size: 1rem;
+}
 
-    .menu-group {
-        margin-top: 10px;
-    }
+.menu-group {
+    margin-top: 10px;
+}
 
-    .menu-toggle {
-        cursor: pointer;
-    }
+.menu-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
 
-    .submenu {
-        display: none;
-        flex-direction: column;
-        padding-left: 15px;
-        transition: max-height 0.3s ease-in-out;
-    }
+.submenu {
+    display: none;
+    flex-direction: column;
+    padding-left: 15px;
+    transition: max-height 0.3s ease-in-out;
+}
 
-    .submenu.open {
-        display: flex;
-    }
+.submenu.open {
+    display: flex;
+}
 
-    .submenu a {
-        padding: 8px 0;
-        color: #bbb;
-    }
+.submenu a {
+    padding: 8px 0;
+    color: #bbb;
+}
 
-    .submenu a:hover {
-        color: #fff;
-    }
+.submenu a:hover {
+    color: #fff;
+}
 
-    .fa-chevron-down {
-        margin-left: auto;
-        transition: transform 0.3s ease;
-    }
+.fa-chevron-down {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
 
-    .fa-chevron-down.rotate {
-        transform: rotate(180deg);
-    }
+.fa-chevron-down.rotate {
+    transform: rotate(180deg);
+}
 </style>
