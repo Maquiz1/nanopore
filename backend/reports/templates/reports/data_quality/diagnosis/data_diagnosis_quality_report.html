@@ -55,7 +55,7 @@
     {% if total_diagnosis_issues %}
     <div class="accordion" id="diagnosisIssuesAccordion">
 
-        <!-- 1. Missing tb_diagnosis -->
+        <!-- Missing TB Diagnosis -->
         {% if count_missing_tb_diagnosis %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -77,11 +77,7 @@
                             <tbody>
                                 {% for item in missing_tb_diagnosis %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:diagnosis-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.screening.pid }}
-                                        </a>
-                                    </td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}" class="text-primary fw-bold">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y" }}</td>
                                 </tr>
@@ -94,7 +90,7 @@
         </div>
         {% endif %}
 
-        <!-- 2. Missing tb_diagnosis_date -->
+        <!-- Missing TB Diagnosis Date -->
         {% if count_missing_tb_diagnosis_date %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -104,7 +100,6 @@
             </h2>
             <div id="collapseTbDiagnosisDate" class="accordion-collapse collapse">
                 <div class="accordion-body">
-                    <!-- same table structure as above -->
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light">
@@ -130,7 +125,7 @@
         </div>
         {% endif %}
 
-        <!-- 3. Missing tb_treatment but has tb_diagnosis -->
+        <!-- Missing TB Treatment -->
         {% if count_missing_tb_treatment %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -165,7 +160,42 @@
         </div>
         {% endif %}
 
-        <!-- 4. Treatment started ≥ 6 months ago – missing outcome -->
+        <!-- Missing TB Regimen -->
+        {% if count_missing_tb_regimen %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTbRegimen">
+                    Missing TB Regimen ({{ count_missing_tb_regimen }})
+                </button>
+            </h2>
+            <div id="collapseTbRegimen" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Site</th>
+                                    <th>Treatment Start</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_tb_regimen %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Pending Outcomes ≥ 6 months -->
         {% if count_pending_tb_outcome %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -202,13 +232,7 @@
         </div>
         {% endif %}
 
-        <!-- You can continue adding more categories: -->
-        <!-- - Missing tb_regimen -->
-        <!-- - Missing tb_facility -->
-        <!-- - Missing bacteriological_diagnosis when pulmonary TB etc. -->
-
     </div>
-
     {% else %}
     <div class="alert alert-success text-center py-5">
         <i class="bi bi-check-circle-fill fs-1"></i>
