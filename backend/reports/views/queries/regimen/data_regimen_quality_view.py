@@ -1,89 +1,149 @@
 from django.views import View
 from django.shortcuts import render
-from django.apps import apps
 from django.utils import timezone
+from django.apps import apps
+from django.db.models import Q
 
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
 class RegimenDataQualityReportView(View):
-    """Data Quality Report for Regimen Changes (role-aware)."""
-
     template_name = "reports/data_quality/regimens/data_regimen_quality_report.html"
 
     def get(self, request, *args, **kwargs):
-        RegimenChanges = apps.get_model('nanopore', 'RegimenChanges')
+        RegimenChanges = apps.get_model("nanopore", "RegimenChanges")
 
-        # --- Base QuerySet ---
-        regimens = RegimenChanges.objects.select_related(
-            'screening',
-            'screening__site',
-            'screening__site__district__region__zone',
-        ).order_by(
-            'screening__site__district__region__zone__name',
-            'screening__site__name',
-            'screening__pid',
+        regimens = (
+            RegimenChanges.objects
+            .select_related(
+                "screening",
+                "screening__site",
+                "screening__site__district",
+                "screening__site__district__region",
+                "screening__site__district__region__zone",
+                "changes",
+                "reason",
+            )
+            .order_by(
+                "screening__site__district__region__zone__name",
+                "screening__site__name",
+                "screening__pid",
+                "-date",
+            )
         )
 
-        # --- Role-Based Filtering ---
-        regimens = filter_queryset_by_user_role(request.user, regimens, site_field="screening__site")
+        # 🔐 role-based access
+        regimens = filter_queryset_by_user_role(
+            request.user,
+            regimens,
+            site_field="screening__site"
+        )
 
-        # --- Optional Filters ---
+        # 🎯 filters
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
 
         if zone_id:
-            regimens = regimens.filter(screening__site__district__region__zone_id=zone_id)
+            regimens = regimens.filter(
+                screening__site__district__region__zone_id=zone_id
+            )
+
         if site_id:
             regimens = regimens.filter(screening__site_id=site_id)
 
         total_regimens = regimens.count()
 
-        # --- Required fields for completeness ---
-        required_fields = ["date", "drug", "changes", "reason"]
-
-        # --- Helper to serialize record for template ---
+        # ──────────────────────────────────────────────
+        # Safe serializer
+        # ──────────────────────────────────────────────
         def serialize_regimen(r):
-            zone = getattr(r.screening.site.district.region.zone, "name", "") if r.screening and r.screening.site else ""
-            site = getattr(r.screening.site, "name", "") if r.screening and r.screening.site else ""
-            missing_fields = [f for f in required_fields if not getattr(r, f)]
+            screening = r.screening
+            site = getattr(screening, "site", None)
+            district = getattr(site, "district", None)
+            region = getattr(district, "region", None)
+            zone = getattr(region, "zone", None)
+
             return {
-                "pid": getattr(r.screening, "pid", ""),
-                "zone": zone,
-                "site": site,
+                "id": r.id,
+                "pid": getattr(screening, "pid", ""),
+                "zone_name": getattr(zone, "name", ""),
+                "site_name": getattr(site, "name", ""),
                 "date": r.date,
-                "drug": r.drug,
-                "changes": getattr(r.changes, "name", "") if r.changes else "",
-                "reason": getattr(r.reason, "name", "") if r.reason else "",
-                "specify": r.specify,
-                "missing_fields": missing_fields,
+                "drug": r.drug or "",
+                "change_type": getattr(r.changes, "name", ""),
+                "reason": getattr(r.reason, "name", ""),
+                "specify": r.specify or "",
             }
 
-        # --- Identify incomplete and complete records ---
-        incomplete_regimens = [serialize_regimen(r) for r in regimens if any(not getattr(r, f) for f in required_fields)]
-        complete_regimens = [serialize_regimen(r) for r in regimens if all(getattr(r, f) for f in required_fields)]
+        # ──────────────────────────────────────────────
+        # Missing field checks
+        # ──────────────────────────────────────────────
+        missing_date_qs = regimens.filter(date__isnull=True)
 
-        # --- Role Context ---
+        missing_drug_qs = regimens.filter(
+            Q(drug__isnull=True) | Q(drug__exact="")
+        )
+
+        missing_changes_qs = regimens.filter(changes__isnull=True)
+
+        missing_reason_qs = regimens.filter(reason__isnull=True)
+
+        # reason = Other (96)
+        reason_is_96_q = (
+            Q(reason__value=96) |
+            Q(reason__name__iexact="96") |
+            Q(reason__name__iexact="other")
+        )
+
+        missing_specify_qs = regimens.filter(
+            reason_is_96_q
+        ).filter(
+            Q(specify__isnull=True) | Q(specify__exact="")
+        )
+
         role_context = get_role_context(request.user)
-        is_admin = role_context.get("is_admin", False)
-        is_reviewer = role_context.get("is_reviewer", False)
-        is_zonal_lab = role_context.get("is_zonal_lab", False)
 
-        # --- Context ---
         context = {
-            "total_regimens": total_regimens,
-            "incomplete_regimens": incomplete_regimens,
-            "complete_regimens": complete_regimens,
-            "report_total": len(incomplete_regimens),
-            "zones": {z.id: z.name for z in role_context["zones"]},
-            "sites": {s.id: s.name for s in role_context["sites"]},
-            "is_admin": is_admin,
-            "is_reviewer": is_reviewer,
-            "is_zonal_lab": is_zonal_lab,
-            "is_national_lab": role_context.get("is_national_lab", False),
-            "is_site_only": role_context.get("is_site_only", False),
+            "report_title": "Regimen Changes Data Quality Report",
             "report_date": timezone.now(),
+            "total_regimens": total_regimens,
+
+            "is_admin": role_context.get("is_admin", False),
+            "is_zonal_lab": role_context.get("is_zonal_lab", False),
+            "is_reviewer": role_context.get("is_reviewer", False),
+
+            "zones": {z.id: z.name for z in role_context.get("zones", [])},
+            "sites": {s.id: s.name for s in role_context.get("sites", [])},
+
+            "selected_zone": zone_id or "",
+            "selected_site": site_id or "",
+
+            # preview lists
+            "missing_date": [serialize_regimen(r) for r in missing_date_qs[:100]],
+            "missing_drug": [serialize_regimen(r) for r in missing_drug_qs[:100]],
+            "missing_changes": [serialize_regimen(r) for r in missing_changes_qs[:100]],
+            "missing_reason": [serialize_regimen(r) for r in missing_reason_qs[:100]],
+            "missing_specify_when_other": [
+                serialize_regimen(r) for r in missing_specify_qs[:100]
+            ],
         }
+
+        # counts
+        context.update({
+            "count_missing_date": missing_date_qs.count(),
+            "count_missing_drug": missing_drug_qs.count(),
+            "count_missing_changes": missing_changes_qs.count(),
+            "count_missing_reason": missing_reason_qs.count(),
+            "count_missing_specify_when_other": missing_specify_qs.count(),
+        })
+
+        # auto total
+        context["regimen_report_total"] = sum(
+            v for k, v in context.items()
+            if k.startswith("count_missing_") and isinstance(v, int)
+        )
+
+        context["total_issues"] = context["regimen_report_total"]
 
         return render(request, self.template_name, context)
