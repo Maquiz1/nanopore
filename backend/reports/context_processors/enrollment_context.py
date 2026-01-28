@@ -88,7 +88,7 @@ def enrollment_report_total(request):
     missing_regimen_months = enrollments.filter(regimen_months__isnull=True).count()
 
     # Outcomes
-    missing_tb_outcome = enrollments.filter(tb_outcome__isnull=True).count()
+    missing_tb_outcome = enrollments.filter(tb_otcome__isnull=True).count()
     missing_ltf_months = enrollments.filter(ltf_months__isnull=True).count()
 
     # Clinical
