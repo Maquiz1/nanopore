@@ -135,7 +135,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
             # Phenotypic DST
             "phenotypic_performed": forms.Select(attrs={"class": "form-select"}),
             "phenotypic_date_performed": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "phenotypic_date_results": forms.Select(attrs={"class": "form-select"}),
+            "phenotypic_date_results": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             
             # Phenotypic DST RESULTS
             "rifampicin": forms.Select(attrs={"class": "form-select"}),
