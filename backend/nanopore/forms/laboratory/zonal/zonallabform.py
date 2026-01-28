@@ -222,8 +222,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "nano_rifampicin": forms.Select(attrs={"class": "form-select"}),
             "nano_streptomycin": forms.Select(attrs={"class": "form-select"}),
             
-            "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-            
+            "remarks": forms.Textarea(attrs={"class": "form-control", "rows": 2}),   
         }
 
 
