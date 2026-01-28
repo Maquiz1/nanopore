@@ -16,10 +16,13 @@
             <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
         </a>
 
-        <!-- Right side buttons: Download PDF -->
+        <!-- Right side buttons: Specific Form Queries + Download PDF -->
         <div class="d-flex gap-2 flex-wrap">
-            {% if user.is_superuser or is_admin or is_zonal_lab %}
-            <a href="#" class="btn btn-primary btn-lg px-4">
+            <a href="{% url 'reports:specific_form_queries' %}" class="btn btn-outline-primary btn-lg px-4">
+                Specific Form Queries →
+            </a>
+            {% if user.is_superuser %}
+            <a href="{% url 'reports:clinic_data_quality_pdf' %}" class="btn btn-primary btn-lg px-4">
                 <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
             </a>
             {% endif %}
