@@ -178,7 +178,7 @@
                         </div>
                         <div class="row g-3 mb-3">
                             {% for field in form %}
-                            {% if field.name in "xpert_xdr_isoniazid,xpert_xdr_fluoroquinolones,xpert_xdr_amikacin,xpert_xdr_kanamycin,xpert_xdr_capreomycin,xpert_xdr_ethionamide2"|cut:"," %}
+                            {% if field.name in "xpert_xdr_isoniazid,xpert_xdr_fluoroquinolones,xpert_xdr_amikacin,xpert_xdr_kanamycin,xpert_xdr_capreomycin,xpert_xdr_ethionamide"|cut:"," %}
                             <div class="col-md-4">
                                 {{ field.label_tag }}
                                 {{ field }}
