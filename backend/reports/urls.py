@@ -91,8 +91,8 @@ urlpatterns = [
     path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
     path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
     
-    path("missing-form-details-queries/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
-    path("missing-form-details-queries/<int:form_type>/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
+    # path("missing-form-details-queries/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
+    path("missing-form-details-queries/<str:form_type>/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
     
     # path('data-quality/', FormsDataQualityReportView.as_view(), name='forms_quality_report'),
     path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
@@ -105,7 +105,6 @@ urlpatterns = [
     path('data-quality/pdf/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf'),
     path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),
     path('enrollment/data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='enrollment_data_quality_pdf'),
-
 
     path('notifications/', AllOverviewQueriesDashboardView.as_view(), name='notifications-list'),
     path('alerts/', AllOverviewQueriesDashboardView.as_view(), name='alerts-list'),

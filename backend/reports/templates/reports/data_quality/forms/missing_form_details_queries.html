@@ -3,11 +3,11 @@
 {% block content %}
 <div class="container py-5">
     <h2 class="m-0 text-center flex-grow-1">
-      🧾 DREAM FUND - FORMS DATA QUALITY<br>
-      <span class="fs-6 fw-normal text-muted">Eligible screenings missing downstream forms</span>
+        🧾 DREAM FUND - FORMS DATA QUALITY<br>
+        <span class="fs-6 fw-normal text-muted">Eligible screenings missing downstream forms</span>
     </h2>
 
-    <!-- Navigation Links: Dashboard (left) + Queries Overview (right) -->
+    <!-- Navigation Links -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
             ← Back to Dashboard
@@ -17,320 +17,306 @@
         </a>
     </div>
 
-  <!-- Filters -->
-  <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
-      <label class="text-muted">Zone</label>
-      <select name="zone" class="form-select form-select-sm" style="width:220px;">
-        <option value="">All zones</option>
-        {% for id, name in zones.items %}
-          <option value="{{ id }}" {% if selected_zone|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>
-            {{ name }}
-          </option>
-        {% endfor %}
-      </select>
+    <!-- Filters & Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+            <label class="text-muted">Zone</label>
+            <select name="zone" class="form-select form-select-sm" style="width:220px;">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}
+                    <option value="{{ id }}" {% if selected_zone|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
 
-      <label class="text-muted">Site</label>
-      <select name="site" class="form-select form-select-sm" style="width:220px;">
-        <option value="">All sites</option>
-        {% for id, name in sites.items %}
-          <option value="{{ id }}" {% if selected_site|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>
-            {{ name }}
-          </option>
-        {% endfor %}
-      </select>
+            <label class="text-muted">Site</label>
+            <select name="site" class="form-select form-select-sm" style="width:220px;">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}
+                    <option value="{{ id }}" {% if selected_site|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
 
-      <button type="submit" class="btn btn-outline-primary btn-sm">Filter</button>
-    </form>
+            <button type="submit" class="btn btn-outline-primary btn-sm">Filter</button>
+        </form>
 
-    <div class="d-flex gap-2">
-      <a href="{% url 'reports:missing_form_details_queries' %}" class="btn btn-outline-secondary btn-sm">Refresh</a>
-      {% if is_superuser %}
-      <a href="{% url 'reports:forms_data_quality_pdf' %}" class="btn btn-primary btn-sm">
-        <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
-      </a>
-      {% endif %}
-    </div>
-  </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reports:missing_form_details_queries' form_type %}"
+               class="btn btn-outline-secondary btn-sm">Refresh</a>
 
-  <div class="text-center text-muted lead mb-5">
-    <small>Report generated: {{ report_date|date:"d M Y H:i" }} EAT</small>
-  </div>
-
-  <!-- Summary -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm text-center">
-        <div class="card-body">
-          <div class="text-muted small">Eligible screenings</div>
-          <div class="h3 fw-bold">{{ total_screenings|default:"0" }}</div>
+            {% if is_superuser %}
+            <a href="{% url 'reports:forms_data_quality_pdf' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
+            </a>
+            {% endif %}
         </div>
-      </div>
     </div>
 
-    <div class="col-md-4">
-      <div class="card shadow-sm border-warning text-center">
-        <div class="card-body">
-          <div class="text-muted small">Total missing form types</div>
-          <div class="h3 fw-bold text-warning">{{ total_form_missing|default:"0" }}</div>
-        </div>
-      </div>
+    <div class="text-center text-muted lead mb-5">
+        <small>Report generated: {{ report_date|date:"d M Y H:i" }} EAT</small>
     </div>
 
-    <div class="col-md-4">
-      <div class="card shadow-sm border-danger text-center">
-        <div class="card-body">
-
-          {% if form_type == "enrollment" %}
-            <div class="text-muted small">Missing Enrollments</div>
-            <div class="h3 fw-bold text-danger">
-              {{ missing_enrollment_count|default:"0" }}
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <div class="text-muted small">Eligible screenings</div>
+                    <div class="h3 fw-bold">{{ total_screenings|default:"0" }}</div>
+                </div>
             </div>
+        </div>
 
-          {% elif form_type == "clinic" %}
-            <div class="text-muted small">Missing Clinic Labs</div>
-            <div class="h3 fw-bold text-danger">
-              {{ missing_clinic_count|default:"0" }}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-warning text-center">
+                <div class="card-body">
+                    <div class="text-muted small">Total missing form types</div>
+                    <div class="h3 fw-bold text-warning">{{ total_form_missing|default:"0" }}</div>
+                </div>
             </div>
+        </div>
 
-          {% elif form_type == "diagnosis" %}
-            <div class="text-muted small">Missing Diagnosis</div>
-            <div class="h3 fw-bold text-danger">
-              {{ missing_diagnosis_count|default:"0" }}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-danger text-center">
+                <div class="card-body">
+                    {% if form_type == "enrollment" %}
+                        <div class="text-muted small">Missing Enrollments</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_enrollment_count|default:"0" }}</div>
+                    {% elif form_type == "clinic" %}
+                        <div class="text-muted small">Missing Clinic Labs</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_clinic_count|default:"0" }}</div>
+                    {% elif form_type == "diagnosis" %}
+                        <div class="text-muted small">Missing Diagnoses</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_diagnosis_count|default:"0" }}</div>
+                    {% elif form_type == "regimen" %}
+                        <div class="text-muted small">Missing Regimen Changes</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_regimen_count|default:"0" }}</div>
+                    {% elif form_type == "zonal" %}
+                        <div class="text-muted small">Missing Zonal Labs</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_zonal_count|default:"0" }}</div>
+                    {% else %}
+                        <div class="text-muted small">Total Missing Forms</div>
+                        <div class="h3 fw-bold text-danger">{{ total_form_missing|default:"0" }}</div>
+                    {% endif %}
+                </div>
             </div>
+        </div>
+    </div>
 
-          {% elif form_type == "regimen" %}
-            <div class="text-muted small">Missing Regimen Changes</div>
-            <div class="h3 fw-bold text-danger">
-              {{ missing_regimen_count|default:"0" }}
+    <!-- Detailed Records (Accordion) -->
+    <div class="accordion" id="formsQualityAccordion">
+
+        <!-- ENROLLMENT -->
+        {% if form_type == "enrollment" %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#enrollment">
+                    Missing Enrollment ({{ missing_enrollment_count }})
+                </button>
+            </h2>
+            <div id="enrollment" class="accordion-collapse collapse show">
+                <div class="accordion-body table-responsive">
+                    {% if missing_records %}
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th><th>Date</th><th>Zone</th><th>Site</th>
+                                    <th>Sex</th><th>Age</th><th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in missing_records %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td>{{ s.screening_date|date:"d M Y" }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                    <td>{{ s.sex }}</td>
+                                    <td>{{ s.age }}</td>
+                                    <td>
+                                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}"
+                                           class="btn btn-sm btn-outline-success">➕ Enrollment</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No missing enrollment records found.</p>
+                    {% endif %}
+                </div>
             </div>
+        </div>
+        {% endif %}
 
-          {% elif form_type == "zonal" %}
-            <div class="text-muted small">Missing Zonal Labs</div>
-            <div class="h3 fw-bold text-danger">
-              {{ missing_zonal_count|default:"0" }}
+        <!-- CLINIC -->
+        {% if form_type == "clinic" %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#clinic">
+                    Missing Clinic Laboratory ({{ missing_clinic_count }})
+                </button>
+            </h2>
+            <div id="clinic" class="accordion-collapse collapse show">
+                <div class="accordion-body table-responsive">
+                    {% if missing_records %}
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for s in missing_records %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td>{{ s.screening_date|date:"d M Y" }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                    <td>{{ s.sex }}</td>
+                                    <td>{{ s.age }}</td>
+                                    <td>
+                                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.id }}"
+                                           class="btn btn-sm btn-outline-success">➕ Clinic Lab</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No missing clinic lab records found.</p>
+                    {% endif %}
+                </div>
             </div>
+        </div>
+        {% endif %}
 
-          {% else %}
-            <div class="text-muted small">Total Missing Forms</div>
-            <div class="h3 fw-bold text-danger">
-              {{ total_form_missing|default:"0" }}
+        <!-- DIAGNOSIS -->
+        {% if form_type == "diagnosis" %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#diagnosis">
+                    Missing Diagnosis ({{ missing_diagnosis_count }})
+                </button>
+            </h2>
+            <div id="diagnosis" class="accordion-collapse collapse show">
+                <div class="accordion-body table-responsive">
+                    {% if missing_records %}
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for s in missing_records %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td>{{ s.screening_date|date:"d M Y" }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                    <td>{{ s.sex }}</td>
+                                    <td>{{ s.age }}</td>
+                                    <td>
+                                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.id }}"
+                                           class="btn btn-sm btn-outline-success">➕ Diagnosis</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No missing diagnosis records found.</p>
+                    {% endif %}
+                </div>
             </div>
-          {% endif %}
-
         </div>
-      </div>
-    </div>
-  </div>
+        {% endif %}
 
-  <div class="accordion" id="formsQualityAccordion">
-
-    <!-- ================= ENROLLMENT ================= -->
-    {% if missing_enrollment_count %}
-    <div class="accordion-item">
-      <h2 class="accordion-header">
-        <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#enrollment">
-          Missing Enrollment ({{ missing_enrollment_count }})
-        </button>
-      </h2>
-      <div id="enrollment" class="accordion-collapse collapse show">
-        <div class="accordion-body table-responsive">
-          <table class="table table-sm table-bordered table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>PID</th><th>Date</th><th>Zone</th><th>Site</th>
-                <th>Sex</th><th>Age</th><th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in missing_enrollment_records %}
-              <tr>
-                <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
-                <td>{{ s.screening_date|date:"d M Y" }}</td>
-                <td>{{ s.zone_name }}</td>
-                <td>{{ s.site_name }}</td>
-                <td>{{ s.sex }}</td>
-                <td>{{ s.age }}</td>
-                <td>
-                  <a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}"
-                     class="btn btn-sm btn-outline-success">
-                    ➕ Enrollment
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <!-- REGIMEN -->
+        {% if form_type == "regimen" %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#regimen">
+                    Missing Regimen Changes ({{ missing_regimen_count }})
+                </button>
+            </h2>
+            <div id="regimen" class="accordion-collapse collapse show">
+                <div class="accordion-body table-responsive">
+                    {% if missing_records %}
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for s in missing_records %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td>{{ s.screening_date|date:"d M Y" }}</td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                    <td>{{ s.sex }}</td>
+                                    <td>{{ s.age }}</td>
+                                    <td>
+                                        <!-- Replace # with real URL when implemented -->
+                                        <a href="#" class="btn btn-sm btn-outline-warning">➕ Regimen</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No missing regimen change records found.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    {% endif %}
+        {% endif %}
 
-    <!-- ================= CLINIC LAB ================= -->
-    {% if missing_clinic_count %}
-    <div class="accordion-item">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#clinic">
-          Missing Clinic Laboratory ({{ missing_clinic_count }})
-        </button>
-      </h2>
-      <div id="clinic" class="accordion-collapse collapse">
-        <div class="accordion-body table-responsive">
-          <table class="table table-sm table-bordered table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>PID</th><th>Date</th><th>Zone</th><th>Site</th>
-                <th>Sex</th><th>Age</th><th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in missing_clinic_records %}
-              <tr>
-                <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
-                <td>{{ s.screening_date|date:"d M Y" }}</td>
-                <td>{{ s.zone_name }}</td>
-                <td>{{ s.site_name }}</td>
-                <td>{{ s.sex }}</td>
-                <td>{{ s.age }}</td>
-                <td>
-                  <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.id }}"
-                     class="btn btn-sm btn-outline-success">
-                    ➕ Clinic Lab
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <!-- ZONAL -->
+        {% if form_type == "zonal" %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#zonal">
+                    Missing Zonal Laboratory ({{ missing_zonal_count }})
+                </button>
+            </h2>
+            <div id="zonal" class="accordion-collapse collapse show">
+                <div class="accordion-body table-responsive">
+                    {% if is_privileged or is_zonal_lab %}
+                        {% if missing_records %}
+                            <table class="table table-sm table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr><th>PID</th><th>Date</th><th>Zone</th><th>Site</th><th>Sex</th><th>Age</th><th>Action</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in missing_records %}
+                                    <tr>
+                                        <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                        <td>{{ s.screening_date|date:"d M Y" }}</td>
+                                        <td>{{ s.zone_name }}</td>
+                                        <td>{{ s.site_name }}</td>
+                                        <td>{{ s.sex }}</td>
+                                        <td>{{ s.age }}</td>
+                                        <td>
+                                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.id }}"
+                                               class="btn btn-sm btn-outline-success">➕ Zonal Lab</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No missing zonal lab records found.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted text-center py-4">You do not have permission to view zonal lab records.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    {% endif %}
+        {% endif %}
 
-    <!-- ================= DIAGNOSIS ================= -->
-    {% if missing_diagnosis_count %}
-    <div class="accordion-item">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#diagnosis">
-          Missing Diagnosis ({{ missing_diagnosis_count }})
-        </button>
-      </h2>
-      <div id="diagnosis" class="accordion-collapse collapse">
-        <div class="accordion-body table-responsive">
-          <table class="table table-sm table-bordered table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>PID</th><th>Date</th><th>Zone</th><th>Site</th>
-                <th>Sex</th><th>Age</th><th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in missing_diagnosis_records %}
-              <tr>
-                <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
-                <td>{{ s.screening_date|date:"d M Y" }}</td>
-                <td>{{ s.zone_name }}</td>
-                <td>{{ s.site_name }}</td>
-                <td>{{ s.sex }}</td>
-                <td>{{ s.age }}</td>
-                <td>
-                  <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.id }}"
-                     class="btn btn-sm btn-outline-success">
-                    ➕ Diagnosis
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
-    {% endif %}
-
-    <!-- ================= REGIMEN ================= -->
-    {% if missing_regimen_count %}
-    <div class="accordion-item">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#regimen">
-          Missing Regimen Change ({{ missing_regimen_count }})
-        </button>
-      </h2>
-      <div id="regimen" class="accordion-collapse collapse">
-        <div class="accordion-body table-responsive">
-          <table class="table table-sm table-bordered table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>PID</th><th>Date</th><th>Zone</th><th>Site</th>
-                <th>Sex</th><th>Age</th><th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in missing_regimen_records %}
-              <tr>
-                <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
-                <td>{{ s.screening_date|date:"d M Y" }}</td>
-                <td>{{ s.zone_name }}</td>
-                <td>{{ s.site_name }}</td>
-                <td>{{ s.sex }}</td>
-                <td>{{ s.age }}</td>
-                <td>
-                  <a href="#"
-                     class="btn btn-sm btn-outline-warning">
-                    ➕ Regimen
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- ================= ZONAL LAB ================= -->
-    {% if missing_zonal_count %}
-    <div class="accordion-item">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#zonal">
-          Missing Zonal Laboratory ({{ missing_zonal_count }})
-        </button>
-      </h2>
-      <div id="zonal" class="accordion-collapse collapse">
-        <div class="accordion-body table-responsive">
-          <table class="table table-sm table-bordered table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>PID</th><th>Date</th><th>Zone</th><th>Site</th>
-                <th>Sex</th><th>Age</th><th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in missing_zonal_records %}
-              <tr>
-                <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
-                <td>{{ s.screening_date|date:"d M Y" }}</td>
-                <td>{{ s.zone_name }}</td>
-                <td>{{ s.site_name }}</td>
-                <td>{{ s.sex }}</td>
-                <td>{{ s.age }}</td>
-                <td>
-                  <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.id }}"
-                     class="btn btn-sm btn-outline-success">
-                    ➕ Zonal Lab
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-  </div>
 
 </div>
 {% endblock %}
