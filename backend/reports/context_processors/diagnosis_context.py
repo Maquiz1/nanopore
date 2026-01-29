@@ -2,7 +2,7 @@ from datetime import timedelta
 from django.apps import apps
 from django.utils import timezone
 from utils.permissions import filter_queryset_by_user_role
-
+from django.db.models import Count
 
 def diagnosis_report_total(request):
     """
@@ -59,6 +59,27 @@ def diagnosis_report_total(request):
     pending_tb_outcome = long_treatment.filter(tb_outcome2__isnull=True).count()
     pending_tb_outcome_date = long_treatment.filter(tb_outcome2__in=[1, 2, 3, 4, 5], tb_outcome2_date__isnull=True).count()
 
+
+    # ─────────────────────────────────────────────
+    # DUPLICATE TB REGISTER NUMBER
+    # ─────────────────────────────────────────────
+
+    duplicate_tb_register_numbers = (
+        diagnoses
+        .filter(tb_diagnosis=1)
+        .exclude(tb_register_number__isnull=True)
+        .exclude(tb_register_number__exact="")
+        .values("tb_register_number")
+        .annotate(cnt=Count("id"))
+        .filter(cnt__gt=1)
+        .values_list("tb_register_number", flat=True)
+    )
+    
+    duplicate_tb_register_number = diagnoses.filter(
+        tb_diagnosis=1,
+        tb_register_number__in=duplicate_tb_register_numbers
+    ).count()
+
     # ─────────────────────────────────────────────
     # TOTAL
     # ─────────────────────────────────────────────
@@ -77,6 +98,7 @@ def diagnosis_report_total(request):
         + missing_tb_other_specify
         + missing_tb_treatment_date
         + missing_tb_register_number
+        + duplicate_tb_register_number   # ✅ ADD
         + missing_tb_regimen
         + missing_regimen_changed
         + missing_tb_facility
@@ -101,6 +123,7 @@ def diagnosis_report_total(request):
         "missing_tb_other_specify": missing_tb_other_specify,
         "missing_tb_treatment_date": missing_tb_treatment_date,
         "missing_tb_register_number": missing_tb_register_number,
+        "duplicate_tb_register_number": duplicate_tb_register_number,
         "missing_tb_regimen": missing_tb_regimen,
         "missing_regimen_changed": missing_regimen_changed,
         "missing_tb_facility": missing_tb_facility,

@@ -43,10 +43,39 @@ class ZonalDataQualityReportView(View):
 
         total_records = qs.count()
 
+        # =====================================================
+        # DUPLICATE UNIQUE LAB NUMBER DETECTION
+        # =====================================================
+
+        duplicate_lab_numbers = (
+            qs.exclude(unique_lab_no__isnull=True)
+            .exclude(unique_lab_no__exact="")
+            .values("unique_lab_no")
+            .annotate(cnt=Count("id"))
+            .filter(cnt__gt=1)
+            .values_list("unique_lab_no", flat=True)
+        )
+        
         # ── Aggregated counts with conditional rules ────────
         stats = qs.aggregate(
             missing_date_sputum_received=Count(Case(When(date_sputum_received__isnull=True, then=1), output_field=IntegerField())),
-            missing_unique_lab_no=Count(Case(When(unique_lab_no__isnull=True, then=1), output_field=IntegerField())),
+            missing_unique_lab_no=Count(
+                Case(
+                    When(
+                        Q(unique_lab_no__isnull=True) |
+                        Q(unique_lab_no__exact=""),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+
+            duplicate_unique_lab_no=Count(
+                Case(
+                    When(unique_lab_no__in=duplicate_lab_numbers, then=1),
+                    output_field=IntegerField()
+                )
+            ),
             missing_sample_volume=Count(Case(When(sample_volume__isnull=True, then=1), output_field=IntegerField())),
             missing_appearance=Count(Case(When(appearance__isnull=True, then=1), output_field=IntegerField())),
 
@@ -179,6 +208,7 @@ class ZonalDataQualityReportView(View):
             # Basic fields
             "missing_date_sputum_received": ["date_sputum_received"],
             "missing_unique_lab_no": ["unique_lab_no"],
+            "duplicate_unique_lab_no": ["unique_lab_no"],
             "missing_sample_volume": ["sample_volume"],
             "missing_appearance": ["appearance"],
 
@@ -257,11 +287,37 @@ class ZonalDataQualityReportView(View):
 
         # ── Generate problem lists ─────────────
         problem_lists = {}
+        # for key, fields in all_fields_mapping.items():
+        #     q = Q()
+        #     for f in fields:
+        #         q |= Q(**{f + "__isnull": True})
+        #     problem_lists[key] = [serialize_record(z, fields) for z in qs.filter(q)[:100]]
+            
+        #     problem_lists = {}
+
         for key, fields in all_fields_mapping.items():
+
+            # ----------------------------
+            # DUPLICATE LAB NUMBER LIST
+            # ----------------------------
+            if key == "duplicate_unique_lab_no":
+                problem_lists[key] = [
+                    serialize_record(z, fields)
+                    for z in qs.filter(unique_lab_no__in=duplicate_lab_numbers)[:100]
+                ]
+                continue
+
+            # ----------------------------
+            # NORMAL MISSING FIELD LOGIC
+            # ----------------------------
             q = Q()
             for f in fields:
                 q |= Q(**{f + "__isnull": True})
-            problem_lists[key] = [serialize_record(z, fields) for z in qs.filter(q)[:100]]
+
+            problem_lists[key] = [
+                serialize_record(z, fields)
+                for z in qs.filter(q)[:100]
+            ]
 
 
         # ── Role context ─────────────────────────────

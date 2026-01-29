@@ -4,7 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.apps import apps
 from utils.permissions import filter_queryset_by_user_role
-
+from django.db.models import Count
 
 class DiagnosisDataQualityReportView(View):
     template_name = "reports/data_quality/diagnosis/data_diagnosis_quality_report.html"
@@ -28,6 +28,26 @@ class DiagnosisDataQualityReportView(View):
             request.user, diagnoses, site_field="screening__site"
         )
 
+        # ─────────────────────────────────────────────
+        # DUPLICATE TB REGISTER NUMBER
+        # ─────────────────────────────────────────────
+
+        duplicate_tb_register_numbers = (
+            diagnoses
+            .filter(tb_diagnosis=1)
+            .exclude(tb_register_number__isnull=True)
+            .exclude(tb_register_number__exact="")
+            .values("tb_register_number")
+            .annotate(cnt=Count("id"))
+            .filter(cnt__gt=1)
+            .values_list("tb_register_number", flat=True)
+        )
+        
+        duplicate_tb_register_number = diagnoses.filter(
+            tb_diagnosis=1,
+            tb_register_number__in=duplicate_tb_register_numbers
+        )
+        
         # ─────────────────────────────────────────────
         # TB DIAGNOSIS & TREATMENT
         # ─────────────────────────────────────────────
@@ -105,6 +125,13 @@ class DiagnosisDataQualityReportView(View):
             "missing_tb_register_number": diagnoses.filter(tb_treatment=1, tb_register_number__isnull=True),
             "count_missing_tb_register_number": diagnoses.filter(tb_treatment=1, tb_register_number__isnull=True).count(),
 
+            # ─────────────────────────────────────────────
+            # DUPLICATE TB REGISTER NUMBER
+            # ─────────────────────────────────────────────
+            "duplicate_tb_register_number": duplicate_tb_register_number,
+            "count_duplicate_tb_register_number": duplicate_tb_register_number.count(),
+            # ─────────────────────────────────────────────
+
             "missing_tb_regimen": diagnoses.filter(tb_treatment=1, tb_regimen__isnull=True),
             "count_missing_tb_regimen": diagnoses.filter(tb_treatment=1, tb_regimen__isnull=True).count(),
 
@@ -141,6 +168,9 @@ class DiagnosisDataQualityReportView(View):
             context["count_missing_tb_other_specify"],
             context["count_missing_tb_treatment_date"],
             context["count_missing_tb_register_number"],
+            # ✅ NEW
+            context["count_duplicate_tb_register_number"],
+            
             context["count_missing_tb_regimen"],
             context["count_missing_regimen_changed"],
             context["count_missing_tb_facility"],
