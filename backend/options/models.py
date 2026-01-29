@@ -248,7 +248,7 @@ class PositiveNegative(models.Model):
 
 
 class PositiveNegativeUnknown(models.Model):
-    value = models.IntegerField(unique=True)  # e.g., 1 for Yes, 0 for No
+    value = models.IntegerField(unique=True)  # e.g., 1 = Positive, 2 = Negative , 99 = Unknown
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)

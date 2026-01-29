@@ -6,6 +6,15 @@ from common.labels.enrollment.labels import Enrollment_LABELS   # ✅ import fro
 from options.models import DiseasesMedicalConditions,YesNoUnknown,PositiveNegativeUnknown,CategoryTreated
 
 class EnrollmentForm(forms.ModelForm):
+    
+    hiv_status = forms.ModelChoiceField(
+        queryset=PositiveNegativeUnknown.objects.all(),
+        empty_label="Select HIV status",
+        to_field_name="value",  # This makes the form POST the `value` (1,2,99) instead of PK
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+        
     class Meta:
         model = Enrollment
         fields = [
@@ -113,9 +122,18 @@ class EnrollmentForm(forms.ModelForm):
             (obj.value, obj.name) for obj in YesNoUnknown.objects.all()
         ]
         
-        self.fields["hiv_status"].choices = [
-            (obj.value, obj.name) for obj in PositiveNegativeUnknown.objects.all()
-        ]
+        # self.fields["hiv_status"].choices = [
+        #     (obj.value, obj.name) for obj in PositiveNegativeUnknown.objects.all()
+        # ]
+        
+    # def clean_hiv_status(self):
+    #     value = self.cleaned_data.get("hiv_status")
+    #     if value is None:
+    #         return None  # leave as null if nothing selected
+    #     try:
+    #         return PositiveNegativeUnknown.objects.get(value=value)
+    #     except PositiveNegativeUnknown.DoesNotExist:
+    #         raise ValidationError("Selected HIV status is invalid.")
 
     def clean_screening(self):
         if self.instance.pk:
