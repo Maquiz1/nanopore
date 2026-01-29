@@ -430,11 +430,11 @@
         </div>
         {% endif %}
 
-        {% if count_missing_mgit_results %}
+        {% if missing_isolate_date %}
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMGITResults">
-                    Missing MGIT Results ({{ count_missing_mgit_results|default:"0" }})
+                    Missing MGIT Results ({{ count_missing_isolate_date|default:"0" }})
                 </button>
             </h2>
             <div id="collapseMGITResults" class="accordion-collapse collapse show">
@@ -443,7 +443,7 @@
                         <table class="table table-sm table-hover table-bordered">
                             <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for item in missing_mgit_results|default:"" %}
+                                {% for item in missing_isolate_date|default:"" %}
                                 <tr>
                                     <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
