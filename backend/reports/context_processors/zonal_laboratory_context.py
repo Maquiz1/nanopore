@@ -23,6 +23,19 @@ def zonal_report_total(request):
     )
 
     # =====================================================
+    # DUPLICATE UNIQUE LAB NUMBER CHECK
+    # =====================================================
+
+    duplicate_lab_numbers = (
+        qs.exclude(unique_lab_no__isnull=True)
+        .exclude(unique_lab_no__exact="")
+        .values("unique_lab_no")
+        .annotate(cnt=Count("id"))
+        .filter(cnt__gt=1)
+        .values_list("unique_lab_no", flat=True)
+    )
+
+    # =====================================================
     # DATA QUALITY COUNTS (single DB query with conditions)
     # =====================================================
 
@@ -33,7 +46,23 @@ def zonal_report_total(request):
             Case(When(date_sputum_received__isnull=True, then=1), output_field=IntegerField())
         ),
         missing_unique_lab_no=Count(
-            Case(When(unique_lab_no__isnull=True, then=1), output_field=IntegerField())
+            Case(
+                When(
+                    Q(unique_lab_no__isnull=True) |
+                    Q(unique_lab_no__exact=""),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        ),
+        duplicate_unique_lab_no=Count(
+            Case(
+                When(
+                    unique_lab_no__in=duplicate_lab_numbers,
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
         ),
         missing_sample_volume=Count(
             Case(When(sample_volume__isnull=True, then=1), output_field=IntegerField())

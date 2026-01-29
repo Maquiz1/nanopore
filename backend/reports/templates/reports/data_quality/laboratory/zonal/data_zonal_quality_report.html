@@ -175,6 +175,36 @@
         </div>
         {% endif %}
 
+        {% if count_duplicate_unique_lab_no %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUniqueLabNo">
+                    Duplicate Unique Lab Number ({{ count_duplicate_unique_lab_no|default:"0" }})
+                </button>
+            </h2>
+            <div id="collapseUniqueLabNo" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Zone</th><th>Site</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in duplicate_unique_lab_no|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- ================= Culture Fields ================= -->
         {% if count_missing_culture_method %}
         <div class="accordion-item">

@@ -462,6 +462,42 @@
         </div>
         {% endif %}
 
+        {% if count_duplicate_tb_register_number %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#duplicateTbRegister">
+                    Duplicate TB Register Number
+                    ({{ count_duplicate_tb_register_number }})
+                </button>
+            </h2>
+
+            <div id="duplicateTbRegister" class="accordion-collapse collapse">
+                <div class="accordion-body table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>TB Register No</th>
+                                <th>Site</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in duplicate_tb_register_number %}
+                            <tr>
+                                <td>{{ d.screening.pid }}</td>
+                                <td class="fw-bold text-danger">{{ d.tb_register_number }}</td>
+                                <td>{{ d.screening.site.name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- 14. Missing TB Regimen -->
         {% if count_missing_tb_regimen %}
         <div class="accordion-item">
