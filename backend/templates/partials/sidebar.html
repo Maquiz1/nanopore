@@ -104,6 +104,8 @@
                 {% endif %}
             </a>
 
+            {% with user_group=request.user.groups.first.name|upper %}
+            {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" or user_group == "NURSE" or user_group == "CLINICIAN" %}
             {% if screening_report_total %}
             <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-user-check"></i> Screening</span>
@@ -134,12 +136,19 @@
                 <span class="badge bg-danger rounded-pill">{{ regimen_report_total }}</span>
             </a>
             {% endif %}
+            {% endif %}
+            {% endwith %}
+
+            {% with user_group=request.user.groups.first.name|upper %}
+            {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" or user_group == "LABORATORY_TECHNICIAN" %}
             {% if zonal_report_total %}
             <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-microscope"></i> Zonal</span>
                 <span class="badge bg-danger rounded-pill">{{ zonal_report_total }}</span>
             </a>
             {% endif %}
+            {% endif %}
+            {% endwith %}
         </div>
     </div>
 
