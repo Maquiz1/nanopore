@@ -183,8 +183,8 @@ class EnrollmentForm(forms.ModelForm):
         if sputum_date:
             if sputum_date > today:
                 self.add_error("sputum_date", "Sputum collection date cannot be in the future.")
-            if enrollment_date and sputum_date < enrollment_date:
-                self.add_error("sputum_date", "Sputum collection date cannot be before enrollment date.")
+            # if enrollment_date and sputum_date < enrollment_date:
+            #     self.add_error("sputum_date", "Sputum collection date cannot be before enrollment date.")
 
         # Prevent duplicate enrollment
         if screening and hasattr(screening, "enrollment") and not self.instance.pk:
