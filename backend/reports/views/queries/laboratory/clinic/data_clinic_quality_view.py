@@ -100,6 +100,80 @@ class ClinicDataQualityReportView(View):
         missing_afb_b_date_qs = clinics.filter(afb_yes_q, afb_b_date__isnull=True)
         missing_technique_b_qs = clinics.filter(afb_yes_q, technique_b__isnull=True)
         missing_afb_b_results_qs = clinics.filter(afb_yes_q, afb_b_results__isnull=True)
+        
+        # # 🔹 Group A completeness
+        # a_all_missing_q = (
+        #     Q(afb_a_date__isnull=True) &
+        #     Q(technique_a__isnull=True) &
+        #     Q(afb_a_results__isnull=True)
+        # )
+
+        # a_all_present_q = (
+        #     Q(afb_a_date__isnull=False) &
+        #     Q(technique_a__isnull=False) &
+        #     Q(afb_a_results__isnull=False)
+        # )
+
+        # a_partial_q = (
+        #     ~a_all_missing_q & ~a_all_present_q
+        # )
+        
+        # # 🔹 Group B completeness
+        # b_all_missing_q = (
+        #     Q(afb_b_date__isnull=True) &
+        #     Q(technique_b__isnull=True) &
+        #     Q(afb_b_results__isnull=True)
+        # )
+
+        # b_all_present_q = (
+        #     Q(afb_b_date__isnull=False) &
+        #     Q(technique_b__isnull=False) &
+        #     Q(afb_b_results__isnull=False)
+        # )
+
+        # b_partial_q = (
+        #     ~b_all_missing_q & ~b_all_present_q
+        # )
+
+
+        # # ✅ FINAL DATA QUALITY QUERIES
+        # # ❌ Missing / invalid A
+        # missing_afb_a_qs = clinics.filter(
+        #     afb_yes_q,
+        #     a_partial_q
+        # )
+        
+        # # ❌ Missing / invalid B
+        # # B is missing only if A is complete
+        # missing_afb_b_qs = clinics.filter(
+        #     afb_yes_q,
+        #     a_all_present_q,
+        #     b_partial_q
+        # )
+        
+        # # ✅ If you still want them split individually
+        # missing_afb_b_date_qs = clinics.filter(
+        #     afb_yes_q,
+        #     a_all_present_q,
+        #     b_partial_q,
+        #     afb_b_date__isnull=True
+        # )
+
+        # missing_technique_b_qs = clinics.filter(
+        #     afb_yes_q,
+        #     a_all_present_q,
+        #     b_partial_q,
+        #     technique_b__isnull=True
+        # )
+
+        # missing_afb_b_results_qs = clinics.filter(
+        #     afb_yes_q,
+        #     a_all_present_q,
+        #     b_partial_q,
+        #     afb_b_results__isnull=True
+        # )
+
+
 
         # Xpert conditional (missing when required by the stricter rule)
         missing_xpert_mtb_rif_conducted_qs = clinics.filter(afb_xpert_required_q, xpert_mtb_rif_conducted__isnull=True)
@@ -115,7 +189,7 @@ class ClinicDataQualityReportView(View):
         missing_ct_value_qs = clinics.filter(
             xpert_in_2_6_q
         ).exclude(
-            Q(ct_value__isnull=False, ct_na=False) | Q(ct_value__isnull=True, ct_na=True)
+            Q(ct_value__isnull=False, ct_na=False) | Q(ct_value__isnull=True, ct_na=True) | Q(ct_value__in=[99, 99.0])
         )
 
         role_context = get_role_context(request.user)
