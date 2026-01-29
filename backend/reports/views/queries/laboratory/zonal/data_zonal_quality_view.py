@@ -76,6 +76,7 @@ class ZonalDataQualityReportView(View):
                     output_field=IntegerField()
                 )
             ),
+            
             missing_sample_volume=Count(Case(When(sample_volume__isnull=True, then=1), output_field=IntegerField())),
             missing_appearance=Count(Case(When(appearance__isnull=True, then=1), output_field=IntegerField())),
 
