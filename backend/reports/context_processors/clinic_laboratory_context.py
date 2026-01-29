@@ -127,8 +127,9 @@ def clinic_report_total(request):
     missing_error_code = clinics.filter(xpert_is_8_q, error_code__isnull=True).count()
     missing_xpert_rif = clinics.filter(xpert_in_2_6_q, xpert_rif__isnull=True).count()
 
-    # CT validity: valid if (ct_value present AND ct_na is False) OR (ct_value missing AND ct_na is True)
-    valid_ct_q = Q(ct_value__isnull=False, ct_na=False) | Q(ct_value__isnull=True, ct_na=True)
+    # CT validity: valid if (ct_value present AND ct_na is False) OR (ct_value missing AND ct_na is True) OR ct_value = 99 OR 99.0, regardless of ct_na (ct_value in [99, 99.0])
+    valid_ct_q = Q(ct_value__isnull=False, ct_na=False) | Q(ct_value__isnull=True, ct_na=True) | Q(ct_value__in=[99, 99.0])
+
     missing_ct_value = clinics.filter(xpert_in_2_6_q).exclude(valid_ct_q).count()
 
     # --- Aggregate total issues (sum of all counts above) ---
