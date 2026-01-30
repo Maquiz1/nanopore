@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block content %}
 
 <div class="container py-5">
@@ -27,7 +28,7 @@
                     <div class="card-body text-center d-flex flex-column justify-content-center">
                         <h5 class="card-title mb-3">Enrollment</h5>
                         <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_enrollment_count|default:0 }}
+                            {{ forms_report_total.missing_enrollment_count|default:0  | intcomma }}
                         </p>
                         <p class="text-muted small mt-2">Eligible screenings without enrollment form</p>
                     </div>
@@ -41,7 +42,7 @@
                     <div class="card-body text-center d-flex flex-column justify-content-center">
                         <h5 class="card-title mb-3">Clinic Lab</h5>
                         <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_clinic_count|default:0 }}
+                            {{ forms_report_total.missing_clinic_count|default:0  | intcomma }}
                         </p>
                         <p class="text-muted small mt-2">Eligible without clinic lab record</p>
                     </div>
@@ -55,7 +56,7 @@
                     <div class="card-body text-center d-flex flex-column justify-content-center">
                         <h5 class="card-title mb-3">Diagnosis</h5>
                         <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_diagnosis_count|default:0 }}
+                            {{ forms_report_total.missing_diagnosis_count|default:0  | intcomma }}
                         </p>
                         <p class="text-muted small mt-2">Eligible without diagnosis record</p>
                     </div>
@@ -69,7 +70,7 @@
                     <div class="card-body text-center d-flex flex-column justify-content-center">
                         <h5 class="card-title mb-3">Regimen Changes</h5>
                         <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_regimen_count|default:0 }}
+                            {{ forms_report_total.missing_regimen_count|default:0  | intcomma }}
                         </p>
                         <p class="text-muted small mt-2">Expected changes missing</p>
                     </div>
@@ -86,7 +87,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center">
                     <h5 class="card-title mb-3">Zonal Lab</h5>
                     <p class="display-4 fw-bold text-danger mb-1">
-                        {{ forms_report_total.missing_zonal_count|default:0 }}
+                        {{ forms_report_total.missing_zonal_count|default:0  | intcomma }}
                     </p>
                     <p class="text-muted small mt-2">Eligible without zonal lab record</p>
                 </div>
@@ -100,7 +101,7 @@
     <div class="text-center mt-5 pt-4 border-top">
         <h4 class="mb-3">Total Known Issues</h4>
         <span class="badge bg-danger fs-3 px-5 py-3">
-            {{ forms_report_total.total_form_missing|default:0 }}
+            {{ forms_report_total.total_form_missing|default:0  | intcomma }}
         </span>
         <p class="text-muted mt-2 small">
             Sum of missing forms across eligible screenings (visible according to your role)

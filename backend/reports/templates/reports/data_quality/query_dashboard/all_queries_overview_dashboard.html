@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block content %}
 
 <div class="container py-5">
@@ -20,7 +21,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h3 class="card-title mb-4 text-warning fw-bold">Total Data Quality Issues</h3>
                     <p class="display-2 fw-bolder text-warning mb-2">
-                        {{ total_issues|default:0 }}
+                        {{ total_issues|default:0 | intcomma }}
                     </p>
                     <p class="lead text-muted mb-2">
                         All detected problems across the system
@@ -49,7 +50,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-danger fw-bold">Missing Forms</h4>
                     <p class="display-3 fw-bold text-danger mb-2">
-                        {{ forms_report_total.total_form_missing|default:0 }}
+                        {{ forms_report_total.total_form_missing|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-2">
                         Eligible screenings without required form(s)
@@ -71,7 +72,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-primary fw-bold">Form Queries</h4>
                     <p class="display-3 fw-bold text-primary mb-2">
-                        {{ specific_queries_total|default:0 }}
+                        {{ specific_queries_total|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-2">
                         Missing or invalid fields in submitted forms

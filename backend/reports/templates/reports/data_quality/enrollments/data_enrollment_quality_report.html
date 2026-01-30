@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block content %}
 <div class="container py-5">
 
@@ -38,7 +38,7 @@
             <div class="card border-primary shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title text-primary">Total Enrollment Records Checked</h5>
-                    <p class="display-5 fw-bold">{{ total_enrollments|default:"0" }}</p>
+                    <p class="display-5 fw-bold">{{ total_enrollments|default:"0"  | intcomma }}</p>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
             <div class="card border-danger shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title text-danger">Total Enrollment Data Quality Issues</h5>
-                    <p class="display-5 fw-bold text-danger">{{ total_issues|default:"0" }}</p>
+                    <p class="display-5 fw-bold text-danger">{{ total_issues|default:"0"  | intcomma }}</p>
                 </div>
             </div>
         </div>

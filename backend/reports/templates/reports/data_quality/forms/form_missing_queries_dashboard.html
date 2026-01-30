@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block content %}
 {# Safe group name helper: use first group if present #}
 {% with group=request.user.groups.first.name|default_if_none:"" %}
@@ -104,9 +104,9 @@
 
     {# Summary counts #}
     <div class="mb-2">
-        <strong>Total (Screening):</strong> {{ total_screenings|default:0 }}
+        <strong>Total (Screening):</strong> {{ total_screenings|default:0  | intcomma  }}
         &nbsp; | &nbsp;
-        <strong>Screened (eligible) But Missing Enrollment Form:</strong> {{ report_total|default:0 }}
+        <strong>Screened (eligible) But Missing Enrollment Form:</strong> {{ report_total|default:0  | intcomma  }}
     </div>
 
     {# Table: show only eligible screenings missing the Enrollment form (missing_enrollment / missing_enrollment variable) #}

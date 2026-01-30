@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block content %}
 <div class="container py-5">
 
@@ -40,7 +40,7 @@
             <div class="card border-primary shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title text-primary">Total Clinic Records Checked</h5>
-                    <p class="display-5 fw-bold">{{ total_clinics|default:"0" }}</p>
+                    <p class="display-5 fw-bold">{{ total_clinics|default:"0"  | intcomma  }}</p>
                 </div>
             </div>
         </div>
@@ -48,7 +48,7 @@
             <div class="card border-danger shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title text-danger">Total Clinic Data Quality Issues</h5>
-                    <p class="display-5 fw-bold text-danger">{{ clinic_report_total|default:"0" }}</p>
+                    <p class="display-5 fw-bold text-danger">{{ clinic_report_total|default:"0"  | intcomma  }}</p>
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSampleReceived">
-                    Missing Sample Received ({{ count_missing_sample_received|default:"0" }})
+                    Missing Sample Received ({{ count_missing_sample_received|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseSampleReceived" class="accordion-collapse collapse show">
@@ -102,7 +102,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNumberReceived">
-                    Missing Number Received ({{ count_missing_number_received|default:"0" }})
+                    Missing Number Received ({{ count_missing_number_received|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseNumberReceived" class="accordion-collapse collapse show">
@@ -141,7 +141,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSampleReason2">
-                    Missing Sample Reason (sample_received = 2) ({{ count_missing_sample_reason_when_received_2|default:"0" }})
+                    Missing Sample Reason (sample_received = 2) ({{ count_missing_sample_reason_when_received_2|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseSampleReason2" class="accordion-collapse collapse show">
@@ -180,7 +180,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNewReason2">
-                    Missing New Reason (new_sample = 2) ({{ count_missing_new_reason_when_new_sample_2|default:"0" }})
+                    Missing New Reason (new_sample = 2) ({{ count_missing_new_reason_when_new_sample_2|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseNewReason2" class="accordion-collapse collapse show">
@@ -219,7 +219,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOtherReason96">
-                    Missing Other Reason (sample_reason = 96) ({{ count_missing_other_reason_when_sample_reason_96|default:"0" }})
+                    Missing Other Reason (sample_reason = 96) ({{ count_missing_other_reason_when_sample_reason_96|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseOtherReason96" class="accordion-collapse collapse show">
@@ -264,7 +264,7 @@
             <div id="collapseSample1" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     {% if count_missing_date_sample1_collected %}
-                    <h6>Date Sample1 Collected ({{ count_missing_date_sample1_collected|default:"0" }})</h6>
+                    <h6>Date Sample1 Collected ({{ count_missing_date_sample1_collected|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -282,7 +282,7 @@
                     {% endif %}
 
                     {% if count_missing_date_sample1_received %}
-                    <h6>Date Sample1 Received ({{ count_missing_date_sample1_received|default:"0" }})</h6>
+                    <h6>Date Sample1 Received ({{ count_missing_date_sample1_received|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -300,7 +300,7 @@
                     {% endif %}
 
                     {% if count_missing_appearance_sample1 %}
-                    <h6>Appearance Sample1 ({{ count_missing_appearance_sample1|default:"0" }})</h6>
+                    <h6>Appearance Sample1 ({{ count_missing_appearance_sample1|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -318,7 +318,7 @@
                     {% endif %}
 
                     {% if count_missing_sample1_volume %}
-                    <h6>Sample1 Volume ({{ count_missing_sample1_volume|default:"0" }})</h6>
+                    <h6>Sample1 Volume ({{ count_missing_sample1_volume|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -350,7 +350,7 @@
             <div id="collapseSample2" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     {% if count_missing_date_sample2_collected %}
-                    <h6>Date Sample2 Collected ({{ count_missing_date_sample2_collected|default:"0" }})</h6>
+                    <h6>Date Sample2 Collected ({{ count_missing_date_sample2_collected|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -368,7 +368,7 @@
                     {% endif %}
 
                     {% if count_missing_date_sample2_received %}
-                    <h6>Date Sample2 Received ({{ count_missing_date_sample2_received|default:"0" }})</h6>
+                    <h6>Date Sample2 Received ({{ count_missing_date_sample2_received|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -386,7 +386,7 @@
                     {% endif %}
 
                     {% if count_missing_appearance_sample2 %}
-                    <h6>Appearance Sample2 ({{ count_missing_appearance_sample2|default:"0" }})</h6>
+                    <h6>Appearance Sample2 ({{ count_missing_appearance_sample2|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -404,7 +404,7 @@
                     {% endif %}
 
                     {% if count_missing_sample2_volume %}
-                    <h6>Sample2 Volume ({{ count_missing_sample2_volume|default:"0" }})</h6>
+                    <h6>Sample2 Volume ({{ count_missing_sample2_volume|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -430,7 +430,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAFBMicroscopy">
-                    Missing AFB Microscopy Conducted ({{ count_missing_afb_microscopy_conducted|default:"0" }})
+                    Missing AFB Microscopy Conducted ({{ count_missing_afb_microscopy_conducted|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseAFBMicroscopy" class="accordion-collapse collapse show">
@@ -465,7 +465,7 @@
             <div id="collapseAFBDetails" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     {% if count_missing_afb_a_date %}
-                    <h6>AFB A Date ({{ count_missing_afb_a_date|default:"0" }})</h6>
+                    <h6>AFB A Date ({{ count_missing_afb_a_date|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -483,7 +483,7 @@
                     {% endif %}
 
                     {% if count_missing_technique_a %}
-                    <h6>Technique A ({{ count_missing_technique_a|default:"0" }})</h6>
+                    <h6>Technique A ({{ count_missing_technique_a|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -501,7 +501,7 @@
                     {% endif %}
 
                     {% if count_missing_afb_a_results %}
-                    <h6>AFB A Results ({{ count_missing_afb_a_results|default:"0" }})</h6>
+                    <h6>AFB A Results ({{ count_missing_afb_a_results|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -519,7 +519,7 @@
                     {% endif %}
 
                     {% if count_missing_afb_b_date %}
-                    <h6>AFB B Date ({{ count_missing_afb_b_date|default:"0" }})</h6>
+                    <h6>AFB B Date ({{ count_missing_afb_b_date|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -537,7 +537,7 @@
                     {% endif %}
 
                     {% if count_missing_technique_b %}
-                    <h6>Technique B ({{ count_missing_technique_b|default:"0" }})</h6>
+                    <h6>Technique B ({{ count_missing_technique_b|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -555,7 +555,7 @@
                     {% endif %}
 
                     {% if count_missing_afb_b_results %}
-                    <h6>AFB B Results ({{ count_missing_afb_b_results|default:"0" }})</h6>
+                    <h6>AFB B Results ({{ count_missing_afb_b_results|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -581,7 +581,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseXpert">
-                    Missing Xpert MTB/RIF Conducted ({{ count_missing_xpert_mtb_rif_conducted|default:"0" }})
+                    Missing Xpert MTB/RIF Conducted ({{ count_missing_xpert_mtb_rif_conducted|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseXpert" class="accordion-collapse collapse show">
@@ -616,7 +616,7 @@
             <div id="collapseXpertDetails" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     {% if count_missing_xpert_date %}
-                    <h6>Xpert Date ({{ count_missing_xpert_date|default:"0" }})</h6>
+                    <h6>Xpert Date ({{ count_missing_xpert_date|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -634,7 +634,7 @@
                     {% endif %}
 
                     {% if count_missing_xpert_mtb %}
-                    <h6>Xpert MTB ({{ count_missing_xpert_mtb|default:"0" }})</h6>
+                    <h6>Xpert MTB ({{ count_missing_xpert_mtb|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -652,7 +652,7 @@
                     {% endif %}
 
                     {% if count_missing_error_code %}
-                    <h6>Error Code (xpert_mtb = 8) ({{ count_missing_error_code|default:"0" }})</h6>
+                    <h6>Error Code (xpert_mtb = 8) ({{ count_missing_error_code|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -670,7 +670,7 @@
                     {% endif %}
 
                     {% if count_missing_xpert_rif %}
-                    <h6>Xpert RIF (xpert_mtb in 2..6) ({{ count_missing_xpert_rif|default:"0" }})</h6>
+                    <h6>Xpert RIF (xpert_mtb in 2..6) ({{ count_missing_xpert_rif|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive mb-3">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
@@ -688,7 +688,7 @@
                     {% endif %}
 
                     {% if count_missing_ct_value %}
-                    <h6>CT Value validity ({{ count_missing_ct_value|default:"0" }})</h6>
+                    <h6>CT Value validity ({{ count_missing_ct_value|default:"0"  | intcomma  }})</h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>

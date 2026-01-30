@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block content %}
 <div class="container py-5">
 
@@ -37,7 +37,7 @@
             <div class="card border-primary shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title text-primary">Total Screening Records Checked</h5>
-                    <p class="display-5 fw-bold">{{ total_records|default:"0" }}</p>
+                    <p class="display-5 fw-bold">{{ total_records|default:"0"  | intcomma  }}</p>
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@
             <div class="card border-danger shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="card-title text-danger">Total Zonal Data Quality Issues</h5>
-                    <p class="display-5 fw-bold text-danger">{{ total_issues|default:"0" }}</p>
+                    <p class="display-5 fw-bold text-danger">{{ total_issues|default:"0"  | intcomma  }}</p>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDateSputum">
-                    Missing Date Sputum Received ({{ count_missing_date_sputum_received|default:"0" }})
+                    Missing Date Sputum Received ({{ count_missing_date_sputum_received|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseDateSputum" class="accordion-collapse collapse show">
@@ -89,7 +89,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppearance">
-                    Missing Appearance ({{ count_missing_appearance|default:"0" }})
+                    Missing Appearance ({{ count_missing_appearance|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseAppearance" class="accordion-collapse collapse show">
@@ -119,7 +119,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSampleVolume">
-                    Missing Sample Volume ({{ count_missing_sample_volume|default:"0" }})
+                    Missing Sample Volume ({{ count_missing_sample_volume|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseSampleVolume" class="accordion-collapse collapse show">
@@ -149,7 +149,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUniqueLabNo">
-                    Missing Unique Lab Number ({{ count_missing_unique_lab_no|default:"0" }})
+                    Missing Unique Lab Number ({{ count_missing_unique_lab_no|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseUniqueLabNo" class="accordion-collapse collapse show">
@@ -179,7 +179,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUniqueLabNo">
-                    Duplicate Unique Lab Number ({{ count_duplicate_unique_lab_no|default:"0" }})
+                    Duplicate Unique Lab Number ({{ count_duplicate_unique_lab_no|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseUniqueLabNo" class="accordion-collapse collapse show">
@@ -210,7 +210,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCultureMethod">
-                    Missing Culture Method ({{ count_missing_culture_method|default:"0" }})
+                    Missing Culture Method ({{ count_missing_culture_method|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseCultureMethod" class="accordion-collapse collapse show">
@@ -238,7 +238,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMicroscopyType">
-                    Missing Microscopy Type ({{ count_missing_microscopy_type|default:"0" }})
+                    Missing Microscopy Type ({{ count_missing_microscopy_type|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseMicroscopyType" class="accordion-collapse collapse show">
@@ -266,7 +266,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMicroscopyDate">
-                    Missing Microscopy Date ({{ count_missing_microscopy_date|default:"0" }})
+                    Missing Microscopy Date ({{ count_missing_microscopy_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseMicroscopyDate" class="accordion-collapse collapse show">
@@ -294,7 +294,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMicroscopyResults">
-                    Missing Microscopy Results ({{ count_missing_microscopy_results|default:"0" }})
+                    Missing Microscopy Results ({{ count_missing_microscopy_results|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseMicroscopyResults" class="accordion-collapse collapse show">
@@ -323,7 +323,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLJInoculation">
-                    Missing LJ Inoculation Date ({{ count_missing_lj_inoculation_date|default:"0" }})
+                    Missing LJ Inoculation Date ({{ count_missing_lj_inoculation_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseLJInoculation" class="accordion-collapse collapse show">
@@ -351,7 +351,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLJResultsDate">
-                    Missing LJ Results Date ({{ count_missing_lj_results_date|default:"0" }})
+                    Missing LJ Results Date ({{ count_missing_lj_results_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseLJResultsDate" class="accordion-collapse collapse show">
@@ -379,7 +379,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLJResults">
-                    Missing LJ Results ({{ count_missing_lj_results|default:"0" }})
+                    Missing LJ Results ({{ count_missing_lj_results|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseLJResults" class="accordion-collapse collapse show">
@@ -408,7 +408,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMGITInoculation">
-                    Missing MGIT Inoculation Date ({{ count_missing_mgit_inoculation_date|default:"0" }})
+                    Missing MGIT Inoculation Date ({{ count_missing_mgit_inoculation_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseMGITInoculation" class="accordion-collapse collapse show">
@@ -436,7 +436,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMGITResultsDate">
-                    Missing MGIT Results Date ({{ count_missing_mgit_results_date|default:"0" }})
+                    Missing MGIT Results Date ({{ count_missing_mgit_results_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseMGITResultsDate" class="accordion-collapse collapse show">
@@ -464,7 +464,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMGITResults">
-                    Missing MGIT Results ({{ count_missing_isolate_date|default:"0" }})
+                    Missing MGIT Results ({{ count_missing_isolate_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseMGITResults" class="accordion-collapse collapse show">

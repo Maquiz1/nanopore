@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block content %}
 
 <div class="container py-5">
@@ -29,7 +30,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-primary">Screening</h4>
                     <p class="display-4 fw-bold text-primary mb-2">
-                        {{ screening_report_total|default:0 }}
+                        {{ screening_report_total|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-3">
                         Missing fields, consent, PID issues, etc.
@@ -48,7 +49,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-danger">Enrollment</h4>
                     <p class="display-4 fw-bold text-danger mb-2">
-                        {{ enrollment_report_total|default:0 }}
+                        {{ enrollment_report_total|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-3">
                         Missing required fields / incomplete records
@@ -67,7 +68,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-success">Clinic Lab</h4>
                     <p class="display-4 fw-bold text-success mb-2">
-                        {{ clinic_report_total|default:0 }}
+                        {{ clinic_report_total|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-3">
                         Missing sample / number received
@@ -86,7 +87,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-info">Diagnosis</h4>
                     <p class="display-4 fw-bold text-info mb-2">
-                        {{ diagnosis_report_total|default:0 }}
+                        {{ diagnosis_report_total|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-3">
                         Missing TB diagnosis, regimen, outcome, etc.
@@ -105,7 +106,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-warning">Regimen Changes</h4>
                     <p class="display-4 fw-bold text-warning mb-2">
-                        {{ regimen_report_total|default:0 }}
+                        {{ regimen_report_total|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-3">
                         Missing date, drug, reason, etc.
@@ -127,7 +128,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-secondary">Zonal Lab</h4>
                     <p class="display-4 fw-bold text-secondary mb-2">
-                        {{ zonal_report_total|default:0 }}
+                        {{ zonal_report_total|default:0  | intcomma }}
                     </p>
                     <p class="lead text-muted mb-3">
                         Missing receipt, culture, sequencing fields
