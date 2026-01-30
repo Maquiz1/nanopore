@@ -91,20 +91,32 @@
                             <!-- Admins & reviewers see both -->
                             <div class="col-md-6">
                                 {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
+                                {% for error in form.present_symptoms.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-6">
                                 {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
+                                {% for error in form.genexpert_confirmation.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             {% elif user_zone %}
                             {% if user_zone.id == 1 %}
                             <!-- Zone 1 → Present symptoms -->
                             <div class="col-md-6">
                                 {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
+                                {% for error in form.present_symptoms.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             {% elif user_zone.id in zone_group_2_5 %}
                             <!-- Zone 2–5 → GeneXpert -->
                             <div class="col-md-6">
                                 {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
+                                {% for error in form.genexpert_confirmation.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             {% else %}
                             <div class="col-md-12 text-muted">
@@ -122,18 +134,30 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 {{ form.produce_resp_sample.label_tag }} {{ form.produce_resp_sample }}
+                                {% for error in form.produce_resp_sample.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 {{ form.age18years.label_tag }} {{ form.age18years }}
+                                {% for error in form.age18years.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-4">
                                 {{ form.consent.label_tag }} {{ form.consent }}
+                                {% for error in form.consent.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-4" id="consent-date-wrapper">
                                 {{ form.consent_date.label_tag }} {{ form.consent_date }}
+                                {% for error in form.consent_date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
 
@@ -146,9 +170,15 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 {{ form.not_willing.label_tag }} {{ form.not_willing }}
+                                {% for error in form.not_willing.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             <div class="col-md-6">
                                 {{ form.unable_understand.label_tag }} {{ form.unable_understand }}
+                                {% for error in form.unable_understand.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
                         </div>
 
@@ -162,12 +192,21 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     {{ form.enrolled.label_tag }} {{ form.enrolled }}
+                                    {% for error in form.enrolled.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
                                 </div>
                                 <div class="col-md-4" id="reasons-wrapper" style="display:none;">
                                     {{ form.reasons.label_tag }} {{ form.reasons }}
+                                    {% for error in form.reasons.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
                                 </div>
                                 <div class="col-md-4" id="reasons-other-wrapper" style="display:none;">
                                     {{ form.reasons_other.label_tag }} {{ form.reasons_other }}
+                                    {% for error in form.reasons_other.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -266,14 +305,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function toggleReasonsOtherVisibility() {
         // Get the selected option and its data-value (which is EnrolledReason.value)
-        const selectedOption = reasonsField?.options[reasonsField.selectedIndex];
-        const reasonValue = selectedOption ? selectedOption.getAttribute("data-value") : null;
+        // const selectedOption = reasonsField?.options[reasonsField.selectedIndex];
+        // const reasonValue = selectedOption ? selectedOption.getAttribute("data-value") : null;
 
-        if (reasonValue === "96") {
+        if (reasonsField?.value === "2") {  // "Other" = "2" (adjust if different)
             reasonsOtherWrapper.style.display = "block";
         } else {
             reasonsOtherWrapper.style.display = "none";
-            reasonsOtherField.value = "";  // clear when hidden
+            // reasonsOtherField.value = "";  // clear when hidden
         }
     }
 
