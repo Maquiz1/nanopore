@@ -115,9 +115,94 @@ def clinic_report_total(request):
     missing_afb_a_date = clinics.filter(afb_yes_q, afb_a_date__isnull=True).count()
     missing_technique_a = clinics.filter(afb_yes_q, technique_a__isnull=True).count()
     missing_afb_a_results = clinics.filter(afb_yes_q, afb_a_results__isnull=True).count()
-    missing_afb_b_date = clinics.filter(afb_yes_q, afb_b_date__isnull=True).count()
-    missing_technique_b = clinics.filter(afb_yes_q, technique_b__isnull=True).count()
-    missing_afb_b_results = clinics.filter(afb_yes_q, afb_b_results__isnull=True).count()
+    
+    # # -----------------------------------------------------
+    # # define “any B data entered”
+    # # -----------------------------------------------------
+    # # AFB B depends on AFB A being complete
+    # # -----------------------------------------------------
+
+    # # Step 1: define partial B
+    # afb_b_partial_q = (
+    #     (
+    #         Q(afb_b_date__isnull=False) |
+    #         Q(technique_b__isnull=False) |
+    #         Q(afb_b_results__isnull=False)
+    #     )
+    #     &
+    #     (
+    #         Q(afb_b_date__isnull=True) |
+    #         Q(technique_b__isnull=True) |
+    #         Q(afb_b_results__isnull=True)
+    #     )
+    # )
+    
+    # # Step 2: count missing fields only inside partial B
+    # missing_afb_b_date = clinics.filter(
+    #     afb_yes_q &
+    #     afb_b_partial_q &
+    #     Q(afb_b_date__isnull=True)
+    # ).count()
+
+    # missing_technique_b = clinics.filter(
+    #     afb_yes_q &
+    #     afb_b_partial_q &
+    #     Q(technique_b__isnull=True)
+    # ).count()
+
+    # missing_afb_b_results = clinics.filter(
+    #     afb_yes_q &
+    #     afb_b_partial_q &
+    #     Q(afb_b_results__isnull=True)
+    # ).count()
+    
+    
+    afb_a_complete_q = (
+        Q(afb_a_date__isnull=False) &
+        Q(technique_a__isnull=False) &
+        Q(afb_a_results__isnull=False)
+    )
+    # -----------------------------------------------------
+    # AFB B depends on AFB A being complete
+    # -----------------------------------------------------
+
+    # any B data entered
+    afb_b_started_q = (
+        Q(afb_b_date__isnull=False) |
+        Q(technique_b__isnull=False) |
+        Q(afb_b_results__isnull=False)
+    )
+
+    # partial B = some entered but not all
+    afb_b_partial_q = (
+        afb_b_started_q &
+        (
+            Q(afb_b_date__isnull=True) |
+            Q(technique_b__isnull=True) |
+            Q(afb_b_results__isnull=True)
+        )
+    )
+
+    missing_afb_b_date = clinics.filter(
+        afb_yes_q &
+        afb_a_complete_q &      # ✅ REQUIRED
+        afb_b_partial_q &
+        Q(afb_b_date__isnull=True)
+    ).count()
+
+    missing_technique_b = clinics.filter(
+        afb_yes_q &
+        afb_a_complete_q &      # ✅ REQUIRED
+        afb_b_partial_q &
+        Q(technique_b__isnull=True)
+    ).count()
+
+    missing_afb_b_results = clinics.filter(
+        afb_yes_q &
+        afb_a_complete_q &      # ✅ REQUIRED
+        afb_b_partial_q &
+        Q(afb_b_results__isnull=True)
+    ).count()
 
     # Xpert conditional when xpert_mtb_rif_conducted == Yes
     missing_xpert_date = clinics.filter(xpert_yes_q, xpert_date__isnull=True).count()

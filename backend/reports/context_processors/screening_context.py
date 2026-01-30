@@ -1,8 +1,8 @@
-# reports/context_processors.py
+# reports/context_processors/screening_context.py
 from django.apps import apps
 from django.db.models import Q, Count, F
 from utils.permissions import filter_queryset_by_user_role
-
+from utils.roles import get_role_context
 
 DAR_ES_SALAAM_ZONE_ID = 1  # Dar es Salaam zone ID
 
@@ -53,6 +53,14 @@ def screening_report_total(request):
     #     )
     # ─────────────────────────────────────────────────────────────
     
+    
+    # Get role context
+    role_context = get_role_context(request.user)
+    is_admin     = role_context.get("is_admin", False)
+    is_superuser = request.user.is_superuser
+
+    is_full_access = is_admin or is_superuser  # Only admin or superuser
+
     # Missing/null fields
     missing_screening_date      = qs.filter(screening_date__isnull=True).count()
     missing_pid1                = qs.filter(pid1__isnull=True).count()
@@ -112,8 +120,14 @@ def screening_report_total(request):
     ).count()
 
     # Non-eligible
-    not_eligible_count = qs.filter(eligible=False).count()
+    # not_eligible_count = qs.filter(eligible=False).count()
 
+    # Non-eligible (role-aware)
+    if is_full_access:
+        not_eligible_count = qs.filter(eligible=False).count()
+    else:
+        not_eligible_count = 0
+        
     # Grand total – in your specified order
     total_issues = (
         duplicate_pid_count +

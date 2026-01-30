@@ -3,11 +3,58 @@
 {% block content %}
 
 <div class="container py-5">
+    <!-- Filter Form -->
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-10">
+            <form method="get" class="d-flex flex-wrap gap-2 justify-content-center align-items-center">
+                <!-- Zone filter -->
+                <div class="col-md-3">
+                    <label for="zone" class="form-label">Zone</label>
+                    <select id="zone" name="zone" class="form-select form-select-lg">
+                        <option value="">All Zones</option>
+                        {% for z_id, z_name in zones.items %}
+                            <option value="{{ z_id }}" {% if selected_zone == z_id|stringformat:"s" %}selected{% endif %}>
+                                {{ z_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-    <!-- Title – centered at the very top -->
+                <!-- Site filter -->
+                <div class="col-md-3">
+                    <label for="site" class="form-label">Site</label>
+                    <select id="site" name="site" class="form-select form-select-lg">
+                        <option value="">All Sites</option>
+                        {% for s_id, s_name in sites.items %}
+                            <option value="{{ s_id }}" {% if selected_site == s_id|stringformat:"s" %}selected{% endif %}>
+                                {{ s_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-md-6 d-flex justify-content-center gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg px-4">Apply Filter</button>
+                    <a href="{% url request.resolver_match.view_name %}" class="btn btn-outline-secondary btn-lg px-4">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Title -->
     <h2 class="mb-3 text-center">
         🧾 DREAM FUND - NANOPORE TB SEQUENCING<br>
-        <span class="fs-5 fw-normal text-muted">Screening Data Quality Report (Tanzania)</span>
+        <span class="fs-5 fw-normal text-muted">
+            Screening Data Quality Report (
+            {% if selected_zone or selected_site %}
+                {% if selected_zone %}{{ selected_zone_name }}{% else %}All Zones{% endif %} +
+                {% if selected_site %}{{ selected_site_name }}{% else %}All Sites{% endif %}
+            {% else %}
+                All Zones + All Sites
+            {% endif %}
+            )
+        </span>
     </h2>
 
     <!-- Navigation buttons row -->

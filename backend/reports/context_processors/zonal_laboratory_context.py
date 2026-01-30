@@ -398,7 +398,7 @@ def zonal_report_total(request):
                     nanopore_done=1,
                     nanopore_results=1,
                     sequencing_delayed=1,
-                    sequencing_delayed_reasons=96,
+                    sequencing_delayed_reasons__value=96,
                     sequencing_delayed_others__isnull=True,
                     then='pk'          # ← or 'id' — primary key of the annotated model
                 ),

@@ -8,9 +8,7 @@ from django.db.models import Q, Count, F
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
-
 DAR_ES_SALAAM_ZONE_ID = 1  # Dar es Salaam zone ID
-
 
 class ScreeningDataQualityReportView(View):
     template_name = "reports/data_quality/screenings/data_screening_quality_report.html"
@@ -36,12 +34,21 @@ class ScreeningDataQualityReportView(View):
         )
 
         screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
+        role_context = get_role_context(request.user)
 
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # Get filter parameters from GET
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
-        if zone_id:
+
+        # Apply filters if they are valid for the current user's role
+        if zone_id and zone_id.isdigit() and int(zone_id) in zones:
             screenings = screenings.filter(site__district__region__zone_id=zone_id)
-        if site_id:
+
+        if site_id and site_id.isdigit() and int(site_id) in sites:
             screenings = screenings.filter(site_id=site_id)
 
         total_screenings = screenings.count()
@@ -92,7 +99,7 @@ class ScreeningDataQualityReportView(View):
         )
 
         missing_reasons_other_qs = screenings.filter(
-            reasons__value=96,                    # ← fixed: use __value from EnrolledReason
+            reasons__value=96,
             reasons_other__isnull=True
         )
 
@@ -121,15 +128,24 @@ class ScreeningDataQualityReportView(View):
             pid__regex=r"^(?!.{16}$).*$"
         )
 
-        not_eligible_qs = screenings.filter(eligible=False)
+        # Role context
+        is_admin     = role_context.get("is_admin", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser  # Only admin/superuser sees non-eligible
 
-        role_context = get_role_context(request.user)
+        # Non-eligible (role-aware)
+        if is_full_access:
+            not_eligible_qs = screenings.filter(eligible=False)
+            count_not_eligible = not_eligible_qs.count()
+        else:
+            not_eligible_qs = Screening.objects.none()
+            count_not_eligible = 0
 
         context = {
             "total_screenings": total_screenings,
             "report_date": timezone.now(),
             "report_title": "Screening Data Quality Report",
-            "is_admin": role_context.get("is_admin", False),
+            "is_admin": is_admin,
             "is_zonal_lab": role_context.get("is_zonal_lab", False),
             "is_reviewer": role_context.get("is_reviewer", False),
             "zones": {z.id: z.name for z in role_context.get("zones", [])},
@@ -180,8 +196,15 @@ class ScreeningDataQualityReportView(View):
             "count_duplicate_pids": len(duplicate_pids_set),
             "count_mismatched_pids": mismatched_pids_qs.count(),
             "count_invalid_length_pids": invalid_length_pids_qs.count(),
-            "count_not_eligible": not_eligible_qs.count(),
+            "count_not_eligible": count_not_eligible,
         }
+
+        selected_zone_name = zones.get(int(zone_id)) if zone_id and zone_id.isdigit() else "All Zones"
+        selected_site_name = sites.get(int(site_id)) if site_id and site_id.isdigit() else "All Sites"
+        context.update({
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
+        })
 
         # Total issues – exact order from context processor
         context["total_issues"] = (
