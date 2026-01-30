@@ -1,4 +1,4 @@
-# reports/context_processors.py
+# reports/context_processors/enrollment_context.py
 from django.apps import apps
 from utils.permissions import filter_queryset_by_user_role
 from django.db.models import Count, Case, When, IntegerField, Q
@@ -75,43 +75,21 @@ def enrollment_report_total(request):
     # -----------------------------------------------------
     # Other diseases conditional checks
     # -----------------------------------------------------
-    missing_diseases_medical = enrollments.filter(
-        other_diseases=1,
-        diseases_medical__isnull=True
-    ).count()
-    # missing_diseases_medical = Count(
-    #     Case(
-    #         When(
-    #             other_diseases=1,
-    #             diseases_medical__isnull=True,
-    #             then='pk'
-    #         ),
-    #         output_field=IntegerField(),
-    #     ),
-    #     distinct=True
-    # )
+
+    missing_diseases_medical = (
+        enrollments
+        .filter(other_diseases=1)
+        .annotate(
+            diseases_medical_count=Count("diseases_medical", distinct=True)
+        )
+        .filter(diseases_medical_count=0)
+        .count()
+    )
 
     missing_diseases_specify = enrollments.filter(
-        diseases_medical=96,
+        diseases_medical__value=96,
         diseases_specify__isnull=True
-    ).count()
-    
-    # missing_diseases_specify = Count(
-    #     Case(
-    #         When(
-    #             diseases_medical=96,
-    #             diseases_specify__isnull=True,
-    #             then='pk'
-    #         ),
-    #         output_field=IntegerField(),
-    #     ),
-    #     distinct=True
-    # )
-    
-    # missing_diseases_specify = enrollments.filter(
-    #     diseases_medical=96,
-    #     diseases_specify__isnull=True
-    # ).distinct().count()
+    ).distinct().count()
 
     # =====================================================
     # TB TREATMENT FIELDS (simple null checks)
@@ -134,7 +112,7 @@ def enrollment_report_total(request):
 
     # TB Category = 96 requires tb_category_specify
     missing_tb_category_specify = enrollments.filter(
-        tb_category=96,
+        tb_category__value=96,
         tb_category_specify__isnull=True
     ).count()
 
