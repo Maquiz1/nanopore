@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load humanize %}
 {% block content %}
 <h2>Available Models for Export</h2>
 
@@ -24,7 +24,7 @@
         <tr>
             <td>{{ model.name }}</td>
             <td>{{ model.description }}</td>
-            <td><span class="badge bg-secondary">{{ model.count }}</span></td>
+            <td><span class="badge bg-secondary">{{ model.count | intcomma }}</span></td>
             <td>
                 <!-- Raw Data -->
                 <a href="{{ model.download_url }}" class="btn btn-primary btn-sm mb-1">Raw Data</a>
