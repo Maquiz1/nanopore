@@ -72,8 +72,21 @@ def zonal_report_total(request):
         ),
 
         # CULTURE PERFORMED
-        missing_culture_method=Count(
-            Case(When(culture_performed=1, culture_method__isnull=True, then=1), output_field=IntegerField())
+        # missing_culture_method=Count(
+        #     Case(When(culture_performed=1, culture_method__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        missing_culture_method = Count(
+            Case(
+                When(
+                    culture_performed=1,
+                    culture_method__isnull=True,
+                    # then=1   # or then='pk' / then='id' — see variant below
+                    then='pk'          # or 'id' — use the primary key field name of the *main* model
+                ),
+                default=None,          # or 0
+                output_field=IntegerField(),
+            ),
+            distinct=True,
         ),
         missing_microscopy_type=Count(
             Case(When(culture_performed=1, microscopy_type__isnull=True, then=1), output_field=IntegerField())
@@ -85,26 +98,106 @@ def zonal_report_total(request):
             Case(When(culture_performed=1, microscopy_results__isnull=True, then=1), output_field=IntegerField())
         ),
 
+        # # LJ CULTURE
+        # missing_lj_inoculation_date=Count(
+        #     Case(When(culture_performed=1, culture_method=1, lj_inoculation_date__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        # missing_lj_results_date=Count(
+        #     Case(When(culture_performed=1, culture_method=1, lj_results_date__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        # missing_lj_results=Count(
+        #     Case(When(culture_performed=1, culture_method=1, lj_results__isnull=True, then=1), output_field=IntegerField())
+        # ),
+
+        # # MGIT CULTURE
+        # missing_mgit_inoculation_date=Count(
+        #     Case(When(culture_performed=1, culture_method=2, mgit_inoculation_date__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        # missing_mgit_results_date=Count(
+        #     Case(When(culture_performed=1, culture_method=2, mgit_results_date__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        # missing_mgit_results=Count(
+        #     Case(When(culture_performed=1, culture_method=2, mgit_results__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        
         # LJ CULTURE
         missing_lj_inoculation_date=Count(
-            Case(When(culture_performed=1, culture_method=1, lj_inoculation_date__isnull=True, then=1), output_field=IntegerField())
-        ),
-        missing_lj_results_date=Count(
-            Case(When(culture_performed=1, culture_method=1, lj_results_date__isnull=True, then=1), output_field=IntegerField())
-        ),
-        missing_lj_results=Count(
-            Case(When(culture_performed=1, culture_method=1, lj_results__isnull=True, then=1), output_field=IntegerField())
+            Case(
+                When(
+                    culture_performed=1,
+                    culture_method=1,
+                    lj_inoculation_date__isnull=True,
+                    then='pk'                     # ← or 'id' — the PK of the main model
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True                         # ← crucial for M2M / join safety
         ),
 
-        # MGIT CULTURE
+        missing_lj_results_date=Count(
+            Case(
+                When(
+                    culture_performed=1,
+                    culture_method=1,
+                    lj_results_date__isnull=True,
+                    then='pk'
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True
+        ),
+
+        missing_lj_results=Count(
+            Case(
+                When(
+                    culture_performed=1,
+                    culture_method=1,
+                    lj_results__isnull=True,
+                    then='pk'
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True
+        ),
+        
+        missing_mgit_results_date = Count(
+            Case(
+                When(
+                    culture_performed=1,
+                    culture_method=2,
+                    mgit_results_date__isnull=True,
+                    then='pk'
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True
+        ),
+
+        missing_mgit_results = Count(
+            Case(
+                When(
+                    culture_performed=1,
+                    culture_method=2,
+                    mgit_results__isnull=True,
+                    then='pk'
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True
+        ),
+
+        # MGIT CULTURE — same pattern
         missing_mgit_inoculation_date=Count(
-            Case(When(culture_performed=1, culture_method=2, mgit_inoculation_date__isnull=True, then=1), output_field=IntegerField())
-        ),
-        missing_mgit_results_date=Count(
-            Case(When(culture_performed=1, culture_method=2, mgit_results_date__isnull=True, then=1), output_field=IntegerField())
-        ),
-        missing_mgit_results=Count(
-            Case(When(culture_performed=1, culture_method=2, mgit_results__isnull=True, then=1), output_field=IntegerField())
+            Case(
+                When(
+                    culture_performed=1,
+                    culture_method=2,
+                    mgit_inoculation_date__isnull=True,
+                    then='pk'
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True
         ),
 
         # CULTURE ISOLATE
@@ -198,8 +291,19 @@ def zonal_report_total(request):
         missing_first_line_lpa_date=Count(
             Case(When(first_line_lpa=1, first_line_lpa_date__isnull=True, then=1), output_field=IntegerField())
         ),
-        missing_first_line_drugs=Count(
-            Case(When(first_line_lpa=1, first_line_drugs__isnull=True, then=1), output_field=IntegerField())
+        # missing_first_line_drugs=Count(
+        #     Case(When(first_line_lpa=1, first_line_drugs__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        missing_first_line_drugs = Count(
+            Case(
+                When(
+                    first_line_lpa=1,
+                    first_line_drugs__isnull=True,
+                    then='pk'          # ← or 'id' — primary key of the *annotated model*
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True              # ← prevents overcounting duplicates from M2M joins
         ),
         missing_lpa1_mtb=Count(
             Case(When(first_line_lpa=1, lpa1_mtb__isnull=True, then=1), output_field=IntegerField())
@@ -207,16 +311,38 @@ def zonal_report_total(request):
         missing_lpa1_rif=Count(
             Case(When(first_line_lpa=1, lpa1_rif__isnull=True, then=1), output_field=IntegerField())
         ),
-        missing_lpa1_inh=Count(
-            Case(When(first_line_lpa=1, lpa1_inh__isnull=True, then=1), output_field=IntegerField())
+        # missing_lpa1_inh=Count(
+        #     Case(When(first_line_lpa=1, lpa1_inh__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        missing_lpa1_inh = Count(
+            Case(
+                When(
+                    first_line_lpa=1,
+                    lpa1_inh__isnull=True,
+                    then='pk'          # ← or 'id' — primary key of the annotated model
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True
         ),
 
         # SECOND LINE LPA
         missing_second_line_lpa_date=Count(
             Case(When(second_line_lpa=1, second_line_lpa_date__isnull=True, then=1), output_field=IntegerField())
         ),
-        missing_second_line_drugs=Count(
-            Case(When(second_line_lpa=1, second_line_drugs__isnull=True, then=1), output_field=IntegerField())
+        # missing_second_line_drugs=Count(
+        #     Case(When(second_line_lpa=1, second_line_drugs__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        missing_second_line_drugs = Count(
+            Case(
+                When(
+                    second_line_lpa=1,
+                    second_line_drugs__isnull=True,
+                    then='pk'          # ← or 'id' — use the primary key field of the model you're annotating
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True              # ← fixes the M2M duplication issue
         ),
         missing_lpa2_mtb=Count(
             Case(When(second_line_lpa=1, lpa2_mtb__isnull=True, then=1), output_field=IntegerField())
@@ -247,11 +373,38 @@ def zonal_report_total(request):
         missing_sequencing_delayed_days=Count(
             Case(When(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_days__isnull=True, then=1), output_field=IntegerField())
         ),
-        missing_sequencing_delayed_reasons=Count(
-            Case(When(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_reasons__isnull=True, then=1), output_field=IntegerField())
+        # missing_sequencing_delayed_reasons=Count(
+        #     Case(When(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_reasons__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        missing_sequencing_delayed_reasons = Count(
+            Case(
+                When(
+                    nanopore_done=1,
+                    nanopore_results=1,
+                    sequencing_delayed=1,
+                    sequencing_delayed_reasons__isnull=True,
+                    then='pk'          # ← or 'id' — primary key field of the model you're annotating
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True              # ← fixes overcounting from M2M join
         ),
-        missing_sequencing_delayed_others=Count(
-            Case(When(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_reasons=96, sequencing_delayed_others__isnull=True, then=1), output_field=IntegerField())
+        # missing_sequencing_delayed_others=Count(
+        #     Case(When(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_reasons=96, sequencing_delayed_others__isnull=True, then=1), output_field=IntegerField())
+        # ),
+        missing_sequencing_delayed_others = Count(
+            Case(
+                When(
+                    nanopore_done=1,
+                    nanopore_results=1,
+                    sequencing_delayed=1,
+                    sequencing_delayed_reasons=96,
+                    sequencing_delayed_others__isnull=True,
+                    then='pk'          # ← or 'id' — primary key of the annotated model
+                ),
+                output_field=IntegerField(),
+            ),
+            distinct=True
         ),
         missing_epi_to_me_date=Count(
             Case(When(epi_to_me=1, epi_to_me_date__isnull=True, then=1), output_field=IntegerField())
