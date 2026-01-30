@@ -1,8 +1,7 @@
 # reports/context_processors.py
-
 from django.apps import apps
-from django.db.models import Q
 from utils.permissions import filter_queryset_by_user_role
+from django.db.models import Count, Case, When, IntegerField, Q
 
 
 def enrollment_report_total(request):
@@ -80,11 +79,39 @@ def enrollment_report_total(request):
         other_diseases=1,
         diseases_medical__isnull=True
     ).count()
+    # missing_diseases_medical = Count(
+    #     Case(
+    #         When(
+    #             other_diseases=1,
+    #             diseases_medical__isnull=True,
+    #             then='pk'
+    #         ),
+    #         output_field=IntegerField(),
+    #     ),
+    #     distinct=True
+    # )
 
     missing_diseases_specify = enrollments.filter(
         diseases_medical=96,
         diseases_specify__isnull=True
     ).count()
+    
+    # missing_diseases_specify = Count(
+    #     Case(
+    #         When(
+    #             diseases_medical=96,
+    #             diseases_specify__isnull=True,
+    #             then='pk'
+    #         ),
+    #         output_field=IntegerField(),
+    #     ),
+    #     distinct=True
+    # )
+    
+    # missing_diseases_specify = enrollments.filter(
+    #     diseases_medical=96,
+    #     diseases_specify__isnull=True
+    # ).distinct().count()
 
     # =====================================================
     # TB TREATMENT FIELDS (simple null checks)
