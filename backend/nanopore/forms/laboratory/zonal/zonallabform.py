@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ZonalLaboratory
-from options.models import YesNo,SampleAppearance
+from options.models import YesNo,SampleAppearance, FirstLineDrugs, INHResultLPA, SecondLineDrugs, NanoporeSequencingResults, NanoporeSequencingDelayedReasons
 from common.labels.laboratory.zonal.zonal_labels import ZONAL_LABELS   # ✅ import from core app
 
 class ZonalLaboratoryForm(forms.ModelForm):
@@ -231,6 +231,44 @@ class ZonalLaboratoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if screening_instance:
             self.fields["screening"].initial = screening_instance.pk
+            
+        # ✅ order display by clinical code
+        self.fields["appearance"].queryset = (
+            SampleAppearance.objects.order_by("value")
+        )
+        
+        self.fields["first_line_drugs"].queryset = (
+            FirstLineDrugs.objects.order_by("value")
+        )
+        
+        self.fields["lpa1_inh"].queryset = (
+            INHResultLPA.objects.order_by("value")
+        )
+        
+        self.fields["second_line_drugs"].queryset = (
+            SecondLineDrugs.objects.order_by("value")
+        )
+        
+        self.fields["nanopore_results"].queryset = (
+            NanoporeSequencingResults.objects.order_by("value")
+        )
+        
+        self.fields["sequencing_delayed_reasons"].queryset = (
+            NanoporeSequencingDelayedReasons.objects.order_by("value")
+        )
+
+        # ✅ Make required fields
+        self.fields["date_sputum_received"].required = True
+        self.fields["appearance"].required = True
+        self.fields["sample_volume"].required = True
+        self.fields["unique_lab_no"].required = True
+        self.fields["culture_performed"].required = True
+        self.fields["xpert_xdr_performed"].required = True
+        self.fields["first_line_lpa"].required = True
+        self.fields["second_line_lpa"].required = True
+        self.fields["nanopore_done"].required = True
+
+        
         # Keep readonly display in template
         self.readonly_screening = screening_instance
 

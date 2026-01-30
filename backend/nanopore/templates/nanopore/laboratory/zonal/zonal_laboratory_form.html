@@ -55,9 +55,24 @@
                                 <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            <div class="col-md-3">{{ form.appearance.label_tag }}{{ form.appearance }}</div>
-                            <div class="col-md-3">{{ form.sample_volume.label_tag }}{{ form.sample_volume }}</div>
-                            <div class="col-md-3">{{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}</div>
+                            <div class="col-md-3">
+                                {{ form.appearance.label_tag }}{{ form.appearance }}
+                                {% for error in form.appearance.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.sample_volume.label_tag }}{{ form.sample_volume }}
+                                {% for error in form.sample_volume.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}
+                                {% for error in form.unique_lab_no.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
                         </div>
                         <hr>
 
