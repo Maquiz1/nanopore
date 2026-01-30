@@ -79,10 +79,10 @@ class DiagnosisForm(forms.ModelForm):
         if self.screening_instance:
             self.fields["screening"].initial = self.screening_instance.pk
             
-        # Override tb_other_diagnosis to use `value` instead of `id`
-        self.fields["tb_other_diagnosis"].choices = [
-            (obj.value, obj.name) for obj in TBOtherDiagnosis.objects.all()
-        ]
+        # ✅ order display by clinical code
+        self.fields["tb_other_diagnosis"].queryset = (
+            TBOtherDiagnosis.objects.order_by("value")
+        )
 
         # For read-only display in template
         self.readonly_screening = self.screening_instance

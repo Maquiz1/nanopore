@@ -108,10 +108,10 @@ class ClinicLaboratoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["screening"].disabled = True
 
-        # Override sample_reason to use `value` instead of `id`
-        self.fields["sample_reason"].choices = [
-            (obj.value, obj.name) for obj in SampleReason.objects.all()
-        ]
+        # ✅ order display by clinical code
+        self.fields["sample_reason"].queryset = (
+            SampleReason.objects.order_by("value")
+        )
 
         # ✅ Make required fields
         self.fields["date_sample1_collected"].required = True
