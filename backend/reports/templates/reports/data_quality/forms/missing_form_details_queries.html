@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load humanize %}
 {% block content %}
 <div class="container py-5">
     <h2 class="m-0 text-center flex-grow-1">
@@ -65,7 +65,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <div class="text-muted small">Eligible screenings</div>
-                    <div class="h3 fw-bold">{{ total_screenings|default:"0" }}</div>
+                    <div class="h3 fw-bold">{{ total_screenings|default:"0"  | intcomma  }}</div>
                 </div>
             </div>
         </div>
@@ -74,7 +74,7 @@
             <div class="card shadow-sm border-warning text-center">
                 <div class="card-body">
                     <div class="text-muted small">Total missing form types</div>
-                    <div class="h3 fw-bold text-warning">{{ total_form_missing|default:"0" }}</div>
+                    <div class="h3 fw-bold text-warning">{{ total_form_missing|default:"0"  | intcomma  }}</div>
                 </div>
             </div>
         </div>
@@ -84,22 +84,22 @@
                 <div class="card-body">
                     {% if form_type == "enrollment" %}
                         <div class="text-muted small">Missing Enrollments</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_enrollment_count|default:"0" }}</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_enrollment_count|default:"0"  | intcomma  }}</div>
                     {% elif form_type == "clinic" %}
                         <div class="text-muted small">Missing Clinic Labs</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_clinic_count|default:"0" }}</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_clinic_count|default:"0"  | intcomma  }}</div>
                     {% elif form_type == "diagnosis" %}
                         <div class="text-muted small">Missing Diagnoses</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_diagnosis_count|default:"0" }}</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_diagnosis_count|default:"0"  | intcomma  }}</div>
                     {% elif form_type == "regimen" %}
                         <div class="text-muted small">Missing Regimen Changes</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_regimen_count|default:"0" }}</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_regimen_count|default:"0"  | intcomma  }}</div>
                     {% elif form_type == "zonal" %}
                         <div class="text-muted small">Missing Zonal Labs</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_zonal_count|default:"0" }}</div>
+                        <div class="h3 fw-bold text-danger">{{ missing_zonal_count|default:"0"  | intcomma  }}</div>
                     {% else %}
                         <div class="text-muted small">Total Missing Forms</div>
-                        <div class="h3 fw-bold text-danger">{{ total_form_missing|default:"0" }}</div>
+                        <div class="h3 fw-bold text-danger">{{ total_form_missing|default:"0"  | intcomma  }}</div>
                     {% endif %}
                 </div>
             </div>

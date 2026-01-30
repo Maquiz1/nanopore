@@ -33,15 +33,46 @@ def regimen_report_total(request):
             "missing_regimen_specify_when_other": 0,
         }
 
-    RegimenChanges = apps.get_model('nanopore', 'RegimenChanges')
+    RegimenChanges = apps.get_model("nanopore", "RegimenChanges")
 
-    # ── Role-filtered base queryset ─────────────────────────────────────────
-    regimens = RegimenChanges.objects.all()
+    # ─────────────────────────────────────────────────────────────
+    # Base queryset with full location joins
+    # ─────────────────────────────────────────────────────────────
+    regimens = RegimenChanges.objects.select_related(
+        "screening",
+        "screening__site",
+        "screening__site__district",
+        "screening__site__district__region",
+        "screening__site__district__region__zone",
+        "reason",
+        "changes",
+    )
+
+    # ─────────────────────────────────────────────────────────────
+    # Apply role-based filtering (SITE + ZONE handled here)
+    # ─────────────────────────────────────────────────────────────
     regimens = filter_queryset_by_user_role(
         request.user,
         regimens,
-        site_field="screening__site"
+        site_field="screening__site",
     )
+
+    # ─────────────────────────────────────────────────────────────
+    # Optional filtering from UI (GET params)
+    # ─────────────────────────────────────────────────────────────
+    # zone_id = request.GET.get("zone")
+    # site_id = request.GET.get("site")
+
+    # if zone_id:
+    #     regimens = regimens.filter(
+    #         screening__site__district__region__zone_id=zone_id
+    #     )
+
+    # if site_id:
+    #     regimens = regimens.filter(
+    #         screening__site_id=site_id
+    #     )
+
 
     # ── Q helper for "Other" in reason ──────────────────────────────────────
     # Adjust according to your RegimenReasonForChange model

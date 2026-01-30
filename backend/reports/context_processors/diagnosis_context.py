@@ -18,10 +18,48 @@ def diagnosis_report_total(request):
 
     Diagnosis = apps.get_model("nanopore", "Diagnosis")
 
-    diagnoses = Diagnosis.objects.all()
-    diagnoses = filter_queryset_by_user_role(
-        request.user, diagnoses, site_field="screening__site"
+    diagnoses = Diagnosis.objects.select_related(
+        "screening",
+        "screening__site",
+        "screening__site__district",
+        "screening__site__district__region",
+        "screening__site__district__region__zone",
+
+        "tb_diagnosis",
+        "tb_diagnosis_made",
+        "tb_diagnosed_clinically",
+        "bacteriological_diagnosis",
+        "tb_other_diagnosis",
+        "tb_regimen",
+        "tb_facility",
+        "tb_reason",
     )
+
+    # ─────────────────────────────────────────────
+    # Role-based filtering
+    # ─────────────────────────────────────────────
+    diagnoses = filter_queryset_by_user_role(
+        request.user,
+        diagnoses,
+        site_field="screening__site"
+    )
+
+    # ─────────────────────────────────────────────
+    # Optional UI filters
+    # ─────────────────────────────────────────────
+    # zone_id = request.GET.get("zone")
+    # site_id = request.GET.get("site")
+
+    # if zone_id:
+    #     diagnoses = diagnoses.filter(
+    #         screening__site__district__region__zone_id=zone_id
+    #     )
+
+    # if site_id:
+    #     diagnoses = diagnoses.filter(
+    #         screening__site_id=site_id
+    #     )
+
 
     # ─────────────────────────────────────────────
     # TB DIAGNOSIS

@@ -13,16 +13,46 @@ def screening_report_total(request):
 
     Screening = apps.get_model("nanopore", "Screening")
 
+    # ─────────────────────────────────────────────────────────────
+    # Base queryset with full location joins
+    # ─────────────────────────────────────────────────────────────
     qs = Screening.objects.select_related(
         "sex",
         "enrolled",
         "consent",
         "reasons",
+        "site",
+        "site__district",
+        "site__district__region",
         "site__district__region__zone",
     )
 
-    qs = filter_queryset_by_user_role(request.user, qs, site_field="site")
+    # ─────────────────────────────────────────────────────────────
+    # Role-based filtering (SITE / REGION / ZONE)
+    # ─────────────────────────────────────────────────────────────
+    qs = filter_queryset_by_user_role(
+        request.user,
+        qs,
+        site_field="site"
+    )
 
+    # ─────────────────────────────────────────────────────────────
+    # Optional UI filters
+    # ─────────────────────────────────────────────────────────────
+    # zone_id = request.GET.get("zone")
+    # site_id = request.GET.get("site")
+
+    # if zone_id:
+    #     qs = qs.filter(
+    #         site__district__region__zone_id=zone_id
+    #     )
+
+    # if site_id:
+    #     qs = qs.filter(
+    #         site_id=site_id
+    #     )
+    # ─────────────────────────────────────────────────────────────
+    
     # Missing/null fields
     missing_screening_date      = qs.filter(screening_date__isnull=True).count()
     missing_pid1                = qs.filter(pid1__isnull=True).count()

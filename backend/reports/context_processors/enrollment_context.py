@@ -15,9 +15,43 @@ def enrollment_report_total(request):
 
     Enrollment = apps.get_model("nanopore", "Enrollment")
 
-    enrollments = Enrollment.objects.all()
-    enrollments = filter_queryset_by_user_role(request.user, enrollments, site_field="screening__site")
+    enrollments = Enrollment.objects.select_related(
+        "screening",
+        "screening__site",
+        "screening__site__district",
+        "screening__site__district__region",
+        "screening__site__district__region__zone",
+        "hiv_status",
+        "other_diseases",
+        "tb_regimen",
+        "tb_category",
+    )
 
+    # ─────────────────────────────────────────────────────────────
+    # Role-based filtering
+    # ─────────────────────────────────────────────────────────────
+    enrollments = filter_queryset_by_user_role(
+        request.user,
+        enrollments,
+        site_field="screening__site",
+    )
+
+    # ─────────────────────────────────────────────────────────────
+    # Optional UI filters
+    # ─────────────────────────────────────────────────────────────
+    # zone_id = request.GET.get("zone")
+    # site_id = request.GET.get("site")
+
+    # if zone_id:
+    #     enrollments = enrollments.filter(
+    #         screening__site__district__region__zone_id=zone_id
+    #     )
+
+    # if site_id:
+    #     enrollments = enrollments.filter(
+    #         screening__site_id=site_id
+    #     )
+        
     # =====================================================
     # BASIC REQUIRED FIELDS
     # =====================================================
