@@ -1,4 +1,3 @@
-# reports/views/mentorships/missing_form_queries_view.py
 from django.views import View
 from django.shortcuts import render
 from django.utils import timezone
@@ -27,34 +26,22 @@ class MissingFormDetailsQueriesView(View):
     }
 
     def get(self, request, *args, **kwargs):
-        # ── 1. Determine requested form_type (URL has highest priority) ──
-        form_type = kwargs.get("form_type")                     # from URL: /.../<str:form_type>/
-
-        # Fallback: ?form_type=... GET param (if URL param missing)
-        if not form_type:
-            form_type = request.GET.get("form_type")
-
-        # Fallback: numeric ?form_id= or /<int:form_id>/ (old style)
+        # ── 1. Determine requested form_type ──
+        form_type = kwargs.get("form_type") or request.GET.get("form_type")
         form_id = kwargs.get("form_id")
         if form_id:
             form_type = self.FORM_ID_MAP.get(int(form_id), form_type)
-
-        # Final fallback only if nothing is provided
         form_type = form_type or "enrollment"
 
-        # Debug (remove in production)
-        # print(f"DEBUG: Resolved form_type = {form_type!r}")
-
-        # ── 2. Role context ───────────────────────────────────────────────
+        # ── 2. Role context ──
         role_context = get_role_context(request.user)
         is_zonal_lab = role_context.get("is_zonal_lab", False)
         is_admin     = role_context.get("is_admin", False)
         is_reviewer  = role_context.get("is_reviewer", False)
         is_superuser = request.user.is_superuser
-        is_full_access = is_admin or is_superuser
         is_privileged = is_admin or is_reviewer
 
-        # ── 3. Base queryset ──────────────────────────────────────────────
+        # ── 3. Base queryset ──
         Screening = apps.get_model("nanopore", "Screening")
         RegimenChanges = apps.get_model("nanopore", "RegimenChanges")
 
@@ -66,9 +53,7 @@ class MissingFormDetailsQueriesView(View):
             "clinic_laboratory",
             "diagnosis",
             "zonal_laboratory",
-        ).prefetch_related(
-            "regimen_changes",
-        ).order_by(
+        ).prefetch_related("regimen_changes").order_by(
             "site__district__region__name",
             "site__name",
             "pid",
@@ -76,43 +61,29 @@ class MissingFormDetailsQueriesView(View):
 
         screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
 
-        # Prepare zone and site mappings for template
+        # ── 4. Zone / Site filters ──
         zones = {z.id: z.name for z in role_context.get("zones", [])}
         sites = {s.id: s.name for s in role_context.get("sites", [])}
 
-        # After getting zone_id and site_id from GET
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
-
-        # Convert to int if possible
         zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
         site_id_int = int(site_id) if site_id and site_id.isdigit() else None
 
-        # Resolve names for template
+        if zone_id_int:
+            screenings = screenings.filter(site__district__region__zone_id=zone_id_int)
+        if site_id_int:
+            screenings = screenings.filter(site_id=site_id_int)
+
         selected_zone_name = zones.get(zone_id_int, "") if zone_id_int else ""
         selected_site_name = sites.get(site_id_int, "") if site_id_int else ""
 
-        # Apply filters
-        if zone_id_int and zone_id_int in zones:
-            qs = qs.filter(screening__site__district__region__zone_id=zone_id_int)
-
-        if site_id_int and site_id_int in sites:
-            qs = qs.filter(screening__site_id=site_id_int)
-
         eligible_screenings = screenings.filter(eligible=True)
 
-        # ── 4. Compute counts (role-aware) ────────────────────────────────
+        # ── 5. Compute missing counts ──
         missing_enrollment_count = eligible_screenings.filter(enrollment__isnull=True).count()
         missing_clinic_count     = eligible_screenings.filter(clinic_laboratory__isnull=True).count()
         missing_diagnosis_count  = eligible_screenings.filter(diagnosis__isnull=True).count()
-
-        missing_zonal_count = 0
-        if is_privileged or is_zonal_lab:
-            missing_zonal_count = eligible_screenings.filter(
-                clinic_laboratory__xpert_mtb_rif_conducted=1,
-                clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
-                zonal_laboratory__isnull=True
-            ).count()
 
         has_regimen_changes_subquery = RegimenChanges.objects.filter(screening=OuterRef("pk"))
         missing_regimen_qs = eligible_screenings.filter(
@@ -122,7 +93,15 @@ class MissingFormDetailsQueriesView(View):
         ).distinct()
         missing_regimen_count = missing_regimen_qs.count()
 
-        # Total (role-aware)
+        missing_zonal_count = 0
+        if is_privileged or is_zonal_lab:
+            missing_zonal_count = eligible_screenings.filter(
+                clinic_laboratory__xpert_mtb_rif_conducted=1,
+                clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+                zonal_laboratory__isnull=True
+            ).count()
+
+        # ── 6. Total (role-aware) ──
         if is_privileged:
             total_form_missing = (
                 missing_enrollment_count +
@@ -141,10 +120,8 @@ class MissingFormDetailsQueriesView(View):
                 missing_regimen_count
             )
 
-        # ── 5. Prepare records only for the requested form_type ───────────
-        missing_records = []
+        # ── 7. Select records for requested form_type ──
         selected_qs = None
-
         if form_type == "enrollment":
             selected_qs = eligible_screenings.filter(enrollment__isnull=True)
         elif form_type == "clinic":
@@ -160,7 +137,8 @@ class MissingFormDetailsQueriesView(View):
         elif form_type == "regimen":
             selected_qs = missing_regimen_qs
 
-        if selected_qs is not None:
+        missing_records = []
+        if selected_qs:
             def _serialize_screening(s):
                 zone = getattr(
                     getattr(
@@ -178,10 +156,9 @@ class MissingFormDetailsQueriesView(View):
                     "sex": getattr(getattr(s, "sex", None), "name", ""),
                     "age": getattr(s, "age", None),
                 }
-
             missing_records = [_serialize_screening(s) for s in selected_qs]
 
-        # ── 6. Context ────────────────────────────────────────────────────
+        # ── 8. Render context ──
         context = {
             "report_date": timezone.now(),
             "report_title": "Forms Data Quality – Missing Forms Details",
@@ -194,15 +171,14 @@ class MissingFormDetailsQueriesView(View):
             "missing_zonal_count": missing_zonal_count,
 
             "missing_records": missing_records,
-            "form_type": form_type,               # ← now correctly set from URL
-
+            "form_type": form_type,
             "total_screenings": eligible_screenings.count(),
 
             "is_admin": is_admin,
             "is_reviewer": is_reviewer,
             "is_zonal_lab": is_zonal_lab,
             "is_privileged": is_privileged,
-            "is_superuser": request.user.is_superuser,
+            "is_superuser": is_superuser,
 
             "zones": zones,
             "sites": sites,
