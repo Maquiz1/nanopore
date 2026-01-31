@@ -228,10 +228,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # LOGOUT_REDIRECT_URL = 'users:login'          # where to go after logout
 
 
-# Broker (Redis)
-CELERY_BROKER_URL = "redis://localhost:6379/0"
 
-# Backend (for results, optional)
+# Redis broker
+CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 
 # Timezone
@@ -239,12 +238,22 @@ CELERY_TIMEZONE = "Africa/Dar_es_Salaam"
 CELERY_ENABLE_UTC = True
 
 
-from celery import shared_task
-from django.core.management import call_command
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-@shared_task
-def create_screening_dq_snapshot():
-    """
-    Run the snapshot command via Celery
-    """
-    call_command("snapshot_screening_dq")
+# from celery.schedules import crontab
+
+# # Celery Beat
+# CELERY_BEAT_SCHEDULE = {
+#     "daily_screening_snapshot": {
+#         "task": "reports.tasks.create_screening_dq_snapshot",
+#         "schedule": crontab(hour=0, minute=0),  # daily at 00:00
+#     },
+#     "daily_enrollment_snapshot": {
+#         "task": "reports.tasks.create_enrollment_dq_snapshot",
+#         "schedule": crontab(hour=0, minute=30),  # daily at 00:30
+#     },
+#     "daily_clinic_dq_snapshot": {
+#         "task": "reports.tasks.create_clinic_dq_snapshot",
+#         "schedule": crontab(hour=0, minute=0),
+#     },
+# }
