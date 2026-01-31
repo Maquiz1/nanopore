@@ -67,7 +67,7 @@
                 Specific Form Queries →
             </a>
             {% if user.is_superuser %}
-            <a href="{% url 'reports:clinic_data_quality_pdf' %}" class="btn btn-primary btn-lg px-4">
+            <a href="#" class="btn btn-primary btn-lg px-4">
                 <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
             </a>
             {% endif %}
@@ -110,7 +110,7 @@
                     Missing Date Sputum Received ({{ count_missing_date_sputum_received|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseDateSputum" class="accordion-collapse collapse show">
+            <div id="collapseDateSputum" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -140,7 +140,7 @@
                     Missing Appearance ({{ count_missing_appearance|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseAppearance" class="accordion-collapse collapse show">
+            <div id="collapseAppearance" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -170,7 +170,7 @@
                     Missing Sample Volume ({{ count_missing_sample_volume|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseSampleVolume" class="accordion-collapse collapse show">
+            <div id="collapseSampleVolume" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -200,7 +200,7 @@
                     Missing Unique Lab Number ({{ count_missing_unique_lab_no|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseUniqueLabNo" class="accordion-collapse collapse show">
+            <div id="collapseUniqueLabNo" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -226,11 +226,11 @@
         {% if count_duplicate_unique_lab_no %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUniqueLabNo">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDuplicateUniqueLabNo">
                     Duplicate Unique Lab Number ({{ count_duplicate_unique_lab_no|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseUniqueLabNo" class="accordion-collapse collapse show">
+            <div id="collapseDuplicateUniqueLabNo" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -254,6 +254,34 @@
         {% endif %}
 
         <!-- ================= Culture Fields ================= -->
+        {% if count_missing_culture_performed %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCulturePerformed">
+                    Missing Culture Performed ({{ count_missing_culture_performed|default:"0"  | intcomma  }})
+                </button>
+            </h2>
+            <div id="collapseCulturePerformed" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_culture_performed|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% if count_missing_culture_method %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -261,7 +289,7 @@
                     Missing Culture Method ({{ count_missing_culture_method|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseCultureMethod" class="accordion-collapse collapse show">
+            <div id="collapseCultureMethod" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -289,7 +317,7 @@
                     Missing Microscopy Type ({{ count_missing_microscopy_type|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseMicroscopyType" class="accordion-collapse collapse show">
+            <div id="collapseMicroscopyType" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -317,7 +345,7 @@
                     Missing Microscopy Date ({{ count_missing_microscopy_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseMicroscopyDate" class="accordion-collapse collapse show">
+            <div id="collapseMicroscopyDate" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -345,7 +373,7 @@
                     Missing Microscopy Results ({{ count_missing_microscopy_results|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseMicroscopyResults" class="accordion-collapse collapse show">
+            <div id="collapseMicroscopyResults" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -374,7 +402,7 @@
                     Missing LJ Inoculation Date ({{ count_missing_lj_inoculation_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseLJInoculation" class="accordion-collapse collapse show">
+            <div id="collapseLJInoculation" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -402,7 +430,7 @@
                     Missing LJ Results Date ({{ count_missing_lj_results_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseLJResultsDate" class="accordion-collapse collapse show">
+            <div id="collapseLJResultsDate" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -430,7 +458,7 @@
                     Missing LJ Results ({{ count_missing_lj_results|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseLJResults" class="accordion-collapse collapse show">
+            <div id="collapseLJResults" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -459,7 +487,7 @@
                     Missing MGIT Inoculation Date ({{ count_missing_mgit_inoculation_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseMGITInoculation" class="accordion-collapse collapse show">
+            <div id="collapseMGITInoculation" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -487,7 +515,7 @@
                     Missing MGIT Results Date ({{ count_missing_mgit_results_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseMGITResultsDate" class="accordion-collapse collapse show">
+            <div id="collapseMGITResultsDate" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -508,14 +536,83 @@
         </div>
         {% endif %}
 
-        {% if missing_isolate_date %}
+        {% if count_missing_mgit_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMGITResults">
+                    Missing MGIT Results ({{ count_missing_mgit_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseMGITResults" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_mgit_results %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.screening.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        {% if count_missing_culture_isolate %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCultureIsolate">
+                    Missing Culture Isolate ({{ count_missing_culture_isolate|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseCultureIsolate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr><th>PID</th><th>Zone</th><th>Site</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_culture_isolate|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_isolate_date %}
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMGITResults">
-                    Missing MGIT Results ({{ count_missing_isolate_date|default:"0"  | intcomma  }})
+                    Missing Isolate Date ({{ count_missing_isolate_date|default:"0"  | intcomma  }})
                 </button>
             </h2>
-            <div id="collapseMGITResults" class="accordion-collapse collapse show">
+            <div id="collapseMGITResults" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -535,6 +632,129 @@
             </div>
         </div>
         {% endif %}
+
+        {% if count_missing_phenotypic_performed %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhenotypicPerformed">
+                    Missing Phenotypic Performed ({{ count_missing_phenotypic_performed|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapsePhenotypicPerformed" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_phenotypic_performed|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_phenotypic_date_performed %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhenotypicDatePerformed">
+                    Missing Phenotypic Date Performed ({{ count_missing_phenotypic_date_performed|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapsePhenotypicDatePerformed" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_phenotypic_date_performed|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_phenotypic_date_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhenotypicDateResults">
+                    Missing Phenotypic Date Results ({{ count_missing_phenotypic_date_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapsePhenotypicDateResults" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_phenotypic_date_results|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_phenotypic_dst_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhenotypicDST">
+                    Missing Phenotypic DST Results ({{ count_missing_phenotypic_dst_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapsePhenotypicDST" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_phenotypic_dst_results %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
 
     </div>
     {% else %}

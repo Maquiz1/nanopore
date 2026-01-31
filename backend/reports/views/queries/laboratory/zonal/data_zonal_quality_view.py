@@ -105,6 +105,10 @@ class ZonalDataQualityReportView(View):
             missing_appearance=Count(Case(When(appearance__isnull=True, then=1), output_field=IntegerField())),
 
             # Culture
+            # CULTURE PERFORMED
+            missing_culture_performed=Count(
+                Case(When(culture_performed__isnull=True, then=1), output_field=IntegerField())
+            ),
             # missing_culture_method
             missing_culture_method = Count(
                 Case(
@@ -203,23 +207,60 @@ class ZonalDataQualityReportView(View):
             ),
 
             # Culture isolate — conditional: only count if lj_results not in [1,2,3,4] AND mgit_results != 1
-            missing_isolate_date=Count(Case(
-                When(Q(culture_isolate__isnull=True) &
-                     ~Q(lj_results__in=[1, 2, 3, 4]) &
-                     ~Q(mgit_results=1),
-                     then=1),
-                output_field=IntegerField()
-            )),
+            missing_culture_isolate = Count(
+                Case(
+                    When(
+                        Q(culture_isolate__isnull=True) &
+                        (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+            
+            # ── ISOLATE DATE ──
+            missing_isolate_date = Count(
+                Case(
+                    When(
+                        Q(isolate_date__isnull=True) & Q(culture_isolate=1),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
 
             # Phenotypic DST — conditional: only if culture_isolate = 1
-            missing_phenotypic_date_performed=Count(Case(
-                When(Q(phenotypic_performed__isnull=True) & Q(culture_isolate=1), then=1),
-                output_field=IntegerField()
-            )),
-            missing_phenotypic_date_results=Count(Case(
-                When(phenotypic_performed=1, phenotypic_date_results__isnull=True, then=1),
-                output_field=IntegerField()
-            )),
+            missing_phenotypic_performed = Count(
+                Case(
+                    When(
+                        Q(culture_isolate__isnull=False) & Q(culture_isolate=1) & Q(phenotypic_performed__isnull=True),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+
+            # Phenotypic Date Performed — only if phenotypic_performed = 1
+            missing_phenotypic_date_performed = Count(
+                Case(
+                    When(
+                        Q(phenotypic_date_performed__isnull=True) & Q(phenotypic_performed=1),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
+
+            # Phenotypic Date Results — only if phenotypic_performed = 1
+            missing_phenotypic_date_results = Count(
+                Case(
+                    When(
+                        Q(phenotypic_date_results__isnull=True) & Q(phenotypic_performed=1),
+                        then=1
+                    ),
+                    output_field=IntegerField()
+                )
+            ),
             missing_phenotypic_dst_results=Count(Case(
                 When(
                     phenotypic_performed=1,
@@ -460,6 +501,7 @@ class ZonalDataQualityReportView(View):
             "missing_appearance": ["appearance"],
 
             # Culture
+            "missing_culture_performed": ["culture_performed"],
             "missing_culture_method": ["culture_method"],
             "missing_microscopy_type": ["microscopy_type"],
             "missing_microscopy_date": ["microscopy_date"],
@@ -476,9 +518,11 @@ class ZonalDataQualityReportView(View):
             "missing_mgit_results": ["mgit_results"],
 
             # Culture isolate
+            "missing_culture_isolate":["culture_isolate"],
             "missing_isolate_date": ["isolate_date"],
 
             # Phenotypic DST
+            "missing_phenotypic_performed": ["phenotypic_performed"],
             "missing_phenotypic_date_performed": ["phenotypic_date_performed"],
             "missing_phenotypic_date_results": ["phenotypic_date_results"],
             "missing_phenotypic_dst_results": [
