@@ -2,6 +2,7 @@
 from django.apps import apps
 from django.db.models import Q
 from utils.permissions import filter_queryset_by_user_role
+from utils.roles import get_role_context
 
 
 def regimen_report_total(request):
@@ -48,6 +49,14 @@ def regimen_report_total(request):
         "changes",
     )
 
+    role_context = get_role_context(request.user)
+    is_zonal_lab = role_context.get("is_zonal_lab", False)
+    is_admin     = role_context.get("is_admin", False)
+    is_reviewer  = role_context.get("is_reviewer", False)
+    is_superuser = request.user.is_superuser
+    is_full_access = is_admin or is_superuser
+    is_privileged = is_admin or is_reviewer
+    
     # ─────────────────────────────────────────────────────────────
     # Apply role-based filtering (SITE + ZONE handled here)
     # ─────────────────────────────────────────────────────────────

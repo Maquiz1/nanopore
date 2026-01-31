@@ -3,7 +3,7 @@ from django.views import View
 from django.shortcuts import render
 from django.utils import timezone
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q,Count
 
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
@@ -28,18 +28,58 @@ class EnrollmentDataQualityReportView(View):
             "screening",
             "screening__site",
             "screening__site__district__region__zone",
+            "hiv_status",
+            "other_diseases",
+            "tb_regimen",
+            "tb_category",
+        ).prefetch_related(
+            "diseases_medical",
         ).order_by(
             "screening__site__district__region__zone__name",
             "screening__site__name",
             "screening__pid",
         )
 
+        role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin     = role_context.get("is_admin", False)
+        is_reviewer  = role_context.get("is_reviewer", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser
+        is_privileged = is_admin or is_reviewer
+        # =====================================================
+        # Zones and Sites for filters
+        # =====================================================
+        
         enrollments = filter_queryset_by_user_role(
             request.user,
             enrollments,
             site_field="screening__site",
         )
 
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # After getting zone_id and site_id from GET
+        zone_id = request.GET.get("zone")
+        site_id = request.GET.get("site")
+
+        # Convert to int if possible
+        zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id_int = int(site_id) if site_id and site_id.isdigit() else None
+
+        # Resolve names for template
+        selected_zone_name = zones.get(zone_id_int, "") if zone_id_int else ""
+        selected_site_name = sites.get(site_id_int, "") if site_id_int else ""
+
+        # Apply filters
+        if zone_id_int and zone_id_int in zones:
+            enrollments = enrollments.filter(screening__site__district__region__zone_id=zone_id_int)
+
+        if site_id_int and site_id_int in sites:
+            enrollments = enrollments.filter(screening__site_id=site_id_int)
+            
         # =====================================================
         # BASIC REQUIRED FIELDS
         # =====================================================
@@ -58,15 +98,18 @@ class EnrollmentDataQualityReportView(View):
             sputum_reasons__isnull=True,
         )
 
-        missing_diseases_medical_qs = enrollments.filter(
-            other_diseases=1,
-            diseases_medical__isnull=True,
+        # Many to Many
+        missing_diseases_medical_qs = (
+            enrollments
+            .filter(other_diseases=1)
+            .annotate(diseases_medical_count=Count("diseases_medical", distinct=True))
+            .filter(diseases_medical_count=0)
         )
 
         missing_diseases_specify_qs = enrollments.filter(
-            diseases_medical=96,
+            diseases_medical__value=96,
             diseases_specify__isnull=True,
-        )
+        ).distinct()
 
         # =====================================================
         # TB TREATMENT
@@ -86,8 +129,9 @@ class EnrollmentDataQualityReportView(View):
             tb_regimen_specify__isnull=True,
         )
 
+
         missing_tb_category_specify_qs = enrollments.filter(
-            tb_category=96,
+            tb_category__value=96,
             tb_category_specify__isnull=True,
         )
 
@@ -176,9 +220,14 @@ class EnrollmentDataQualityReportView(View):
             invalid_regimen_months_with_unknown_qs.count(),
         ])
 
-        role_context = get_role_context(request.user)
-
         context = {
+            "zones": zones,
+            "sites": sites,
+            "selected_zone": zone_id or "",
+            "selected_site": site_id or "",
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
+            
             "report_date": timezone.now(),
             "total_enrollments": enrollments.count(),
             "total_issues": total_issues,

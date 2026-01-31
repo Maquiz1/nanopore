@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.apps import apps
 from utils.permissions import filter_queryset_by_user_role
 from django.db.models import Count
+from utils.roles import get_role_context
 
 class DiagnosisDataQualityReportView(View):
     template_name = "reports/data_quality/diagnosis/data_diagnosis_quality_report.html"
@@ -23,18 +24,57 @@ class DiagnosisDataQualityReportView(View):
             "screening__pid",
         )
 
+        role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin     = role_context.get("is_admin", False)
+        is_reviewer  = role_context.get("is_reviewer", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser
+        is_privileged = is_admin or is_reviewer
+        # ─────────────────────────────────────────────
+        # Zones and Sites for filters
+        # ─────────────────────────────────────────────
+        
+        
         # Filter by user role
         diagnoses = filter_queryset_by_user_role(
             request.user, diagnoses, site_field="screening__site"
         )
 
+
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # After getting zone_id and site_id from GET
+        zone_id = request.GET.get("zone")
+        site_id = request.GET.get("site")
+
+        # Convert to int if possible
+        zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id_int = int(site_id) if site_id and site_id.isdigit() else None
+
+        # Resolve names for template
+        selected_zone_name = zones.get(zone_id_int, "") if zone_id_int else ""
+        selected_site_name = sites.get(site_id_int, "") if site_id_int else ""
+
+        if zone_id_int:
+            diagnoses = diagnoses.filter(
+                screening__site__district__region__zone_id=zone_id_int
+            )
+
+        if site_id_int:
+            diagnoses = diagnoses.filter(
+                screening__site_id=site_id_int
+            )
+            
         # ─────────────────────────────────────────────
         # DUPLICATE TB REGISTER NUMBER
         # ─────────────────────────────────────────────
 
         duplicate_tb_register_numbers = (
             diagnoses
-            .filter(tb_diagnosis=1)
+            .filter(tb_diagnosis=1, tb_treatment=1)
             .exclude(tb_register_number__isnull=True)
             .exclude(tb_register_number__exact="")
             .values("tb_register_number")
@@ -42,9 +82,10 @@ class DiagnosisDataQualityReportView(View):
             .filter(cnt__gt=1)
             .values_list("tb_register_number", flat=True)
         )
-        
+
         duplicate_tb_register_number = diagnoses.filter(
             tb_diagnosis=1,
+            tb_treatment=1,
             tb_register_number__in=duplicate_tb_register_numbers
         )
         
@@ -76,10 +117,37 @@ class DiagnosisDataQualityReportView(View):
         for diag in pending_tb_outcome_date:
             diag.months_on_treatment = (today - diag.tb_treatment_date).days // 30 if diag.tb_treatment_date else None
 
+
+        missing_tb_diagnosed_clinically = (
+            diagnoses
+            .filter(tb_diagnosis=1, tb_diagnosis_made=1)
+            .annotate(clinical_count=Count("tb_diagnosed_clinically"))
+            .filter(clinical_count=0)
+        )
+        
+        missing_tb_clinically_other = diagnoses.filter(
+            tb_diagnosis=1,
+            tb_diagnosis_made=1,
+            tb_diagnosed_clinically__value=96,
+            tb_clinically_other__isnull=True
+        ).distinct()
+        
+        
+        missing_tb_diagnosis_made2 = diagnoses.filter(
+            tb_diagnosis=2,
+            tb_diagnosis_made2__isnull=True
+        )
         # ─────────────────────────────────────────────
         # Prepare context
         # ─────────────────────────────────────────────
         context = {
+            "zones": zones,
+            "sites": sites,
+            "selected_zone": zone_id or "",
+            "selected_site": site_id or "",
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
+            
             "report_date": timezone.now(),
             "total_diagnosis_records": diagnoses.count(),
 
@@ -95,14 +163,14 @@ class DiagnosisDataQualityReportView(View):
             "missing_tb_treatment": diagnoses.filter(tb_diagnosis=1, tb_treatment__isnull=True),
             "count_missing_tb_treatment": diagnoses.filter(tb_diagnosis=1, tb_treatment__isnull=True).count(),
 
-            "missing_diagnosis_made_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=96, diagnosis_made_other__isnull=True),
-            "count_missing_diagnosis_made_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=96, diagnosis_made_other__isnull=True).count(),
+            "missing_diagnosis_made_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True),
+            "count_missing_diagnosis_made_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True).count(),
 
-            "missing_tb_diagnosed_clinically": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=1, tb_diagnosed_clinically__isnull=True),
-            "count_missing_tb_diagnosed_clinically": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=1, tb_diagnosed_clinically__isnull=True).count(),
+            "missing_tb_diagnosed_clinically": missing_tb_diagnosed_clinically,
+            "count_missing_tb_diagnosed_clinically": missing_tb_diagnosed_clinically.count(),
 
-            "missing_tb_clinically_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosed_clinically__id=96, tb_clinically_other__isnull=True),
-            "count_missing_tb_clinically_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosed_clinically__id=96, tb_clinically_other__isnull=True).count(),
+            "missing_tb_clinically_other": missing_tb_clinically_other,
+            "count_missing_tb_clinically_other": missing_tb_clinically_other.count(),
 
             "missing_bacteriological_diagnosis": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=2, bacteriological_diagnosis__isnull=True),
             "count_missing_bacteriological_diagnosis": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=2, bacteriological_diagnosis__isnull=True).count(),
@@ -116,8 +184,8 @@ class DiagnosisDataQualityReportView(View):
             "missing_tb_diagnosis_made2": diagnoses.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True),
             "count_missing_tb_diagnosis_made2": diagnoses.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True).count(),
 
-            "missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis=96, tb_other_specify__isnull=True),
-            "count_missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis=96, tb_other_specify__isnull=True).count(),
+            "missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True),
+            "count_missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True).count(),
 
             "missing_tb_treatment_date": diagnoses.filter(tb_treatment=1, tb_treatment_date__isnull=True),
             "count_missing_tb_treatment_date": diagnoses.filter(tb_treatment=1, tb_treatment_date__isnull=True).count(),
@@ -150,6 +218,9 @@ class DiagnosisDataQualityReportView(View):
 
             "pending_tb_outcome_date": pending_tb_outcome_date,
             "count_pending_tb_outcome_date": pending_tb_outcome_date.count(),
+            
+            "missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2,
+            "count_missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2.count(),
         }
 
         # Total issues

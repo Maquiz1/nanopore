@@ -30,16 +30,40 @@ class ZonalDataQualityReportView(View):
             "screening__site__name",
             "screening__pid"
         )
+        
+        role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin     = role_context.get("is_admin", False)
+        is_reviewer  = role_context.get("is_reviewer", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser
+        is_privileged = is_admin or is_reviewer
 
         qs = filter_queryset_by_user_role(request.user, qs, site_field="screening__site")
 
-        # Optional GET filters
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # After getting zone_id and site_id from GET
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
-        if zone_id:
-            qs = qs.filter(screening__site__district__region__zone_id=zone_id)
-        if site_id:
-            qs = qs.filter(screening__site_id=site_id)
+
+        # Convert to int if possible
+        zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id_int = int(site_id) if site_id and site_id.isdigit() else None
+
+        # Resolve names for template
+        selected_zone_name = zones.get(zone_id_int, "") if zone_id_int else ""
+        selected_site_name = sites.get(site_id_int, "") if site_id_int else ""
+
+        # Apply filters
+        if zone_id_int and zone_id_int in zones:
+            qs = qs.filter(screening__site__district__region__zone_id=zone_id_int)
+
+        if site_id_int and site_id_int in sites:
+            qs = qs.filter(screening__site_id=site_id_int)
+
 
         total_records = qs.count()
 
@@ -81,20 +105,102 @@ class ZonalDataQualityReportView(View):
             missing_appearance=Count(Case(When(appearance__isnull=True, then=1), output_field=IntegerField())),
 
             # Culture
-            missing_culture_method=Count(Case(When(culture_performed=1, culture_method__isnull=True, then=1), output_field=IntegerField())),
+            # missing_culture_method
+            missing_culture_method = Count(
+                Case(
+                    When(
+                        culture_performed=1,
+                        culture_method__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
+
             missing_microscopy_type=Count(Case(When(culture_performed=1, microscopy_type__isnull=True, then=1), output_field=IntegerField())),
             missing_microscopy_date=Count(Case(When(culture_performed=1, microscopy_date__isnull=True, then=1), output_field=IntegerField())),
             missing_microscopy_results=Count(Case(When(culture_performed=1, microscopy_results__isnull=True, then=1), output_field=IntegerField())),
 
             # LJ culture
-            missing_lj_inoculation_date=Count(Case(When(culture_performed=1, culture_method=1, lj_inoculation_date__isnull=True, then=1), output_field=IntegerField())),
-            missing_lj_results_date=Count(Case(When(culture_performed=1, culture_method=1, lj_results_date__isnull=True, then=1), output_field=IntegerField())),
-            missing_lj_results=Count(Case(When(culture_performed=1, culture_method=1, lj_results__isnull=True, then=1), output_field=IntegerField())),
+            missing_lj_inoculation_date = Count(
+                Case(
+                    When(
+                        culture_performed=1,
+                        culture_method=1,
+                        lj_inoculation_date__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
+
+            missing_lj_results_date = Count(
+                Case(
+                    When(
+                        culture_performed=1,
+                        culture_method=1,
+                        lj_results_date__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
+
+            missing_lj_results = Count(
+                Case(
+                    When(
+                        culture_performed=1,
+                        culture_method=1,
+                        lj_results__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
 
             # MGIT culture
-            missing_mgit_inoculation_date=Count(Case(When(culture_performed=1, culture_method=2, mgit_inoculation_date__isnull=True, then=1), output_field=IntegerField())),
-            missing_mgit_results_date=Count(Case(When(culture_performed=1, culture_method=2, mgit_results_date__isnull=True, then=1), output_field=IntegerField())),
-            missing_mgit_results=Count(Case(When(culture_performed=1, culture_method=2, mgit_results__isnull=True, then=1), output_field=IntegerField())),
+            missing_mgit_inoculation_date = Count(
+                Case(
+                    When(
+                        culture_performed=1,
+                        culture_method=2,
+                        mgit_inoculation_date__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
+
+            missing_mgit_results_date = Count(
+                Case(
+                    When(
+                        culture_performed=1,
+                        culture_method=2,
+                        mgit_results_date__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
+
+            missing_mgit_results = Count(
+                Case(
+                    When(
+                        culture_performed=1,
+                        culture_method=2,
+                        mgit_results__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
 
             # Culture isolate — conditional: only count if lj_results not in [1,2,3,4] AND mgit_results != 1
             missing_isolate_date=Count(Case(
@@ -167,14 +273,46 @@ class ZonalDataQualityReportView(View):
 
             # First line LPA
             missing_first_line_lpa_date=Count(Case(When(first_line_lpa=1, first_line_lpa_date__isnull=True, then=1), output_field=IntegerField())),
-            missing_first_line_drugs=Count(Case(When(first_line_lpa=1, first_line_drugs__isnull=True, then=1), output_field=IntegerField())),
+            # First line LPA drugs (M2M)
+            missing_first_line_drugs = Count(
+                Case(
+                    When(
+                        first_line_lpa=1,
+                        first_line_drugs__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
             missing_lpa1_mtb=Count(Case(When(first_line_lpa=1, lpa1_mtb__isnull=True, then=1), output_field=IntegerField())),
             missing_lpa1_rif=Count(Case(When(first_line_lpa=1, lpa1_rif__isnull=True, then=1), output_field=IntegerField())),
-            missing_lpa1_inh=Count(Case(When(first_line_lpa=1, lpa1_inh__isnull=True, then=1), output_field=IntegerField())),
-
+            # LPA1 INH
+            missing_lpa1_inh = Count(
+                Case(
+                    When(
+                        first_line_lpa=1,
+                        lpa1_inh__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
             # Second line LPA
             missing_second_line_lpa_date=Count(Case(When(second_line_lpa=1, second_line_lpa_date__isnull=True, then=1), output_field=IntegerField())),
-            missing_second_line_drugs=Count(Case(When(second_line_lpa=1, second_line_drugs__isnull=True, then=1), output_field=IntegerField())),
+            # Second line LPA drugs (M2M)
+            missing_second_line_drugs = Count(
+                Case(
+                    When(
+                        second_line_lpa=1,
+                        second_line_drugs__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
             missing_lpa2_mtb=Count(Case(When(second_line_lpa=1, lpa2_mtb__isnull=True, then=1), output_field=IntegerField())),
             missing_lpa2_rfluoroquinolones=Count(Case(When(second_line_lpa=1, lpa2_rfluoroquinolones__isnull=True, then=1), output_field=IntegerField())),
             missing_lpa2_aminoglycosides=Count(Case(When(second_line_lpa=1, lpa2_aminoglycosides__isnull=True, then=1), output_field=IntegerField())),
@@ -184,6 +322,114 @@ class ZonalDataQualityReportView(View):
             missing_nanopore_sequencing_date=Count(Case(When(nanopore_done=1, nanopore_sequencing_date__isnull=True, then=1), output_field=IntegerField())),
             missing_nanopore_results=Count(Case(When(nanopore_done=1, nanopore_results__isnull=True, then=1), output_field=IntegerField())),
             missing_epi_to_me=Count(Case(When(nanopore_done=1, epi_to_me__isnull=True, then=1), output_field=IntegerField())),
+            missing_sequencing_delayed = Count(
+                Case(
+                    When(
+                        nanopore_done=1,
+                        nanopore_results=1,
+                        sequencing_delayed__isnull=True,
+                        then=1
+                    ),
+                    output_field=IntegerField(),
+                )
+            ),
+
+            missing_sequencing_delayed_days = Count(
+                Case(
+                    When(
+                        nanopore_done=1,
+                        nanopore_results=1,
+                        sequencing_delayed=1,
+                        sequencing_delayed_days__isnull=True,
+                        then=1
+                    ),
+                    output_field=IntegerField(),
+                )
+            ),
+
+            missing_sequencing_delayed_reasons = Count(
+                Case(
+                    When(
+                        nanopore_done=1,
+                        nanopore_results=1,
+                        sequencing_delayed=1,
+                        sequencing_delayed_reasons__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
+
+            missing_sequencing_delayed_others = Count(
+                Case(
+                    When(
+                        nanopore_done=1,
+                        nanopore_results=1,
+                        sequencing_delayed=1,
+                        sequencing_delayed_reasons__value=96,
+                        sequencing_delayed_others__isnull=True,
+                        then="pk"
+                    ),
+                    output_field=IntegerField(),
+                ),
+                distinct=True
+            ),
+
+            missing_epi_to_me_date = Count(
+                Case(
+                    When(
+                        epi_to_me=1,
+                        epi_to_me_date__isnull=True,
+                        then=1
+                    ),
+                    output_field=IntegerField(),
+                )
+            ),
+
+            missing_epi_to_me_version = Count(
+                Case(
+                    When(
+                        epi_to_me=1,
+                        epi_to_me_version__isnull=True,
+                        then=1
+                    ),
+                    output_field=IntegerField(),
+                )
+            ),
+
+            missing_nanopore_drug_results = Count(
+                Case(
+                    When(
+                        nanopore_results=1,
+                        then=Case(
+                            When(
+                                Q(nano_amikacin__isnull=True) |
+                                Q(nano_bedaquiline__isnull=True) |
+                                Q(nano_capreomycin__isnull=True) |
+                                Q(nano_clofazimine__isnull=True) |
+                                Q(nano_delamanid__isnull=True) |
+                                Q(nano_ethambutol__isnull=True) |
+                                Q(nano_ethionamide__isnull=True) |
+                                Q(nano_isoniazid__isnull=True) |
+                                Q(nano_kanamycin__isnull=True) |
+                                Q(nano_levofloxacin__isnull=True) |
+                                Q(nano_linezolid__isnull=True) |
+                                Q(nano_moxifloxacin__isnull=True) |
+                                Q(nano_pretomanid__isnull=True) |
+                                Q(nano_pyrazinamide__isnull=True) |
+                                Q(nano_rifampicin__isnull=True) |
+                                Q(nano_streptomycin__isnull=True),
+                                then=1
+                            ),
+                            default=None,
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    output_field=IntegerField(),
+                )
+            ),
+
         )
 
         total_issues = sum(stats.values())
@@ -288,19 +534,33 @@ class ZonalDataQualityReportView(View):
 
         # ── Generate problem lists ─────────────
         problem_lists = {}
+
         # for key, fields in all_fields_mapping.items():
+
+        #     # ----------------------------
+        #     # DUPLICATE LAB NUMBER LIST
+        #     # ----------------------------
+        #     if key == "duplicate_unique_lab_no":
+        #         problem_lists[key] = [
+        #             serialize_record(z, fields)
+        #             for z in qs.filter(unique_lab_no__in=duplicate_lab_numbers)[:100]
+        #         ]
+        #         continue
+
+        #     # ----------------------------
+        #     # NORMAL MISSING FIELD LOGIC
+        #     # ----------------------------
         #     q = Q()
         #     for f in fields:
         #         q |= Q(**{f + "__isnull": True})
-        #     problem_lists[key] = [serialize_record(z, fields) for z in qs.filter(q)[:100]]
-            
-        #     problem_lists = {}
 
+        #     problem_lists[key] = [
+        #         serialize_record(z, fields)
+        #         for z in qs.filter(q)[:100]
+        #     ]
+        
         for key, fields in all_fields_mapping.items():
 
-            # ----------------------------
-            # DUPLICATE LAB NUMBER LIST
-            # ----------------------------
             if key == "duplicate_unique_lab_no":
                 problem_lists[key] = [
                     serialize_record(z, fields)
@@ -308,21 +568,31 @@ class ZonalDataQualityReportView(View):
                 ]
                 continue
 
-            # ----------------------------
-            # NORMAL MISSING FIELD LOGIC
-            # ----------------------------
             q = Q()
+
             for f in fields:
                 q |= Q(**{f + "__isnull": True})
+
+            # Conditional guards
+            if key.startswith("missing_lj_"):
+                q &= Q(culture_performed=1, culture_method=1)
+
+            if key.startswith("missing_mgit_"):
+                q &= Q(culture_performed=1, culture_method=2)
+
+            if key.startswith("missing_first_line_"):
+                q &= Q(first_line_lpa=1)
+
+            if key.startswith("missing_second_line_"):
+                q &= Q(second_line_lpa=1)
+
+            if key.startswith("missing_nanopore_"):
+                q &= Q(nanopore_done=1)
 
             problem_lists[key] = [
                 serialize_record(z, fields)
                 for z in qs.filter(q)[:100]
             ]
-
-
-        # ── Role context ─────────────────────────────
-        role_context = get_role_context(request.user)
 
         context = {
             "total_records": total_records,
@@ -332,10 +602,12 @@ class ZonalDataQualityReportView(View):
             "is_zonal_lab": role_context.get("is_zonal_lab", False),
             "is_reviewer": role_context.get("is_reviewer", False),
             "is_national_lab": role_context.get("is_national_lab", False),
-            "zones": {z.id: z.name for z in role_context.get("zones", [])},
-            "sites": {s.id: s.name for s in role_context.get("sites", [])},
+            "zones": zones,
+            "sites": sites,
             "selected_zone": zone_id or "",
             "selected_site": site_id or "",
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
             **{f"count_{k}": v for k, v in stats.items()},
             "total_issues": total_issues,
             **problem_lists,  # <-- include serialized lists here

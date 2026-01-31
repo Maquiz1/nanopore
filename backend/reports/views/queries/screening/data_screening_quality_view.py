@@ -33,8 +33,17 @@ class ScreeningDataQualityReportView(View):
             "pid",
         )
 
-        screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
+        # Get role context
         role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin     = role_context.get("is_admin", False)
+        is_reviewer  = role_context.get("is_reviewer", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser
+        is_privileged = is_admin or is_reviewer
+
+        # Role-based filtering (SITE / REGION / ZONE)
+        screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
 
         # Prepare zone and site mappings for template
         zones = {z.id: z.name for z in role_context.get("zones", [])}
@@ -127,11 +136,6 @@ class ScreeningDataQualityReportView(View):
             pid__isnull=False,
             pid__regex=r"^(?!.{16}$).*$"
         )
-
-        # Role context
-        is_admin     = role_context.get("is_admin", False)
-        is_superuser = request.user.is_superuser
-        is_full_access = is_admin or is_superuser  # Only admin/superuser sees non-eligible
 
         # Non-eligible (role-aware)
         if is_full_access:
