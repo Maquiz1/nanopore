@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django_celery_beat",
 ]
 
 # Middleware
@@ -225,3 +226,25 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # LOGIN_URL = 'users:login'
 # LOGIN_REDIRECT_URL = 'dashboard:dashboard'   # where to go after login
 # LOGOUT_REDIRECT_URL = 'users:login'          # where to go after logout
+
+
+# Broker (Redis)
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+
+# Backend (for results, optional)
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+
+# Timezone
+CELERY_TIMEZONE = "Africa/Dar_es_Salaam"
+CELERY_ENABLE_UTC = True
+
+
+from celery import shared_task
+from django.core.management import call_command
+
+@shared_task
+def create_screening_dq_snapshot():
+    """
+    Run the snapshot command via Celery
+    """
+    call_command("snapshot_screening_dq")
