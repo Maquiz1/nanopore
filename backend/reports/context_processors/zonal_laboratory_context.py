@@ -81,9 +81,9 @@ def zonal_report_total(request):
         ),
 
         # CULTURE PERFORMED
-        # missing_culture_method=Count(
-        #     Case(When(culture_performed=1, culture_method__isnull=True, then=1), output_field=IntegerField())
-        # ),
+        missing_culture_performed=Count(
+            Case(When(culture_performed__isnull=True, then=1), output_field=IntegerField())
+        ),
         missing_culture_method = Count(
             Case(
                 When(
@@ -106,28 +106,6 @@ def zonal_report_total(request):
         missing_microscopy_results=Count(
             Case(When(culture_performed=1, microscopy_results__isnull=True, then=1), output_field=IntegerField())
         ),
-
-        # # LJ CULTURE
-        # missing_lj_inoculation_date=Count(
-        #     Case(When(culture_performed=1, culture_method=1, lj_inoculation_date__isnull=True, then=1), output_field=IntegerField())
-        # ),
-        # missing_lj_results_date=Count(
-        #     Case(When(culture_performed=1, culture_method=1, lj_results_date__isnull=True, then=1), output_field=IntegerField())
-        # ),
-        # missing_lj_results=Count(
-        #     Case(When(culture_performed=1, culture_method=1, lj_results__isnull=True, then=1), output_field=IntegerField())
-        # ),
-
-        # # MGIT CULTURE
-        # missing_mgit_inoculation_date=Count(
-        #     Case(When(culture_performed=1, culture_method=2, mgit_inoculation_date__isnull=True, then=1), output_field=IntegerField())
-        # ),
-        # missing_mgit_results_date=Count(
-        #     Case(When(culture_performed=1, culture_method=2, mgit_results_date__isnull=True, then=1), output_field=IntegerField())
-        # ),
-        # missing_mgit_results=Count(
-        #     Case(When(culture_performed=1, culture_method=2, mgit_results__isnull=True, then=1), output_field=IntegerField())
-        # ),
         
         # LJ CULTURE
         missing_lj_inoculation_date=Count(
@@ -209,13 +187,23 @@ def zonal_report_total(request):
             distinct=True
         ),
 
-        # CULTURE ISOLATE
-        missing_isolate_date=Count(
+        # ── CULTURE ISOLATE ──
+        missing_culture_isolate = Count(
             Case(
                 When(
                     Q(culture_isolate__isnull=True) &
-                    ~Q(lj_results__in=[1,2,3,4]) &
-                    ~Q(mgit_results=1),
+                    (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        ),
+
+        # ── ISOLATE DATE ──
+        missing_isolate_date = Count(
+            Case(
+                When(
+                    Q(isolate_date__isnull=True) & Q(culture_isolate=1),
                     then=1
                 ),
                 output_field=IntegerField()
@@ -223,18 +211,37 @@ def zonal_report_total(request):
         ),
 
         # PHENOTYPIC DST
-        missing_phenotypic_date_performed=Count(
+        # Phenotypic DST — conditional: only if culture_isolate = 1
+        missing_phenotypic_performed = Count(
             Case(
                 When(
-                    Q(phenotypic_performed__isnull=True) &
-                    Q(culture_isolate=1),
+                    Q(culture_isolate__isnull=False) & Q(culture_isolate=1) & Q(phenotypic_performed__isnull=True),
                     then=1
                 ),
                 output_field=IntegerField()
             )
         ),
-        missing_phenotypic_date_results=Count(
-            Case(When(phenotypic_performed=1, phenotypic_date_results__isnull=True, then=1), output_field=IntegerField())
+
+        # Phenotypic Date Performed — only if phenotypic_performed = 1
+        missing_phenotypic_date_performed = Count(
+            Case(
+                When(
+                    Q(phenotypic_date_performed__isnull=True) & Q(phenotypic_performed=1),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        ),
+
+        # Phenotypic Date Results — only if phenotypic_performed = 1
+        missing_phenotypic_date_results = Count(
+            Case(
+                When(
+                    Q(phenotypic_date_results__isnull=True) & Q(phenotypic_performed=1),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
         ),
         missing_phenotypic_dst_results=Count(
             Case(
