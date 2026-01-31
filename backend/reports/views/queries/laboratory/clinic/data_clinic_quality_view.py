@@ -33,15 +33,43 @@ class ClinicDataQualityReportView(View):
             "screening__site__name",
             "screening__pid",
         )
+        
+        role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin     = role_context.get("is_admin", False)
+        is_reviewer  = role_context.get("is_reviewer", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser
+        is_privileged = is_admin or is_reviewer
 
         clinics = filter_queryset_by_user_role(request.user, clinics, site_field="screening__site")
 
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # After getting zone_id and site_id from GET
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
-        if zone_id:
-            clinics = clinics.filter(screening__site__district__region__zone_id=zone_id)
-        if site_id:
-            clinics = clinics.filter(screening__site_id=site_id)
+
+        # Convert to int if possible
+        zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id_int = int(site_id) if site_id and site_id.isdigit() else None
+
+        # Resolve names for template
+        selected_zone_name = zones.get(zone_id_int, "") if zone_id_int else ""
+        selected_site_name = sites.get(site_id_int, "") if site_id_int else ""
+
+        # ✅ Apply filters (do NOT gate by zones/sites)
+        if zone_id_int:
+            clinics = clinics.filter(
+                screening__site__district__region__zone_id=zone_id_int
+            )
+
+        if site_id_int:
+            clinics = clinics.filter(
+                screening__site_id=site_id_int
+            )
 
         total_clinics = clinics.count()
 
@@ -97,83 +125,50 @@ class ClinicDataQualityReportView(View):
         missing_afb_a_date_qs = clinics.filter(afb_yes_q, afb_a_date__isnull=True)
         missing_technique_a_qs = clinics.filter(afb_yes_q, technique_a__isnull=True)
         missing_afb_a_results_qs = clinics.filter(afb_yes_q, afb_a_results__isnull=True)
-        missing_afb_b_date_qs = clinics.filter(afb_yes_q, afb_b_date__isnull=True)
-        missing_technique_b_qs = clinics.filter(afb_yes_q, technique_b__isnull=True)
-        missing_afb_b_results_qs = clinics.filter(afb_yes_q, afb_b_results__isnull=True)
-        
-        # # 🔹 Group A completeness
-        # a_all_missing_q = (
-        #     Q(afb_a_date__isnull=True) &
-        #     Q(technique_a__isnull=True) &
-        #     Q(afb_a_results__isnull=True)
-        # )
 
-        # a_all_present_q = (
-        #     Q(afb_a_date__isnull=False) &
-        #     Q(technique_a__isnull=False) &
-        #     Q(afb_a_results__isnull=False)
-        # )
+        afb_yes_q = Q(afb_microscopy_conducted__name__iexact="yes")
 
-        # a_partial_q = (
-        #     ~a_all_missing_q & ~a_all_present_q
-        # )
-        
-        # # 🔹 Group B completeness
-        # b_all_missing_q = (
-        #     Q(afb_b_date__isnull=True) &
-        #     Q(technique_b__isnull=True) &
-        #     Q(afb_b_results__isnull=True)
-        # )
+        afb_a_complete_q = (
+            Q(afb_a_date__isnull=False) &
+            Q(technique_a__isnull=False) &
+            Q(afb_a_results__isnull=False)
+        )
 
-        # b_all_present_q = (
-        #     Q(afb_b_date__isnull=False) &
-        #     Q(technique_b__isnull=False) &
-        #     Q(afb_b_results__isnull=False)
-        # )
+        afb_b_started_q = (
+            Q(afb_b_date__isnull=False) |
+            Q(technique_b__isnull=False) |
+            Q(afb_b_results__isnull=False)
+        )
 
-        # b_partial_q = (
-        #     ~b_all_missing_q & ~b_all_present_q
-        # )
+        afb_b_partial_q = (
+            afb_b_started_q &
+            (
+                Q(afb_b_date__isnull=True) |
+                Q(technique_b__isnull=True) |
+                Q(afb_b_results__isnull=True)
+            )
+        )
 
+        missing_afb_b_date_qs = clinics.filter(
+            afb_yes_q &
+            afb_a_complete_q &
+            afb_b_partial_q &
+            Q(afb_b_date__isnull=True)
+        )
 
-        # # ✅ FINAL DATA QUALITY QUERIES
-        # # ❌ Missing / invalid A
-        # missing_afb_a_qs = clinics.filter(
-        #     afb_yes_q,
-        #     a_partial_q
-        # )
-        
-        # # ❌ Missing / invalid B
-        # # B is missing only if A is complete
-        # missing_afb_b_qs = clinics.filter(
-        #     afb_yes_q,
-        #     a_all_present_q,
-        #     b_partial_q
-        # )
-        
-        # # ✅ If you still want them split individually
-        # missing_afb_b_date_qs = clinics.filter(
-        #     afb_yes_q,
-        #     a_all_present_q,
-        #     b_partial_q,
-        #     afb_b_date__isnull=True
-        # )
+        missing_technique_b_qs = clinics.filter(
+            afb_yes_q &
+            afb_a_complete_q &
+            afb_b_partial_q &
+            Q(technique_b__isnull=True)
+        )
 
-        # missing_technique_b_qs = clinics.filter(
-        #     afb_yes_q,
-        #     a_all_present_q,
-        #     b_partial_q,
-        #     technique_b__isnull=True
-        # )
-
-        # missing_afb_b_results_qs = clinics.filter(
-        #     afb_yes_q,
-        #     a_all_present_q,
-        #     b_partial_q,
-        #     afb_b_results__isnull=True
-        # )
-
-
+        missing_afb_b_results_qs = clinics.filter(
+            afb_yes_q &
+            afb_a_complete_q &
+            afb_b_partial_q &
+            Q(afb_b_results__isnull=True)
+        )
 
         # Xpert conditional (missing when required by the stricter rule)
         missing_xpert_mtb_rif_conducted_qs = clinics.filter(afb_xpert_required_q, xpert_mtb_rif_conducted__isnull=True)
@@ -186,10 +181,18 @@ class ClinicDataQualityReportView(View):
 
         missing_error_code_qs = clinics.filter(xpert_is_8_q, error_code__isnull=True)
         missing_xpert_rif_qs = clinics.filter(xpert_in_2_6_q, xpert_rif__isnull=True)
+        # missing_ct_value_qs = clinics.filter(
+        #     xpert_in_2_6_q
+        # ).exclude(
+        #     Q(ct_value__isnull=False, ct_na=False) | Q(ct_value__isnull=True, ct_na=True) | Q(ct_value__in=[99, 99.0])
+        # )
+        
         missing_ct_value_qs = clinics.filter(
             xpert_in_2_6_q
         ).exclude(
-            Q(ct_value__isnull=False, ct_na=False) | Q(ct_value__isnull=True, ct_na=True) | Q(ct_value__in=[99, 99.0])
+            Q(ct_value__isnull=False, ct_na=False)
+            | Q(ct_value__isnull=True, ct_na=True)
+            | Q(ct_value__in=[99, 99.0])
         )
 
         role_context = get_role_context(request.user)
@@ -201,10 +204,12 @@ class ClinicDataQualityReportView(View):
             "is_admin": role_context.get("is_admin", False),
             "is_zonal_lab": role_context.get("is_zonal_lab", False),
             "is_reviewer": role_context.get("is_reviewer", False),
-            "zones": {z.id: z.name for z in role_context.get("zones", [])},
-            "sites": {s.id: s.name for s in role_context.get("sites", [])},
+            "zones": zones,
+            "sites": sites,
             "selected_zone": zone_id or "",
             "selected_site": site_id or "",
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
 
             # lists (limited to 100) - consistent serialization
             "missing_sample_received": [serialize_clinic(c) for c in missing_sample_received_qs[:100]],

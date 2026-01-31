@@ -31,7 +31,8 @@ def forms_report_total(request):
     is_zonal_lab = role_context.get("is_zonal_lab", False)
     is_admin     = role_context.get("is_admin", False)
     is_reviewer  = role_context.get("is_reviewer", False)
-
+    is_superuser = request.user.is_superuser
+    is_full_access = is_admin or is_superuser
     is_privileged = is_admin or is_reviewer
 
     # ── Models ─────────────────────────────────────────────────

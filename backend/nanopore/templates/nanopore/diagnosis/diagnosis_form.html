@@ -391,7 +391,7 @@
                 clinicalDiagnosisSection.style.display = "none";
                 bacteriologicalDiagnosisSection.style.display = "block";
                 tbDiagnosisMadeOtherSections.style.display = "none";
-            } else if (tbDiagnosisMadeField.value === "96") {  // Other
+            } else if (tbDiagnosisMadeField.value === "3") {  // Other
                 clinicalDiagnosisSection.style.display = "none";
                 bacteriologicalDiagnosisSection.style.display = "none";
                 tbDiagnosisMadeOtherSections.style.display = "block";
@@ -445,7 +445,7 @@
         function toggleTbOtherSpecify() {
             if (!tbOtherDiagnosisField || !tbOtherSpecifySection) return;
 
-            if (tbOtherDiagnosisField.value === "3" || tbOtherDiagnosisField.value === "96") {
+            if (tbOtherDiagnosisField.value === "3" || tbOtherDiagnosisField.value === "6") {
                 tbOtherSpecifySection.style.display = "block";
             } else {
                 tbOtherSpecifySection.style.display = "none";

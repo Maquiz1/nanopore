@@ -33,6 +33,18 @@ class RegimenDataQualityReportView(View):
             )
         )
 
+        role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_admin     = role_context.get("is_admin", False)
+        is_reviewer  = role_context.get("is_reviewer", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser
+        is_privileged = is_admin or is_reviewer
+        
+        # ──────────────────────────────────────────────
+        # Zones and Sites for filters
+        # ──────────────────────────────────────────────
+        
         # 🔐 role-based access
         regimens = filter_queryset_by_user_role(
             request.user,
@@ -40,17 +52,28 @@ class RegimenDataQualityReportView(View):
             site_field="screening__site"
         )
 
-        # 🎯 filters
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # After getting zone_id and site_id from GET
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
 
-        if zone_id:
-            regimens = regimens.filter(
-                screening__site__district__region__zone_id=zone_id
-            )
+        # Convert to int if possible
+        zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id_int = int(site_id) if site_id and site_id.isdigit() else None
 
-        if site_id:
-            regimens = regimens.filter(screening__site_id=site_id)
+        # Resolve names for template
+        selected_zone_name = zones.get(zone_id_int, "") if zone_id_int else ""
+        selected_site_name = sites.get(site_id_int, "") if site_id_int else ""
+
+        # Apply filters
+        if zone_id_int and zone_id_int in zones:
+            regimens = regimens.filter(screening__site__district__region__zone_id=zone_id_int)
+
+        if site_id_int and site_id_int in sites:
+            regimens = regimens.filter(screening__site_id=site_id_int)
 
         total_regimens = regimens.count()
 
@@ -102,8 +125,6 @@ class RegimenDataQualityReportView(View):
             Q(specify__isnull=True) | Q(specify__exact="")
         )
 
-        role_context = get_role_context(request.user)
-
         context = {
             "report_title": "Regimen Changes Data Quality Report",
             "report_date": timezone.now(),
@@ -113,11 +134,12 @@ class RegimenDataQualityReportView(View):
             "is_zonal_lab": role_context.get("is_zonal_lab", False),
             "is_reviewer": role_context.get("is_reviewer", False),
 
-            "zones": {z.id: z.name for z in role_context.get("zones", [])},
-            "sites": {s.id: s.name for s in role_context.get("sites", [])},
-
+            "zones": zones,
+            "sites": sites,
             "selected_zone": zone_id or "",
             "selected_site": site_id or "",
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
 
             # preview lists
             "missing_date": [serialize_regimen(r) for r in missing_date_qs[:100]],

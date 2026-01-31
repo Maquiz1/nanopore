@@ -47,9 +47,11 @@ class MissingFormDetailsQueriesView(View):
 
         # ── 2. Role context ───────────────────────────────────────────────
         role_context = get_role_context(request.user)
+        is_zonal_lab = role_context.get("is_zonal_lab", False)
         is_admin     = role_context.get("is_admin", False)
         is_reviewer  = role_context.get("is_reviewer", False)
-        is_zonal_lab = role_context.get("is_zonal_lab", False)
+        is_superuser = request.user.is_superuser
+        is_full_access = is_admin or is_superuser
         is_privileged = is_admin or is_reviewer
 
         # ── 3. Base queryset ──────────────────────────────────────────────
@@ -74,13 +76,28 @@ class MissingFormDetailsQueriesView(View):
 
         screenings = filter_queryset_by_user_role(request.user, screenings, site_field="site")
 
-        # Optional filters (zone/site)
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # After getting zone_id and site_id from GET
         zone_id = request.GET.get("zone")
         site_id = request.GET.get("site")
-        if zone_id:
-            screenings = screenings.filter(site__district__region__zone_id=zone_id)
-        if site_id:
-            screenings = screenings.filter(site_id=site_id)
+
+        # Convert to int if possible
+        zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id_int = int(site_id) if site_id and site_id.isdigit() else None
+
+        # Resolve names for template
+        selected_zone_name = zones.get(zone_id_int, "") if zone_id_int else ""
+        selected_site_name = sites.get(site_id_int, "") if site_id_int else ""
+
+        # Apply filters
+        if zone_id_int and zone_id_int in zones:
+            qs = qs.filter(screening__site__district__region__zone_id=zone_id_int)
+
+        if site_id_int and site_id_int in sites:
+            qs = qs.filter(screening__site_id=site_id_int)
 
         eligible_screenings = screenings.filter(eligible=True)
 
@@ -180,8 +197,6 @@ class MissingFormDetailsQueriesView(View):
             "form_type": form_type,               # ← now correctly set from URL
 
             "total_screenings": eligible_screenings.count(),
-            "selected_zone": zone_id or "",
-            "selected_site": site_id or "",
 
             "is_admin": is_admin,
             "is_reviewer": is_reviewer,
@@ -189,8 +204,12 @@ class MissingFormDetailsQueriesView(View):
             "is_privileged": is_privileged,
             "is_superuser": request.user.is_superuser,
 
-            "zones": {z.id: z.name for z in role_context.get("zones", [])},
-            "sites": {s.id: s.name for s in role_context.get("sites", [])},
+            "zones": zones,
+            "sites": sites,
+            "selected_zone": zone_id or "",
+            "selected_site": site_id or "",
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
         }
 
         return render(request, self.template_name, context)
