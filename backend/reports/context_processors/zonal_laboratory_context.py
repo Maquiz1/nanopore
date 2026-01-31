@@ -279,6 +279,9 @@ def zonal_report_total(request):
         ),
 
         # XPERT XDR
+        missing_xpert_xdr_performed=Count(
+            Case(When(xpert_xdr_performed__isnull=True, then=1), output_field=IntegerField())
+        ),
         missing_xpert_xdr_date_performed=Count(
             Case(When(xpert_xdr_performed=1, xpert_xdr_date_performed__isnull=True, then=1), output_field=IntegerField())
         ),
