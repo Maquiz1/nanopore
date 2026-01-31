@@ -207,16 +207,25 @@ class ZonalDataQualityReportView(View):
             ),
 
             # Culture isolate — conditional: only count if lj_results not in [1,2,3,4] AND mgit_results != 1
+            # missing_culture_isolate = Count(
+            #     Case(
+            #         When(
+            #             Q(culture_isolate__isnull=True) &
+            #             (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)),
+            #             then=1
+            #         ),
+            #         output_field=IntegerField()
+            #     )
+            # ),
+            
             missing_culture_isolate = Count(
                 Case(
-                    When(
-                        Q(culture_isolate__isnull=True) &
-                        (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)),
-                        then=1
-                    ),
+                    When(culture_isolate__isnull=True, lj_results__in=[1,2,3,4], then=1),
+                    When(culture_isolate__isnull=True, mgit_results=1, then=1),
                     output_field=IntegerField()
                 )
             ),
+
             
             # ── ISOLATE DATE ──
             missing_isolate_date = Count(
