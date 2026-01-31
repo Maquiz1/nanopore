@@ -295,6 +295,9 @@ class ZonalDataQualityReportView(View):
             )),
 
             # Xpert XDR
+            missing_xpert_xdr_performed=Count(
+                Case(When(xpert_xdr_performed__isnull=True, then=1), output_field=IntegerField())
+            ),
             missing_xpert_xdr_date_performed=Count(Case(When(xpert_xdr_performed=1, xpert_xdr_date_performed__isnull=True, then=1), output_field=IntegerField())),
             missing_xpert_xdr_results=Count(Case(
                 When(xpert_xdr_performed=1, then=Case(
@@ -533,6 +536,7 @@ class ZonalDataQualityReportView(View):
             ],
 
             # Xpert XDR
+            "missing_xpert_xdr_performed": ["xpert_xdr_performed"],
             "missing_xpert_xdr_date_performed": ["xpert_xdr_date_performed"],
             "missing_xpert_xdr_results": [
                 "xpert_xdr_isoniazid",
