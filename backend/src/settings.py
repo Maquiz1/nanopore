@@ -240,20 +240,37 @@ CELERY_ENABLE_UTC = True
 
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-# from celery.schedules import crontab
+from celery.schedules import crontab
 
-# # Celery Beat
-# CELERY_BEAT_SCHEDULE = {
-#     "daily_screening_snapshot": {
-#         "task": "reports.tasks.create_screening_dq_snapshot",
-#         "schedule": crontab(hour=0, minute=0),  # daily at 00:00
-#     },
-#     "daily_enrollment_snapshot": {
-#         "task": "reports.tasks.create_enrollment_dq_snapshot",
-#         "schedule": crontab(hour=0, minute=30),  # daily at 00:30
-#     },
-#     "daily_clinic_dq_snapshot": {
-#         "task": "reports.tasks.create_clinic_dq_snapshot",
-#         "schedule": crontab(hour=0, minute=0),
-#     },
-# }
+# Celery Beat
+CELERY_BEAT_SCHEDULE = {
+    "daily_screening_snapshot": {
+        "task": "reports.tasks.create_screening_dq_snapshot",
+        "schedule": crontab(hour=0, minute=0),
+    },
+    "daily_enrollment_snapshot": {
+        "task": "reports.tasks.create_enrollment_dq_snapshot",
+        "schedule": crontab(hour=0, minute=30),
+    },
+    "daily_clinic_dq_snapshot": {
+        "task": "reports.tasks.create_clinic_dq_snapshot",
+        "schedule": crontab(hour=1, minute=0),
+    },
+    "daily_diagnosis_snapshot": {
+        "task": "reports.tasks.create_diagnosis_dq_snapshot",
+        "schedule": crontab(hour=1, minute=30),
+    },
+    "daily_regimen_snapshot": {
+        "task": "reports.tasks.create_regimen_dq_snapshot",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    "daily_zonal_snapshot": {
+        "task": "reports.tasks.create_zonal_dq_snapshot",
+        "schedule": crontab(hour=2, minute=30),
+    },
+    "daily_forms_snapshot": {
+        "task": "reports.tasks.create_forms_dq_snapshot",
+        "schedule": crontab(hour=3, minute=0),
+    },
+}
+
