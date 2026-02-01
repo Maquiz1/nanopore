@@ -21,11 +21,11 @@ def create_enrollment_dq_snapshot():
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60)
-def create_clinic_dq_snapshot(self):
+def create_clinic_lab_dq_snapshot(self):
     """
     Run the Clinic Data Quality snapshot command
     """
-    call_command("snapshot_clinic_dq")
+    call_command("snapshot_clinic_lab_dq")
     return "Clinic DQ snapshot created"
 
 

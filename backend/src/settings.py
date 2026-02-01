@@ -253,7 +253,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=0, minute=30),
     },
     "daily_clinic_snapshot": {
-        "task": "reports.tasks.create_clinic_dq_snapshot",
+        "task": "reports.tasks.create_clinic_lab_dq_snapshot",
         "schedule": crontab(hour=1, minute=0),
     },
     "daily_diagnosis_snapshot": {
