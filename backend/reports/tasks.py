@@ -43,7 +43,7 @@ def create_regimen_dq_snapshot():
     """
     Run the Regimen Data Quality snapshot command
     """
-    call_command("create_regimen_dq_snapshot")
+    call_command("snapshot_regimen_dq")
     return "Regimen DQ snapshot created"
 
 
