@@ -246,7 +246,7 @@ from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
     "daily_screening_snapshot": {
         "task": "reports.tasks.create_screening_dq_snapshot",
-        "schedule": crontab(hour=6, minute=45),
+        "schedule": crontab(hour=0, minute=0),
     },
     "daily_enrollment_snapshot": {
         "task": "reports.tasks.create_enrollment_dq_snapshot",
@@ -270,7 +270,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "daily_forms_snapshot": {
         "task": "reports.tasks.create_missing_forms_dq_snapshot",
-        "schedule": crontab(hour=7, minute=51),
+        "schedule": crontab(hour=19, minute=46),
     },
 }
 
