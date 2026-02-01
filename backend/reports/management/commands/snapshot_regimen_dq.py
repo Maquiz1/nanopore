@@ -1,14 +1,13 @@
-# reports/management/commands/create_regimen_dq_snapshot.py
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.apps import apps
-from django.db.models import Count, Q, F
+from django.db.models import Count, Q
 
 from reports.models import DataQualitySnapshot, RegimenDQSnapshot
 
 
 class Command(BaseCommand):
-    help = "Create daily Regimen Data Quality snapshot"
+    help = "Create daily Regimen Data Quality snapshot (per site, per zone)"
 
     def handle(self, *args, **options):
         RegimenChanges = apps.get_model("nanopore", "RegimenChanges")
@@ -18,34 +17,59 @@ class Command(BaseCommand):
         )
 
         qs = RegimenChanges.objects.select_related(
-            "screening",
-            "screening__site",
-            "screening__site__district",
-            "screening__site__district__region",
             "screening__site__district__region__zone",
             "changes",
             "reason",
+        )
+
+        # ── Reason = 96 (Other) helper ──────────────────────────────
+        reason_is_96_q = (
+            Q(reason__value=96) |
+            Q(reason__name__iexact="96") |
+            Q(reason__name__iexact="other")
         )
 
         grouped = qs.values(
             "screening__site__district__region__zone_id",
             "screening__site_id",
         ).annotate(
+
+            # =====================================================
+            # TOTAL
+            # =====================================================
             total_regimens=Count("id"),
 
-            missing_date=Count("id", filter=Q(date__isnull=True)),
-            missing_drug=Count("id", filter=Q(drug__isnull=True) | Q(drug__exact="")),
-            missing_changes=Count("id", filter=Q(changes__isnull=True)),
-            missing_reason=Count("id", filter=Q(reason__isnull=True)),
+            # =====================================================
+            # Missing fields (MATCH CONTEXT PROCESSOR)
+            # =====================================================
+            missing_date=Count(
+                "id",
+                filter=Q(date__isnull=True)
+            ),
+
+            missing_drug=Count(
+                "id",
+                filter=Q(drug__isnull=True)
+            ),
+
+            missing_changes=Count(
+                "id",
+                filter=Q(changes__isnull=True)
+            ),
+            missing_reason=Count(
+                "id",
+                filter=Q(reason__isnull=True)
+            ),
+
+            # Specify ONLY when reason == 96
             missing_specify_when_other=Count(
                 "id",
-                filter=(
-                    Q(reason__value=96) | Q(reason__name__iexact="96") | Q(reason__name__iexact="other")
-                ) & (Q(specify__isnull=True) | Q(specify__exact=""))
+                filter=reason_is_96_q & Q(specify__isnull=True)
             ),
         )
 
         rows = []
+
         for g in grouped:
             total_issues = sum([
                 g["missing_date"],
@@ -71,11 +95,8 @@ class Command(BaseCommand):
                 )
             )
 
-        RegimenDQSnapshot.objects.bulk_create(
-            rows,
-            ignore_conflicts=True
-        )
+        RegimenDQSnapshot.objects.bulk_create(rows, ignore_conflicts=True)
 
         self.stdout.write(
-            self.style.SUCCESS("Regimen data quality snapshot created")
+            self.style.SUCCESS("Regimen Data Quality snapshot created")
         )
