@@ -250,7 +250,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "daily_enrollment_snapshot": {
         "task": "reports.tasks.create_enrollment_dq_snapshot",
-        "schedule": crontab(hour=5, minute=45),
+        "schedule": crontab(hour=5, minute=58),
     },
     "daily_clinic_snapshot": {
         "task": "reports.tasks.create_clinic_lab_dq_snapshot",
