@@ -1,6 +1,7 @@
 # reports/models/enrollment.py
 from django.db import models
-from . general_base import DataQualitySnapshot
+from .general_base import DataQualitySnapshot
+
 
 class EnrollmentDQSnapshot(models.Model):
     snapshot = models.ForeignKey(
@@ -9,9 +10,23 @@ class EnrollmentDQSnapshot(models.Model):
         related_name="enrollment_details"
     )
 
-    zone = models.ForeignKey("locations.Zone", on_delete=models.CASCADE)
-    site = models.ForeignKey("locations.Site", on_delete=models.CASCADE)
+    zone = models.ForeignKey(
+        "locations.Zone",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
+    site = models.ForeignKey(
+        "locations.Site",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    # =====================================================
+    # COUNTS
+    # =====================================================
     total_enrollments = models.IntegerField(default=0)
 
     missing_hiv_status = models.IntegerField(default=0)
@@ -37,6 +52,7 @@ class EnrollmentDQSnapshot(models.Model):
     missing_tx_year_without_unknown = models.IntegerField(default=0)
     invalid_tx_year_with_unknown = models.IntegerField(default=0)
     invalid_unknown_year_dependencies = models.IntegerField(default=0)
+
     missing_regimen_months_without_unknown = models.IntegerField(default=0)
     invalid_regimen_months_with_unknown = models.IntegerField(default=0)
 
@@ -44,3 +60,7 @@ class EnrollmentDQSnapshot(models.Model):
 
     class Meta:
         unique_together = ("snapshot", "zone", "site")
+        ordering = ["zone", "site"]
+
+    def __str__(self):
+        return f"Enrollment DQ | {self.snapshot.snapshot_date} | {self.zone} | {self.site}"

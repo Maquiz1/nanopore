@@ -61,7 +61,7 @@ class Command(BaseCommand):
 
             missing_sputum_reasons=Count(
                 "id",
-                filter=Q(sputum_collected=0, sputum_not_collected_reason__isnull=True)
+                filter=Q(sputum_collected=2, sputum_reasons__isnull=True)
             ),
 
             # ----------------------------
