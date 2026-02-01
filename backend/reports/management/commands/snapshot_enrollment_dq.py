@@ -69,13 +69,13 @@ class Command(BaseCommand):
             # ----------------------------
             missing_diseases_medical=Count(
                 "id",
-                filter=Q(diseases_medical_conditions__isnull=True)
+                filter=Q(diseases_medical__isnull=True)
             ),
 
             missing_diseases_specify=Count(
                 "id",
                 filter=Q(
-                    diseases_medical_conditions__value=96,
+                    diseases_medical__value=96,
                     diseases_specify__isnull=True
                 )
             ),
