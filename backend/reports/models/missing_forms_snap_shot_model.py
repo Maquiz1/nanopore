@@ -8,11 +8,11 @@ class MissingFormsDQSnapshot(models.Model):
     site = models.ForeignKey("locations.Site", null=True, blank=True, on_delete=models.SET_NULL)
     screening = models.ForeignKey(Screening, null=True, blank=True, on_delete=models.SET_NULL)
     
-    missing_enrollment = models.BooleanField(default=False)
-    missing_clinic = models.BooleanField(default=False)
-    missing_diagnosis = models.BooleanField(default=False)
-    missing_regimen = models.BooleanField(default=False)
-    missing_zonal = models.BooleanField(default=False)
+    missing_enrollment = models.IntegerField(default=0)
+    missing_clinic = models.IntegerField(default=0)
+    missing_diagnosis = models.IntegerField(default=0)
+    missing_regimen = models.IntegerField(default=0)
+    missing_zonal = models.IntegerField(default=0)
 
     total_issues = models.IntegerField(default=0)
 
