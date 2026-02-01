@@ -21,3 +21,8 @@ class MissingFormsDQSnapshot(models.Model):
     class Meta:
         verbose_name = "Missing Forms Data Quality Snapshot"
         verbose_name_plural = "Missing Forms Data Quality Snapshots"
+        unique_together = ("snapshot", "zone", "site")
+        indexes = [
+            models.Index(fields=["snapshot", "zone"]),
+            models.Index(fields=["snapshot", "site"]),
+        ]
