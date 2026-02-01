@@ -252,7 +252,7 @@ CELERY_BEAT_SCHEDULE = {
         "task": "reports.tasks.create_enrollment_dq_snapshot",
         "schedule": crontab(hour=0, minute=30),
     },
-    "daily_clinic_dq_snapshot": {
+    "daily_clinic_snapshot": {
         "task": "reports.tasks.create_clinic_dq_snapshot",
         "schedule": crontab(hour=1, minute=0),
     },
@@ -265,11 +265,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=2, minute=0),
     },
     "daily_zonal_snapshot": {
-        "task": "reports.tasks.create_zonal_dq_snapshot",
+        "task": "reports.tasks.create_zonal_lab_dq_snapshot",
         "schedule": crontab(hour=2, minute=30),
     },
     "daily_forms_snapshot": {
-        "task": "reports.tasks.create_forms_dq_snapshot",
+        "task": "reports.tasks.create_missing_forms_dq_snapshot",
         "schedule": crontab(hour=3, minute=0),
     },
 }
