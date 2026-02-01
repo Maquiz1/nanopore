@@ -95,6 +95,7 @@ def regimen_report_total(request):
     )
 
     # ── Missing field counts ────────────────────────────────────────────────
+    
     missing_regimen_date = regimens.filter(date__isnull=True).count()
     missing_regimen_drug = regimens.filter(drug__isnull=True).count()
     missing_regimen_changes = regimens.filter(changes__isnull=True).count()
