@@ -43,5 +43,5 @@ class RegimenDQSnapshot(models.Model):
             models.Index(fields=["snapshot", "site"]),
         ]
 
-    def __str__(self):
-        return f"Regimen Snapshot {self.snapshot.snapshot_date} | Zone: {self.zone_name} | Site: {self.site_name}"
+    # def __str__(self):
+    #     return f"Regimen Snapshot {self.snapshot.snapshot_date} | Zone: {self.zone.name} | Site: {self.site.name}"
