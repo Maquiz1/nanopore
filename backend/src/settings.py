@@ -270,7 +270,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "daily_forms_snapshot": {
         "task": "reports.tasks.create_missing_forms_dq_snapshot",
-        "schedule": crontab(hour=19, minute=46),
+        "schedule": crontab(hour=20, minute=11),
     },
 }
 
