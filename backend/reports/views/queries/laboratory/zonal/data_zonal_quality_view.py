@@ -324,7 +324,10 @@ class ZonalDataQualityReportView(View):
                 ))
             )),
 
-            # First line LPA
+            # FIRST LINE LPA
+            missing_first_line_lpa=Count(
+                Case(When(first_line_lpa__isnull=True, then=1), output_field=IntegerField())
+            ),
             missing_first_line_lpa_date=Count(Case(When(first_line_lpa=1, first_line_lpa_date__isnull=True, then=1), output_field=IntegerField())),
             # First line LPA drugs (M2M)
             missing_first_line_drugs = Count(
@@ -352,7 +355,11 @@ class ZonalDataQualityReportView(View):
                 ),
                 distinct=True
             ),
+            
             # Second line LPA
+            missing_second_line_lpa=Count(
+                Case(When(second_line_lpa__isnull=True, then=1), output_field=IntegerField())
+            ),
             missing_second_line_lpa_date=Count(Case(When(second_line_lpa=1, second_line_lpa_date__isnull=True, then=1), output_field=IntegerField())),
             # Second line LPA drugs (M2M)
             missing_second_line_drugs = Count(
@@ -372,6 +379,9 @@ class ZonalDataQualityReportView(View):
             missing_lpa2_kanamycin=Count(Case(When(second_line_lpa=1, lpa2_kanamycin__isnull=True, then=1), output_field=IntegerField())),
 
             # Nanopore
+            missing_nanopore_done=Count(
+                Case(When(nanopore_done__isnull=True, then=1), output_field=IntegerField())
+            ),
             missing_nanopore_sequencing_date=Count(Case(When(nanopore_done=1, nanopore_sequencing_date__isnull=True, then=1), output_field=IntegerField())),
             missing_nanopore_results=Count(Case(When(nanopore_done=1, nanopore_results__isnull=True, then=1), output_field=IntegerField())),
             missing_epi_to_me=Count(Case(When(nanopore_done=1, epi_to_me__isnull=True, then=1), output_field=IntegerField())),
@@ -557,6 +567,7 @@ class ZonalDataQualityReportView(View):
             ],
 
             # First line LPA
+            "missing_first_line_lpa": ["first_line_lpa"],
             "missing_first_line_lpa_date": ["first_line_lpa_date"],
             "missing_first_line_drugs": ["first_line_drugs"],
             "missing_lpa1_mtb": ["lpa1_mtb"],
@@ -564,6 +575,7 @@ class ZonalDataQualityReportView(View):
             "missing_lpa1_inh": ["lpa1_inh"],
 
             # Second line LPA
+            "missing_second_line_lpa": ["second_line_lpa"],
             "missing_second_line_lpa_date": ["second_line_lpa_date"],
             "missing_second_line_drugs": ["second_line_drugs"],
             "missing_lpa2_mtb": ["lpa2_mtb"],
@@ -572,6 +584,7 @@ class ZonalDataQualityReportView(View):
             "missing_lpa2_kanamycin": ["lpa2_kanamycin"],
 
             # Nanopore
+            "missing_nanopore_done": ["nanopore_done"],
             "missing_nanopore_sequencing_date": ["nanopore_sequencing_date"],
             "missing_nanopore_results": ["nanopore_results"],
             "missing_epi_to_me": ["epi_to_me"],

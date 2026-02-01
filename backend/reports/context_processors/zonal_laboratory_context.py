@@ -316,6 +316,9 @@ def zonal_report_total(request):
         ),
 
         # FIRST LINE LPA
+        missing_first_line_lpa=Count(
+            Case(When(first_line_lpa__isnull=True, then=1), output_field=IntegerField())
+        ),
         missing_first_line_lpa_date=Count(
             Case(When(first_line_lpa=1, first_line_lpa_date__isnull=True, then=1), output_field=IntegerField())
         ),
@@ -355,6 +358,9 @@ def zonal_report_total(request):
         ),
 
         # SECOND LINE LPA
+        missing_second_line_lpa=Count(
+                Case(When(second_line_lpa__isnull=True, then=1), output_field=IntegerField())
+        ),
         missing_second_line_lpa_date=Count(
             Case(When(second_line_lpa=1, second_line_lpa_date__isnull=True, then=1), output_field=IntegerField())
         ),
@@ -386,6 +392,9 @@ def zonal_report_total(request):
         ),
 
         # NANOPORE
+        missing_nanopore_done=Count(
+                Case(When(nanopore_done__isnull=True, then=1), output_field=IntegerField())
+        ),
         missing_nanopore_sequencing_date=Count(
             Case(When(nanopore_done=1, nanopore_sequencing_date__isnull=True, then=1), output_field=IntegerField())
         ),

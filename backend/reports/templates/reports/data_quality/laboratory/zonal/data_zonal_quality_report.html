@@ -869,6 +869,883 @@
             </div>
         </div>
         {% endif %}
+
+        {% if count_missing_first_line_lpa %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineLPA">
+                    Missing First Line LPA ({{ count_missing_first_line_lpa|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseFirstLineLPA" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_first_line_lpa %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_first_line_lpa_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineLPADate">
+                    Missing First Line LPA Date ({{ count_missing_first_line_lpa_date|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseFirstLineLPADate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_first_line_lpa_date %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_first_line_drugs %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineDrugs">
+                    Missing First Line Drugs ({{ count_missing_first_line_drugs|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseFirstLineDrugs" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_first_line_drugs %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_lpa1_mtb %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA1MTB">
+                    Missing LPA1 MTB ({{ count_missing_lpa1_mtb|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseLPA1MTB" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_lpa1_mtb %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_lpa1_rif %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA1RIF">
+                    Missing LPA1 RIF ({{ count_missing_lpa1_rif|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseLPA1RIF" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_lpa1_rif %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_lpa1_inh %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA1INH">
+                    Missing LPA1 INH ({{ count_missing_lpa1_inh|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseLPA1INH" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_lpa1_inh %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_second_line_lpa %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecondLineLPA">
+                    Missing Second Line LPA ({{ count_missing_second_line_lpa|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSecondLineLPA" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_second_line_lpa %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_second_line_lpa_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecondLineLPADate">
+                    Missing Second Line LPA Date ({{ count_missing_second_line_lpa_date|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSecondLineLPADate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_second_line_lpa_date %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_second_line_drugs %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecondLineDrugs">
+                    Missing Second Line Drugs ({{ count_missing_second_line_drugs|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSecondLineDrugs" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_second_line_drugs %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_lpa2_mtb %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA2MTB">
+                    Missing LPA2 MTB ({{ count_missing_lpa2_mtb|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseLPA2MTB" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_lpa2_mtb %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_lpa2_rfluoroquinolones %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA2RFluoro">
+                    Missing LPA2 R Fluoroquinolones ({{ count_missing_lpa2_rfluoroquinolones|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseLPA2RFluoro" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_lpa2_rfluoroquinolones %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_lpa2_aminoglycosides %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA2Amino">
+                    Missing LPA2 Aminoglycosides ({{ count_missing_lpa2_aminoglycosides|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseLPA2Amino" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_lpa2_aminoglycosides %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_lpa2_kanamycin %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA2Kanamycin">
+                    Missing LPA2 Kanamycin ({{ count_missing_lpa2_kanamycin|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseLPA2Kanamycin" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_lpa2_kanamycin %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_nanopore_done %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNanoporeDone">
+                    Missing Nanopore Done ({{ count_missing_nanopore_done|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseNanoporeDone" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_nanopore_done %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_nanopore_sequencing_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNanoporeSeqDate">
+                    Missing Nanopore Sequencing Date ({{ count_missing_nanopore_sequencing_date|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseNanoporeSeqDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_nanopore_sequencing_date %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_nanopore_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNanoporeResults">
+                    Missing Nanopore Results ({{ count_missing_nanopore_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseNanoporeResults" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_nanopore_results %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_epi_to_me %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToME">
+                    Missing EPI to ME ({{ count_missing_epi_to_me|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseEpiToME" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_epi_to_me %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_sequencing_delayed %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSequencingDelayed">
+                    Missing Sequencing Delayed ({{ count_missing_sequencing_delayed|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSequencingDelayed" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_sequencing_delayed %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_sequencing_delayed_days %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSequencingDelayedDays">
+                    Missing Sequencing Delayed Days ({{ count_missing_sequencing_delayed_days|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSequencingDelayedDays" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_sequencing_delayed_days %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_sequencing_delayed_reasons %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSequencingDelayedReasons">
+                    Missing Sequencing Delayed Reasons ({{ count_missing_sequencing_delayed_reasons|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSequencingDelayedReasons" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_sequencing_delayed_reasons %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_sequencing_delayed_others %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSequencingDelayedOthers">
+                    Missing Sequencing Delayed Others ({{ count_missing_sequencing_delayed_others|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSequencingDelayedOthers" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_sequencing_delayed_others %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_epi_to_me_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToMEDate">
+                    Missing EPI to ME Date ({{ count_missing_epi_to_me_date|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseEpiToMEDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_epi_to_me_date %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_epi_to_me_version %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToMEVersion">
+                    Missing EPI to ME Version ({{ count_missing_epi_to_me_version|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseEpiToMEVersion" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_epi_to_me_version %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_nanopore_drug_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNanoporeDrugResults">
+                    Missing Nanopore Drug Results ({{ count_missing_nanopore_drug_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseNanoporeDrugResults" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_nanopore_drug_results %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
     {% else %}
     <div class="alert alert-success text-center py-5">
