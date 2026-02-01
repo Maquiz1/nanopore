@@ -64,6 +64,15 @@ class DashboardHomeView(ListView):
         completed_count = qs.filter(
             diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6]
         ).count()
+        
+        substudy2_count = qs.filter(
+            clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]
+        ).count()
+        
+        if substudy2_count > 0:
+            substudy2_progress = round(completed_count / substudy2_count * 100, 1)
+        else:
+            substudy2_progress = 0
 
         context.update(
             {
@@ -71,6 +80,8 @@ class DashboardHomeView(ListView):
                 "eligible_count": eligible_count,
                 "enrolled_count": enrolled_count,
                 "completed_count": completed_count,
+                "substudy2_count": substudy2_count,
+                "substudy2_progress": substudy2_progress,
             }
         )
 
