@@ -118,11 +118,11 @@ class RegimenDQSnapshotAdmin(admin.ModelAdmin):
     search_fields = ("snapshot__snapshot_date",)
 
     def zone_name(self, obj):
-        return obj.zone_name if hasattr(obj, "zone_name") else "-"
+        return obj.zone.name if hasattr(obj, "zone_name") else "-"
     zone_name.short_description = "Zone"
 
     def site_name(self, obj):
-        return obj.site_name if hasattr(obj, "site_name") else "-"
+        return obj.site.name if hasattr(obj, "site_name") else "-"
     site_name.short_description = "Site"
 
     def total_regimens(self, obj):
@@ -142,11 +142,11 @@ class ZonalLaboratoryDQSnapshotAdmin(admin.ModelAdmin):
     search_fields = ("snapshot__snapshot_date",)
 
     def zone_name(self, obj):
-        return obj.zone_name or "-"
+        return obj.zone.name or "-"
     zone_name.short_description = "Zone"
 
     def site_name(self, obj):
-        return obj.site_name or "-"
+        return obj.site.name or "-"
     site_name.short_description = "Site"
     
     

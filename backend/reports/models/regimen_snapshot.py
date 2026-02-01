@@ -10,10 +10,19 @@ class RegimenDQSnapshot(models.Model):
     )
 
     # Zone & Site info
-    zone_id = models.IntegerField(db_index=True)
-    zone_name = models.CharField(max_length=200)
-    site_id = models.IntegerField(db_index=True)
-    site_name = models.CharField(max_length=200)
+    zone = models.ForeignKey(
+        "locations.Zone",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    site = models.ForeignKey(
+        "locations.Site",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     # Totals
     total_regimens = models.IntegerField(default=0)
@@ -28,10 +37,10 @@ class RegimenDQSnapshot(models.Model):
     total_issues = models.IntegerField(default=0)
 
     class Meta:
-        unique_together = ("snapshot", "zone_id", "site_id")
+        unique_together = ("snapshot", "zone", "site")
         indexes = [
-            models.Index(fields=["snapshot", "zone_id"]),
-            models.Index(fields=["snapshot", "site_id"]),
+            models.Index(fields=["snapshot", "zone"]),
+            models.Index(fields=["snapshot", "site"]),
         ]
 
     def __str__(self):
