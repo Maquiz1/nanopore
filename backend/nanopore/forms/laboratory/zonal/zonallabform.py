@@ -44,7 +44,9 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "xpert_xdr_kanamycin",
             "xpert_xdr_capreomycin",
             "xpert_xdr_ethionamide",
-           
+                             
+            "lpa",
+
             # First-Line LPA
             "first_line_lpa",
             "first_line_lpa_date",
@@ -97,7 +99,6 @@ class ZonalLaboratoryForm(forms.ModelForm):
             
             # Additional Remarks
             "remarks",
-
         ]
         # fields = TB_LABELS.keys()
         labels = ZONAL_LABELS
@@ -171,6 +172,8 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "xpert_xdr_capreomycin": forms.Select(attrs={"class": "form-select"}),
             "xpert_xdr_ethionamide": forms.Select(attrs={"class": "form-select"}),
             
+            "lpa": forms.Select(attrs={"class": "form-select"}),
+
             # First-Line LPA
             "first_line_lpa": forms.Select(attrs={"class": "form-select"}),
             "first_line_lpa_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
@@ -264,6 +267,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
         self.fields["unique_lab_no"].required = True
         self.fields["culture_performed"].required = True
         self.fields["xpert_xdr_performed"].required = True
+        self.fields["lpa"].required = True
         self.fields["first_line_lpa"].required = True
         self.fields["second_line_lpa"].required = True
         self.fields["nanopore_done"].required = True
