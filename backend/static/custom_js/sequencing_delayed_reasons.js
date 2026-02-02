@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sequencingDelayedOthers = document.getElementById("id_sequencing_delayed_others");
 
     function toggSequencingDelayedReasonsCheckboxes() {
-        const sequencingDelayedOthersChecked = Array.from(SequencingDelayedReasonsCheckboxes).some(cb => cb.checked && cb.value === "1");
+        const sequencingDelayedOthersChecked = Array.from(SequencingDelayedReasonsCheckboxes).some(cb => cb.checked && cb.value === "7");
 
         sequencingDelayedOthers.style.display = sequencingDelayedOthersChecked ? "block" : "none";
     }
