@@ -255,7 +255,7 @@
                                     {% endif %}
                                 {% endfor %}
                             </div>
-                            <div class="col-md-6 p-3" id="second-line-lpa" style="display:none;">
+                            <div class="col-md-6 p-3" id="second-line-drugs" style="display:none;">
                                 <div class="mb-3">
                                     {{ form.second_line_drugs.label_tag }}
                                     {{ form.second_line_drugs }}
@@ -365,6 +365,8 @@
 <script src="{% static 'custom_js/lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/first_line_lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/second_line_lpa_fields.js' %}"></script>
+<script src="{% static 'custom_js/nanopore_sequencing_fields.js' %}"></script>
+<script src="{% static 'custom_js/epi_to_me_fields.js' %}"></script>
 
 {% endblock %}
 
