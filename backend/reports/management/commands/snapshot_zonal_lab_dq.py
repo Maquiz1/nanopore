@@ -137,6 +137,8 @@ class Command(BaseCommand):
                     ))
                 )),
 
+                # LPA
+                missing_lpa=Count(Case(When(lpa__isnull=True, then=1), output_field=IntegerField())),
                 # First line LPA
                 missing_first_line_lpa_date=Count(Case(When(first_line_lpa=1, first_line_lpa_date__isnull=True, then=1), output_field=IntegerField())),
                 missing_first_line_drugs=Count(Case(When(first_line_lpa=1, first_line_drugs__isnull=True, then="pk"), output_field=IntegerField(), distinct=True)),

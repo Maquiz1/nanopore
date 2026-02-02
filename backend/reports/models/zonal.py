@@ -62,6 +62,8 @@ class ZonalLaboratoryDQSnapshot(models.Model):
     missing_xpert_xdr_date_performed = models.IntegerField(default=0)
     missing_xpert_xdr_results = models.IntegerField(default=0)
 
+    # ── LPA
+    missing_lpa = models.IntegerField(default=0)
     # ── First and Second line LPA
     missing_first_line_lpa_date = models.IntegerField(default=0)
     missing_first_line_drugs = models.IntegerField(default=0)

@@ -870,6 +870,44 @@
         </div>
         {% endif %}
 
+        {% if count_missing_lpa %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineLPA">
+                    Missing LPA ({{ count_missing_lpa|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseFirstLineLPA" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in missing_xpert_xdr_results %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
+                                            {{ item.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% if count_missing_first_line_lpa %}
         <div class="accordion-item">
             <h2 class="accordion-header">
