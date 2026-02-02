@@ -517,6 +517,21 @@ Dashboard — {{ user.get_full_name|default:user.username }}
     </div>
 </div>
 
+
+            <!-- Quick Actions / Info -->
+            {% if user.is_staff %}
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="text-muted">
+                        Use the navigation menu to access patient records, screening logs, enrollment data, and all CRFs.
+                    </p>
+                    <a href="{% url 'admin:index' %}" class="btn btn-outline-dark btn-lg mt-3">
+                        <i class="bi bi-gear me-2"></i> Nimregenin Admin Panel
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

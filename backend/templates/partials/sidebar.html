@@ -170,6 +170,14 @@
         </div>
     </div>
     {% endif %}
+
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if user.is_superuser or user_group == "ADMIN" %}
+        <a href="{% url 'admin:index' %}">
+        <i class="fas fa-user-shield"></i><span> Admin Dashboard</span>
+    </a>
+    {% endif %}
+    {% endwith %}    
 </div>
 
 <!-- Sidebar toggle script -->
