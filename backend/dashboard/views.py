@@ -61,6 +61,16 @@ class DashboardHomeView(ListView):
         screened_count = qs.count()
         eligible_count = qs.filter(eligible=True).count()
         enrolled_count = Enrollment.objects.filter(screening__in=qs).count()
+        enrolled_required_count = 2600  # Example required count
+
+        if enrolled_required_count > 0:
+            enrolled_progress = round(
+                (enrolled_count / enrolled_required_count) * 100, 1
+            )
+        else:
+            enrolled_progress = 0
+        
+        # ---- Substudy 2 ----
         completed_count = qs.filter(
             diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6]
         ).count()
@@ -73,6 +83,44 @@ class DashboardHomeView(ListView):
             substudy2_progress = round(completed_count / substudy2_count * 100, 1)
         else:
             substudy2_progress = 0
+            
+            
+        # =========================
+        # Substudy 2 (ENROLLED ONLY)
+        # =========================
+        substudy2_enrolled_qs = Enrollment.objects.filter(
+            screening__in=qs,
+            screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]
+        )
+
+        substudy2_enrolled_count = substudy2_enrolled_qs.count()
+        substudy2_required_count = 1600  # Example required count
+
+        if substudy2_required_count > 0:
+            substudy2_enrolled_progress = round(
+                (substudy2_enrolled_count / substudy2_required_count) * 100, 1
+            )
+        else:
+            substudy2_enrolled_progress = 0
+            
+            
+        # =========================
+        # Substudy 4 (ENROLLED ONLY)
+        # =========================
+        substudy4_enrolled_qs = Enrollment.objects.filter(
+            screening__in=qs,
+            screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]
+        )
+
+        substudy4_enrolled_count = substudy4_enrolled_qs.count()
+        substudy4_required_count = 1000  # Example required count
+
+        if substudy4_required_count > 0:
+            substudy4_enrolled_progress = round(
+                (substudy4_enrolled_count / substudy4_required_count) * 100, 1
+            )
+        else:
+            substudy4_enrolled_progress = 0
 
         context.update(
             {
@@ -82,6 +130,20 @@ class DashboardHomeView(ListView):
                 "completed_count": completed_count,
                 "substudy2_count": substudy2_count,
                 "substudy2_progress": substudy2_progress,
+                
+                # Enrollment
+                "enrolled_progress": enrolled_progress,
+                "enrolled_required_count": enrolled_required_count,
+                
+                # Substudy 2 (Enrolled Only)
+                "substudy2_enrolled_count": substudy2_enrolled_count,
+                "substudy2_required_count": substudy2_required_count,
+                "substudy2_enrolled_progress": substudy2_enrolled_progress,
+                
+                # Substudy 4 (ENROLLED ONLY)
+                "substudy4_enrolled_count": substudy4_enrolled_count,
+                "substudy4_required_count": substudy4_required_count,
+                "substudy4_enrolled_progress": substudy4_enrolled_progress,
             }
         )
 
