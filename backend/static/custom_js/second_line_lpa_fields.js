@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const lpa2Mtb = document.getElementById("id_lpa2_mtb");
     const lpa2Rif = document.getElementById("id_lpa2_rfluoroquinolones");
     const lpa2Aminoglycosides = document.getElementById("id_lpa2_aminoglycosides");
-    const lpa2Kanamycin = document.getElementById("idlpa2_kanamycin");
+    const lpa2Kanamycin = document.getElementById("id_lpa2_kanamycin");
     const secondLineDrugs = document.getElementById("second-line-drugs");
 
     // Function to toggle visibility
