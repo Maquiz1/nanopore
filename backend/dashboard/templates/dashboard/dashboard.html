@@ -207,30 +207,115 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
                         <h5 class="card-title">Enrollments</h5>
-                        <p class="card-text fs-4">{{ enrolled_count | intcomma }}</p>
-                    </div>
 
-                    <div class="mt-3">
-                        <div class="row g-2">
-                            <!-- {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
-                            <div class="col-md-6 col-12">
-                                <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
-                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-plus-circle"></i> Add Enrolled
-                                </a>
+                        <!-- Overall Enrollment Count -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Overall Enrollment</span>
+                                <span>
+                                    {{ enrolled_count|intcomma }}
+                                    /
+                                    {{ enrolled_required_count|intcomma }}
+                                </span>
                             </div>
-                            {% endif %} -->
-                            <div class="col-md-12 col-12">
-                                <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
-                                    class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                                    <i class="bi bi-eye"></i> View all Enrollments
-                                </a>
+
+                            <!-- Enrollment Progress -->
+                            <div class="progress mb-4">
+                                <div
+                                    class="progress-bar
+                                        {% if enrolled_progress >= 100 %}
+                                            bg-success
+                                        {% elif enrolled_progress >= 50 %}
+                                            bg-primary
+                                        {% else %}
+                                            bg-danger
+                                        {% endif %}"
+                                    role="progressbar"
+                                    style="width: {{ enrolled_progress }}%;"
+                                    aria-valuenow="{{ enrolled_progress }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
+                                    {{ enrolled_progress }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Substudy 2 -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Substudy 2</span>
+                                <span>
+                                    {{ substudy2_enrolled_count|intcomma }}
+                                    /
+                                    {{ substudy2_required_count|intcomma }}
+                                </span>
+                            </div>
+
+                            <div class="progress">
+                                <div
+                                    class="progress-bar
+                                        {% if substudy2_enrolled_progress >= 100 %}
+                                            bg-success
+                                        {% elif substudy2_enrolled_progress >= 50 %}
+                                            bg-primary
+                                        {% else %}
+                                            bg-danger
+                                        {% endif %}"
+                                    role="progressbar"
+                                    style="width: {{ substudy2_enrolled_progress }}%;"
+                                    aria-valuenow="{{ substudy2_enrolled_progress }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
+                                    {{ substudy2_enrolled_progress }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Substudy 4 -->
+                        <div>
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Substudy 4</span>
+                                <span>
+                                    {{ substudy4_enrolled_count|intcomma }}
+                                    /
+                                    {{ substudy4_required_count|intcomma }}
+                                </span>
+                            </div>
+
+                            <div class="progress">
+                                <div
+                                    class="progress-bar
+                                        {% if substudy4_enrolled_progress >= 100 %}
+                                            bg-success
+                                        {% elif substudy4_enrolled_progress >= 50 %}
+                                            bg-info
+                                        {% else %}
+                                            bg-danger
+                                        {% endif %}"
+                                    role="progressbar"
+                                    style="width: {{ substudy4_enrolled_progress }}%;"
+                                    aria-valuenow="{{ substudy4_enrolled_progress }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
+                                    {{ substudy4_enrolled_progress }}%
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="mt-3">
+                        <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
+                        class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                            <i class="bi bi-eye"></i>
+                            View all Enrollments
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </div>
+
+
 
         <!-- Completed Card -->
         <div class="col-md-6">
@@ -246,7 +331,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 {% elif substudy2_progress >= 50 %}
                                     bg-info
                                 {% else %}
-                                    bg-warning
+                                    bg-danger
                                 {% endif %}"
                              role="progressbar" 
                              style="width: {{ substudy2_progress }}%;" 
