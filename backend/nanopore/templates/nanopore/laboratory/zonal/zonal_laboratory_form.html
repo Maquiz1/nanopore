@@ -139,22 +139,22 @@
                         <hr>
 
                         <!-- Phenotypic DST -->
-                        <div class="p-2 mb-3 bg-dark text-white rounded">
+                        <div class="p-2 mb-3 bg-dark text-white rounded"  id="Phenotypic-dst-header" style="display:none;">
                             <h5 class="mb-0">Phenotypic DST</h5>
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
-                            <div class="col-md-4">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
-                            <div class="col-md-4">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
+                            <div class="col-md-4"  id="phenotypic-performed" style="display:none;">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
+                            <div class="col-md-4"  id="phenotypic-date-performed" style="display:none;">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
+                            <div class="col-md-4"  id="phenotypic-date-results" style="display:none;">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
                         </div>
                         <hr>
 
                         <!-- Phenotypic DST RESULTS -->
-                        <div class="p-2 mb-3 bg-danger text-white rounded">
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-header" style="display:none;">
                             <h5 class="mb-0">Phenotypic DST RESULTS</h5>
                         </div>
-                        <div class="row">
+                        <div class="row" id="phenotypic-dst-results" style="display:none;">
                             {% for field in form %}
                                 {% if field.name in "rifampicin,isoniazid,levofloxacin,moxifloxacin,bedaquiline,linezolid,clofazimine,cycloserine,terizidone,ethambutol,delamanid,pyrazinamide,imipenem,cilastatin,meropenem,amikacin,streptomycin,ethionamide,prothionamide,para_aminosalicylic_acid"|split:"," %}
                                 <div class="col-md-3 mb-3">

@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const MgitResults = document.getElementById("id_mgit_results");
 
     // Field to show/hide
-    const IsolateHeader = document.getElementById("isolate-header");
+    const isolateHeader = document.getElementById("isolate-header");
     const cultureIsolate = document.getElementById("culture-isolate");
 
     function toggleCultureIsolate() {
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Show if LJ is 1-4 OR MGIT is 1
         const show = ["1", "2", "3", "4"].includes(ljValue) || mgitValue === "1";
 
-        IsolateHeader.style.display = show ? "block" : "none";
+        isolateHeader.style.display = show ? "block" : "none";
         cultureIsolate.style.display = show ? "block" : "none";
     }
 
