@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Field to show/hide
     const isolateDate = document.getElementById("isolate-date");
-    const phenotypicDstHeader = document.getElementById("Phenotypic-dst-header");
+    const phenotypicDstHeader = document.getElementById("phenotypic-dst-header");
     const phenotypicPerformed = document.getElementById("phenotypic-performed");
 
     function toggleCultureIsolate() {

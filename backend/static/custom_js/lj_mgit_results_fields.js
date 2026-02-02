@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const isolateHeader = document.getElementById("isolate-header");
     const cultureIsolate = document.getElementById("culture-isolate");
 
-    function toggleCultureIsolate() {
+    function togglejResultsMgitResults() {
         const ljValue = String(LjResults?.value || "");
         const mgitValue = String(MgitResults?.value || "");
 
@@ -19,9 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Initial state on page load
-    toggleCultureIsolate();
+    togglejResultsMgitResults();
 
     // Update when either result changes
-    LjResults.addEventListener("change", toggleCultureIsolate);
-    MgitResults.addEventListener("change", toggleCultureIsolate);
+    LjResults.addEventListener("change", togglejResultsMgitResults);
+    MgitResults.addEventListener("change", togglejResultsMgitResults);
 });
