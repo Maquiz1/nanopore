@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load custom_tags %}
+{% load static %}
+
+<title>{% block title %}Dream Fund - Nanopore Sequencing{% endblock %}</title>
+
+{% block titlebar %}
+Dashboard — {{ user.get_full_name|default:user.username }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .fa-hand-wave::before {
+        content: "\f44b";
+        /* custom wave icon if missing */
+    }
+
+    .card-body h2 i {
+        animation: wave 2s infinite ease-in-out;
+    }
+
+    @keyframes wave {
+
+        0%,
+        100% {
+            transform: rotate(0deg);
+        }
+
+        25% {
+            transform: rotate(15deg);
+        }
+
+        75% {
+            transform: rotate(-10deg);
+        }
+    }
+</style>
+
+<style>
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.blink {
+  animation: blink 3s infinite;
+}
+</style>
+
+<div class="card shadow-sm border-0 mb-4 rounded-4">
+    <div class="card-body bg-light">
+        <h2 class="mb-3 text-primary fw-bold d-flex align-items-center flex-wrap">
+            <i class="fas fa-hand-wave text-warning me-2"></i>
+            Welcome,
+            <span class="ms-1">
+                {% if request.user.profile.prefix %}
+                {{ request.user.profile.prefix|default:"" }}.
+                {% endif %}
+                {{ user.get_full_name|default:user.username }}!
+            </span>
+        </h2>
+        {% with user_group=request.user.groups.first.name|upper %}
+        {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+        <div class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm"> 
+            <div>
+                <p class="mb-0 fs-5 text-dark">
+                    <i class="fas fa-user-shield text-primary me-2"></i>
+                    <strong>Position:</strong> {{ request.user.profile.position }}
+                </p>
+            </div>
+
+            {% if total_issues %}
+            <!-- Blinking Badge -->
+            <div>
+                <span class="badge bg-danger blink">
+                    Current Pending Queries: {{ total_issues  | intcomma }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        {% if request.user.profile.site %}
+        <div class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">      
+            <div>
+                <!-- <p class="mb-1"><i class="fas fa-user-tag text-success me-2"></i><strong>Prefix:</strong> {{ request.user.profile.prefix }}</p> -->
+                <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i>
+                    <strong>Zone:</strong>
+                    {{ request.user.profile.site.district.region.zone.name }}</p>
+                <p class="mb-1"><i class="fas fa-hospital text-success me-2"></i>
+                    <strong>Site:</strong>
+                    {{ request.user.profile.site.name }}</p>
+                <p class="mb-0"><i class="fas fa-briefcase text-success me-2"></i>
+                    <strong>Position:</strong>
+                    {{ request.user.profile.position }}</p>
+            </div>
+            {% if total_issues %}
+            <!-- Blinking Badge -->
+            <div>
+                <span class="badge bg-danger blink">
+                    Current Pending Queries: {{ total_issues  | intcomma }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
+            ⚠️ Your profile does not have a site assigned. please Login again <br><hr> 
+            <a href="{% url 'users:login' %}">Click here to login</a>
+        </div>
+        {% endif %}
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+
+<div class="container mt-3">
+    <!-- Selected Site / Zone Info -->
+    <div class="mb-3">
+        {% if request.GET.site or request.GET.zone %}
+        <h5>
+            {% if request.GET.site %}
+            Site: {{ sites|get_item:request.GET.site|default:"N/A" }}
+            {% endif %}
+            {% if request.GET.zone %}
+            {% if request.GET.site %} | {% endif %}
+            Zone: {{ zones|get_item:request.GET.zone|default:"N/A" }}
+            {% endif %}
+        </h5>
+        {% endif %}
+    </div>
+
+    <style>
+        .card-hover:hover {
+            transform: scale(1.03);
+            transition: 0.2s;
+        }
+    </style>
+
+    <!-- Filters -->
+    <form method="get" class="row g-3 mb-4">
+        {% if is_admin or is_national_lab %}
+        <div class="col-md-3">
+            <select name="zone" class="form-select">
+                <option value="">All Zones</option>
+                {% for id, name in zones.items %}
+                <option value="{{ id }}" {% if request.GET.zone == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% elif is_zonal_lab %}
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+        <input type="hidden" name="site" value="{{ sites.keys.0 }}">
+        {% endif %}
+
+        <div class="col-md-2">
+            <select name="period" class="form-select">
+                <option value="monthly" {% if request.GET.period == "monthly" or request.GET.period == "" %}selected{% endif %}>Monthly</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+        </div>
+        <div class="col-md-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
+        </div>
+    </form>
+
+    <!-- 7-DAY REPORTS -->
+    <div class="row g-4 mb-4">
+        <!-- 7-Day Bar Chart -->
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Screenings in Last 7 Days (Bar)</h5>
+                    <canvas id="sevenDaysBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-4 mb-4">
+        <!-- 7-Day Trend Line Chart -->
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Screenings in Last 7 Days (Trend)</h5>
+                    <canvas id="sevenDaysLineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- THIS MONTH REPORTS -->
+    <!-- ============================= -->
+    <!-- THIS MONTH REPORTS -->
+    <div class="row g-4 mb-4">
+        <!-- This Month Bar Chart -->
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Screenings This Month by Zone (Bar)</h5>
+                    <canvas id="monthBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-4 mb-4">
+        <!-- This Month Trend Line Chart -->
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Screenings This Month by Zone (Trend)</h5>
+                    <canvas id="monthLineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- END THIS MONTH REPORTS -->
+    <!-- ============================= -->
+
+    <!-- CHARTS -->
+    <div class="row g-4">
+        <!-- Bar Chart per Zone / Site -->
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Screenings by Zone</h5>
+                    <canvas id="zoneBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Series Line Chart (monthly only) -->
+        <div class="col-md-12">
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Screening Trends (Monthly) by Zone</h5>
+                    <canvas id="zoneTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Substudy Bar Chart -->
+        <div class="col-md-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Substudy Distribution</h5>
+                    <canvas id="substudyBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+            <!-- Quick Actions / Info -->
+            {% if user.is_staff %}
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="text-muted">
+                        Use the navigation menu to access patient records, screening logs, enrollment data, and all CRFs.
+                    </p>
+                    <a href="{% url 'admin:index' %}" class="btn btn-outline-dark btn-lg mt-3">
+                        <i class="bi bi-gear me-2"></i> Nanopore Admin Panel
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // --- 7-DAY REPORTS ---
+    const last7DaysLabels = {{ last7days_labels_json| safe }};
+    const last7DaysValues = {{ last7days_values_json| safe }};
+
+    // 7-Day Bar Chart
+    new Chart(document.getElementById('sevenDaysBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: last7DaysLabels,
+            datasets: [{
+                label: 'Screenings',
+                data: last7DaysValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // 7-Day Trend Line Chart
+    new Chart(document.getElementById('sevenDaysLineChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: last7DaysLabels,
+            datasets: [{
+                label: 'Daily Screenings',
+                data: last7DaysValues,
+                borderColor: 'rgba(255, 99, 132, 0.8)',
+                backgroundColor: 'rgba(255, 99, 132, 0.4)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Screening Trend (Last 7 Days)' }
+            },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+
+<script>
+    const monthLabels = JSON.parse('{{ this_month_labels_json|safe }}');
+    const monthValues = JSON.parse('{{ this_month_values_json|safe }}');
+
+    // Generate consistent unique colors per zone
+    function generateColors(labels) {
+        const colors = {};
+        labels.forEach((label, index) => {
+            // generate color from label hash
+            const hash = Array.from(label).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const hue = hash % 360;
+            colors[label] = `hsl(${hue}, 65%, 55%)`;
+        });
+        return colors;
+    }
+
+    const zoneColors = generateColors(monthLabels);
+    const backgroundColors = monthLabels.map(l => zoneColors[l]);
+    const borderColors = monthLabels.map(l => zoneColors[l]);
+
+    // --- Bar Chart ---
+    new Chart(document.getElementById('monthBarChart'), {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Screenings This Month',
+                data: monthValues,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // --- Line Chart ---
+    new Chart(document.getElementById('monthLineChart'), {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Screenings This Month',
+                data: monthValues,
+                borderColor: '#4e79a7',
+                backgroundColor: '#4e79a7',
+                fill: false,
+                tension: 0.3,
+                pointBackgroundColor: backgroundColors,
+                pointBorderColor: borderColors,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+
+<script>
+    const zoneLabels = {{ zone_labels_json| safe }};
+    const zoneValues = {{ zone_values_json| safe }};
+    const timeLabels = {{ time_labels_json| safe }};
+    const timeDatasetsRaw = {{ time_datasets_json| safe }};
+    const substudyLabels = {{ substudy_labels_json| safe }};
+    const sub2Values = {{ sub2_values_json| safe }};
+    const sub4Values = {{ sub4_values_json| safe }};
+
+    // Color palette
+    const colors = [
+        'rgba(54, 162, 235, 0.8)',
+        'rgba(255, 99, 132, 0.8)',
+        'rgba(255, 206, 86, 0.8)',
+        'rgba(75, 192, 192, 0.8)',
+        'rgba(153, 102, 255, 0.8)',
+        'rgba(255, 159, 64, 0.8)',
+        'rgba(199, 199, 199, 0.8)'
+    ];
+    function getColor(index) {
+        return colors[index % colors.length];
+    }
+
+    // --- Bar Chart (Screenings per Zone / Site) ---
+    new Chart(document.getElementById('zoneBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: zoneLabels,
+            datasets: [{
+                label: 'Screenings',
+                data: zoneValues,
+                backgroundColor: zoneLabels.map((_, idx) => getColor(idx)),
+                borderColor: zoneLabels.map((_, idx) => getColor(idx)),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // --- Line Chart (Monthly Trends) ---
+    const timeDatasets = timeDatasetsRaw.map((dataset, index) => ({
+        label: dataset.label,
+        data: dataset.data,
+        borderColor: getColor(index),
+        backgroundColor: getColor(index),
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4
+    }));
+
+    new Chart(document.getElementById('zoneTimeChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: timeLabels,
+            datasets: timeDatasets
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            stacked: false,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Monthly Screening Trends' },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.dataset.label + ": " + context.formattedValue;
+                        }
+                    }
+                }
+            },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // --- Substudy Bar Chart ---
+    new Chart(document.getElementById('substudyBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: substudyLabels,
+            datasets: [
+                {
+                    label: 'Substudy 2',
+                    data: sub2Values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)'
+                },
+                {
+                    label: 'Substudy 4',
+                    data: sub4Values,
+                    backgroundColor: 'rgba(255, 99, 132, 0.8)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+{% endblock %}

@@ -17,6 +17,11 @@
         <i class="fas fa-globe-africa"></i><span> Countries</span>
     </a>
 
+    <a href="{% url 'dashboard:graphs' %}"
+       class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+        <i class="fas fa-globe-africa"></i><span> Graphs</span>
+    </a>
+
     {% if user.is_superuser %}
     <a href="{% url 'users:staff_list' %}">
         <i class="fas fa-user-shield"></i><span> Users</span>
