@@ -128,13 +128,13 @@
                         <hr>
 
                         <!-- Culture Isolate -->
-                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                        <div class="p-2 mb-3 bg-secondary text-white rounded" id="isolate-header" style="display:none;">
                             <h5 class="mb-0">Culture Isolate</h5>
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
-                            <div class="col-md-6">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
+                            <div class="col-md-6" id="culture-isolate" style="display:none;">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
+                            <div class="col-md-6" id="isolate-date" style="display:none;">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
                         </div>
                         <hr>
 
@@ -354,6 +354,9 @@
 
 <script src="{% static 'custom_js/culture_performed_fields.js' %}"></script>
 <script src="{% static 'custom_js/culture_method_fields.js' %}"></script>
+<script src="{% static 'custom_js/lj_mgit_results_fields.js' %}"></script>
+<script src="{% static 'custom_js/culture_isolate_fileds.js' %}"></script>
+
 
 {% endblock %}
 
