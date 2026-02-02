@@ -69,6 +69,7 @@ ZONAL_LABELS = {
     "xpert_xdr_capreomycin":"15(e). Capreomycin",
     "xpert_xdr_ethionamide":"15(f). Ethionamide",
     
+    "lpa":"16(a). Was LPA conducted?",
     # First-Line LPA
     "first_line_lpa":"16. Was first-line LPA conducted?",
     "first_line_lpa_date":"17(a). Date of performing first-line LPA?",
