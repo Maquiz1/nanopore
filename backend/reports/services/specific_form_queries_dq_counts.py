@@ -6,7 +6,7 @@ from reports.services.diagnosis_dq_counts import get_diagnosis_dq_counts
 from reports.services.clinic_dq_counts import get_clinic_dq_counts
 from reports.services.zonal_dq_counts import get_zonal_dq_counts
 
-def get_specific_form_dq_counts(user, zone_id=None, site_id=None):
+def get_specific_form_dq_counts(user, zone_id=None, site_id=None,role=None):
     """
     Returns a dictionary of all specific form data quality totals
     + combined total according to role
@@ -17,6 +17,15 @@ def get_specific_form_dq_counts(user, zone_id=None, site_id=None):
     diagnosis_total = get_diagnosis_dq_counts(user, zone_id, site_id).get("total_issues", 0)
     clinic_total = get_clinic_dq_counts(user, zone_id, site_id).get("total_issues", 0)
     zonal_total = get_zonal_dq_counts(user, zone_id, site_id).get("total_issues", 0)
+
+
+    # ── Role-based combined total ──
+    if role == "privileged":
+        total = screening_total + enrollment_total + regimen_total + diagnosis_total + clinic_total + zonal_total
+    elif role == "zonal_lab":
+        total = zonal_total
+    else:
+        total = screening_total + enrollment_total + regimen_total + diagnosis_total + clinic_total
 
     return {
         "screening_report_total": screening_total,
@@ -29,5 +38,6 @@ def get_specific_form_dq_counts(user, zone_id=None, site_id=None):
             "privileged": screening_total + enrollment_total + regimen_total + diagnosis_total + clinic_total + zonal_total,
             "zonal_lab": zonal_total,
             "default": screening_total + enrollment_total + regimen_total + diagnosis_total + clinic_total,
-        }
+        },
+        "total_issues": total,
     }
