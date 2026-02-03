@@ -67,26 +67,36 @@ class SpecificFormQueriesDashboardView(TemplateView):
             request.user, zone_id_int, site_id_int
         ).get("total_issues", 0)
 
+        # ── Combined Total (simple sum) ──────────────────────────────
+        specific_queries_total = (
+            screening_total +
+            enrollment_total +
+            regimen_total +
+            diagnosis_total +
+            clinic_total +
+            zonal_total
+        )
+        
         # ── Combined Total (role-aware) ──────────────────────────────
-        if is_privileged:
-            specific_queries_total = (
-                screening_total +
-                enrollment_total +
-                regimen_total +
-                diagnosis_total +
-                clinic_total +
-                zonal_total
-            )
-        elif is_zonal_lab:
-            specific_queries_total = zonal_total
-        else:
-            specific_queries_total = (
-                screening_total +
-                enrollment_total +
-                regimen_total +
-                diagnosis_total +
-                clinic_total
-            )
+        # if is_privileged:
+        #     specific_queries_total = (
+        #         screening_total +
+        #         enrollment_total +
+        #         regimen_total +
+        #         diagnosis_total +
+        #         clinic_total +
+        #         zonal_total
+        #     )
+        # elif is_zonal_lab:
+        #     specific_queries_total = zonal_total
+        # else:
+        #     specific_queries_total = (
+        #         screening_total +
+        #         enrollment_total +
+        #         regimen_total +
+        #         diagnosis_total +
+        #         clinic_total
+        #     )
 
         # ── Context ──────────────────────────────────────────────────
         context.update({
