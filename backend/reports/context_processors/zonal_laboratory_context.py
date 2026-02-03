@@ -319,6 +319,12 @@ def zonal_report_total(request):
         missing_lpa=Count(
             Case(When(lpa__isnull=True, then=1), output_field=IntegerField())
         ),
+        missing_lpa1=Count(
+            Case(When(lpa=1, first_line_lpa__isnull=True, then=1), output_field=IntegerField())
+        ),
+        missing_lpa2=Count(
+            Case(When(lpa=1, second_line_lpa__isnull=True, then=1), output_field=IntegerField())
+        ),
         # FIRST LINE LPA
         missing_first_line_lpa=Count(
             Case(When(first_line_lpa__isnull=True, then=1), output_field=IntegerField())

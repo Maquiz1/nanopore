@@ -327,6 +327,12 @@ class ZonalDataQualityReportView(View):
             missing_lpa=Count(
                 Case(When(lpa__isnull=True, then=1), output_field=IntegerField())
             ),
+            missing_lpa1=Count(
+                Case(When(lpa=1, first_line_lpa__isnull=True, then=1), output_field=IntegerField())
+            ),
+            missing_lpa2=Count(
+                Case(When(lpa=1, second_line_lpa__isnull=True, then=1), output_field=IntegerField())
+            ),
             # FIRST LINE LPA
             missing_first_line_lpa=Count(
                 Case(When(first_line_lpa__isnull=True, then=1), output_field=IntegerField())
@@ -570,6 +576,8 @@ class ZonalDataQualityReportView(View):
             ],
             # LPA
             "missing_lpa": ["lpa"],
+            "missing_lpa1": ["first_line_lpa"],
+            "missing_lpa2": ["second_line_lpa"],
             # First line LPA
             "missing_first_line_lpa": ["first_line_lpa"],
             "missing_first_line_lpa_date": ["first_line_lpa_date"],

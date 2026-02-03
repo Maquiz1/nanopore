@@ -208,7 +208,7 @@
     <div class="text-center mt-5 pt-5 border-top">
         <h4 class="mb-3">Total Known Quality Issues (All Forms)</h4>
         <span class="badge bg-dark fs-2 px-5 py-4">
-            {{ specific_queries_total|default:"—" }}
+            {{ specific_queries_total|default:0 | intcomma }}
         </span>
         <p class="text-muted mt-3 small">
             Sum of issues across Screening + Enrollment + Regimen + Diagnosis + Clinic + Zonal
