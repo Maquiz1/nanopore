@@ -137,6 +137,7 @@ class DiagnosisDataQualityReportView(View):
             tb_diagnosis=2,
             tb_diagnosis_made2__isnull=True
         )
+        
         # ─────────────────────────────────────────────
         # Prepare context
         # ─────────────────────────────────────────────
