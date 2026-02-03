@@ -1,17 +1,20 @@
 {% extends "base.html" %}
 {% load humanize %}
+
 {% block content %}
 
 <div class="container py-5">
-        <!-- Filter Form -->
+
+    <!-- ───────────────── Filter Form ───────────────── -->
     <div class="row mb-4 justify-content-center">
         <div class="col-md-10">
-            <form method="get" class="d-flex flex-wrap gap-2 justify-content-center align-items-end">
+            <form method="get"
+                  class="d-flex flex-wrap gap-2 justify-content-center align-items-end">
 
-                <!-- Zone filter -->
+                <!-- Zone -->
                 <div class="col-md-3">
-                    <label for="zone" class="form-label">Zone</label>
-                    <select id="zone" name="zone" class="form-select form-select-lg">
+                    <label class="form-label">Zone</label>
+                    <select name="zone" class="form-select form-select-lg">
                         <option value="">All Zones</option>
                         {% for z_id, z_name in zones.items %}
                             <option value="{{ z_id }}"
@@ -22,10 +25,10 @@
                     </select>
                 </div>
 
-                <!-- Site filter -->
+                <!-- Site -->
                 <div class="col-md-3">
-                    <label for="site" class="form-label">Site</label>
-                    <select id="site" name="site" class="form-select form-select-lg">
+                    <label class="form-label">Site</label>
+                    <select name="site" class="form-select form-select-lg">
                         <option value="">All Sites</option>
                         {% for s_id, s_name in sites.items %}
                             <option value="{{ s_id }}"
@@ -36,9 +39,9 @@
                     </select>
                 </div>
 
-                <!-- Buttons -->
+                <!-- Actions -->
                 <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                    <button class="btn btn-primary btn-lg px-4" type="submit">
                         Apply Filter
                     </button>
                     <a href="{% url request.resolver_match.view_name %}"
@@ -46,96 +49,97 @@
                         Reset
                     </a>
                 </div>
+
             </form>
         </div>
     </div>
 
-    <!-- Title -->
-    <h2 class="mb-3 text-center">
+    <!-- ───────────────── Title ───────────────── -->
+    <h2 class="mb-4 text-center">
         🧾 DREAM FUND – NANOPORE TB SEQUENCING<br>
         <span class="fs-5 fw-normal text-muted">
-            Missing Form Queries (
-            {% if selected_zone or selected_site %}
-                {% if selected_zone %}{{ selected_zone_name }}{% else %}All Zones{% endif %}
-                +
-                {% if selected_site %}{{ selected_site_name }}{% else %}All Sites{% endif %}
-            {% else %}
-                All Zones + All Sites
-            {% endif %}
-            )
+            Missing Form Queries —
+            {{ selected_zone_name }} / {{ selected_site_name }}
         </span>
     </h2>
 
-    <!-- <h2 class="m-0 text-center flex-grow-1">🧾 Missing Forms Queries Dashboard</h2> -->
-
-    <!-- Navigation Links -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+    <!-- ───────────────── Navigation ───────────────── -->
+    <div class="d-flex justify-content-between mb-4 flex-wrap gap-3">
+        <a href="{% url 'dashboard:dashboard' %}"
+           class="btn btn-outline-secondary btn-lg px-4">
             ← Back to Dashboard
         </a>
-        <a href="{% url 'reports:all_queries_overview' %}" class="btn btn-outline-primary btn-lg px-4">
+        <a href="{% url 'reports:all_queries_overview' %}"
+           class="btn btn-outline-primary btn-lg px-4">
             Queries Overview →
         </a>
     </div>
 
+    <!-- ───────────────── Cards ───────────────── -->
     <div class="row g-4 justify-content-center">
 
         {% if is_privileged or not is_zonal_lab %}
-        <!-- Show upstream cards for privileged users AND for normal users -->
-        <!-- (skipped only when user is zonal_lab) -->
 
             <!-- Enrollment -->
-            <div class="col-md-4 col-lg-4">
-                <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}" 
-                   class="card text-decoration-none shadow-sm h-100 border-danger">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h5 class="card-title mb-3">Enrollment</h5>
-                        <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_enrollment_count|default:0  | intcomma }}
+            <div class="col-md-4">
+                <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}"
+                   class="card shadow-sm h-100 text-decoration-none border-danger">
+                    <div class="card-body text-center">
+                        <h5>Enrollment</h5>
+                        <p class="display-4 fw-bold text-danger">
+                            {{ missing_enrollment_count|default:0|intcomma }}
                         </p>
-                        <p class="text-muted small mt-2">Eligible screenings without enrollment form</p>
+                        <small class="text-muted">
+                            Eligible without enrollment form
+                        </small>
                     </div>
                 </a>
             </div>
 
-            <!-- Clinic Lab -->
-            <div class="col-md-4 col-lg-4">
-                <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}" 
-                   class="card text-decoration-none shadow-sm h-100 border-warning">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h5 class="card-title mb-3">Clinic Lab</h5>
-                        <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_clinic_count|default:0  | intcomma }}
+            <!-- Clinic -->
+            <div class="col-md-4">
+                <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}"
+                   class="card shadow-sm h-100 text-decoration-none border-warning">
+                    <div class="card-body text-center">
+                        <h5>Clinic Lab</h5>
+                        <p class="display-4 fw-bold text-danger">
+                            {{ missing_clinic_count|default:0|intcomma }}
                         </p>
-                        <p class="text-muted small mt-2">Eligible without clinic lab record</p>
+                        <small class="text-muted">
+                            Eligible without clinic lab record
+                        </small>
                     </div>
                 </a>
             </div>
 
             <!-- Diagnosis -->
-            <div class="col-md-4 col-lg-4">
-                <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}" 
-                   class="card text-decoration-none shadow-sm h-100 border-warning">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h5 class="card-title mb-3">Diagnosis</h5>
-                        <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_diagnosis_count|default:0  | intcomma }}
+            <div class="col-md-4">
+                <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}"
+                   class="card shadow-sm h-100 text-decoration-none border-warning">
+                    <div class="card-body text-center">
+                        <h5>Diagnosis</h5>
+                        <p class="display-4 fw-bold text-danger">
+                            {{ missing_diagnosis_count|default:0|intcomma }}
                         </p>
-                        <p class="text-muted small mt-2">Eligible without diagnosis record</p>
+                        <small class="text-muted">
+                            Eligible without diagnosis record
+                        </small>
                     </div>
                 </a>
             </div>
 
-            <!-- Regimen Changes -->
-            <div class="col-md-6 col-lg-6">
-                <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}" 
-                   class="card text-decoration-none shadow-sm h-100 border-warning">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h5 class="card-title mb-3">Regimen Changes</h5>
-                        <p class="display-4 fw-bold text-danger mb-1">
-                            {{ forms_report_total.missing_regimen_count|default:0  | intcomma }}
+            <!-- Regimen -->
+            <div class="col-md-6">
+                <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}"
+                   class="card shadow-sm h-100 text-decoration-none border-warning">
+                    <div class="card-body text-center">
+                        <h5>Regimen Changes</h5>
+                        <p class="display-4 fw-bold text-danger">
+                            {{ missing_regimen_count|default:0|intcomma }}
                         </p>
-                        <p class="text-muted small mt-2">Expected changes missing</p>
+                        <small class="text-muted">
+                            Expected regimen changes missing
+                        </small>
                     </div>
                 </a>
             </div>
@@ -143,63 +147,49 @@
         {% endif %}
 
         {% if is_privileged or is_zonal_lab %}
-        <!-- Zonal Lab card – shown only to privileged users or zonal lab users -->
-        <div class="col-md-6 col-lg-6 {% if is_zonal_lab and not is_privileged %} col-md-12 col-lg-12{% endif %}">
-            <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}" 
-               class="card text-decoration-none shadow-sm h-100 border-danger">
-                <div class="card-body text-center d-flex flex-column justify-content-center">
-                    <h5 class="card-title mb-3">Zonal Lab</h5>
-                    <p class="display-4 fw-bold text-danger mb-1">
-                        {{ forms_report_total.missing_zonal_count|default:0  | intcomma }}
-                    </p>
-                    <p class="text-muted small mt-2">Eligible without zonal lab record</p>
-                </div>
-            </a>
-        </div>
+            <!-- Zonal -->
+            <div class="col-md-6">
+                <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}"
+                   class="card shadow-sm h-100 text-decoration-none border-danger">
+                    <div class="card-body text-center">
+                        <h5>Zonal Lab</h5>
+                        <p class="display-4 fw-bold text-danger">
+                            {{ missing_zonal_count|default:0|intcomma }}
+                        </p>
+                        <small class="text-muted">
+                            Eligible without zonal lab record
+                        </small>
+                    </div>
+                </a>
+            </div>
         {% endif %}
 
     </div>
 
-    <!-- Total -->
+    <!-- ───────────────── Total ───────────────── -->
     <div class="text-center mt-5 pt-4 border-top">
-        <h4 class="mb-3">Total Known Issues</h4>
+        <h4>Total Known Issues</h4>
         <span class="badge bg-danger fs-3 px-5 py-3">
-            {{ forms_report_total.total_form_missing|default:0  | intcomma }}
+            {{ total_form_missing|default:0|intcomma }}
         </span>
         <p class="text-muted mt-2 small">
-            Sum of missing forms across eligible screenings (visible according to your role)
+            Visible according to your role
         </p>
     </div>
 
 </div>
 
 <style>
-    .card {
-        transition: all 0.25s ease-in-out;
-        border: none;
-        border-radius: 12px;
-        overflow: hidden;
-        background: white;
-    }
-
-    .card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
-    }
-
-    .card-title {
-        font-weight: 700;
-        color: #2c3e50;
-        line-height: 1.3;
-    }
-
-    .display-4 {
-        line-height: 1;
-        margin-bottom: 0.25rem;
-    }
-
-    .border-danger { border-left: 5px solid #dc3545 !important; }
-    .border-warning { border-left: 5px solid #ffc107 !important; }
+.card {
+    border-radius: 12px;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,.15);
+}
+.border-danger { border-left: 5px solid #dc3545 !important; }
+.border-warning { border-left: 5px solid #ffc107 !important; }
 </style>
 
 {% endblock %}
