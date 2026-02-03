@@ -27,14 +27,14 @@
         </a>
 
         <!-- Alerts Icon -->
-        <a href="{% url 'reports:all_queries_overview' %}" class="icon-btn">
+        <!-- <a href="{% url 'reports:all_queries_overview' %}" class="icon-btn">
             <i class="fas fa-bell"></i>
             {% if total_issues %}
             <span class="badge">
                 {{ total_issues   | intcomma }}
             </span>
             {% endif %}
-         </a>
+         </a> -->
 
         <!-- Profile Dropdown -->
         {% if user.is_authenticated %}
