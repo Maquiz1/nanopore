@@ -5,7 +5,7 @@
 <div class="container py-5">
 
     <!-- Header with Back Button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h2 class="m-0">🧾 Data Quality Overview</h2>
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
             ← Back to Dashboard
@@ -43,7 +43,7 @@
                 </div>
 
                 <!-- Buttons -->
-                <div class="col-md-4 d-flex gap-2">
+                <div class="col-md-4 d-flex gap-2 flex-wrap">
                     <button type="submit" class="btn btn-primary btn-lg px-4">Apply Filter</button>
                     <a href="{% url request.resolver_match.view_name %}" class="btn btn-outline-secondary btn-lg px-4">Reset</a>
                 </div>
@@ -69,7 +69,7 @@
     <!-- Cards Row -->
     <div class="row g-4 justify-content-center">
 
-        <!-- GRAND TOTAL – Most prominent -->
+        <!-- GRAND TOTAL -->
         <div class="col-12 col-lg-10">
             <a href="{% url 'reports:all_queries_overview' %}" 
                class="card text-decoration-none shadow-xl h-100 border-warning border-3 hover-lift bg-light">
@@ -78,19 +78,13 @@
                     <p class="display-2 fw-bolder text-warning mb-2">
                         {{ total_issues|default:0 | intcomma }}
                     </p>
-                    <p class="lead text-muted mb-2">
-                        All detected problems across the system
-                    </p>
+                    <p class="lead text-muted mb-2">All detected problems across the system</p>
                     <p class="text-muted mb-3" style="font-size: 1.1rem;">
                         = Missing Forms (Enrollment + Regimen + Diagnosis + Clinic + Zonal)
-                        <br>
-                        +
-                        <br>
-                        Issues in (Screening + Enrollment + Regimen + Diagnosis + Clinic + Zonal)
+                        <br>+
+                        <br>Form Queries / Field-level issues
                     </p>
-                    <small class="text-muted mt-3">
-                        (click to see complete breakdown by category)
-                    </small>
+                    <small class="text-muted mt-3">(Click to see complete breakdown by category)</small>
                 </div>
             </a>
         </div>
@@ -107,15 +101,11 @@
                     <p class="display-3 fw-bold text-danger mb-2">
                         {{ forms_report_total.total_form_missing|default:0 | intcomma }}
                     </p>
-                    <p class="lead text-muted mb-2">
-                        Eligible screenings without required form(s)
-                    </p>
+                    <p class="lead text-muted mb-2">Eligible screenings without required form(s)</p>
                     <p class="text-muted mb-0" style="font-size: 1.05rem;">
                         (Enrollment, Regimen, Diagnosis, Clinic, Zonal)
                     </p>
-                    <small class="text-muted mt-4">
-                        Click for breakdown by form type
-                    </small>
+                    <small class="text-muted mt-4">Click for breakdown by form type</small>
                 </div>
             </a>
         </div>
@@ -135,9 +125,7 @@
                     <p class="text-muted mb-0" style="font-size: 1.05rem;">
                         Screening • Enrollment • Regimen • Diagnosis • Clinic • Zonal
                     </p>
-                    <small class="text-muted mt-4">
-                        Click to view detailed list by form/category
-                    </small>
+                    <small class="text-muted mt-4">Click to view detailed list by form/category</small>
                 </div>
             </a>
         </div>
@@ -146,42 +134,19 @@
 
     <!-- Optional summary note -->
     <div class="text-center mt-5 pt-4 text-muted small">
-        <p>
-            <strong>Note:</strong> Total includes both <em>forms that are completely missing</em> 
-            and <em>quality issues in forms that were submitted</em>.
-        </p>
-        <p class="mb-0">
-            Some records may contribute to both categories.
-        </p>
+        <p><strong>Note:</strong> Total includes both <em>forms that are completely missing</em> and <em>quality issues in forms that were submitted</em>.</p>
+        <p class="mb-0">Some records may contribute to both categories.</p>
     </div>
 
 </div>
 
 <style>
-    .hover-lift {
-        transition: all 0.3s ease;
-    }
-    .hover-lift:hover {
-        transform: translateY(-12px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.18) !important;
-    }
-    .card {
-        border-radius: 16px;
-        overflow: hidden;
-        background: white;
-    }
-    .border-2 {
-        border-width: 2px !important;
-    }
-    .border-3 {
-        border-width: 3px !important;
-    }
-    .display-2 {
-        line-height: 1;
-    }
-    .display-3 {
-        line-height: 1;
-    }
+    .hover-lift { transition: all 0.3s ease; }
+    .hover-lift:hover { transform: translateY(-12px); box-shadow: 0 20px 40px rgba(0,0,0,0.18) !important; }
+    .card { border-radius: 16px; overflow: hidden; background: white; }
+    .border-2 { border-width: 2px !important; }
+    .border-3 { border-width: 3px !important; }
+    .display-2, .display-3 { line-height: 1; }
 </style>
 
 {% endblock %}
