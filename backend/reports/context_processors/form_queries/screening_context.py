@@ -151,7 +151,7 @@ def screening_report_total(request):
     )
 
     return {
-        "screening_report_total": total_issues,
+        "context_screening_report_total": total_issues,
         "missing_consent_date_when_yes": missing_consent_date_when_yes,
         "missing_reasons_other": missing_reasons_other,
         "duplicate_pid_count": duplicate_pid_count,

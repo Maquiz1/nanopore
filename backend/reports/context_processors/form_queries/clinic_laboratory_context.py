@@ -258,7 +258,7 @@ def clinic_report_total(request):
     )
 
     return {
-        "clinic_report_total": clinic_report_total,
+        "context_clinic_report_total": clinic_report_total,
         "missing_sample_received": missing_sample_received,
         "missing_number_received": missing_number_received,
         "missing_afb_microscopy_conducted": missing_afb_microscopy_conducted,

@@ -1,6 +1,7 @@
 # locations/models.py
 
 from django.db import models
+from django.core.exceptions import ValidationError
 
 class Country(models.Model):
     value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
@@ -13,6 +14,21 @@ class Country(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
+    def clean(self):
+            errors = {}
+
+            if not self.target:
+                errors["target"] = "Overall enrollment target is required."
+
+            if not self.substudy2Target:
+                errors["substudy2Target"] = "Substudy 2 target is required."
+
+            if not self.substudy4Target:
+                errors["substudy4Target"] = "Substudy 4 target is required."
+
+            if errors:
+                raise ValidationError(errors)
+        
     def __str__(self):
         return self.name
     
@@ -35,6 +51,21 @@ class Zone(models.Model):
     class Meta:
         # db_table = "zone"
         ordering = ["name"]
+        
+    def clean(self):
+        errors = {}
+
+        if not self.target:
+            errors["target"] = "Overall enrollment target is required."
+
+        if not self.substudy2Target:
+            errors["substudy2Target"] = "Substudy 2 target is required."
+
+        if not self.substudy4Target:
+            errors["substudy4Target"] = "Substudy 4 target is required."
+
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self):
         return self.name
@@ -116,5 +147,20 @@ class Site(models.Model):
     site_type = models.ForeignKey(SiteType, on_delete=models.CASCADE, null=True, blank=True)
     site_level = models.ForeignKey(SiteLevel, on_delete=models.CASCADE, null=True, blank=True)
 
+    def clean(self):
+            errors = {}
+
+            if not self.target:
+                errors["target"] = "Overall enrollment target is required."
+
+            if not self.substudy2Target:
+                errors["substudy2Target"] = "Substudy 2 target is required."
+
+            if not self.substudy4Target:
+                errors["substudy4Target"] = "Substudy 4 target is required."
+
+            if errors:
+                raise ValidationError(errors)
+        
     def __str__(self):
         return f"{self.name} - {self.district.name}"

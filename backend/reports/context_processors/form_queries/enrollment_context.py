@@ -201,7 +201,7 @@ def enrollment_report_total(request):
     ])
 
     return {
-        "enrollment_report_total": enrollment_report_total,
+        "context_enrollment_report_total": enrollment_report_total,
 
         # breakdown
         "missing_hiv_status": missing_hiv_status,

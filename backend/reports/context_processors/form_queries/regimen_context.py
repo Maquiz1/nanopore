@@ -117,7 +117,7 @@ def regimen_report_total(request):
     )
 
     return {
-        "regimen_report_total": regimen_report_total,
+        "context_regimen_report_total": regimen_report_total,
         "missing_regimen_date": missing_regimen_date,
         "missing_regimen_drug": missing_regimen_drug,
         "missing_regimen_changes": missing_regimen_changes,
