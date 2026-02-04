@@ -152,6 +152,7 @@ class DiagnosisDataQualityReportView(View):
             "report_date": timezone.now(),
             "total_diagnosis_records": diagnoses.count(),
 
+            # TB Diagnosis
             "missing_tb_diagnosis": diagnoses.filter(tb_diagnosis__isnull=True),
             "count_missing_tb_diagnosis": diagnoses.filter(tb_diagnosis__isnull=True).count(),
 
@@ -161,38 +162,23 @@ class DiagnosisDataQualityReportView(View):
             "missing_tb_diagnosis_made": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made__isnull=True),
             "count_missing_tb_diagnosis_made": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made__isnull=True).count(),
 
-            "missing_tb_treatment": diagnoses.filter(tb_diagnosis=1, tb_treatment__isnull=True),
-            "count_missing_tb_treatment": diagnoses.filter(tb_diagnosis=1, tb_treatment__isnull=True).count(),
-
             "missing_diagnosis_made_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True),
             "count_missing_diagnosis_made_other": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True).count(),
-
-            "missing_tb_diagnosed_clinically": missing_tb_diagnosed_clinically,
-            "count_missing_tb_diagnosed_clinically": missing_tb_diagnosed_clinically.count(),
-
-            "missing_tb_clinically_other": missing_tb_clinically_other,
-            "count_missing_tb_clinically_other": missing_tb_clinically_other.count(),
-
+            
+            # Bacteriological Diagnosis
             "missing_bacteriological_diagnosis": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=2, bacteriological_diagnosis__isnull=True),
             "count_missing_bacteriological_diagnosis": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=2, bacteriological_diagnosis__isnull=True).count(),
 
             "missing_clinician_received_date": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=2, clinician_received_date__isnull=True),
             "count_missing_clinician_received_date": diagnoses.filter(tb_diagnosis=1, tb_diagnosis_made=2, clinician_received_date__isnull=True).count(),
 
-            "missing_tb_other_diagnosis": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__isnull=True),
-            "count_missing_tb_other_diagnosis": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__isnull=True).count(),
+            #  Clinical Diagnosis
 
-            "missing_tb_diagnosis_made2": diagnoses.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True),
-            "count_missing_tb_diagnosis_made2": diagnoses.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True).count(),
+            "missing_tb_diagnosed_clinically": missing_tb_diagnosed_clinically,
+            "count_missing_tb_diagnosed_clinically": missing_tb_diagnosed_clinically.count(),
 
-            "missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True),
-            "count_missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True).count(),
-
-            "missing_tb_treatment_date": diagnoses.filter(tb_treatment=1, tb_treatment_date__isnull=True),
-            "count_missing_tb_treatment_date": diagnoses.filter(tb_treatment=1, tb_treatment_date__isnull=True).count(),
-
-            "missing_tb_register_number": diagnoses.filter(tb_treatment=1, tb_register_number__isnull=True),
-            "count_missing_tb_register_number": diagnoses.filter(tb_treatment=1, tb_register_number__isnull=True).count(),
+            "missing_tb_clinically_other": missing_tb_clinically_other,
+            "count_missing_tb_clinically_other": missing_tb_clinically_other.count(),
 
             # ─────────────────────────────────────────────
             # DUPLICATE TB REGISTER NUMBER
@@ -201,17 +187,28 @@ class DiagnosisDataQualityReportView(View):
             "count_duplicate_tb_register_number": duplicate_tb_register_number.count(),
             # ─────────────────────────────────────────────
 
-            "missing_tb_regimen": diagnoses.filter(tb_treatment=1, tb_regimen__isnull=True),
-            "count_missing_tb_regimen": diagnoses.filter(tb_treatment=1, tb_regimen__isnull=True).count(),
+            # TB REGIMEN & REASON / TB Treatment
+            
+            "missing_tb_treatment": diagnoses.filter(tb_diagnosis=1, tb_treatment__isnull=True),
+            "count_missing_tb_treatment": diagnoses.filter(tb_diagnosis=1, tb_treatment__isnull=True).count(),
 
-            "missing_regimen_changed": diagnoses.filter(tb_treatment=1, regimen_changed__isnull=True),
-            "count_missing_regimen_changed": diagnoses.filter(tb_treatment=1, regimen_changed__isnull=True).count(),
+            "missing_tb_treatment_date": diagnoses.filter(tb_treatment=1, tb_treatment_date__isnull=True),
+            "count_missing_tb_treatment_date": diagnoses.filter(tb_treatment=1, tb_treatment_date__isnull=True).count(),
 
             "missing_tb_facility": diagnoses.filter(tb_treatment=2, tb_facility__isnull=True),
             "count_missing_tb_facility": diagnoses.filter(tb_treatment=2, tb_facility__isnull=True).count(),
 
             "missing_tb_reason": diagnoses.filter(tb_treatment=96, tb_reason__isnull=True),
             "count_missing_tb_reason": diagnoses.filter(tb_treatment=96, tb_reason__isnull=True).count(),
+            
+            "missing_tb_register_number": diagnoses.filter(tb_treatment=1, tb_register_number__isnull=True),
+            "count_missing_tb_register_number": diagnoses.filter(tb_treatment=1, tb_register_number__isnull=True).count(),
+
+            "missing_tb_regimen": diagnoses.filter(tb_treatment=1, tb_regimen__isnull=True),
+            "count_missing_tb_regimen": diagnoses.filter(tb_treatment=1, tb_regimen__isnull=True).count(),
+
+            "missing_regimen_changed": diagnoses.filter(tb_treatment=1, regimen_changed__isnull=True),
+            "count_missing_regimen_changed": diagnoses.filter(tb_treatment=1, regimen_changed__isnull=True).count(),
 
             # TB OUTCOME (≥6 MONTHS TREATMENT)
             "pending_tb_outcome": pending_tb_outcome,
@@ -220,35 +217,61 @@ class DiagnosisDataQualityReportView(View):
             "pending_tb_outcome_date": pending_tb_outcome_date,
             "count_pending_tb_outcome_date": pending_tb_outcome_date.count(),
             
+            
+            # Diagnosis other than TB
+
+            "missing_tb_other_diagnosis": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__isnull=True),
+            "count_missing_tb_other_diagnosis": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__isnull=True).count(),
+
+            "missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True),
+            "count_missing_tb_other_specify": diagnoses.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True).count(),
+
+            # "missing_tb_diagnosis_made2": diagnoses.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True),
+            # "count_missing_tb_diagnosis_made2": diagnoses.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True).count(),
+            
             "missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2,
             "count_missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2.count(),
+
         }
 
         # Total issues
         context["total_diagnosis_issues"] = sum([
+            
+            # TB Diagnosis
             context["count_missing_tb_diagnosis"],
             context["count_missing_tb_diagnosis_date"],
             context["count_missing_tb_diagnosis_made"],
-            context["count_missing_tb_treatment"],
             context["count_missing_diagnosis_made_other"],
-            context["count_missing_tb_diagnosed_clinically"],
-            context["count_missing_tb_clinically_other"],
+            
+            # Bacteriological Diagnosis
             context["count_missing_bacteriological_diagnosis"],
             context["count_missing_clinician_received_date"],
-            context["count_missing_tb_other_diagnosis"],
-            context["count_missing_tb_diagnosis_made2"],
-            context["count_missing_tb_other_specify"],
-            context["count_missing_tb_treatment_date"],
-            context["count_missing_tb_register_number"],
-            # ✅ NEW
+            
+            #  Clinical Diagnosis
+            context["count_missing_tb_diagnosed_clinically"],
+            context["count_missing_tb_clinically_other"],
+            
+            
+            # DUPLICATE TB REGISTER NUMBER
             context["count_duplicate_tb_register_number"],
             
+            # TB REGIMEN & REASON / TB Treatment
+            context["count_missing_tb_treatment"],
+            context["count_missing_tb_treatment_date"],
+            context["count_missing_tb_register_number"],
             context["count_missing_tb_regimen"],
             context["count_missing_regimen_changed"],
-            context["count_missing_tb_facility"],
+            context["count_missing_tb_facility"],   
             context["count_missing_tb_reason"],
+            
+            # TB OUTCOME (≥6 MONTHS TREATMENT)
             context["count_pending_tb_outcome"],
             context["count_pending_tb_outcome_date"],
+            
+            # Diagnosis other than TB
+            context["count_missing_tb_other_diagnosis"],
+            context["count_missing_tb_other_specify"],
+            context["count_missing_tb_diagnosis_made2"],
         ])
 
         return render(request, self.template_name, context)

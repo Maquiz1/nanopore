@@ -770,6 +770,38 @@
         </div>
         {% endif %}
 
+        <!-- 21. Pending outcome date: treatment ≥6 months with outcome but missing date -->
+        {% if count_pending_tb_outcome_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePendingOutcomeDate">
+                    Treatment ≥ 6 months – Outcome date missing ({{ count_pending_tb_outcome_date }})
+                </button>
+            </h2>
+            <div id="collapsePendingOutcomeDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th><th>Months Since Started Treatment</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in pending_tb_outcome_date %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                    <td class="text-center">{{ item.months_on_treatment|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 
     {% else %}
