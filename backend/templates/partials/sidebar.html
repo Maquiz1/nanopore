@@ -91,8 +91,8 @@
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
             <span><i class="fas fa-search"></i> Queries</span>
             <span class="d-flex align-items-center">
-                {% if total_issues %}
-                <span class="badge bg-danger rounded-pill me-2">{{ total_issues| intcomma }}</span>
+                {% if context_total_issues %}
+                <span class="badge bg-danger rounded-pill me-2">{{ context_total_issues| intcomma }}</span>
                 {% endif %}
                 <i class="fas fa-chevron-down"></i>
             </span>
@@ -100,46 +100,46 @@
         <div class="submenu">
             <a href="{% url 'reports:all_queries_overview' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-exclamation-triangle"></i> Total Issues</span>
-                <span class="badge bg-danger rounded-pill">{{ total_issues|default:"0"| intcomma }}</span>
+                <span class="badge bg-danger rounded-pill">{{ context_total_issues|default:"0"| intcomma }}</span>
             </a>
 
             <a href="{% url 'reports:missing_form_queries' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-file-csv me-2"></i> Missing Forms</span>
-                {% if forms_report_total.total_form_missing %}
-                <span class="badge bg-danger rounded-pill">{{ forms_report_total.total_form_missing | intcomma }}</span>
+                {% if context_total_issues_components.missing_forms %}
+                <span class="badge bg-danger rounded-pill">{{ context_total_issues_components.missing_forms | intcomma }}</span>
                 {% endif %}
             </a>
 
             {% with user_group=request.user.groups.first.name|upper %}
             {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" or user_group == "NURSE" or user_group == "CLINICIAN" %}
-            {% if screening_report_total %}
+            {% if context_screening_report_total %}
             <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-user-check"></i> Screening</span>
-                <span class="badge bg-danger rounded-pill">{{ screening_report_total | intcomma }}</span>
+                <span class="badge bg-danger rounded-pill">{{ context_screening_report_total | intcomma }}</span>
             </a>
             {% endif %}
-            {% if enrollment_report_total %}
+            {% if context_enrollment_report_total %}
             <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-user-plus"></i> Enrollment</span>
-                <span class="badge bg-danger rounded-pill">{{ enrollment_report_total | intcomma }}</span>
+                <span class="badge bg-danger rounded-pill">{{ context_enrollment_report_total | intcomma }}</span>
             </a>
             {% endif %}
-            {% if clinic_report_total %}
+            {% if context_clinic_report_total %}
             <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-vial"></i> Clinic</span>
-                <span class="badge bg-danger rounded-pill">{{ clinic_report_total | intcomma }}</span>
+                <span class="badge bg-danger rounded-pill">{{ context_clinic_report_total | intcomma }}</span>
             </a>
             {% endif %}
-            {% if diagnosis_report_total %}
+            {% if context_diagnosis_report_total %}
             <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-stethoscope"></i> Diagnosis</span>
-                <span class="badge bg-danger rounded-pill">{{ diagnosis_report_total | intcomma }}</span>
+                <span class="badge bg-danger rounded-pill">{{ context_diagnosis_report_total | intcomma }}</span>
             </a>
             {% endif %}
-            {% if regimen_report_total %}
+            {% if context_regimen_report_total %}
             <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-exchange-alt"></i> Regimen</span>
-                <span class="badge bg-danger rounded-pill">{{ regimen_report_total | intcomma }}</span>
+                <span class="badge bg-danger rounded-pill">{{ context_regimen_report_total | intcomma }}</span>
             </a>
             {% endif %}
             {% endif %}
@@ -147,10 +147,10 @@
 
             {% with user_group=request.user.groups.first.name|upper %}
             {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" or user_group == "LABORATORY_TECHNICIAN" %}
-            {% if zonal_report_total %}
+            {% if context_zonal_report_total %}
             <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
                 <span><i class="fas fa-microscope"></i> Zonal</span>
-                <span class="badge bg-danger rounded-pill">{{ zonal_report_total | intcomma }}</span>
+                <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total | intcomma }}</span>
             </a>
             {% endif %}
             {% endif %}

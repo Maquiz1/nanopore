@@ -4,12 +4,12 @@ from utils.roles import get_role_context
 
 # Import all individual report total functions
 # Adjust file names / module paths according to your actual structure
-from .screening_context import screening_report_total
-from .enrollment_context import enrollment_report_total
-from .regimen_context   import regimen_report_total     # assuming you moved it to regimen_context.py
-from .diagnosis_context import diagnosis_report_total   # assuming separate file
-from .clinic_laboratory_context    import clinic_report_total      # assuming separate file
-from .zonal_laboratory_context import zonal_report_total       # assuming separate file
+from .form_queries.screening_context import screening_report_total
+from .form_queries.enrollment_context import enrollment_report_total
+from .form_queries.regimen_context   import regimen_report_total     # assuming you moved it to regimen_context.py
+from .form_queries.diagnosis_context import diagnosis_report_total   # assuming separate file
+from .form_queries.clinic_laboratory_context    import clinic_report_total      # assuming separate file
+from .form_queries.zonal_laboratory_context import zonal_report_total       # assuming separate file
 
 
 def specific_queries_total(request):
@@ -31,12 +31,12 @@ def specific_queries_total(request):
     is_privileged = is_admin or is_reviewer
 
     # Get individual report totals (these functions should already be role-aware)
-    screening_total  = screening_report_total(request).get('screening_report_total', 0)
-    enrollment_total = enrollment_report_total(request).get('enrollment_report_total', 0)
-    regimen_total    = regimen_report_total(request).get('regimen_report_total', 0)
-    diagnosis_total  = diagnosis_report_total(request).get('diagnosis_report_total', 0)
-    clinic_total     = clinic_report_total(request).get('clinic_report_total', 0)
-    zonal_total      = zonal_report_total(request).get('zonal_report_total', 0)
+    screening_total  = screening_report_total(request).get('context_screening_report_total', 0)
+    enrollment_total = enrollment_report_total(request).get('context_enrollment_report_total', 0)
+    regimen_total    = regimen_report_total(request).get('context_regimen_report_total', 0)
+    diagnosis_total  = diagnosis_report_total(request).get('context_diagnosis_report_total', 0)
+    clinic_total     = clinic_report_total(request).get('context_clinic_report_total', 0)
+    zonal_total      = zonal_report_total(request).get('context_zonal_report_total', 0)
 
     # Compute total based on role
     if is_privileged:
@@ -62,4 +62,4 @@ def specific_queries_total(request):
             clinic_total
         )
 
-    return {'specific_queries_total': total}
+    return {'context_specific_queries_total': total}

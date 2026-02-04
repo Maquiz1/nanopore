@@ -186,7 +186,7 @@ def diagnosis_report_total(request):
     )
 
     return {
-        "diagnosis_report_total": diagnosis_report_total,
+        "context_diagnosis_report_total": diagnosis_report_total,
         "missing_tb_diagnosis": missing_tb_diagnosis,
         "missing_tb_diagnosis_date": missing_tb_diagnosis_date,
         "missing_tb_diagnosis_made": missing_tb_diagnosis_made,

@@ -126,12 +126,12 @@ def forms_report_total(request):
         )
 
     result = {
-        "total_form_missing":       total_form_missing,
-        "missing_enrollment_count": missing_enrollment_count,
-        "missing_clinic_count":     missing_clinic_count,
-        "missing_diagnosis_count":  missing_diagnosis_count,
-        "missing_regimen_count":    missing_regimen_count,
-        "missing_zonal_count":      missing_zonal_count,          # will be 0 for non-allowed users
+        "context_total_form_missing":       total_form_missing,
+        "context_missing_enrollment_count": missing_enrollment_count,
+        "context_missing_clinic_count":     missing_clinic_count,
+        "context_missing_diagnosis_count":  missing_diagnosis_count,
+        "context_missing_regimen_count":    missing_regimen_count,
+        "context_missing_zonal_count":      missing_zonal_count,          # will be 0 for non-allowed users
     }
 
-    return {"forms_report_total": result}
+    return {"context_forms_report_total": result}

@@ -19,9 +19,9 @@
         <!-- Notifications / Messages Icon -->
         <a href="{% url 'reports:all_queries_overview' %}" class="icon-btn">
             <i class="fas fa-envelope"></i>
-            {% if total_issues %}
+            {% if context_total_issues %}
             <span class="badge">
-                {{ total_issues   | intcomma }}
+                {{ context_total_issues   | intcomma }}
             </span>
             {% endif %}
         </a>
