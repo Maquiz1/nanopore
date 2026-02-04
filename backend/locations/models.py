@@ -7,6 +7,8 @@ class Country(models.Model):
     description = models.TextField(blank=True, null=True)
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
     is_active = models.BooleanField(default=True)
+    substudy2 = models.IntegerField(blank=True, null=True)  
+    substudy4 = models.IntegerField(blank=True, null=True) 
     required = models.IntegerField(blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -24,6 +26,8 @@ class Zone(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
     is_active = models.BooleanField(default=True)
+    substudy2 = models.IntegerField(blank=True, null=True)  
+    substudy4 = models.IntegerField(blank=True, null=True) 
     required = models.IntegerField(blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -40,6 +44,8 @@ class Region(models.Model):
     description = models.TextField(blank=True, null=True)
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
     is_active = models.BooleanField(default=True)
+    substudy2 = models.IntegerField(blank=True, null=True)  
+    substudy4 = models.IntegerField(blank=True, null=True) 
     required = models.IntegerField(blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -54,6 +60,8 @@ class District(models.Model):
     description = models.TextField(blank=True, null=True)
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
     is_active = models.BooleanField(default=True)
+    substudy2 = models.IntegerField(blank=True, null=True)  
+    substudy4 = models.IntegerField(blank=True, null=True) 
     required = models.IntegerField(blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -67,6 +75,8 @@ class SiteType(models.Model):
     value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    substudy2 = models.IntegerField(blank=True, null=True)  
+    substudy4 = models.IntegerField(blank=True, null=True) 
     required = models.IntegerField(blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -80,6 +90,8 @@ class SiteLevel(models.Model):
     value = models.IntegerField(blank=True, null=True)  # e.g., 1 for Yes, 0 for No
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    substudy2 = models.IntegerField(blank=True, null=True)  
+    substudy4 = models.IntegerField(blank=True, null=True) 
     required = models.IntegerField(blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -94,6 +106,8 @@ class Site(models.Model):
     description = models.TextField(blank=True, null=True)
     name = models.CharField(max_length=200, unique=True)  # e.g., "Yes" or "No"
     is_active = models.BooleanField(default=True)
+    substudy2 = models.IntegerField(blank=True, null=True)  
+    substudy4 = models.IntegerField(blank=True, null=True)  
     required = models.IntegerField(blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)

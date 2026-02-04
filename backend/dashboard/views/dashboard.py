@@ -8,7 +8,7 @@ from datetime import timedelta
 from nanopore.models import Screening, Enrollment, Diagnosis, ClinicLaboratory
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
-
+from locations.models import Country,Zone
 
 class DashboardHomeView(ListView):
     model = Screening
@@ -61,7 +61,8 @@ class DashboardHomeView(ListView):
         screened_count = qs.count()
         eligible_count = qs.filter(eligible=True).count()
         enrolled_count = Enrollment.objects.filter(screening__in=qs).count()
-        enrolled_required_count = 2600  # Example required count
+        # enrolled_required_count = 2600  # Example required count
+        enrolled_required_count = Country.objects.first().required or 2600
 
         if enrolled_required_count > 0:
             enrolled_progress = round(
