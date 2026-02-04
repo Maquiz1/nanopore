@@ -62,7 +62,7 @@ class DashboardHomeView(ListView):
         eligible_count = qs.filter(eligible=True).count()
         enrolled_count = Enrollment.objects.filter(screening__in=qs).count()
         # enrolled_required_count = 2600  # Example required count
-        enrolled_required_count = Country.objects.first().required or 2600
+        enrolled_required_count = Country.objects.first().target or 2600
 
         if enrolled_required_count > 0:
             enrolled_progress = round(
@@ -95,7 +95,8 @@ class DashboardHomeView(ListView):
         )
 
         substudy2_enrolled_count = substudy2_enrolled_qs.count()
-        substudy2_required_count = 1600  # Example required count
+        # substudy2_required_count = 1600  # Example required count
+        substudy2_required_count = Country.objects.first().substudy2Target or 1600
 
         if substudy2_required_count > 0:
             substudy2_enrolled_progress = round(
@@ -115,6 +116,7 @@ class DashboardHomeView(ListView):
 
         substudy4_enrolled_count = substudy4_enrolled_qs.count()
         substudy4_required_count = 1000  # Example required count
+        substudy4_required_count = Country.objects.first().substudy4Target or 1000
 
         if substudy4_required_count > 0:
             substudy4_enrolled_progress = round(
