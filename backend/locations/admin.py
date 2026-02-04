@@ -26,7 +26,7 @@ class ZoneInline(admin.TabularInline):
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
-    list_display = ['name']
+    list_display = ['name','required']
     inlines = [ZoneInline]
 
 @admin.register(Zone)
