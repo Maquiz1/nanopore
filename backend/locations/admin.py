@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Country, SiteLevel, SiteType, Zone, Region, District, Site
+from django.core.exceptions import ValidationError
 
 # Inline for Site inside District
 class SiteInline(admin.TabularInline):
@@ -28,22 +29,82 @@ class ZoneInline(admin.TabularInline):
 class CountryAdmin(admin.ModelAdmin):
     list_display = ['name','target','substudy2Target','substudy4Target']
     inlines = [ZoneInline]
+    
+    def clean(self):
+        errors = {}
+
+        if not self.target:
+            errors["target"] = "Overall enrollment target is required."
+
+        if not self.substudy2Target:
+            errors["substudy2Target"] = "Substudy 2 target is required."
+
+        if not self.substudy4Target:
+            errors["substudy4Target"] = "Substudy 4 target is required."
+
+        if errors:
+            raise ValidationError(errors)
 
 @admin.register(Zone)
 class ZoneAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'description')
+    list_display = ('id', 'name', 'description','target','substudy2Target','substudy4Target')
+    
+    def clean(self):
+        errors = {}
 
+        if not self.target:
+            errors["target"] = "Overall enrollment target is required."
+
+        if not self.substudy2Target:
+            errors["substudy2Target"] = "Substudy 2 target is required."
+
+        if not self.substudy4Target:
+            errors["substudy4Target"] = "Substudy 4 target is required."
+
+        if errors:
+            raise ValidationError(errors)
+        
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'zone']
+    list_display = ['name', 'zone','target','substudy2Target','substudy4Target']
+    
+    # def clean(self):
+    #     errors = {}
 
+    #     if not self.target:
+    #         errors["target"] = "Overall enrollment target is required."
+
+    #     if not self.substudy2Target:
+    #         errors["substudy2Target"] = "Substudy 2 target is required."
+
+    #     if not self.substudy4Target:
+    #         errors["substudy4Target"] = "Substudy 4 target is required."
+
+    #     if errors:
+    #         raise ValidationError(errors)
+        
 @admin.register(District)
 class DistrictAdmin(admin.ModelAdmin):
-    list_display = ['id','value','name', 'region']
+    list_display = ['id','value','name', 'region','target','substudy2Target','substudy4Target']
+    
+    # def clean(self):
+    #     errors = {}
 
+    #     if not self.target:
+    #         errors["target"] = "Overall enrollment target is required."
+
+    #     if not self.substudy2Target:
+    #         errors["substudy2Target"] = "Substudy 2 target is required."
+
+    #     if not self.substudy4Target:
+    #         errors["substudy4Target"] = "Substudy 4 target is required."
+
+    #     if errors:
+    #         raise ValidationError(errors)
+        
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ['id','value','name', 'district', 'pid_prefix', 'get_site_type', 'get_site_level']
+    list_display = ['id','value','name', 'district', 'pid_prefix', 'get_site_type', 'get_site_level','target','substudy2Target','substudy4Target']
 
     def get_site_type(self, obj):
         return obj.site_type.name if obj.site_type else "-"
@@ -53,11 +114,56 @@ class SiteAdmin(admin.ModelAdmin):
         return obj.site_level.name if obj.site_level else "-"
     get_site_level.short_description = "Site Level"
 
+    
+    def clean(self):
+        errors = {}
 
+        if not self.target:
+            errors["target"] = "Overall enrollment target is required."
+
+        if not self.substudy2Target:
+            errors["substudy2Target"] = "Substudy 2 target is required."
+
+        if not self.substudy4Target:
+            errors["substudy4Target"] = "Substudy 4 target is required."
+
+        if errors:
+            raise ValidationError(errors)
+        
 @admin.register(SiteType)
 class SiteTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'code']
+    
+    # def clean(self):
+    #     errors = {}
 
+    #     if not self.target:
+    #         errors["target"] = "Overall enrollment target is required."
+
+    #     if not self.substudy2Target:
+    #         errors["substudy2Target"] = "Substudy 2 target is required."
+
+    #     if not self.substudy4Target:
+    #         errors["substudy4Target"] = "Substudy 4 target is required."
+
+    #     if errors:
+    #         raise ValidationError(errors)
+        
 @admin.register(SiteLevel)
 class SiteLevelAdmin(admin.ModelAdmin):
     list_display = ['name', 'code']
+    
+    # def clean(self):
+    #     errors = {}
+
+    #     if not self.target:
+    #         errors["target"] = "Overall enrollment target is required."
+
+    #     if not self.substudy2Target:
+    #         errors["substudy2Target"] = "Substudy 2 target is required."
+
+    #     if not self.substudy4Target:
+    #         errors["substudy4Target"] = "Substudy 4 target is required."
+
+    #     if errors:
+    #         raise ValidationError(errors)

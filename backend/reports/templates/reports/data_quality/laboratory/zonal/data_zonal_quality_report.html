@@ -889,7 +889,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for item in missing_xpert_xdr_results %}
+                                {% for item in missing_lpa %}
                                 <tr>
                                     <td>
                                         <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
