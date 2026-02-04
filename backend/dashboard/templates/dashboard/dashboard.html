@@ -149,6 +149,63 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         {% endif %}
     </div>
 
+
+        <!-- Filters -->
+    <form method="get" class="row g-3 mb-4">
+        {% if is_admin or is_national_lab %}
+        <div class="col-md-3">
+            <select name="zone" class="form-select">
+                <option value="">All Zones</option>
+                {% for id, name in zones.items %}
+                <option value="{{ id }}" {% if request.GET.zone == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% elif is_zonal_lab %}
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+        <input type="hidden" name="site" value="{{ sites.keys.0 }}">
+        {% endif %}
+
+        <div class="col-md-2">
+            <select name="period" class="form-select">
+                <option value="monthly" {% if request.GET.period == "monthly" or request.GET.period == "" %}selected{% endif %}>Monthly</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+        </div>
+        <div class="col-md-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
+        </div>
+    </form>
+
+    
     <!-- DASHBOARD CARDS -->
     <div class="row g-3 mb-4">
         <!-- Screened Card -->
@@ -373,61 +430,6 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         }
     </style>
 
-
-    <!-- Filters -->
-    <form method="get" class="row g-3 mb-4">
-        {% if is_admin or is_national_lab %}
-        <div class="col-md-3">
-            <select name="zone" class="form-select">
-                <option value="">All Zones</option>
-                {% for id, name in zones.items %}
-                <option value="{{ id }}" {% if request.GET.zone == id|stringformat:"s" %}selected{% endif %}>
-                    {{ name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select name="site" class="form-select">
-                <option value="">All Sites</option>
-                {% for id, name in sites.items %}
-                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
-                    {{ name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        {% elif is_zonal_lab %}
-        <div class="col-md-3">
-            <select name="site" class="form-select">
-                <option value="">All Sites</option>
-                {% for id, name in sites.items %}
-                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
-                    {{ name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        {% else %}
-        <input type="hidden" name="site" value="{{ sites.keys.0 }}">
-        {% endif %}
-
-        <div class="col-md-2">
-            <select name="period" class="form-select">
-                <option value="monthly" {% if request.GET.period == "monthly" or request.GET.period == "" %}selected{% endif %}>Monthly</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
-        </div>
-        <div class="col-md-2">
-            <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
-        </div>
-        <div class="col-md-12 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
-        </div>
-    </form>
 </div>
 
 <!-- Quick Actions / Info -->
