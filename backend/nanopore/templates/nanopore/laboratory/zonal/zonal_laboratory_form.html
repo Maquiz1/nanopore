@@ -175,14 +175,14 @@
                             <h5 class="mb-0">Xpert XDR</h5>
                         </div>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 {{ form.xpert_xdr_performed.label_tag }}
                                 {{ form.xpert_xdr_performed }}
                                 {% for error in form.xpert_xdr_performed.errors %}
                                 <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            <div class="col-md-3" id="xpert-xdr-date-performed" style="display:none;">
+                            <div class="col-md-6" id="xpert-xdr-date-performed" style="display:none;">
                                 {{ form.xpert_xdr_date_performed.label_tag }}{{ form.xpert_xdr_date_performed }}
                                 {% for error in form.xpert_xdr_date_performed.errors %}
                                 <div class="text-danger">{{ error }}</div>
