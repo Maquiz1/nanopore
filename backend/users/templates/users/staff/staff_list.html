@@ -76,6 +76,7 @@
       <th>Site</th>
       <th>Zone</th>
       <th>Group</th>
+      <th>Last Login</th>
       <th>Status</th>
       <th>Actions</th>
     </tr>
@@ -92,6 +93,7 @@
       <td>{% if user.profile and user.profile.site %}{{ user.profile.site.name }}{% else %}-{% endif %}</td>
       <td>{% if user.profile and user.profile.site and user.profile.site.district and user.profile.site.district.region and user.profile.site.district.region.zone %}{{ user.profile.site.district.region.zone.name }}{% else %}-{% endif %}</td>
       <td>{% if user.groups.all %}{{ user.groups.all|join:", " }}{% else %}-{% endif %}</td>
+      <td>{% if staff_member.last_login %}{{ staff_member.last_login|date:"F j, Y, g:i a" }}{% else %}-{% endif %}</td>
       <td>
         {% if user.is_active %}
           <span class="badge bg-success">Active</span>
