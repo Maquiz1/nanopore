@@ -80,6 +80,7 @@ ZONAL_DQ_FIELD_MAPPING = {
     "missing_epi_to_me": ["epi_to_me"],
     "missing_epi_to_me_date": ["epi_to_me_date"],
     "missing_epi_to_me_version": ["epi_to_me_version"],
+    "missing_sequencing_results": ["sequencing_results"],
 
     # DELAYED SEQUENCING
     "missing_sequencing_delayed": ["sequencing_delayed"],
