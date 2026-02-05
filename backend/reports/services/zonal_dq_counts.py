@@ -48,6 +48,8 @@ def get_zonal_dq_counts(qs):
         # Phenotypic DST
         missing_phenotypic_performed=Count(Case(When(culture_isolate=1, phenotypic_performed__isnull=True, then=1), output_field=IntegerField())),
         missing_phenotypic_date_performed=Count(Case(When(phenotypic_performed=1, phenotypic_date_performed__isnull=True, then=1), output_field=IntegerField())),
+        
+        
         missing_phenotypic_date_results=Count(Case(When(phenotypic_performed=1, phenotypic_date_results__isnull=True, then=1), output_field=IntegerField())),
         missing_phenotypic_dst_results=Count(
             Case(
