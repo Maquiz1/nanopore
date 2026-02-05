@@ -126,17 +126,21 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
             q &= Q(second_line_lpa=1)
 
         # NANOPORE
-        if key in ["missing_epi_to_me_date", "missing_epi_to_me_version"]:
-            q &= Q(epi_to_me=1)
-
-        # Nanopore specific fields
         if key in [
-            "missing_nanopore_sequencing_date", "missing_nanopore_results",
-            "missing_epi_to_me", "missing_sequencing_delayed",
-            "missing_sequencing_delayed_days", "missing_sequencing_delayed_reasons",
-            "missing_sequencing_delayed_others", "missing_nanopore_drug_results"
+            "missing_nanopore_sequencing_date","missing_epi_to_me","missing_nanopore_results",
+            "missing_sequencing_delayed"
         ]:
             q &= Q(nanopore_done=1)
+            
+        # EPI to ME
+        if key in ["missing_epi_to_me_date", "missing_epi_to_me_version","missing_sequencing_results"]:
+            q &= Q(epi_to_me=1)
+
+        # Delayed Sequenceng
+        if key in [
+            "missing_sequencing_delayed","missing_sequencing_delayed_days","missing_sequencing_delayed_reasons"
+        ]:
+            q &= Q(sequencing_delayed=1)    
 
         # Complex Nanopore drug results
         if key == "missing_nanopore_drug_results":
