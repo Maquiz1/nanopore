@@ -562,21 +562,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_mgit_results %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -748,21 +739,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_phenotypic_dst_results %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -787,21 +769,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_xpert_xdr_performed %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -825,21 +798,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_xpert_xdr_date_performed %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -863,21 +827,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_xpert_xdr_results %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -901,97 +856,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
-                                    <td>{{ item.zone_name }}</td>
-                                    <td>{{ item.site_name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if count_missing_lpa1 %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineLPA">
-                    Missing LPA1 When LPA is Yes ({{ count_missing_lpa1|default:"0"|intcomma }})
-                </button>
-            </h2>
-            <div id="collapseFirstLineLPA" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in missing_lpa1 %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
-                                    <td>{{ item.zone_name }}</td>
-                                    <td>{{ item.site_name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if count_missing_lpa2 %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineLPA">
-                    Missing LPA2 When LPA is Yes ({{ count_missing_lpa2|default:"0"|intcomma }})
-                </button>
-            </h2>
-            <div id="collapseFirstLineLPA" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in missing_lpa2 %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1015,21 +885,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_first_line_lpa %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1053,21 +914,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_first_line_lpa_date %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1091,21 +943,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_first_line_drugs %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1129,21 +972,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa1_mtb %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1167,21 +1001,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa1_rif %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1205,21 +1030,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa1_inh %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">
-                                            {{ item.pid }}
-                                        </a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1243,19 +1059,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_second_line_lpa %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1279,19 +1088,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_second_line_lpa_date %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1315,19 +1117,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_second_line_drugs %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1351,19 +1146,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa2_mtb %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1387,19 +1175,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa2_rfluoroquinolones %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1423,19 +1204,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa2_aminoglycosides %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1459,19 +1233,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_lpa2_kanamycin %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1495,19 +1262,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_nanopore_done %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1531,19 +1291,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_nanopore_sequencing_date %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1567,19 +1320,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_nanopore_results %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1603,19 +1349,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_epi_to_me %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1639,19 +1378,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_sequencing_delayed %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1675,19 +1407,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_sequencing_delayed_days %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1711,19 +1436,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_sequencing_delayed_reasons %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1747,19 +1465,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_sequencing_delayed_others %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1783,19 +1494,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_epi_to_me_date %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1819,19 +1523,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_epi_to_me_version %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
@@ -1855,19 +1552,12 @@
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>Zone</th>
-                                    <th>Site</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_nanopore_drug_results %}
                                 <tr>
-                                    <td>
-                                        <a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a>
-                                    </td>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
                                     <td>{{ item.zone_name }}</td>
                                     <td>{{ item.site_name }}</td>
                                 </tr>
