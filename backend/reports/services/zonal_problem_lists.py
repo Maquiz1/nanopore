@@ -3,6 +3,9 @@ from django.db.models import Q
 from reports.constants.zona_mapping import ZONAL_DQ_FIELD_MAPPING
 
 def serialize_record(z, fields):
+    """
+    Serialize a single record with dynamic fields for problem lists.
+    """
     screening = getattr(z, "screening", None)
     site = getattr(screening, "site", None) if screening else None
     zone_obj = getattr(getattr(getattr(site, "district", None), "region", None), "zone", None)
@@ -17,10 +20,16 @@ def serialize_record(z, fields):
         record[f] = getattr(z, f, None)
     return record
 
+
 def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_DQ_FIELD_MAPPING):
+    """
+    Build problem lists for each field, using the same conditional logic as the aggregates.
+    Fully mirrors zonal_dq_counts.py logic.
+    """
     problem_lists = {}
 
     for key, fields in all_fields_mapping.items():
+        # Handle duplicate lab numbers separately
         if key == "duplicate_unique_lab_no":
             problem_lists[key] = [
                 serialize_record(z, fields)
@@ -30,19 +39,21 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
 
         q = Q()
         for f in fields:
-            q |= Q(**{f + "__isnull": True})
+            if f == "unique_lab_no":
+                continue  # handled separately
+            q |= Q(**{f + "__isnull": True}) | Q(**{f + "__exact": ""})
 
-        # Apply conditional guards to match aggregate logic
-        if key in ["missing_culture_method","missing_microscopy_type","missing_microscopy_date","missing_microscopy_results"]:
+        # Apply conditional guards to match aggregate filters
+        if key in ["missing_culture_method", "missing_microscopy_type", "missing_microscopy_date", "missing_microscopy_results"]:
             q &= Q(culture_performed=1)
 
-        if key in ["missing_lj_inoculation_date","missing_lj_results_date","missing_lj_results"]:
+        if key in ["missing_lj_inoculation_date", "missing_lj_results_date", "missing_lj_results"]:
             q &= Q(culture_performed=1, culture_method=1)
 
-        if key in ["missing_mgit_inoculation_date","missing_mgit_results_date","missing_mgit_results"]:
+        if key in ["missing_mgit_inoculation_date", "missing_mgit_results_date", "missing_mgit_results"]:
             q &= Q(culture_performed=1, culture_method=2)
 
-        if key in ["missing_isolate_date","missing_culture_isolate"]:
+        if key in ["missing_culture_isolate", "missing_isolate_date"]:
             q &= Q(culture_isolate=1)
 
         if key.startswith("missing_first_line"):
@@ -54,12 +65,72 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
         if key.startswith("missing_nanopore"):
             q &= Q(nanopore_done=1)
 
-        if key in ["missing_epi_to_me_date","missing_epi_to_me_version"]:
+        if key in ["missing_epi_to_me_date", "missing_epi_to_me_version"]:
             q &= Q(epi_to_me=1)
 
-        if key in ["missing_xpert_xdr_date_performed","missing_xpert_xdr_results"]:
+        if key in ["missing_xpert_xdr_date_performed", "missing_xpert_xdr_results"]:
             q &= Q(xpert_xdr_performed=1)
 
+        if key == "missing_phenotypic_performed":
+            q &= Q(culture_isolate=1, phenotypic_performed__isnull=True)
+
+        if key in ["missing_phenotypic_date_performed", "missing_phenotypic_date_results"]:
+            q &= Q(phenotypic_performed=1)
+
+        if key == "missing_phenotypic_dst_results":
+            q &= Q(phenotypic_performed=1) & (
+                Q(rifampicin__isnull=True) | Q(isoniazid__isnull=True) |
+                Q(levofloxacin__isnull=True) | Q(moxifloxacin__isnull=True) |
+                Q(bedaquiline__isnull=True) | Q(linezolid__isnull=True) |
+                Q(clofazimine__isnull=True) | Q(cycloserine__isnull=True) |
+                Q(terizidone__isnull=True) | Q(ethambutol__isnull=True) |
+                Q(delamanid__isnull=True) | Q(pyrazinamide__isnull=True) |
+                Q(imipenem__isnull=True) | Q(cilastatin__isnull=True) |
+                Q(meropenem__isnull=True) | Q(amikacin__isnull=True) |
+                Q(streptomycin__isnull=True) | Q(ethionamide__isnull=True) |
+                Q(prothionamide__isnull=True) | Q(para_aminosalicylic_acid__isnull=True)
+            )
+
+        # Handle LPA first-line missing drugs individually
+        if key in [
+            "missing_lpa1_mtb", "missing_lpa1_rif", "missing_lpa1_inh",
+            "missing_first_line_drugs", "missing_first_line_lpa", "missing_first_line_lpa_date"
+        ]:
+            q &= Q(first_line_lpa=1)
+
+        # Handle LPA second-line missing drugs individually
+        if key in [
+            "missing_lpa2_mtb", "missing_lpa2_rfluoroquinolones", "missing_lpa2_aminoglycosides",
+            "missing_lpa2_kanamycin", "missing_second_line_drugs", "missing_second_line_lpa", "missing_second_line_lpa_date"
+        ]:
+            q &= Q(second_line_lpa=1)
+
+        # Nanopore specific fields
+        if key in [
+            "missing_nanopore_sequencing_date", "missing_nanopore_results",
+            "missing_epi_to_me", "missing_sequencing_delayed",
+            "missing_sequencing_delayed_days", "missing_sequencing_delayed_reasons",
+            "missing_sequencing_delayed_others", "missing_epi_to_me_date",
+            "missing_epi_to_me_version", "missing_nanopore_drug_results"
+        ]:
+            q &= Q(nanopore_done=1)
+
+            # Complex Nanopore drug results
+            if key == "missing_nanopore_drug_results":
+                q &= (
+                    Q(nanopore_results=1) & (
+                        Q(nano_amikacin__isnull=True) | Q(nano_bedaquiline__isnull=True) | 
+                        Q(nano_capreomycin__isnull=True) | Q(nano_clofazimine__isnull=True) |
+                        Q(nano_delamanid__isnull=True) | Q(nano_ethambutol__isnull=True) |
+                        Q(nano_ethionamide__isnull=True) | Q(nano_isoniazid__isnull=True) |
+                        Q(nano_kanamycin__isnull=True) | Q(nano_levofloxacin__isnull=True) |
+                        Q(nano_linezolid__isnull=True) | Q(nano_moxifloxacin__isnull=True) |
+                        Q(nano_pretomanid__isnull=True) | Q(nano_pyrazinamide__isnull=True) |
+                        Q(nano_rifampicin__isnull=True) | Q(nano_streptomycin__isnull=True)
+                    )
+                )
+
+        # Fetch top 100 records matching the filters
         problem_lists[key] = [
             serialize_record(z, fields)
             for z in qs.filter(q)[:100]
