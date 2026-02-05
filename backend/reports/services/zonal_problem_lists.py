@@ -103,7 +103,7 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
 
         # LPA
         # FIRST LINE LPA
-        if key.startswith("missing_first_line_lpa"):
+        if key == "missing_first_line_lpa":
             q &= Q(lpa=1)
             
         # Handle LPA first-line missing drugs individually
@@ -114,7 +114,7 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
             q &= Q(first_line_lpa=1)
 
         # SECOND LINE LPA
-        if key.startswith("missing_second_line_lpa"):
+        if key == "missing_second_line_lpa":
             q &= Q(second_line_lpa=1)
             
         # Handle LPA second-line missing drugs individually
@@ -164,7 +164,7 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
         # Fetch top 100 records matching the filters
         problem_lists[key] = [
             serialize_record(z, fields)
-            for z in qs.filter(q)[:10]
+            for z in qs.filter(q)[:1000]
         ]
 
     return problem_lists
