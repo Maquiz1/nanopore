@@ -97,32 +97,36 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
                 Q(prothionamide__isnull=True) | Q(para_aminosalicylic_acid__isnull=True)
             )
 
-    
-        if key.startswith("missing_first_line"):
-            q &= Q(first_line_lpa=1)
-
-        if key.startswith("missing_second_line"):
-            q &= Q(second_line_lpa=1)
-
-        if key in ["missing_epi_to_me_date", "missing_epi_to_me_version"]:
-            q &= Q(epi_to_me=1)
-
+        # XPERT XDR
         if key in ["missing_xpert_xdr_date_performed", "missing_xpert_xdr_results"]:
             q &= Q(xpert_xdr_performed=1)
 
+        # LPA
+        # FIRST LINE LPA
+        if key.startswith("missing_first_line_lpa"):
+            q &= Q(lpa=1)
+            
         # Handle LPA first-line missing drugs individually
         if key in [
-            "missing_lpa1_mtb", "missing_lpa1_rif", "missing_lpa1_inh",
-            "missing_first_line_drugs", "missing_first_line_lpa", "missing_first_line_lpa_date"
+            "missing_first_line_lpa_date","missing_first_line_drugs",
+            "missing_lpa1_mtb", "missing_lpa1_rif", "missing_lpa1_inh"
         ]:
             q &= Q(first_line_lpa=1)
 
+        # SECOND LINE LPA
+        if key.startswith("missing_second_line"):
+            q &= Q(second_line_lpa=1)
+            
         # Handle LPA second-line missing drugs individually
         if key in [
             "missing_lpa2_mtb", "missing_lpa2_rfluoroquinolones", "missing_lpa2_aminoglycosides",
             "missing_lpa2_kanamycin", "missing_second_line_drugs", "missing_second_line_lpa", "missing_second_line_lpa_date"
         ]:
             q &= Q(second_line_lpa=1)
+
+        # NANOPORE
+        if key in ["missing_epi_to_me_date", "missing_epi_to_me_version"]:
+            q &= Q(epi_to_me=1)
 
         # Nanopore specific fields
         if key in [
