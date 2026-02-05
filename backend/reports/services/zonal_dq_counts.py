@@ -49,7 +49,13 @@ def get_zonal_dq_counts(qs):
         missing_phenotypic_performed=Count(Case(When(culture_isolate=1, phenotypic_performed__isnull=True, then=1), output_field=IntegerField())),
         missing_phenotypic_date_performed=Count(Case(When(phenotypic_performed=1, phenotypic_date_performed__isnull=True, then=1), output_field=IntegerField())),
         
-        
+        # Phenotypic DST
+        # Phenotypic DST Performed — only if culture_isolate = 1
+        missing_phenotypic_performed = Count(
+            "id",
+            filter=Q(culture_isolate=1) & Q(phenotypic_performed__isnull=True),
+            distinct=True
+        ),
         missing_phenotypic_date_results=Count(Case(When(phenotypic_performed=1, phenotypic_date_results__isnull=True, then=1), output_field=IntegerField())),
         missing_phenotypic_dst_results=Count(
             Case(
@@ -97,7 +103,12 @@ def get_zonal_dq_counts(qs):
         ),
 
         # LPA
-        missing_lpa=Count(Case(When(lpa__isnull=True, then=1), output_field=IntegerField())),
+        missing_lpa = Count(
+            "id",
+            filter=Q(lpa__isnull=True),
+            distinct=True
+        ),
+        # missing_lpa=Count(Case(When(lpa__isnull=True, then=1), output_field=IntegerField())),
         missing_lpa1=Count(Case(When(lpa=1, first_line_lpa__isnull=True, then=1), output_field=IntegerField())),
         missing_lpa2=Count(Case(When(lpa=1, second_line_lpa__isnull=True, then=1), output_field=IntegerField())),
 
