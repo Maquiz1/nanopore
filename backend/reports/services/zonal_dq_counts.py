@@ -20,10 +20,10 @@ def get_zonal_dq_counts(qs):
     stats = qs.aggregate(
         # General fields
         missing_date_sputum_received=Count("id", filter=Q(date_sputum_received__isnull=True), distinct=True),
-        missing_unique_lab_no=Count("id", filter=Q(unique_lab_no__isnull=True) | Q(unique_lab_no__exact=""), distinct=True),
-        duplicate_unique_lab_no=Count("id", filter=Q(unique_lab_no__in=duplicate_lab_numbers), distinct=True),
         missing_sample_volume=Count("id", filter=Q(sample_volume__isnull=True), distinct=True),
         missing_appearance=Count("id", filter=Q(appearance__isnull=True), distinct=True),
+        missing_unique_lab_no=Count("id", filter=Q(unique_lab_no__isnull=True) | Q(unique_lab_no__exact=""), distinct=True),
+        duplicate_unique_lab_no=Count("id", filter=Q(unique_lab_no__in=duplicate_lab_numbers), distinct=True),
 
         # Culture
         missing_culture_performed=Count("id", filter=Q(culture_performed__isnull=True), distinct=True),
