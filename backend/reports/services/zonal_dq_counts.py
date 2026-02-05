@@ -231,7 +231,7 @@ def get_zonal_dq_counts(qs):
         
         missing_sequencing_results = Count(
             "id",
-            filter=Q(epi_to_me=1, sequencing_results_isnull=True),
+            filter=Q(epi_to_me=1, sequencing_results__isnull=True),
             distinct=True
         ),
 
