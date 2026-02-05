@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const XpertXdrPerformed = document.getElementById("id_xpert_xdr_performed");
 
     // Field to show/hide
-    const xpertXdrDatePerformed = document.getElementById("xpert-xdr-date-performed");
+    const xpertXdrDatePerformed = document.getElementById("id_xpert_xdr_date_performed");
     const xpertXdrHeader = document.getElementById("xpert-xdr-header");
     const xpertXdrResults = document.getElementById("xpert-xdr-results");
 
