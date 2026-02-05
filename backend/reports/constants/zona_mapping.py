@@ -75,13 +75,19 @@ ZONAL_DQ_FIELD_MAPPING = {
     "missing_nanopore_done": ["nanopore_done"],
     "missing_nanopore_sequencing_date": ["nanopore_sequencing_date"],
     "missing_nanopore_results": ["nanopore_results"],
+    
+    # EPI to ME
     "missing_epi_to_me": ["epi_to_me"],
+    "missing_epi_to_me_date": ["epi_to_me_date"],
+    "missing_epi_to_me_version": ["epi_to_me_version"],
+
+    # DELAYED SEQUENCING
     "missing_sequencing_delayed": ["sequencing_delayed"],
     "missing_sequencing_delayed_days": ["sequencing_delayed_days"],
     "missing_sequencing_delayed_reasons": ["sequencing_delayed_reasons"],
     "missing_sequencing_delayed_others": ["sequencing_delayed_others"],
-    "missing_epi_to_me_date": ["epi_to_me_date"],
-    "missing_epi_to_me_version": ["epi_to_me_version"],
+    
+    # NANOPRE DRUG RESULTS
     "missing_nanopore_drug_results": [
         "nano_amikacin","nano_bedaquiline","nano_capreomycin","nano_clofazimine",
         "nano_delamanid","nano_ethambutol","nano_ethionamide","nano_isoniazid",

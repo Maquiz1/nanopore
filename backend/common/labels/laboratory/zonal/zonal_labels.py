@@ -90,11 +90,15 @@ ZONAL_LABELS = {
     # Nanopore sequencing
     "nanopore_done":"20(a). Was nanopore sequencing done for this patient?",
     "nanopore_sequencing_date":"20(b). Date of Nanopore sequencing conducted",
+    "sequencing_results":"21(d). Were the sequencing results exported to a *.csv-file?",
+    "nanopore_results":"21(e). Nanopore sequencing results",
+    
+    # EPI to ME
     "epi_to_me":"21(a). Did you analyse your data using the EPI2ME workflow?",
     "epi_to_me_date":"21(b). EPI2ME analysis date:",
     "epi_to_me_version":"21(c). EPI2ME software version used for the analysis (free text):",
-    "sequencing_results":"21(d). Were the sequencing results exported to a *.csv-file?",
-    "nanopore_results":"21(e). Nanopore sequencing results",
+    
+    # DELAYED SEQUENCING
     "sequencing_delayed":"21(f). Was there a delay in sequencing the sample?",
     "sequencing_delayed_days":"21(g). If yes, number of days delayed:",
     "sequencing_delayed_reasons":"21(h). Reason(s) for delay in sequencing the sample:",
