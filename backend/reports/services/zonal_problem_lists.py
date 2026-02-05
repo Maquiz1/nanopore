@@ -164,7 +164,7 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
         # Fetch top 100 records matching the filters
         problem_lists[key] = [
             serialize_record(z, fields)
-            for z in qs.filter(q)[:600]
+            for z in qs.filter(q)[:10]
         ]
 
     return problem_lists
