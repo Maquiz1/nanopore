@@ -237,19 +237,19 @@ def get_zonal_dq_counts(qs):
 
         missing_sequencing_delayed_days = Count(
             "id",
-            filter=Q(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_days__isnull=True),
+            filter=Q(sequencing_delayed=1, sequencing_delayed_days__isnull=True),
             distinct=True
         ),
 
         missing_sequencing_delayed_reasons = Count(
             "id",
-            filter=Q(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_reasons__isnull=True),
+            filter=Q(sequencing_delayed=1, sequencing_delayed_reasons__isnull=True),
             distinct=True
         ),
 
         missing_sequencing_delayed_others = Count(
             "id",
-            filter=Q(nanopore_done=1, nanopore_results=1, sequencing_delayed=1, sequencing_delayed_reasons__value=96, sequencing_delayed_others__isnull=True),
+            filter=Q(sequencing_delayed_reasons__value=96, sequencing_delayed_others__isnull=True),
             distinct=True
         ),
 

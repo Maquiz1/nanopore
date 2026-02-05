@@ -114,13 +114,14 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
             q &= Q(first_line_lpa=1)
 
         # SECOND LINE LPA
-        if key.startswith("missing_second_line"):
+        if key.startswith("missing_second_line_lpa"):
             q &= Q(second_line_lpa=1)
             
         # Handle LPA second-line missing drugs individually
         if key in [
-            "missing_lpa2_mtb", "missing_lpa2_rfluoroquinolones", "missing_lpa2_aminoglycosides",
-            "missing_lpa2_kanamycin", "missing_second_line_drugs", "missing_second_line_lpa", "missing_second_line_lpa_date"
+            "missing_second_line_lpa_date","missing_second_line_drugs",
+            "missing_lpa2_mtb", "missing_lpa2_rfluoroquinolones",
+            "missing_lpa2_aminoglycosides","missing_lpa2_kanamycin"
         ]:
             q &= Q(second_line_lpa=1)
 
