@@ -38,10 +38,22 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
             continue
 
         q = Q()
+        model = qs.model
+
         for f in fields:
             if f == "unique_lab_no":
-                continue  # handled separately
-            q |= Q(**{f + "__isnull": True}) | Q(**{f + "__exact": ""})
+                continue
+
+            field_obj = model._meta.get_field(f)
+            field_type = field_obj.get_internal_type()
+
+            # Only strings can be empty ""
+            if field_type in ("CharField", "TextField"):
+                q |= Q(**{f + "__isnull": True}) | Q(**{f + "__exact": ""})
+
+            # ALL other field types
+            else:
+                q |= Q(**{f + "__isnull": True})
 
         # Apply conditional guards to match aggregate filters
         if key in ["missing_culture_method", "missing_microscopy_type", "missing_microscopy_date", "missing_microscopy_results"]:
@@ -53,17 +65,14 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
         if key in ["missing_mgit_inoculation_date", "missing_mgit_results_date", "missing_mgit_results"]:
             q &= Q(culture_performed=1, culture_method=2)
 
-        if key in ["missing_culture_isolate", "missing_isolate_date"]:
+        if key == "missing_isolate_date":
             q &= Q(culture_isolate=1)
-
+    
         if key.startswith("missing_first_line"):
             q &= Q(first_line_lpa=1)
 
         if key.startswith("missing_second_line"):
             q &= Q(second_line_lpa=1)
-
-        if key.startswith("missing_nanopore"):
-            q &= Q(nanopore_done=1)
 
         if key in ["missing_epi_to_me_date", "missing_epi_to_me_version"]:
             q &= Q(epi_to_me=1)
@@ -110,30 +119,29 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
             "missing_nanopore_sequencing_date", "missing_nanopore_results",
             "missing_epi_to_me", "missing_sequencing_delayed",
             "missing_sequencing_delayed_days", "missing_sequencing_delayed_reasons",
-            "missing_sequencing_delayed_others", "missing_epi_to_me_date",
-            "missing_epi_to_me_version", "missing_nanopore_drug_results"
+            "missing_sequencing_delayed_others", "missing_nanopore_drug_results"
         ]:
             q &= Q(nanopore_done=1)
 
-            # Complex Nanopore drug results
-            if key == "missing_nanopore_drug_results":
-                q &= (
-                    Q(nanopore_results=1) & (
-                        Q(nano_amikacin__isnull=True) | Q(nano_bedaquiline__isnull=True) | 
-                        Q(nano_capreomycin__isnull=True) | Q(nano_clofazimine__isnull=True) |
-                        Q(nano_delamanid__isnull=True) | Q(nano_ethambutol__isnull=True) |
-                        Q(nano_ethionamide__isnull=True) | Q(nano_isoniazid__isnull=True) |
-                        Q(nano_kanamycin__isnull=True) | Q(nano_levofloxacin__isnull=True) |
-                        Q(nano_linezolid__isnull=True) | Q(nano_moxifloxacin__isnull=True) |
-                        Q(nano_pretomanid__isnull=True) | Q(nano_pyrazinamide__isnull=True) |
-                        Q(nano_rifampicin__isnull=True) | Q(nano_streptomycin__isnull=True)
-                    )
+        # Complex Nanopore drug results
+        if key == "missing_nanopore_drug_results":
+            q &= (
+                Q(nanopore_results=1) & (
+                    Q(nano_amikacin__isnull=True) | Q(nano_bedaquiline__isnull=True) | 
+                    Q(nano_capreomycin__isnull=True) | Q(nano_clofazimine__isnull=True) |
+                    Q(nano_delamanid__isnull=True) | Q(nano_ethambutol__isnull=True) |
+                    Q(nano_ethionamide__isnull=True) | Q(nano_isoniazid__isnull=True) |
+                    Q(nano_kanamycin__isnull=True) | Q(nano_levofloxacin__isnull=True) |
+                    Q(nano_linezolid__isnull=True) | Q(nano_moxifloxacin__isnull=True) |
+                    Q(nano_pretomanid__isnull=True) | Q(nano_pyrazinamide__isnull=True) |
+                    Q(nano_rifampicin__isnull=True) | Q(nano_streptomycin__isnull=True)
                 )
+            )
 
         # Fetch top 100 records matching the filters
         problem_lists[key] = [
             serialize_record(z, fields)
-            for z in qs.filter(q)[:100]
+            for z in qs.filter(q)[:600]
         ]
 
     return problem_lists
