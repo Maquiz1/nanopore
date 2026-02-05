@@ -138,9 +138,13 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
 
         # Delayed Sequenceng
         if key in [
-            "missing_sequencing_delayed","missing_sequencing_delayed_days","missing_sequencing_delayed_reasons"
+            "missing_sequencing_delayed_days","missing_sequencing_delayed_reasons"
         ]:
-            q &= Q(sequencing_delayed=1)    
+            q &= Q(sequencing_delayed=1)   
+            
+        # Delayed Reason - Others
+        if key == "missing_sequencing_delayed_others":
+            q &= Q(sequencing_delayed_reasons__value=96)  
 
         # Complex Nanopore drug results
         if key == "missing_nanopore_drug_results":

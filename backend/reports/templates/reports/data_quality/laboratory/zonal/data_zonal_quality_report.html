@@ -1367,6 +1367,93 @@
         </div>
         {% endif %}
 
+        {% if count_missing_epi_to_me_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToMEDate">
+                    Missing EPI to ME Date ({{ count_missing_epi_to_me_date|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseEpiToMEDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_epi_to_me_date %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_epi_to_me_version %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToMEVersion">
+                    Missing EPI to ME Version ({{ count_missing_epi_to_me_version|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseEpiToMEVersion" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_epi_to_me_version %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_sequencing_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToMEVersion">
+                    Missing Requencing results Export to CSV ({{ count_missing_sequencing_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseEpiToMEVersion" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_sequencing_results %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% if count_missing_sequencing_delayed %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -1468,64 +1555,6 @@
                             <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
                                 {% for item in missing_sequencing_delayed_others %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
-                                    <td>{{ item.zone_name }}</td>
-                                    <td>{{ item.site_name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if count_missing_epi_to_me_date %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToMEDate">
-                    Missing EPI to ME Date ({{ count_missing_epi_to_me_date|default:"0"|intcomma }})
-                </button>
-            </h2>
-            <div id="collapseEpiToMEDate" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
-                            <tbody>
-                                {% for item in missing_epi_to_me_date %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>
-                                    <td>{{ item.zone_name }}</td>
-                                    <td>{{ item.site_name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if count_missing_epi_to_me_version %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpiToMEVersion">
-                    Missing EPI to ME Version ({{ count_missing_epi_to_me_version|default:"0"|intcomma }})
-                </button>
-            </h2>
-            <div id="collapseEpiToMEVersion" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
-                            <tbody>
-                                {% for item in missing_epi_to_me_version %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}" class="text-primary fw-bold">{{ item.pid }}</a></td>

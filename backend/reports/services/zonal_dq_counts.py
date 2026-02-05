@@ -228,10 +228,17 @@ def get_zonal_dq_counts(qs):
             filter=Q(epi_to_me=1, epi_to_me_version__isnull=True),
             distinct=True
         ),
+        
+        missing_sequencing_results = Count(
+            "id",
+            filter=Q(epi_to_me=1, sequencing_results_isnull=True),
+            distinct=True
+        ),
 
+        # delayed sequencing
         missing_sequencing_delayed = Count(
             "id",
-            filter=Q(nanopore_done=1, nanopore_results=1, sequencing_delayed__isnull=True),
+            filter=Q(nanopore_done=1, sequencing_delayed__isnull=True),
             distinct=True
         ),
 
@@ -247,6 +254,7 @@ def get_zonal_dq_counts(qs):
             distinct=True
         ),
 
+        # DELAYED SEQUENCING - OTHERS reason
         missing_sequencing_delayed_others = Count(
             "id",
             filter=Q(sequencing_delayed_reasons__value=96, sequencing_delayed_others__isnull=True),
