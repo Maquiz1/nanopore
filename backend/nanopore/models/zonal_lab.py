@@ -86,6 +86,8 @@ class ZonalLaboratory(models.Model):
     # Xpert XDR (no explicit db_index)
     xpert_xdr_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_xpert_xdr_performed")
     xpert_xdr_date_performed = models.DateField(null=True, blank=True)
+    
+    # XPERT XDR results
     xpert_xdr_isoniazid = models.ForeignKey(XpertXDRResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_isoniazid_xpert_xdr")
     xpert_xdr_fluoroquinolones = models.ForeignKey(XpertXDRResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_fluoroquinolones_xpert_xdr")
     xpert_xdr_amikacin = models.ForeignKey(XpertXDRResultsThree, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_amikacin_xpert_xdr")

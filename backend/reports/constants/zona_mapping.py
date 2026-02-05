@@ -50,10 +50,10 @@ ZONAL_DQ_FIELD_MAPPING = {
         "xpert_xdr_capreomycin",
         "xpert_xdr_ethionamide"
     ],
+    
     # LPA
     "missing_lpa": ["lpa"],
-    "missing_lpa1": ["first_line_lpa"],
-    "missing_lpa2": ["second_line_lpa"],
+    
     # First line LPA
     "missing_first_line_lpa": ["first_line_lpa"],
     "missing_first_line_lpa_date": ["first_line_lpa_date"],
