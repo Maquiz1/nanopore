@@ -56,30 +56,27 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
                 q |= Q(**{f + "__isnull": True})
 
         # Apply conditional guards to match aggregate filters
+        # CULTURE
         if key in ["missing_culture_method", "missing_microscopy_type", "missing_microscopy_date", "missing_microscopy_results"]:
             q &= Q(culture_performed=1)
 
+        # LJ
         if key in ["missing_lj_inoculation_date", "missing_lj_results_date", "missing_lj_results"]:
-            q &= Q(culture_performed=1, culture_method=1)
+            q &= Q(culture_method=1)
 
+        # MGIT
         if key in ["missing_mgit_inoculation_date", "missing_mgit_results_date", "missing_mgit_results"]:
-            q &= Q(culture_performed=1, culture_method=2)
+            q &= Q(culture_method=2)
 
+        # ISOLATE
+        if key == "missing_culture_isolate":
+            q &= (Q(lj_results__in=[1,2,3,4]) | Q(mgit_results=1)) & Q(culture_isolate__isnull=True)
+            
         if key == "missing_isolate_date":
             q &= Q(culture_isolate=1)
-    
-        if key.startswith("missing_first_line"):
-            q &= Q(first_line_lpa=1)
+            
 
-        if key.startswith("missing_second_line"):
-            q &= Q(second_line_lpa=1)
-
-        if key in ["missing_epi_to_me_date", "missing_epi_to_me_version"]:
-            q &= Q(epi_to_me=1)
-
-        if key in ["missing_xpert_xdr_date_performed", "missing_xpert_xdr_results"]:
-            q &= Q(xpert_xdr_performed=1)
-
+        # PHENOTYPIC DST            
         if key == "missing_phenotypic_performed":
             q &= Q(culture_isolate=1, phenotypic_performed__isnull=True)
 
@@ -99,6 +96,19 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
                 Q(streptomycin__isnull=True) | Q(ethionamide__isnull=True) |
                 Q(prothionamide__isnull=True) | Q(para_aminosalicylic_acid__isnull=True)
             )
+
+    
+        if key.startswith("missing_first_line"):
+            q &= Q(first_line_lpa=1)
+
+        if key.startswith("missing_second_line"):
+            q &= Q(second_line_lpa=1)
+
+        if key in ["missing_epi_to_me_date", "missing_epi_to_me_version"]:
+            q &= Q(epi_to_me=1)
+
+        if key in ["missing_xpert_xdr_date_performed", "missing_xpert_xdr_results"]:
+            q &= Q(xpert_xdr_performed=1)
 
         # Handle LPA first-line missing drugs individually
         if key in [

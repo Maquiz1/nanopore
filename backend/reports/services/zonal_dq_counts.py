@@ -43,7 +43,13 @@ def get_zonal_dq_counts(qs):
         missing_mgit_results=Count("id", filter=Q(culture_performed=1, culture_method=2, mgit_results__isnull=True), distinct=True),
 
         # Culture isolate
-        missing_culture_isolate=Count("id", filter=Q(culture_isolate__isnull=True), distinct=True),
+        missing_culture_isolate = Count(
+            "id",
+            filter=(
+                (Q(lj_results__in=[1,2,3,4]) | Q(mgit_results=1)) & Q(culture_isolate__isnull=True)
+            ),
+            distinct=True
+        ),
         missing_isolate_date=Count("id", filter=Q(culture_isolate=1, isolate_date__isnull=True), distinct=True),
         
         # Phenotypic DST — only if culture_isolate = 1
