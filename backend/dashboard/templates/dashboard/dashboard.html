@@ -431,23 +431,19 @@ Dashboard — {{ user.get_full_name|default:user.username }}
 
     <!-- Zonal Lab Tests Progress Card -->
     <div class="row g-3 mb-4">
+        <!-- Zonal Lab Progress Card -->
         <div class="col-md-12">
             <div class="card text-white bg-secondary h-100 card-hover">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="card-title">Zonal Lab Tests Progress</h5>
-                        
-                        <!-- Overall Zonal Lab Progress -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between small fw-semibold mb-1">
-                                <span>Completed Zonal Lab Tests</span>
-                                <span>
-                                    {{ zonal_completed_count|intcomma }} /
-                                    {{ total_substudy_counts|intcomma }}
-                                </span>
-                            </div>
+                        <h5 class="card-title text-center">Zonal Lab Test Progress</h5>
 
-                            <!-- Zonal Lab Progress Bar -->
+                        <!-- Overall Zonal Lab Completed -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Total Zonal Lab Test Done</span>
+                                <span>{{ zonal_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                            </div>
                             <div class="progress mb-4">
                                 <div class="progress-bar
                                     {% if zonal_progress >= 100 %}
@@ -463,20 +459,129 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
-                        
+
+                        <!-- CULTURE -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Culture  Tests Done</span>
+                                <span>{{ culture_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if culture_progress >= 100 %}
+                                        bg-success
+                                    {% elif culture_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ culture_progress }}%;"
+                                    aria-valuenow="{{ culture_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ culture_progress }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DST -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>DST Tests Done</span>
+                                <span>{{ dst_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if dst_progress >= 100 %}
+                                        bg-success
+                                    {% elif dst_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ dst_progress }}%;"
+                                    aria-valuenow="{{ dst_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ dst_progress }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- XPERT XDR -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>XPERT XDR Tests Done</span>
+                                <span>{{ xpert_xdr_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if xpert_xdr_progress >= 100 %}
+                                        bg-success
+                                    {% elif xpert_xdr_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ xpert_xdr_progress }}%;"
+                                    aria-valuenow="{{ xpert_xdr_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ xpert_xdr_progress }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LPA -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>LPA Tests Done</span>
+                                <span>{{ lpa_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if lpa_progress >= 100 %}
+                                        bg-success
+                                    {% elif lpa_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ lpa_progress }}%;"
+                                    aria-valuenow="{{ lpa_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ lpa_progress }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nanopore -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Nanopore Tests Done</span>
+                                <span>{{ nanopore_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if nanopore_progress >= 100 %}
+                                        bg-success
+                                    {% elif nanopore_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ nanopore_progress }}%;"
+                                    aria-valuenow="{{ nanopore_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ nanopore_progress }}%
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="mt-3">
-                        <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
-                            class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
-                            <i class="bi bi-eye"></i>
-                            View Zonal Lab Tests
+                        <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled" class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                            <i class="bi bi-eye"></i> View all Zonal Lab Records
                         </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
 
     {% endif %}
 

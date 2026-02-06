@@ -10,6 +10,7 @@ from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 from locations.models import Country,Zone
 from utils.targets import resolve_substudy_target
+from django.db.models import Q
 
 class DashboardHomeView(ListView):
     model = Screening
@@ -162,6 +163,44 @@ class DashboardHomeView(ListView):
             zonal_progress = round((zonal_completed_count / total_substudy_counts) * 100, 1)
         else:
             zonal_progress = 0
+            
+            
+        # CULTURE 
+        culture_completed_count = zonal_qs.filter(culture_performed__in=[1]).count()
+        if total_substudy_counts > 0:
+            culture_progress = round((culture_completed_count / total_substudy_counts) * 100, 1)
+        else:
+            culture_progress = 0
+            
+        # DST
+        dst_completed_count = zonal_qs.filter(phenotypic_performed__in=[1]).count()
+        if total_substudy_counts > 0:
+            dst_progress = round((dst_completed_count / total_substudy_counts) * 100, 1)
+        else:
+            dst_progress = 0
+            
+        # XPERT XDR
+        xpert_xdr_completed_count = zonal_qs.filter(xpert_xdr_performed__in=[1]).count()
+        if total_substudy_counts > 0:
+            xpert_xdr__progress = round((xpert_xdr_completed_count / total_substudy_counts) * 100, 1)
+        else:
+            xpert_xdr__progress = 0
+            
+        # LPA
+        lpa_completed_count = zonal_qs.filter(
+            Q(first_line_lpa=1) | Q(second_line_lpa=1)
+        ).distinct().count()
+        if total_substudy_counts > 0:
+            lpa_progress = round((lpa_completed_count / total_substudy_counts) * 100, 1)
+        else:
+            lpa_progress = 0
+            
+        # Nanopore
+        nanopore_completed_count = zonal_qs.filter(nanopore_done__in=[1]).count()
+        if total_substudy_counts > 0:
+            nanopore_progress = round((nanopore_completed_count / total_substudy_counts) * 100, 1)
+        else:
+            nanopore_progress = 0
 
         # Add to context
         context.update(
@@ -169,6 +208,16 @@ class DashboardHomeView(ListView):
                 "zonal_completed_count": zonal_completed_count,
                 "total_substudy_counts": total_substudy_counts,
                 "zonal_progress": zonal_progress,
+                "culture_completed_count": culture_completed_count,
+                "culture_progress": culture_progress,
+                "dst_completed_count": dst_completed_count,
+                "dst_progress": dst_progress,
+                "xpert_xdr_completed_count": xpert_xdr_completed_count,
+                "xpert_xdr__progress": xpert_xdr__progress,
+                "lpa_completed_count": lpa_completed_count,
+                "lpa_progress": lpa_progress,
+                "nanopore_completed_count": nanopore_completed_count,
+                "nanopore_progress": nanopore_progress,
             }
         )
 
