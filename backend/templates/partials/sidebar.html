@@ -12,13 +12,11 @@
     </a>
 
     <!-- Locations -->
-    <a href="{% url 'locations:country-list' %}"
-       class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
+    <a href="{% url 'locations:country-list' %}" class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Countries</span>
     </a>
 
-    <a href="{% url 'dashboard:graphs' %}"
-       class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+    <a href="{% url 'dashboard:graphs' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Graphs</span>
     </a>
 
@@ -35,7 +33,7 @@
     {% endif %}
 
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
     <!-- Reports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -72,7 +70,7 @@
     {% endif %}
 
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
     <!-- Exports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -86,11 +84,10 @@
     {% endif %}
     {% endwith %}
 
-    <!-- Queries -->
-    <!-- Total Issues (Level 1) -->
+    <!-- Queries / Total Issues -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-exclamation-triangle"></i> Queries</span>
+            <span><i class="fas fa-exclamation-triangle"></i> Queries / Total Issues</span>
             <span class="d-flex align-items-center">
                 {% if context_total_issues %}
                 <span class="badge bg-danger rounded-pill me-2">{{ context_total_issues|intcomma }}</span>
@@ -100,7 +97,8 @@
         </a>
 
         <div class="submenu">
-            <!-- ── Missing Forms (Level 2a) ── -->
+
+            <!-- Missing Forms -->
             <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
                 <span><i class="fas fa-file-csv me-2"></i> Missing Forms</span>
                 {% if context_total_form_missing %}
@@ -141,33 +139,7 @@
                 {% endif %}
             </div>
 
-            
-        </div>
-    </div>
-
-    <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-search"></i> Queries</span>
-            <span class="d-flex align-items-center">
-                {% if context_total_issues %}
-                <span class="badge bg-danger rounded-pill me-2">{{ context_total_issues| intcomma }}</span>
-                {% endif %}
-                <i class="fas fa-chevron-down"></i>
-            </span>
-        </a>
-        <div class="submenu">
-            <a href="{% url 'reports:all_queries_overview' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-exclamation-triangle"></i> Total Issues</span>
-                <span class="badge bg-danger rounded-pill">{{ context_total_issues|default:"0"| intcomma }}</span>
-            </a>
-
-            <a href="{% url 'reports:missing_form_queries' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-file-csv me-2"></i> Missing Forms</span>
-                {% if context_total_issues_components.missing_forms %}
-                <span class="badge bg-danger rounded-pill">{{ context_total_issues_components.missing_forms | intcomma }}</span>
-                {% endif %}
-            </a>
-            <!-- ── Form Queries (Level 2b) ── -->
+            <!-- Form Queries -->
             <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
                 <span><i class="fas fa-clipboard-list me-2"></i> Form Queries</span>
                 <span class="d-flex align-items-center">
@@ -177,52 +149,51 @@
                     <i class="fas fa-chevron-down"></i>
                 </span>
             </a>
+            <div class="submenu">
+                {% with user_group=request.user.groups.first.name|upper %}
+                {% if user.is_superuser or user_group in "ADMIN REVIEWER NURSE CLINICIAN" %}
+                    {% if context_screening_report_total %}
+                    <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
+                        <span>Screening</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_screening_report_total|intcomma }}</span>
+                    </a>
+                    {% endif %}
+                    {% if context_enrollment_report_total %}
+                    <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
+                        <span>Enrollment</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_enrollment_report_total|intcomma }}</span>
+                    </a>
+                    {% endif %}
+                    {% if context_clinic_report_total %}
+                    <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
+                        <span>Clinic</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_clinic_report_total|intcomma }}</span>
+                    </a>
+                    {% endif %}
+                    {% if context_diagnosis_report_total %}
+                    <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
+                        <span>Diagnosis</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_diagnosis_report_total|intcomma }}</span>
+                    </a>
+                    {% endif %}
+                    {% if context_regimen_report_total %}
+                    <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
+                        <span>Regimen</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_regimen_report_total|intcomma }}</span>
+                    </a>
+                    {% endif %}
+                {% endif %}
+                {% if user.is_superuser or user_group in "ADMIN REVIEWER LABORATORY_TECHNICIAN" %}
+                    {% if context_zonal_report_total %}
+                    <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
+                        <span>Zonal</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
+                    </a>
+                    {% endif %}
+                {% endif %}
+                {% endwith %}
+            </div>
 
-            {% with user_group=request.user.groups.first.name|upper %}
-            {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" or user_group == "NURSE" or user_group == "CLINICIAN" %}
-            {% if context_screening_report_total %}
-            <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-user-check"></i> Screening</span>
-                <span class="badge bg-danger rounded-pill">{{ context_screening_report_total | intcomma }}</span>
-            </a>
-            {% endif %}
-            {% if context_enrollment_report_total %}
-            <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-user-plus"></i> Enrollment</span>
-                <span class="badge bg-danger rounded-pill">{{ context_enrollment_report_total | intcomma }}</span>
-            </a>
-            {% endif %}
-            {% if context_clinic_report_total %}
-            <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-vial"></i> Clinic</span>
-                <span class="badge bg-danger rounded-pill">{{ context_clinic_report_total | intcomma }}</span>
-            </a>
-            {% endif %}
-            {% if context_diagnosis_report_total %}
-            <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-stethoscope"></i> Diagnosis</span>
-                <span class="badge bg-danger rounded-pill">{{ context_diagnosis_report_total | intcomma }}</span>
-            </a>
-            {% endif %}
-            {% if context_regimen_report_total %}
-            <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-exchange-alt"></i> Regimen</span>
-                <span class="badge bg-danger rounded-pill">{{ context_regimen_report_total | intcomma }}</span>
-            </a>
-            {% endif %}
-            {% endif %}
-            {% endwith %}
-
-            {% with user_group=request.user.groups.first.name|upper %}
-            {% if user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" or user_group == "LABORATORY_TECHNICIAN" %}
-            {% if context_zonal_report_total %}
-            <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-microscope"></i> Zonal</span>
-                <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total | intcomma }}</span>
-            </a>
-            {% endif %}
-            {% endif %}
-            {% endwith %}
         </div>
     </div>
 
@@ -250,7 +221,7 @@
         <i class="fas fa-user-shield"></i><span> Admin Dashboard</span>
     </a>
     {% endif %}
-    {% endwith %}    
+    {% endwith %}
 </div>
 
 <!-- Sidebar toggle script -->
@@ -259,7 +230,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".menu-toggle").forEach(toggle => {
         toggle.addEventListener("click", function () {
             const submenu = this.nextElementSibling;
-            if (!submenu) return; // safety
+            if (!submenu) return; 
             submenu.classList.toggle("open");
 
             const chevron = this.querySelector(".fa-chevron-down");
