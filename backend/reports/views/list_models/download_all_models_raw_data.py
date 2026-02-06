@@ -1,126 +1,114 @@
 from django.views import View
-from django.http import HttpResponse
-from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.decorators import method_decorator
+from django.http import StreamingHttpResponse
 from django.apps import apps
 import csv
+import io
 
-# Decorator for staff-only access
-def staff_required(view_func):
-    return method_decorator(staff_member_required, name='dispatch')(view_func)
+REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 
-
-@staff_required
 class ExportAllModelsRawDataView(View):
-    """
-    Export all models' data into a single CSV aligned by Screening.pid.
-    PID is the first column. Screening includes all its columns.
-    Other models are mapped via their Screening relation.
-    Each model has one <model_name>_remarks column (lowercase), existing remarks fields are excluded.
-    If a Screening has multiple RegimenChanges, there will be multiple rows for that Screening.
-    The 'pid' column is excluded for RegimenChanges.
-    """
 
+    # Fields to exclude from all models
     exclude_fields = [
-        'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by',
-        'screening','enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes',
-        'remarks'  # Exclude existing remarks field
-    ]
-
-    model_order = [
-        'Screening',
-        'Enrollment',
-        'ClinicLaboratory',
-        'Diagnosis',
-        'ZonalLaboratory',
-        'RegimenChanges',
+        'id', 'pid1', 'pid2', 'created_at', 'updated_at',
+        'created_by', 'updated_by',
+        'screening', 'enrollment', 'clinic_laboratory',
+        'zonal_laboratory', 'diagnosis', 'regimen_changes',
+        'remarks'
     ]
 
     def get(self, request):
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="all_models_by_screening.csv"'
-        writer = csv.writer(response)
+        mode = request.GET.get("mode", "full")  # full, values_only, labels_only
 
-        # Get Screening objects
-        Screening = apps.get_model('nanopore', 'Screening')
-        screening_list = list(Screening.objects.all().order_by('pid'))
+        # Load models
+        Screening = apps.get_model("nanopore", "Screening")
+        Enrollment = apps.get_model("nanopore", "Enrollment")
+        Diagnosis = apps.get_model("nanopore", "Diagnosis")
+        ClinicLaboratory = apps.get_model("nanopore", "ClinicLaboratory")
+        ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
 
-        all_headers = []
-        model_fields_map = {}
+        models_list = [Screening, Enrollment, Diagnosis, ClinicLaboratory, ZonalLaboratory]
 
-        # Prepare headers and fields
-        for model_name in self.model_order:
-            model = apps.get_model('nanopore', model_name)
-            fields = []
+        def csv_generator():
+            pseudo_buffer = io.StringIO()
+            writer = csv.writer(pseudo_buffer)
+
+            # Build headers
             headers = []
+            for model in models_list:
+                for f in model._meta.fields:
+                    if f.name not in self.exclude_fields:
+                        headers.append(f.name)
+            for f in REGIMEN_FIELDS:
+                headers.append("regimen_" + f)
 
-            for f in model._meta.get_fields():
-                # Exclude general fields
-                if f.name in self.exclude_fields:
-                    continue
-                # Skip Screening FK in other models
-                if model_name != 'Screening' and f.one_to_one and f.related_model.__name__ == 'Screening':
-                    continue
-                # Exclude 'pid' only for RegimenChanges
-                if model_name == 'RegimenChanges' and f.name == 'pid':
-                    continue
-                fields.append(f)
-                headers.append(f.name.lower())
+            writer.writerow(headers)
+            yield pseudo_buffer.getvalue()
+            pseudo_buffer.seek(0)
+            pseudo_buffer.truncate(0)
 
-            # Add one <model_name>_remarks column for all models
-            headers.append(f"{model_name}_remarks".lower())
+            # Fetch screenings with optimized queries
+            screenings_qs = Screening.objects.all()\
+                .select_related('enrollment','diagnosis','clinic_laboratory','zonal_laboratory')\
+                .prefetch_related('regimen_changes')\
+                .order_by("pid")\
+                .iterator()
 
-            model_fields_map[model_name] = fields
-            all_headers.extend(headers)
+            for screening in screenings_qs:
+                enrollment = getattr(screening,'enrollment',None)
+                diagnosis = getattr(screening,'diagnosis',None)
+                clinic = getattr(screening,'clinic_laboratory',None)
+                zonal = getattr(screening,'zonal_laboratory',None)
 
-        # Write headers
-        writer.writerow(all_headers)
+                regimens = list(screening.regimen_changes.all().order_by("date")) or [None]
 
-        # Build rows per Screening
-        for screening in screening_list:
-            # Get all related RegimenChanges objects
-            RegimenChanges = apps.get_model('nanopore', 'RegimenChanges')
-            regimen_list = list(screening.regimen_changes.all()) or [None]  # at least one iteration
+                for regimen in regimens:
+                    row = []
 
-            # Repeat row for each RegimenChanges
-            for regimen in regimen_list:
-                row = []
+                    # Helper to get human-readable value
+                    def get_value(obj, f):
+                        if not obj:
+                            return ""
+                        val = getattr(obj,f.name,"")
+                        # Choice fields
+                        if getattr(f,"choices", None):
+                            val = dict(f.choices).get(val,val)
+                        # ForeignKey / OneToOne
+                        if f.is_relation:
+                            if f.many_to_many:
+                                return ";".join(str(v) for v in getattr(obj,f.name).all())
+                            else:
+                                return str(val) if val else ""
+                        return val
 
-                for model_name in self.model_order:
-                    model = apps.get_model('nanopore', model_name)
-                    fields = model_fields_map[model_name]
+                    # Write fields for each model
+                    for model, obj in zip(models_list,[screening,enrollment,diagnosis,clinic,zonal]):
+                        for f in model._meta.fields:
+                            if f.name in self.exclude_fields:
+                                continue
+                            row.append(get_value(obj,f))
 
-                    if model_name == 'Screening':
-                        obj = screening
-                    elif model_name == 'RegimenChanges':
-                        obj = regimen
+                    # Regimen fields
+                    if regimen:
+                        for f in REGIMEN_FIELDS:
+                            row.append(str(getattr(regimen,f,"")) if getattr(regimen,f,None) else "")
                     else:
-                        try:
-                            obj = model.objects.get(screening=screening)
-                        except model.DoesNotExist:
-                            obj = None
+                        row.extend([""]*len(REGIMEN_FIELDS))
 
-                    if obj:
-                        for f in fields:
-                            try:
-                                if f.many_to_many:
-                                    value = getattr(obj, f.name).all()
-                                    row.append(';'.join(str(v.pk) for v in value))
-                                elif f.one_to_one and f.related_model.__name__ == 'Screening':
-                                    continue
-                                elif f.many_to_one or f.one_to_one:
-                                    value = getattr(obj, f.name, None)
-                                    row.append(value.pk if value else '')
-                                else:
-                                    row.append(getattr(obj, f.name))
-                            except (AttributeError, f.related_model.DoesNotExist):
-                                row.append('')
-                        # Append <model_name>_remarks column
-                        row.append(getattr(obj, 'remarks', '') or '')
-                    else:
-                        # Fill empty columns (fields + <model_name>_remarks)
-                        row.extend([''] * (len(fields) + 1))
+                    writer.writerow(row)
+                    yield pseudo_buffer.getvalue()
+                    pseudo_buffer.seek(0)
+                    pseudo_buffer.truncate(0)
 
-                writer.writerow(row)
-
+        # Streaming response
+        response = StreamingHttpResponse(
+            csv_generator(),
+            content_type="text/csv"
+        )
+        filename = "all_models.csv"
+        if mode == "values_only":
+            filename = "all_models_values.csv"
+        elif mode == "labels_only":
+            filename = "all_models_labels.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response

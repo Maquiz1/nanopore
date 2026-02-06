@@ -1,45 +1,121 @@
 {% extends 'base.html' %}
 {% load humanize %}
+
 {% block content %}
-<h2>Available Models for Export</h2>
 
-<!-- Link to download all models CSV -->
-<p>
-    <a href="{% url 'reports:download_raw_data_all_models' %}" class="btn btn-warning mb-3">
-        Download All Models CSV
-    </a>
-</p>
+<div class="container mt-4">
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Model Name</th>
-            <th>Description</th>
-            <th>Records</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for model in models_list %}
-        <tr>
-            <td>{{ model.name }}</td>
-            <td>{{ model.description }}</td>
-            <td><span class="badge bg-secondary">{{ model.count | intcomma }}</span></td>
-            <td>
-                <!-- Raw Data -->
-                <a href="{{ model.download_url }}" class="btn btn-primary btn-sm mb-1">Raw Data</a>
+    <h2>Available Models for Export</h2>
 
-                <!-- Labels Only -->
-                <!-- <a href="{{ model.labels_url }}" class="btn btn-success btn-sm mb-1">Labels Only</a> -->
+    <!-- Dropdown for All Models Download -->
+    <div class="dropdown mb-3">
+        <button class="btn btn-warning dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-download"></i>
+            <span> Download CSV</span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="downloadDropdown">
+            <li>
+                <a class="dropdown-item download-option" href="#" data-url="{% url 'reports:download_raw_data_all_models' %}?mode=full">
+                    Full Export
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item download-option" href="#" data-url="{% url 'reports:download_raw_data_all_models' %}?mode=values_only">
+                    Values Only
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item download-option" href="#" data-url="{% url 'reports:download_raw_data_all_models' %}?mode=labels_only">
+                    Labels Only
+                </a>
+            </li>
+        </ul>
+    </div>
 
-                <!-- Fields Only -->
-                <!-- <a href="{{ model.fields_url }}" class="btn btn-info btn-sm mb-1">Fields Only</a> -->
+    <!-- Table of individual models -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Model</th>
+                <th>Description</th>
+                <th>Records</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model in models_list %}
+            <tr>
+                <td>{{ model.name }}</td>
+                <td>{{ model.description }}</td>
+                <td><span class="badge bg-secondary">{{ model.count|intcomma }}</span></td>
+                <td>
+                    <button class="btn btn-primary btn-sm download-btn" data-url="{{ model.download_url }}">
+                        <i class="fas fa-download"></i>
+                        <span> Raw Data</span>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-                <!-- Data Dictionary -->
-                <!-- <a href="{{ model.fields_url }}" class="btn btn-info btn-sm mb-1">Data Dictionary</a> -->
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+</div>
+
+<script>
+async function realDownload(url, btnIcon, btnText, btn = null) {
+    if (btn) btn.disabled = true;
+    btnIcon.className = "fas fa-spinner fa-spin";
+    btnText.innerText = " Generating...";
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Export failed");
+
+        const blob = await response.blob();
+
+        const filename =
+            response.headers.get("Content-Disposition")
+            ?.split("filename=")[1]
+            ?.replace(/"/g,"") || "export.csv";
+
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+    } catch (err) {
+        alert("Export failed");
+    }
+
+    btnIcon.className = "fas fa-download";
+    btnText.innerText = btnText.dataset.default || btnText.innerText;
+    if (btn) btn.disabled = false;
+}
+
+// Per-model buttons
+document.querySelectorAll(".download-btn").forEach(btn => {
+    const textSpan = btn.querySelector("span");
+    textSpan.dataset.default = textSpan.innerText;
+    btn.addEventListener("click", () => {
+        const icon = btn.querySelector("i");
+        const text = btn.querySelector("span");
+        realDownload(btn.dataset.url, icon, text, btn);
+    });
+});
+
+// Dropdown options
+document.querySelectorAll(".download-option").forEach(item => {
+    item.addEventListener("click", (e) => {
+        e.preventDefault();
+        const url = item.dataset.url;
+        const btn = document.getElementById("downloadDropdown");
+        const icon = btn.querySelector("i");
+        const text = btn.querySelector("span");
+        realDownload(url, icon, text, btn);
+    });
+});
+</script>
+
 {% endblock %}
