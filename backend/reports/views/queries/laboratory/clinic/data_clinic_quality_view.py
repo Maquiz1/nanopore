@@ -106,14 +106,23 @@ class ClinicDataQualityReportView(View):
         missing_date_sample1_received_qs = clinics.filter(number_received__isnull=False, date_sample1_received__isnull=True)
         missing_appearance_sample1_qs = clinics.filter(number_received__isnull=False, appearance_sample1__isnull=True)
         missing_sample1_volume_qs = clinics.filter(number_received__isnull=False, sample1_volume__isnull=True)
-
+        missing_sample1_volume_qs = clinics.filter(number_received__isnull=False, sample1_volume__isnull=True)
+        missing_invalid_sample1_volume_qs = clinics.filter(
+            sample1_volume__isnull=False
+        ).exclude(
+            sample1_volume__regex=r'^[0-9]+(\.[0-9]+)?$'
+        )
         # sample2 when number_received == 2
         nr_is_2_q = Q(number_received__value=2) | Q(number_received__name__iexact="2")
         missing_date_sample2_collected_qs = clinics.filter(nr_is_2_q, date_sample2_collected__isnull=True)
         missing_date_sample2_received_qs = clinics.filter(nr_is_2_q, date_sample2_received__isnull=True)
         missing_appearance_sample2_qs = clinics.filter(nr_is_2_q, appearance_sample2__isnull=True)
         missing_sample2_volume_qs = clinics.filter(nr_is_2_q, sample2_volume__isnull=True)
-
+        missing_invalid_sample2_volume_qs = clinics.filter(
+            sample2_volume__isnull=False
+        ).exclude(
+            sample2_volume__regex=r'^[0-9]+(\.[0-9]+)?$'
+        )
         # --- Business rule: afb_microscopy_conducted and xpert_mtb_rif_conducted are required when:
         #     sample_received == 1
         #   OR (sample_received == 2 AND new_sample == 1)
@@ -222,12 +231,14 @@ class ClinicDataQualityReportView(View):
             "missing_date_sample1_received": [serialize_clinic(c) for c in missing_date_sample1_received_qs[:100]],
             "missing_appearance_sample1": [serialize_clinic(c) for c in missing_appearance_sample1_qs[:100]],
             "missing_sample1_volume": [serialize_clinic(c) for c in missing_sample1_volume_qs[:100]],
-
+            "missing_invalid_sample1_volume": [serialize_clinic(c) for c in missing_invalid_sample1_volume_qs[:100]],
+            
             "missing_date_sample2_collected": [serialize_clinic(c) for c in missing_date_sample2_collected_qs[:100]],
             "missing_date_sample2_received": [serialize_clinic(c) for c in missing_date_sample2_received_qs[:100]],
             "missing_appearance_sample2": [serialize_clinic(c) for c in missing_appearance_sample2_qs[:100]],
             "missing_sample2_volume": [serialize_clinic(c) for c in missing_sample2_volume_qs[:100]],
-
+            "missing_invalid_sample2_volume": [serialize_clinic(c) for c in missing_invalid_sample2_volume_qs[:100]],
+            
             "missing_afb_microscopy_conducted": [serialize_clinic(c) for c in missing_afb_microscopy_conducted_qs[:100]],
             "missing_afb_a_date": [serialize_clinic(c) for c in missing_afb_a_date_qs[:100]],
             "missing_technique_a": [serialize_clinic(c) for c in missing_technique_a_qs[:100]],
@@ -256,11 +267,13 @@ class ClinicDataQualityReportView(View):
             "count_missing_date_sample1_received": missing_date_sample1_received_qs.count(),
             "count_missing_appearance_sample1": missing_appearance_sample1_qs.count(),
             "count_missing_sample1_volume": missing_sample1_volume_qs.count(),
+            "count_missing_invalid_sample1_volume": missing_invalid_sample1_volume_qs.count(),
 
             "count_missing_date_sample2_collected": missing_date_sample2_collected_qs.count(),
             "count_missing_date_sample2_received": missing_date_sample2_received_qs.count(),
             "count_missing_appearance_sample2": missing_appearance_sample2_qs.count(),
             "count_missing_sample2_volume": missing_sample2_volume_qs.count(),
+            "count_missing_invalid_sample2_volume": missing_invalid_sample2_volume_qs.count(),
 
             "count_missing_afb_microscopy_conducted": missing_afb_microscopy_conducted_qs.count(),
             "count_missing_afb_a_date": missing_afb_a_date_qs.count(),

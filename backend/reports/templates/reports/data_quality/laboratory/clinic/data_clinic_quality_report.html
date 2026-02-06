@@ -312,11 +312,11 @@
         {% endif %}
 
         {# Sample1 fields (required when number_received present) #}
-        {% if count_missing_date_sample1_collected or count_missing_date_sample1_received or count_missing_appearance_sample1 or count_missing_sample1_volume %}
+        {% if count_missing_date_sample1_collected or count_missing_date_sample1_received or count_missing_appearance_sample1 or count_missing_sample1_volume or count_missing_invalid_sample1_volume %}
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSample1">
-                    Sample1 missing fields
+                    Sample1 missing fields ({{ count_missing_date_sample1_collected|add:count_missing_date_sample1_received|add:count_missing_appearance_sample1|add:count_missing_sample1_volume|add:count_missing_invalid_sample1_volume }})
                 </button>
             </h2>
             <div id="collapseSample1" class="accordion-collapse collapse">
@@ -392,17 +392,34 @@
                         </table>
                     </div>
                     {% endif %}
+                    {% if count_missing_invalid_sample1_volume %}
+                    <h6>Sample1 Volume ({{ count_missing_invalid_sample1_volume|default:"0"  | intcomma  }})</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for c in missing_invalid_sample1_volume|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td>{{ c.zone_name }}</td>
+                                    <td>{{ c.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
         {% endif %}
 
         {# Sample2 fields (required when number_received == 2) #}
-        {% if count_missing_date_sample2_collected or count_missing_date_sample2_received or count_missing_appearance_sample2 or count_missing_sample2_volume %}
+        {% if count_missing_date_sample2_collected or count_missing_date_sample2_received or count_missing_appearance_sample2 or count_missing_sample2_volume or count_missing_invalid_sample2_volume %}
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSample2">
-                    Sample2 missing fields
+                    Sample2 missing fields ({{ count_missing_date_sample2_collected|add:count_missing_date_sample2_received|add:count_missing_appearance_sample1|add:count_missing_sample2_volume|add:count_missing_invalid_sample2_volume }})
                 </button>
             </h2>
             <div id="collapseSample2" class="accordion-collapse collapse">
@@ -478,6 +495,23 @@
                         </table>
                     </div>
                     {% endif %}
+                    {% if count_missing_invalid_sample2_volume %}
+                    <h6>Sample2 Volume ({{ count_missing_invalid_sample2_volume|default:"0"  | intcomma  }})</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for c in missing_invalid_sample2_volume|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td>{{ c.zone_name }}</td>
+                                    <td>{{ c.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -517,7 +551,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAFBDetails">
-                    AFB detail fields missing
+                    AFB detail fields missing ({{ count_missing_afb_a_date|add:count_missing_technique_a|add:count_missing_afb_a_results|add:count_missing_afb_b_date|add:count_missing_technique_b|add:count_missing_afb_b_results }})
                 </button>
             </h2>
             <div id="collapseAFBDetails" class="accordion-collapse collapse">
@@ -668,7 +702,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseXpertDetails">
-                    Xpert detail fields missing
+                    Xpert detail fields missing ({{ count_missing_xpert_date|add:count_missing_xpert_mtb|add:count_missing_error_code|add:count_missing_xpert_rif|add:count_missing_ct_value }})
                 </button>
             </h2>
             <div id="collapseXpertDetails" class="accordion-collapse collapse">

@@ -40,6 +40,17 @@ def get_clinic_dq_counts(user, zone_id=None, site_id=None):
     xpert_in_2_6_q = Q(xpert_mtb__value__in=[2,3,4,5,6]) | Q(xpert_mtb__name__in=["2","3","4","5","6"])
     xpert_is_8_q = Q(xpert_mtb__value=8) | Q(xpert_mtb__name__iexact="8")
 
+    invalid_sample1_volume_qs = qs.filter(
+            sample1_volume__isnull=False
+        ).exclude(
+            sample1_volume__regex=r'^[0-9]+(\.[0-9]+)?$'
+        )
+        
+    invalid_sample2_volume_qs = qs.filter(
+            sample2_volume__isnull=False
+        ).exclude(
+            sample2_volume__regex=r'^[0-9]+(\.[0-9]+)?$'
+        )
     # --- Counts ---
     counts = {
         "missing_sample_received": qs.filter(sample_received__isnull=True).count(),
@@ -52,11 +63,13 @@ def get_clinic_dq_counts(user, zone_id=None, site_id=None):
         "missing_date_sample1_received": qs.filter(number_received__isnull=False, date_sample1_received__isnull=True).count(),
         "missing_appearance_sample1": qs.filter(number_received__isnull=False, appearance_sample1__isnull=True).count(),
         "missing_sample1_volume": qs.filter(number_received__isnull=False, sample1_volume__isnull=True).count(),
+        "missing_invalid_sample1_volume": invalid_sample1_volume_qs.count(),
 
         "missing_date_sample2_collected": qs.filter(number_received__value=2, date_sample2_collected__isnull=True).count(),
         "missing_date_sample2_received": qs.filter(number_received__value=2, date_sample2_received__isnull=True).count(),
         "missing_appearance_sample2": qs.filter(number_received__value=2, appearance_sample2__isnull=True).count(),
         "missing_sample2_volume": qs.filter(number_received__value=2, sample2_volume__isnull=True).count(),
+        "missing_invalid_sample2_volume": invalid_sample2_volume_qs.count(),
 
         "missing_afb_microscopy_conducted": qs.filter(afb_xpert_required_q, afb_microscopy_conducted__isnull=True).count(),
         "missing_afb_a_date": qs.filter(afb_yes_q, afb_a_date__isnull=True).count(),
