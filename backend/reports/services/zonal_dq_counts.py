@@ -1,9 +1,5 @@
 # reports/services/zonal_dq_counts.py
 from django.db.models import Q, Count, Case, When, IntegerField
-from django.apps import apps
-from utils.roles import get_role_context
-from utils.permissions import filter_queryset_by_user_role
-from nanopore.models import ZonalLaboratory
 
 def get_duplicate_lab_numbers(qs):
     return (
@@ -15,20 +11,10 @@ def get_duplicate_lab_numbers(qs):
           .values_list("unique_lab_no", flat=True)
     )
 
-def get_zonal_dq_counts(user=None, zone_id=None, site_id=None):
-    qs = ZonalLaboratory.objects.all()
-    
-    # Filter by zone/site
-    if zone_id:
-        qs = qs.filter(screening__site__district__region__zone_id=zone_id)
-    if site_id:
-        qs = qs.filter(screening__site_id=site_id)
-    
-    # Filter by user role
-    if user:
-        qs = filter_queryset_by_user_role(user, qs, site_field="screening__site")
-    
-    # Existing logic
+def get_zonal_dq_counts(qs):
+    """
+    Return aggregate stats and duplicate lab numbers for a queryset.
+    """
     duplicate_lab_numbers = get_duplicate_lab_numbers(qs)
 
     stats = qs.aggregate(
