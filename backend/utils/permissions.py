@@ -2,6 +2,8 @@
 from locations.models import Site
 
 def filter_queryset_by_user_role(user, qs, site_field="site"):
+    if not hasattr(user, "is_superuser"):
+        raise TypeError(f"Expected a single User object, got {type(user)}")
     """
     Filters a queryset based on user role and site/zone level.
 
