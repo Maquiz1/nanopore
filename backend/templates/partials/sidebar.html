@@ -109,36 +109,36 @@
             <div class="submenu">
                 {% with user_group=request.user.groups.first.name|upper %}
                 {% if user.is_superuser or user_group in "ADMIN REVIEWER NURSE CLINICIAN" %}
-                    {% if context_missing_enrollment_count %}
+                    {% if context_forms_report_total.context_missing_enrollment_count %}
                     <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}" class="d-flex justify-content-between">
                         <span>Enrollment</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_missing_enrollment_count|intcomma }}</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_enrollment_count|intcomma }}</span>
                     </a>
                     {% endif %}
-                    {% if context_missing_clinic_count %}
+                    {% if context_forms_report_total.context_missing_clinic_count %}
                     <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}" class="d-flex justify-content-between">
                         <span>Clinic</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_missing_clinic_count|intcomma }}</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_clinic_count|intcomma }}</span>
                     </a>
                     {% endif %}
-                    {% if context_missing_diagnosis_count %}
+                    {% if context_forms_report_total.context_missing_diagnosis_count %}
                     <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}" class="d-flex justify-content-between">
                         <span>Diagnosis</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_missing_diagnosis_count|intcomma }}</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_diagnosis_count|intcomma }}</span>
                     </a>
                     {% endif %}
-                    {% if context_missing_regimen_count %}
+                    {% if context_forms_report_total.context_missing_regimen_count %}
                     <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}" class="d-flex justify-content-between">
                         <span>Regimen</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_missing_regimen_count|intcomma }}</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_regimen_count|intcomma }}</span>
                     </a>
                     {% endif %}
                 {% endif %}
                 {% if user.is_superuser or user_group in "ADMIN REVIEWER LABORATORY_TECHNICIAN" %}
-                    {% if context_missing_zonal_count %}
+                    {% if context_forms_report_total.context_missing_zonal_count %}
                     <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}" class="d-flex justify-content-between">
                         <span>Zonal</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_missing_zonal_count|intcomma }}</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_zonal_count|intcomma }}</span>
                     </a>
                     {% endif %}
                 {% endif %}
