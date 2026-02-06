@@ -24,6 +24,7 @@
 
                     <form method="post" novalidate id="enrollmentForm">
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
 
                         <!-- Non-field errors -->
                         {% if form.non_field_errors %}

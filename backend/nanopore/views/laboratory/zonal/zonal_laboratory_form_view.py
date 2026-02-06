@@ -14,6 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
 from nanopore.models import ZonalLaboratory, Screening
+from django.utils.http import url_has_allowed_host_and_scheme
 
 class ZonalLabFormView(LoginRequiredMixin, View):
     template_name = "nanopore/laboratory/zonal/zonal_laboratory_form.html"
@@ -36,6 +37,8 @@ class ZonalLabFormView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
+        next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
+
         screening_instance = self.get_screening_instance()
 
         form = ZonalLaboratoryForm(
@@ -47,7 +50,7 @@ class ZonalLabFormView(LoginRequiredMixin, View):
         return render(
             request,
             self.template_name,
-            {"form": form, "object": obj, "screening": screening_instance}
+            {"form": form, "object": obj, "screening": screening_instance, "next": next_url}
         )
 
     def post(self, request, *args, **kwargs):
@@ -80,7 +83,14 @@ class ZonalLabFormView(LoginRequiredMixin, View):
                     {"form": form, "object": obj, "screening": screening_instance}
                 )
 
-            return redirect(self.success_url)
+            # return redirect(self.success_url)
+            next_url = request.POST.get("next")
+
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+            ):
+                return redirect(next_url)
 
         return render(
             request,

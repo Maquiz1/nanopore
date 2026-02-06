@@ -8,6 +8,7 @@ from django.contrib import messages
 from nanopore.models import Diagnosis, Screening, RegimenChanges
 from nanopore.forms.diagnosis.diagnosisform import DiagnosisForm
 from nanopore.forms.regimen.regimenform import RegimenChangesForm
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 class DiagnosisFormView(LoginRequiredMixin, View):
@@ -47,6 +48,8 @@ class DiagnosisFormView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
+        next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
+
         screening_instance = self.get_screening_instance()
 
         form = DiagnosisForm(
@@ -68,6 +71,7 @@ class DiagnosisFormView(LoginRequiredMixin, View):
                 "regimen_changes": regimen_changes,
                 "regimen_form": regimen_form,
                 "regimen_error": regimen_error,
+                "next": next_url,
             },
         )
 
@@ -95,7 +99,14 @@ class DiagnosisFormView(LoginRequiredMixin, View):
             diagnosis.save()
             form.save_m2m()
             messages.success(request, "Diagnosis saved successfully!")
-            return redirect(self.success_url)
+            # return redirect(self.success_url)
+            next_url = request.POST.get("next")
+
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+            ):
+                return redirect(next_url)
 
         return render(
             request,

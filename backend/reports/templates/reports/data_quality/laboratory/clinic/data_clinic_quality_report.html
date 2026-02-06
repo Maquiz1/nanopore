@@ -129,7 +129,7 @@
                                 {% for c in missing_sample_received|default:"" %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ c.pid }}
                                         </a>
                                     </td>
@@ -168,7 +168,7 @@
                                 {% for c in missing_number_received|default:"" %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ c.pid }}
                                         </a>
                                     </td>
@@ -207,7 +207,7 @@
                                 {% for c in missing_sample_reason_when_received_2|default:"" %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ c.pid }}
                                         </a>
                                     </td>
@@ -246,7 +246,7 @@
                                 {% for c in missing_new_reason_when_new_sample_2|default:"" %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ c.pid }}
                                         </a>
                                     </td>
@@ -285,7 +285,7 @@
                                 {% for c in missing_other_reason_when_sample_reason_96|default:"" %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ c.pid }}
                                         </a>
                                     </td>
@@ -319,7 +319,7 @@
                             <tbody>
                                 {% for c in missing_date_sample1_collected|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -337,7 +337,7 @@
                             <tbody>
                                 {% for c in missing_date_sample1_received|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -355,7 +355,7 @@
                             <tbody>
                                 {% for c in missing_appearance_sample1|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -373,7 +373,7 @@
                             <tbody>
                                 {% for c in missing_sample1_volume|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -405,7 +405,7 @@
                             <tbody>
                                 {% for c in missing_date_sample2_collected|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -423,7 +423,7 @@
                             <tbody>
                                 {% for c in missing_date_sample2_received|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -441,7 +441,7 @@
                             <tbody>
                                 {% for c in missing_appearance_sample2|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -459,7 +459,7 @@
                             <tbody>
                                 {% for c in missing_sample2_volume|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -489,7 +489,7 @@
                             <tbody>
                                 {% for c in missing_afb_microscopy_conducted|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -520,7 +520,7 @@
                             <tbody>
                                 {% for c in missing_afb_a_date|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -538,7 +538,7 @@
                             <tbody>
                                 {% for c in missing_technique_a|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -556,7 +556,7 @@
                             <tbody>
                                 {% for c in missing_afb_a_results|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -574,7 +574,7 @@
                             <tbody>
                                 {% for c in missing_afb_b_date|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -592,7 +592,7 @@
                             <tbody>
                                 {% for c in missing_technique_b|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -610,7 +610,7 @@
                             <tbody>
                                 {% for c in missing_afb_b_results|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -640,7 +640,7 @@
                             <tbody>
                                 {% for c in missing_xpert_mtb_rif_conducted|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -671,7 +671,7 @@
                             <tbody>
                                 {% for c in missing_xpert_date|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -689,7 +689,7 @@
                             <tbody>
                                 {% for c in missing_xpert_mtb|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -707,7 +707,7 @@
                             <tbody>
                                 {% for c in missing_error_code|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -725,7 +725,7 @@
                             <tbody>
                                 {% for c in missing_xpert_rif|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>
@@ -743,7 +743,7 @@
                             <tbody>
                                 {% for c in missing_ct_value|default:"" %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}" class="text-primary fw-bold">{{ c.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.pid }}</a></td>
                                     <td>{{ c.zone_name }}</td>
                                     <td>{{ c.site_name }}</td>
                                 </tr>

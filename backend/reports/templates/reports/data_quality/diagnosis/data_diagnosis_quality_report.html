@@ -122,7 +122,7 @@
                                 {% for item in missing_tb_diagnosis %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:diagnosis-update' pk=item.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ item.screening.pid }}
                                         </a>
                                     </td>
@@ -156,7 +156,7 @@
                             <tbody>
                                 {% for item in missing_tb_diagnosis_date %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -187,7 +187,7 @@
                             <tbody>
                                 {% for item in missing_tb_diagnosis_made %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -218,7 +218,7 @@
                             <tbody>
                                 {% for item in missing_diagnosis_made_other %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -249,7 +249,7 @@
                             <tbody>
                                 {% for item in missing_tb_diagnosed_clinically %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -280,7 +280,7 @@
                             <tbody>
                                 {% for item in missing_tb_clinically_other %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -311,7 +311,7 @@
                             <tbody>
                                 {% for item in missing_bacteriological_diagnosis %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -342,7 +342,7 @@
                             <tbody>
                                 {% for item in missing_clinician_received_date %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -373,7 +373,7 @@
                             <tbody>
                                 {% for item in missing_tb_treatment %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -404,7 +404,7 @@
                             <tbody>
                                 {% for item in missing_tb_treatment_date %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -435,7 +435,7 @@
                             <tbody>
                                 {% for item in missing_tb_register_number %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -474,7 +474,7 @@
                             {% for item in duplicate_tb_register_number %}
                             <tr>
                                 <td>
-                                    <a href="{% url 'nanopore:diagnosis-update' pk=item.id %}" class="text-primary fw-bold">
+                                    <a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                         {{ item.screening.pid }}
                                     </a>
                                 </td>                                
@@ -507,7 +507,7 @@
                             <tbody>
                                 {% for item in missing_tb_regimen %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -538,7 +538,7 @@
                             <tbody>
                                 {% for item in missing_regimen_changed %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -569,7 +569,7 @@
                             <tbody>
                                 {% for item in missing_tb_facility %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -600,7 +600,7 @@
                             <tbody>
                                 {% for item in missing_tb_reason %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -631,7 +631,7 @@
                             <tbody>
                                 {% for item in missing_tb_outcome2_date %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.get_tb_outcome2_display|default:"—" }}</td>
                                     <td>{{ item.tb_outcome2_date|date:"d/m/Y"|default:"—" }}</td>
@@ -663,7 +663,7 @@
                             <tbody>
                                 {% for item in pending_tb_outcome %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                     <td class="text-center">{{ item.months_on_treatment|default:"—" }}</td>
@@ -695,7 +695,7 @@
                             <tbody>
                                 {% for item in pending_tb_outcome_date %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
                                     <td class="text-center">{{ item.months_on_treatment|default:"—" }}</td>
@@ -727,7 +727,7 @@
                             <tbody>
                                 {% for item in missing_tb_other_diagnosis %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -758,7 +758,7 @@
                             <tbody>
                                 {% for item in missing_tb_other_specify %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
@@ -789,7 +789,7 @@
                             <tbody>
                                 {% for item in missing_tb_diagnosis_made2 %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}">{{ item.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
                                     <td>{{ item.screening.site.name }}</td>
                                     <td>{{ item.screening.screening_date|date:"d/m/Y"|default:"—" }}</td>
                                 </tr>
