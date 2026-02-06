@@ -7,7 +7,8 @@ from reports.services.regimen_dq_counts import get_regimen_dq_counts
 from reports.services.diagnosis_dq_counts import get_diagnosis_dq_counts
 from reports.services.clinic_dq_counts import get_clinic_dq_counts
 from reports.services.zonal_dq_counts import get_zonal_dq_counts
-
+from nanopore.models import ZonalLaboratory  # replace with the correct model for screening counts
+from utils.permissions import filter_queryset_by_user_role
 
 class SpecificFormQueriesDashboardView(TemplateView):
     template_name = (
@@ -63,9 +64,28 @@ class SpecificFormQueriesDashboardView(TemplateView):
             request.user, zone_id_int, site_id_int
         ).get("total_issues", 0)
 
-        zonal_total = get_zonal_dq_counts(
-            request.user, zone_id_int, site_id_int
-        ).get("total_issues", 0)
+        # zonal_total = get_zonal_dq_counts(
+        #     request.user, zone_id_int, site_id_int
+        # ).get("total_issues", 0)
+        
+        # --- ZONAL COUNTS (fixed) ---
+        qs = ZonalLaboratory.objects.select_related(
+            "screening","screening__site","screening__site__district__region__zone"
+        ).order_by(
+            "screening__site__district__region__name","screening__site__name","screening__pid"
+        )
+
+        # Filter by user role (user first, then queryset)
+        qs = filter_queryset_by_user_role(request.user, qs, site_field="site")
+
+        # Apply zone / site filters
+        if zone_id:
+            qs = qs.filter(site__district__region__zone_id=zone_id)
+        if site_id:
+            qs = qs.filter(site_id=site_id)
+
+        zonal_counts = get_zonal_dq_counts(qs)
+        zonal_total = zonal_counts.get("total_issues", 0)
 
         # ── Combined Total (simple sum) ──────────────────────────────
         specific_queries_total = (

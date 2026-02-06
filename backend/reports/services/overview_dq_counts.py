@@ -52,30 +52,30 @@ def get_data_quality_overview(user, zone_id=None, site_id=None):
         site_id=site_id,
     )
                     
-    zonal_counts = get_zonal_dq_counts(
-        user=user,
-        zone_id=zone_id,
-        site_id=site_id,
-    )
+    # zonal_counts = get_zonal_dq_counts(
+    #     user=user,
+    #     zone_id=zone_id,
+    #     site_id=site_id,
+    # )
     
-#    # ── ZONAL COUNTS ─────────────────────────────
-#     qs = ZonalLaboratory.objects.select_related(
-#         "screening",
-#         "screening__site",
-#         "screening__site__district__region__zone"
-#     )
+    # --- ZONAL COUNTS (fixed) ---
+    qs = ZonalLaboratory.objects.select_related(
+        "screening","screening__site","screening__site__district__region__zone"
+    ).order_by(
+        "screening__site__district__region__name","screening__site__name","screening__pid"
+    )
 
-    # # Correct usage: pass queryset first, then user
-    # qs = filter_queryset_by_user_role(qs, user, site_field="screening__site")
+    # Filter by user role (user first, then queryset)
+    qs = filter_queryset_by_user_role(user, qs, site_field="site")
 
-    # # Apply zone / site filters if provided
-    # if zone_id:
-    #     qs = qs.filter(screening__site__district__region__zone_id=zone_id)
-    # if site_id:
-    #     qs = qs.filter(screening__site_id=site_id)
+    # Apply zone / site filters
+    if zone_id:
+        qs = qs.filter(site__district__region__zone_id=zone_id)
+    if site_id:
+        qs = qs.filter(site_id=site_id)
 
-    # Get zonal data quality counts
     zonal_counts = get_zonal_dq_counts(qs)
+
 
 
     total_issues = (
