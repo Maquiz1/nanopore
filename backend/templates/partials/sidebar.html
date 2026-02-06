@@ -87,6 +87,64 @@
     {% endwith %}
 
     <!-- Queries -->
+    <!-- Total Issues (Level 1) -->
+    <div class="menu-group">
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-exclamation-triangle"></i> Queries</span>
+            <span class="d-flex align-items-center">
+                {% if context_total_issues %}
+                <span class="badge bg-danger rounded-pill me-2">{{ context_total_issues|intcomma }}</span>
+                {% endif %}
+                <i class="fas fa-chevron-down"></i>
+            </span>
+        </a>
+
+        <div class="submenu">
+            <!-- ── Missing Forms (Level 2a) ── -->
+            <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+                <span><i class="fas fa-file-csv me-2"></i> Missing Forms</span>
+                {% if context_total_form_missing %}
+                <span class="badge bg-danger rounded-pill">{{ context_total_form_missing|intcomma }}</span>
+                {% endif %}
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="submenu">
+                {% if context_missing_enrollment_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}" class="d-flex justify-content-between">
+                    <span>Enrollment</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_missing_enrollment_count|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_missing_clinic_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}" class="d-flex justify-content-between">
+                    <span>Clinic</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_missing_clinic_count|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_missing_diagnosis_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}" class="d-flex justify-content-between">
+                    <span>Diagnosis</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_missing_diagnosis_count|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_missing_regimen_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}" class="d-flex justify-content-between">
+                    <span>Regimen</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_missing_regimen_count|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_missing_zonal_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}" class="d-flex justify-content-between">
+                    <span>Zonal</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_missing_zonal_count|intcomma }}</span>
+                </a>
+                {% endif %}
+            </div>
+
+            
+        </div>
+    </div>
+
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
             <span><i class="fas fa-search"></i> Queries</span>
@@ -108,6 +166,16 @@
                 {% if context_total_issues_components.missing_forms %}
                 <span class="badge bg-danger rounded-pill">{{ context_total_issues_components.missing_forms | intcomma }}</span>
                 {% endif %}
+            </a>
+            <!-- ── Form Queries (Level 2b) ── -->
+            <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+                <span><i class="fas fa-clipboard-list me-2"></i> Form Queries</span>
+                <span class="d-flex align-items-center">
+                    {% if specific_queries_total %}
+                    <span class="badge bg-danger rounded-pill">{{ specific_queries_total|intcomma }}</span>
+                    {% endif %}
+                    <i class="fas fa-chevron-down"></i>
+                </span>
             </a>
 
             {% with user_group=request.user.groups.first.name|upper %}
