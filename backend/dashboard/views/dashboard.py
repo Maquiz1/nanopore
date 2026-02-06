@@ -5,7 +5,7 @@ from django.utils import timezone
 import json
 from datetime import timedelta
 
-from nanopore.models import Screening, Enrollment, Diagnosis, ClinicLaboratory
+from nanopore.models import Screening, Enrollment, Diagnosis, ClinicLaboratory,ZonalLaboratory
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 from locations.models import Country,Zone
@@ -143,6 +143,35 @@ class DashboardHomeView(ListView):
             )
         else:
             substudy4_enrolled_progress = 0
+            
+        # -------------------------
+        # Zonal Lab Tests Progress
+        # -------------------------
+        # Get all ZonalLaboratory records for screenings in qs
+        zonal_qs = ZonalLaboratory.objects.filter(screening__in=qs)
+
+        # Count completed tests
+        zonal_completed_count = zonal_qs.count()  # all tests in ZonalLaboratory
+
+        # Use sum of Substudy counts as denominator
+        total_substudy_counts = (
+            substudy2_count
+        )
+
+        if total_substudy_counts > 0:
+            zonal_progress = round((zonal_completed_count / total_substudy_counts) * 100, 1)
+        else:
+            zonal_progress = 0
+
+        # Add to context
+        context.update(
+            {
+                "zonal_completed_count": zonal_completed_count,
+                "total_substudy_counts": total_substudy_counts,
+                "zonal_progress": zonal_progress,
+            }
+        )
+
 
         context.update(
             {

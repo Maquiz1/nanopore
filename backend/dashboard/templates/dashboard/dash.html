@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load custom_tags %}
+{% load static %}
+
+<title>{% block title %}Dream Fund - Nanopore Sequencing{% endblock %}</title>
+
+{% block titlebar %}
+Dashboard — {{ user.get_full_name|default:user.username }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .fa-hand-wave::before {
+        content: "\f44b";
+        /* custom wave icon if missing */
+    }
+
+    .card-body h2 i {
+        animation: wave 2s infinite ease-in-out;
+    }
+
+    @keyframes wave {
+
+        0%,
+        100% {
+            transform: rotate(0deg);
+        }
+
+        25% {
+            transform: rotate(15deg);
+        }
+
+        75% {
+            transform: rotate(-10deg);
+        }
+    }
+</style>
+
+<style>
+    @keyframes blink {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .blink {
+        animation: blink 3s infinite;
+    }
+</style>
+
+<div class="card shadow-sm border-0 mb-4 rounded-4">
+    <div class="card-body bg-light">
+        <h2 class="mb-3 text-primary fw-bold d-flex align-items-center flex-wrap">
+            <i class="fas fa-hand-wave text-warning me-2"></i>
+            Welcome,
+            <span class="ms-1">
+                {% if request.user.profile.prefix %}
+                {{ request.user.profile.prefix|default:"" }}.
+                {% endif %}
+                {{ user.get_full_name|default:user.username }}!
+            </span>
+        </h2>
+        {% with user_group=request.user.groups.first.name|upper %}
+        {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+        <div
+            class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
+            <div>
+                <p class="mb-0 fs-5 text-dark">
+                    <i class="fas fa-user-shield text-primary me-2"></i>
+                    <strong>Position:</strong> {{ request.user.profile.position }}
+                </p>
+            </div>
+
+            {% if total_issues %}
+            <!-- Blinking Badge -->
+            <div>
+                <span class="badge bg-danger blink">
+                    Current Pending Queries: {{ total_issues | intcomma }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        {% if request.user.profile.site %}
+        <div
+            class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
+            <div>
+                <!-- <p class="mb-1"><i class="fas fa-user-tag text-success me-2"></i><strong>Prefix:</strong> {{ request.user.profile.prefix }}</p> -->
+                <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i>
+                    <strong>Zone:</strong>
+                    {{ request.user.profile.site.district.region.zone.name }}
+                </p>
+                <p class="mb-1"><i class="fas fa-hospital text-success me-2"></i>
+                    <strong>Site:</strong>
+                    {{ request.user.profile.site.name }}
+                </p>
+                <p class="mb-0"><i class="fas fa-briefcase text-success me-2"></i>
+                    <strong>Position:</strong>
+                    {{ request.user.profile.position }}
+                </p>
+            </div>
+            {% if total_issues %}
+            <!-- Blinking Badge -->
+            <div>
+                <span class="badge bg-danger blink">
+                    Current Pending Queries: {{ total_issues | intcomma }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
+            ⚠️ Your profile does not have a site assigned. please Login again <br>
+            <hr>
+            <a href="{% url 'users:login' %}">Click here to login</a>
+        </div>
+        {% endif %}
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+
+
+
+
+<div class="container mt-3">
+    <!-- Selected Site / Zone Info -->
+    <div class="mb-3">
+        {% if request.GET.site or request.GET.zone %}
+        <h5>
+            {% if request.GET.site %}
+            Site: {{ sites|get_item:request.GET.site|default:"N/A" }}
+            {% endif %}
+            {% if request.GET.zone %}
+            {% if request.GET.site %} | {% endif %}
+            Zone: {{ zones|get_item:request.GET.zone|default:"N/A" }}
+            {% endif %}
+        </h5>
+        {% endif %}
+    </div>
+
+
+        <!-- Filters -->
+    <form method="get" class="row g-3 mb-4">
+        {% if is_admin or is_national_lab %}
+        <div class="col-md-3">
+            <select name="zone" class="form-select">
+                <option value="">All Zones</option>
+                {% for id, name in zones.items %}
+                <option value="{{ id }}" {% if request.GET.zone == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% elif is_zonal_lab %}
+        <div class="col-md-3">
+            <select name="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+        <input type="hidden" name="site" value="{{ sites.keys.0 }}">
+        {% endif %}
+
+        <div class="col-md-2">
+            <select name="period" class="form-select">
+                <option value="monthly" {% if request.GET.period == "monthly" or request.GET.period == "" %}selected{% endif %}>Monthly</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+        </div>
+        <div class="col-md-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
+        </div>
+    </form>
+
+    
+    <!-- DASHBOARD CARDS -->
+    <div class="row g-3 mb-4">
+
+        {% with group=request.user.groups.first.name|default_if_none:"" %}
+        
+        <!-- Screened Card -->
+        {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+        <div class="col-md-6">
+            <div class="card text-white bg-primary h-100 card-hover">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <h5 class="card-title">Screenings</h5>
+                    <p class="card-text fs-4">{{ screened_count | intcomma }}</p>
+                    <a href="{% url 'nanopore:screened-list' %}?list_type=screened"
+                        class="btn btn-light w-100 btn-sm mt-3 d-flex justify-content-center align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View all Screenings
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Eligible Card -->
+        {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+        <div class="col-md-6">
+            <div class="card text-white bg-success h-100 card-hover">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <h5 class="card-title">Eligibility</h5>
+                    <p class="card-text fs-4">{{ eligible_count | intcomma }}</p>
+                    <a href="{% url 'nanopore:eligible-list' %}?list_type=eligible"
+                        class="btn btn-light w-100 btn-sm mt-3 d-flex justify-content-center align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View all Eligible
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Enrolled Card -->
+        {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+        <div class="col-md-6">
+            <div class="card text-white bg-warning h-100 card-hover">
+                <div class="card-body">
+                    <h5 class="card-title">Enrollments</h5>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-semibold mb-1">
+                            <span>Overall Enrollment</span>
+                            <span>{{ enrolled_count|intcomma }} / {{ enrolled_required_count|intcomma }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar
+                                {% if enrolled_progress >= 100 %} bg-success
+                                {% elif enrolled_progress >= 50 %} bg-primary
+                                {% else %} bg-danger {% endif %}"
+                                role="progressbar" style="width: {{ enrolled_progress }}%;">
+                                {{ enrolled_progress }}%
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
+                        class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View all Enrollments
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Completed Card -->
+        {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+        <div class="col-md-6">
+            <div class="card text-white bg-info h-100 card-hover">
+                <div class="card-body">
+                    <h5 class="card-title">Substudy 2 Completed Outcomes</h5>
+                    <p class="card-text fs-4">{{ completed_count|intcomma }} / {{ substudy2_count|intcomma }}</p>
+                    <div class="progress">
+                        <div class="progress-bar
+                            {% if substudy2_progress == 100 %} bg-success
+                            {% elif substudy2_progress >= 50 %} bg-info
+                            {% else %} bg-danger {% endif %}"
+                            role="progressbar" style="width: {{ substudy2_progress }}%;">
+                            {{ substudy2_progress }}%
+                        </div>
+                    </div>
+                    <a href="{% url 'nanopore:completed-list' %}?list_type=completed"
+                        class="btn btn-light w-100 btn-sm mt-3 d-flex justify-content-center align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View all Completed Substudy 2 Outcomes
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Zonal Lab Tests Card: Only visible to Zonal Lab or Superuser/ADMIN/REVIEWER -->
+        {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,ZONAL_LAB" %}
+        <div class="col-md-6">
+            <div class="card text-white bg-secondary h-100 card-hover">
+                <div class="card-body">
+                    <h5 class="card-title">Zonal Lab Tests Progress</h5>
+                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                        <span>Completed Zonal Lab Tests</span>
+                        <span>{{ zonal_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar
+                            {% if zonal_progress >= 100 %} bg-success
+                            {% elif zonal_progress >= 50 %} bg-warning
+                            {% else %} bg-danger {% endif %}"
+                            role="progressbar" style="width: {{ zonal_progress }}%;">
+                            {{ zonal_progress }}%
+                        </div>
+                    </div>
+                    <a href="#"
+                        class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                        <i class="bi bi-eye"></i> View Zonal Lab Tests
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% endwith %}
+    </div>
+
+
+
+
+    <style>
+        .card-hover:hover {
+            transform: scale(1.03);
+            transition: 0.2s;
+        }
+    </style>
+
+</div>
+
+<!-- Quick Actions / Info -->
+{% if user.is_staff %}
+<div class="row">
+    <div class="col-12 text-center">
+        <p class="text-muted">
+            Use the navigation menu to access patient records, screening logs, enrollment data, and all CRFs.
+        </p>
+        <a href="{% url 'admin:index' %}" class="btn btn-outline-dark btn-lg mt-3">
+            <i class="bi bi-gear me-2"></i> Nanopore Admin Panel
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
