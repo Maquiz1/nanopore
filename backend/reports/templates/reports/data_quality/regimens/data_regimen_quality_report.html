@@ -87,6 +87,18 @@
         Report generated: {{ report_date|date:"d M Y H:i" }} EAT
     </div>
 
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
     <!-- ===================== SUMMARY CARDS ===================== -->
     <div class="row g-4 mb-4">
 
