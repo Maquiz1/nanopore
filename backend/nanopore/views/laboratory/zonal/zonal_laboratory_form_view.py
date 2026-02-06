@@ -15,6 +15,7 @@ from django.urls import reverse_lazy
 
 from nanopore.models import ZonalLaboratory, Screening
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib import messages
 
 class ZonalLabFormView(LoginRequiredMixin, View):
     template_name = "nanopore/laboratory/zonal/zonal_laboratory_form.html"
@@ -82,6 +83,8 @@ class ZonalLabFormView(LoginRequiredMixin, View):
                     self.template_name,
                     {"form": form, "object": obj, "screening": screening_instance}
                 )
+
+            messages.success(request, "Zonal Lab saved successfully.")
 
             # return redirect(self.success_url)
             next_url = request.POST.get("next")

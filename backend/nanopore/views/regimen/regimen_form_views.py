@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from nanopore.models import RegimenChanges, Screening
 from nanopore.forms.regimen.regimenform import RegimenChangesForm
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib import messages
 
 class RegimenChangesFormView(LoginRequiredMixin, View):
     """
@@ -34,6 +35,8 @@ class RegimenChangesFormView(LoginRequiredMixin, View):
             # Always update metadata
             regimen.updated_by = request.user
             regimen.save()
+            
+            messages.success(request, "Enrollment saved successfully.")
 
             # Return all relevant data for JS to update modal/table
             return JsonResponse({

@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.contrib import messages
 
 from nanopore.models import ClinicLaboratory, Screening
 from nanopore.forms.laboratory.clinic.cliniclabform import ClinicLaboratoryForm
@@ -61,6 +62,9 @@ class ClinicLaboratoryFormView(LoginRequiredMixin, View):
 
             lab.save()
             form.save_m2m()
+            
+            messages.success(request, "Clinic lab saved successfully.")
+
             # return redirect(self.success_url)
             next_url = request.POST.get("next")
 

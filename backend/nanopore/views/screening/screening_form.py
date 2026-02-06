@@ -9,6 +9,7 @@ from nanopore.models import Screening
 from nanopore.forms.screening.screeningform import ScreeningForm
 from locations.models import Site,Zone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib import messages
 
 class ScreeningFormView(LoginRequiredMixin, View):
     template_name = "nanopore/screening/screening_form.html"
@@ -108,6 +109,8 @@ class ScreeningFormView(LoginRequiredMixin, View):
             except Exception as e:
                 form.add_error(None, str(e))
                 return render(request, self.template_name, {"form": form, "object": obj})
+            
+            messages.success(request, "Screening saved successfully.")
 
             # return redirect(self.success_url)
             next_url = request.POST.get("next")

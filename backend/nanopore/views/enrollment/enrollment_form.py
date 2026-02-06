@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from nanopore.models import Enrollment, Screening
 from nanopore.forms.enrollment.enrollmentform import EnrollmentForm
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib import messages
 
 class EnrollmentFormView(LoginRequiredMixin, View):
     template_name = "nanopore/enrollment/enrollment_form.html"
@@ -49,6 +50,9 @@ class EnrollmentFormView(LoginRequiredMixin, View):
 
             enrollment.save()
             form.save_m2m()
+            
+            messages.success(request, "Enrollment saved successfully.")
+
             # return redirect(self.success_url)
             next_url = request.POST.get("next")
 
