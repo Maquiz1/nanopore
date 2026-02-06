@@ -206,6 +206,10 @@ Dashboard — {{ user.get_full_name|default:user.username }}
     </form>
 
     
+    {% with group=request.user.groups.first.name|default_if_none:"" %}
+        
+    <!-- Screened Card -->
+    {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
     <!-- DASHBOARD CARDS -->
     <div class="row g-3 mb-4">
         <!-- Screened Card -->
@@ -421,6 +425,63 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,ZONAL_LAB" %}
+
+    <!-- Zonal Lab Tests Progress Card -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-12">
+            <div class="card text-white bg-secondary h-100 card-hover">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title">Zonal Lab Tests Progress</h5>
+                        
+                        <!-- Overall Zonal Lab Progress -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Completed Zonal Lab Tests</span>
+                                <span>
+                                    {{ zonal_completed_count|intcomma }} /
+                                    {{ total_substudy_counts|intcomma }}
+                                </span>
+                            </div>
+
+                            <!-- Zonal Lab Progress Bar -->
+                            <div class="progress mb-4">
+                                <div class="progress-bar
+                                    {% if zonal_progress >= 100 %}
+                                        bg-success
+                                    {% elif zonal_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ zonal_progress }}%;"
+                                    aria-valuenow="{{ zonal_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ zonal_progress }}%
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="#"
+                            class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
+                            <i class="bi bi-eye"></i>
+                            View Zonal Lab Tests
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    {% endwith %}
+
 
 
     <style>

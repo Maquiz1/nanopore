@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+
 {# Safe group name helper: use first group if present #}
 {% with group=request.user.groups.first.name|default_if_none:"" %}
 <div class="container mt-4">
