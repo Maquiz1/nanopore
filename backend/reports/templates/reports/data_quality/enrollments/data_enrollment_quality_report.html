@@ -121,7 +121,7 @@
                             <tbody>
                                 {% for rec in missing_hiv_status %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -149,7 +149,7 @@
                             <tbody>
                                 {% for rec in missing_other_diseases %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -177,7 +177,7 @@
                             <tbody>
                                 {% for rec in missing_sputum_collected %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -205,7 +205,7 @@
                             <tbody>
                                 {% for rec in missing_sputum_date %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -233,7 +233,7 @@
                             <tbody>
                                 {% for rec in missing_sputum_reasons %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -261,7 +261,7 @@
                             <tbody>
                                 {% for rec in missing_diseases_medical %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -289,7 +289,7 @@
                             <tbody>
                                 {% for rec in missing_diseases_specify %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -317,7 +317,7 @@
                             <tbody>
                                 {% for rec in missing_tx_year %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -345,7 +345,7 @@
                             <tbody>
                                 {% for rec in missing_dr_ds %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -373,7 +373,7 @@
                             <tbody>
                                 {% for rec in missing_ltf_months %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -401,7 +401,7 @@
                             <tbody>
                                 {% for rec in missing_tb_regimen %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -429,7 +429,7 @@
                             <tbody>
                                 {% for rec in missing_regimen_months %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -457,7 +457,7 @@
                             <tbody>
                                 {% for rec in missing_tb_outcome %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -485,7 +485,7 @@
                             <tbody>
                                 {% for rec in missing_tb_regimen_specify %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -513,7 +513,7 @@
                             <tbody>
                                 {% for rec in missing_tb_regimen_specify_8 %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -541,7 +541,7 @@
                             <tbody>
                                 {% for rec in missing_tb_category_specify %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -569,7 +569,7 @@
                             <tbody>
                                 {% for rec in invalid_ltf_months %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -597,7 +597,7 @@
                             <tbody>
                                 {% for rec in missing_tx_month_without_unknown %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -625,7 +625,7 @@
                             <tbody>
                                 {% for rec in invalid_tx_month_with_unknown %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -653,7 +653,7 @@
                             <tbody>
                                 {% for rec in missing_tx_year_without_unknown %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -681,7 +681,7 @@
                             <tbody>
                                 {% for rec in invalid_tx_year_with_unknown %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -709,7 +709,7 @@
                             <tbody>
                                 {% for rec in invalid_unknown_year_dependencies %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -737,7 +737,7 @@
                             <tbody>
                                 {% for rec in missing_regimen_months_without_unknown %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -765,7 +765,7 @@
                             <tbody>
                                 {% for rec in invalid_regimen_months_with_unknown %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}">{{ rec.screening.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
                                     <td>{{ rec.screening.site.name }}</td>
                                 </tr>
                                 {% endfor %}

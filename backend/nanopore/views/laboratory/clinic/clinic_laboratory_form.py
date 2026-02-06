@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 
 from nanopore.models import ClinicLaboratory, Screening
 from nanopore.forms.laboratory.clinic.cliniclabform import ClinicLaboratoryForm
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 class ClinicLaboratoryFormView(LoginRequiredMixin, View):
@@ -29,12 +30,14 @@ class ClinicLaboratoryFormView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
+        next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
+
         screening_instance = self.get_screening_instance()
         form = ClinicLaboratoryForm(instance=obj, initial={"screening": screening_instance})
         return render(
             request,
             self.template_name,
-            {"form": form, "object": obj, "screening": screening_instance},
+            {"form": form, "object": obj, "screening": screening_instance, "next": next_url},
         )
 
     def post(self, request, *args, **kwargs):
@@ -58,7 +61,14 @@ class ClinicLaboratoryFormView(LoginRequiredMixin, View):
 
             lab.save()
             form.save_m2m()
-            return redirect(self.success_url)
+            # return redirect(self.success_url)
+            next_url = request.POST.get("next")
+
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+            ):
+                return redirect(next_url)
 
         return render(
             request,

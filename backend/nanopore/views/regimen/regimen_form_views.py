@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from nanopore.models import RegimenChanges, Screening
 from nanopore.forms.regimen.regimenform import RegimenChangesForm
+from django.utils.http import url_has_allowed_host_and_scheme
 
 class RegimenChangesFormView(LoginRequiredMixin, View):
     """

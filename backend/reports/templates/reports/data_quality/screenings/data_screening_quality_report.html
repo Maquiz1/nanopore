@@ -129,7 +129,7 @@
                                 {% for s in not_eligible %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -169,7 +169,7 @@
                                 {% for s in duplicate_pids %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -210,7 +210,7 @@
                                 {% for s in mismatched_pids %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -251,7 +251,7 @@
                                 {% for s in invalid_length_pids %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -290,7 +290,7 @@
                                 {% for s in missing_screening_date %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -329,7 +329,7 @@
                                 {% for s in missing_pid1 %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -368,7 +368,7 @@
                                 {% for s in missing_pid2 %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -407,7 +407,7 @@
                                 {% for s in missing_sex %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -446,7 +446,7 @@
                                 {% for s in missing_age_dob %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -485,7 +485,7 @@
                                 {% for s in missing_consent %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -524,7 +524,7 @@
                                 {% for s in missing_consent_date_when_yes %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -563,7 +563,7 @@
                                 {% for s in missing_age18years %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -602,7 +602,7 @@
                                 {% for s in missing_present_symptoms %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -641,7 +641,7 @@
                                 {% for s in missing_genexpert_confirmation %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -680,7 +680,7 @@
                                 {% for s in missing_produce_resp_sample %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -719,7 +719,7 @@
                                 {% for s in missing_unable_understand %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -758,7 +758,7 @@
                                 {% for s in missing_not_willing %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -797,7 +797,7 @@
                                 {% for s in missing_enrolled %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -836,7 +836,7 @@
                                 {% for s in missing_reasons %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -875,7 +875,7 @@
                                 {% for s in missing_consent_date_when_yes %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>
@@ -914,7 +914,7 @@
                                 {% for s in missing_reasons_other %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}" class="text-primary fw-bold">
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
                                             {{ s.pid }}
                                         </a>
                                     </td>

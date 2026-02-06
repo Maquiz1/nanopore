@@ -130,14 +130,14 @@
                             <tbody>
                                 {% for s in missing_records %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="fw-bold">{{ s.pid }}</a></td>
                                     <td>{{ s.screening_date|date:"d M Y" }}</td>
                                     <td>{{ s.zone_name }}</td>
                                     <td>{{ s.site_name }}</td>
                                     <td>{{ s.sex }}</td>
                                     <td>{{ s.age }}</td>
                                     <td>
-                                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}"
+                                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
                                            class="btn btn-sm btn-outline-success">➕ Enrollment</a>
                                     </td>
                                 </tr>
@@ -170,14 +170,14 @@
                             <tbody>
                                 {% for s in missing_records %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="fw-bold">{{ s.pid }}</a></td>
                                     <td>{{ s.screening_date|date:"d M Y" }}</td>
                                     <td>{{ s.zone_name }}</td>
                                     <td>{{ s.site_name }}</td>
                                     <td>{{ s.sex }}</td>
                                     <td>{{ s.age }}</td>
                                     <td>
-                                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.id }}"
+                                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
                                            class="btn btn-sm btn-outline-success">➕ Clinic Lab</a>
                                     </td>
                                 </tr>
@@ -210,14 +210,14 @@
                             <tbody>
                                 {% for s in missing_records %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="fw-bold">{{ s.pid }}</a></td>
                                     <td>{{ s.screening_date|date:"d M Y" }}</td>
                                     <td>{{ s.zone_name }}</td>
                                     <td>{{ s.site_name }}</td>
                                     <td>{{ s.sex }}</td>
                                     <td>{{ s.age }}</td>
                                     <td>
-                                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.id }}"
+                                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
                                            class="btn btn-sm btn-outline-success">➕ Diagnosis</a>
                                     </td>
                                 </tr>
@@ -250,7 +250,7 @@
                             <tbody>
                                 {% for s in missing_records %}
                                 <tr>
-                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                    <td><a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="fw-bold">{{ s.pid }}</a></td>
                                     <td>{{ s.screening_date|date:"d M Y" }}</td>
                                     <td>{{ s.zone_name }}</td>
                                     <td>{{ s.site_name }}</td>
@@ -291,14 +291,14 @@
                                 <tbody>
                                     {% for s in missing_records %}
                                     <tr>
-                                        <td><a href="{% url 'nanopore:screening-update' pk=s.id %}" class="fw-bold">{{ s.pid }}</a></td>
+                                        <td><a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="fw-bold">{{ s.pid }}</a></td>
                                         <td>{{ s.screening_date|date:"d M Y" }}</td>
                                         <td>{{ s.zone_name }}</td>
                                         <td>{{ s.site_name }}</td>
                                         <td>{{ s.sex }}</td>
                                         <td>{{ s.age }}</td>
                                         <td>
-                                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.id }}"
+                                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
                                                class="btn btn-sm btn-outline-success">➕ Zonal Lab</a>
                                         </td>
                                     </tr>
@@ -317,6 +317,5 @@
         {% endif %}
 
     </div>
-
 </div>
 {% endblock %}

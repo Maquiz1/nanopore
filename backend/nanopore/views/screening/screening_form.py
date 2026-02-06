@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from nanopore.models import Screening
 from nanopore.forms.screening.screeningform import ScreeningForm
 from locations.models import Site,Zone
+from django.utils.http import url_has_allowed_host_and_scheme
 
 class ScreeningFormView(LoginRequiredMixin, View):
     template_name = "nanopore/screening/screening_form.html"
@@ -21,16 +22,22 @@ class ScreeningFormView(LoginRequiredMixin, View):
         return None
 
 
-    def get(self, request, pk=None):
-        obj = self.get_object(pk)
-        form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
-        context = self.get_context_data(form=form, object=obj)
-        return render(request, self.template_name, context)
-    
     # def get(self, request, pk=None):
     #     obj = self.get_object(pk)
     #     form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
-    #     return render(request, self.template_name, {"form": form, "object": obj})
+    #     context = self.get_context_data(form=form, object=obj)
+    #     return render(request, self.template_name, context)
+    
+    def get(self, request, pk=None):
+        obj = self.get_object(pk)
+
+        next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
+
+        form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
+        context = self.get_context_data(form=form, object=obj, next=next_url)
+
+        return render(request, self.template_name, context)
+
     
     def get_context_data(self, **kwargs):
         """
@@ -102,7 +109,18 @@ class ScreeningFormView(LoginRequiredMixin, View):
                 form.add_error(None, str(e))
                 return render(request, self.template_name, {"form": form, "object": obj})
 
+            # return redirect(self.success_url)
+            next_url = request.POST.get("next")
+
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+            ):
+                return redirect(next_url)
+
+
             return redirect(self.success_url)
+
 
         # return render(request, self.template_name, {"form": form, "object": obj})
     

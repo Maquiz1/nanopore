@@ -24,6 +24,7 @@
                     <form method="post" novalidate id="screeningForm" data-zone-id="{{ user_zone.id|default:'0' }}"
                         data-zone-name="{{ user_zone.name|default:'' }}">
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
 
                         <!-- Non-field errors -->
                         {% if form.non_field_errors %}
