@@ -114,13 +114,23 @@ def clinic_report_total(request):
     missing_date_sample1_received = clinics.filter(nr_present_q, date_sample1_received__isnull=True).count()
     missing_appearance_sample1 = clinics.filter(nr_present_q, appearance_sample1__isnull=True).count()
     missing_sample1_volume = clinics.filter(nr_present_q, sample1_volume__isnull=True).count()
-
+    invalid_sample1_volume = clinics.filter(
+            sample1_volume__isnull=False
+        ).exclude(
+            sample1_volume__regex=r'^[0-9]+(\.[0-9]+)?$'
+        )
+        
     # sample2 required only when number_received == 2
     missing_date_sample2_collected = clinics.filter(nr_is_2_q, date_sample2_collected__isnull=True).count()
     missing_date_sample2_received = clinics.filter(nr_is_2_q, date_sample2_received__isnull=True).count()
     missing_appearance_sample2 = clinics.filter(nr_is_2_q, appearance_sample2__isnull=True).count()
-    missing_sample2_volume = clinics.filter(nr_is_2_q, sample2_volume__isnull=True).count()
-
+    missing_sample2_volume = clinics.filter(nr_is_2_q, sample2_volume__isnull=True).count()   
+    invalid_sample2_volume = clinics.filter(
+            sample2_volume__isnull=False
+        ).exclude(
+            sample2_volume__regex=r'^[0-9]+(\.[0-9]+)?$'
+        )
+        
     # AFB conditional when afb_microscopy_conducted == Yes
     missing_afb_a_date = clinics.filter(afb_yes_q, afb_a_date__isnull=True).count()
     missing_technique_a = clinics.filter(afb_yes_q, technique_a__isnull=True).count()
@@ -240,10 +250,12 @@ def clinic_report_total(request):
         + missing_date_sample1_received
         + missing_appearance_sample1
         + missing_sample1_volume
+        + invalid_sample1_volume.count()
         + missing_date_sample2_collected
         + missing_date_sample2_received
         + missing_appearance_sample2
         + missing_sample2_volume
+        + invalid_sample2_volume.count()
         + missing_afb_a_date
         + missing_technique_a
         + missing_afb_a_results
@@ -267,10 +279,12 @@ def clinic_report_total(request):
         "missing_date_sample1_received": missing_date_sample1_received,
         "missing_appearance_sample1": missing_appearance_sample1,
         "missing_sample1_volume": missing_sample1_volume,
+        "missing_invalid_sample1_volume": invalid_sample1_volume.count(),
         "missing_date_sample2_collected": missing_date_sample2_collected,
         "missing_date_sample2_received": missing_date_sample2_received,
         "missing_appearance_sample2": missing_appearance_sample2,
         "missing_sample2_volume": missing_sample2_volume,
+        "missing_invalid_sample2_volume": invalid_sample2_volume.count(),
         "missing_sample_reason_when_received_2": missing_sample_reason_when_received_2,
         "missing_new_reason_when_new_sample_2": missing_new_reason_when_new_sample_2,
         "missing_other_reason_when_sample_reason_96": missing_other_reason_when_sample_reason_96,
