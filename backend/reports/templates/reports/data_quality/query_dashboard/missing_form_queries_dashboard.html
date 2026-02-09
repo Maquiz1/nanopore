@@ -6,74 +6,15 @@
 <div class="container py-5">
 
     <!-- ───────────────── Filter Form ───────────────── -->
-    <div class="row mb-4 justify-content-center">
-        <div class="col-md-10">
-            <form method="get"
-                  class="d-flex flex-wrap gap-2 justify-content-center align-items-end">
+    {% include "includes/zone_site_filter.html" %}
 
-                <!-- Zone -->
-                <div class="col-md-3">
-                    <label class="form-label">Zone</label>
-                    <select name="zone" class="form-select form-select-lg">
-                        <option value="">All Zones</option>
-                        {% for z_id, z_name in zones.items %}
-                            <option value="{{ z_id }}"
-                                {% if selected_zone == z_id|stringformat:"s" %}selected{% endif %}>
-                                {{ z_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+    <!-- Header with Back Button/Page Title -->
+   {% include "includes/report_header.html" with
+        page_title="Missing Form Queries"
+        subtitle_prefix="Missing Form Queries"
+        show_overview_button=True
+    %}
 
-                <!-- Site -->
-                <div class="col-md-3">
-                    <label class="form-label">Site</label>
-                    <select name="site" class="form-select form-select-lg">
-                        <option value="">All Sites</option>
-                        {% for s_id, s_name in sites.items %}
-                            <option value="{{ s_id }}"
-                                {% if selected_site == s_id|stringformat:"s" %}selected{% endif %}>
-                                {{ s_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Actions -->
-                <div class="col-md-4 d-flex gap-2">
-                    <button class="btn btn-primary btn-lg px-4" type="submit">
-                        Apply Filter
-                    </button>
-                    <a href="{% url request.resolver_match.view_name %}"
-                       class="btn btn-outline-secondary btn-lg px-4">
-                        Reset
-                    </a>
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-    <!-- ───────────────── Title ───────────────── -->
-    <h2 class="mb-4 text-center">
-        🧾 DREAM FUND – NANOPORE TB SEQUENCING<br>
-        <span class="fs-5 fw-normal text-muted">
-            Missing Form Queries —
-            {{ selected_zone_name }} / {{ selected_site_name }}
-        </span>
-    </h2>
-
-    <!-- ───────────────── Navigation ───────────────── -->
-    <div class="d-flex justify-content-between mb-4 flex-wrap gap-3">
-        <a href="{% url 'dashboard:dashboard' %}"
-           class="btn btn-outline-secondary btn-lg px-4">
-            ← Back to Dashboard
-        </a>
-        <a href="{% url 'reports:all_queries_overview' %}"
-           class="btn btn-outline-primary btn-lg px-4">
-            Queries Overview →
-        </a>
-    </div>
 
     <!-- ───────────────── Cards ───────────────── -->
     <div class="row g-4 justify-content-center">

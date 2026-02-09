@@ -1,0 +1,50 @@
+{% load humanize %}
+
+<div class="row mb-4 justify-content-center">
+    <div class="col-md-10">
+        <form method="get"
+              class="d-flex flex-wrap gap-2 justify-content-center align-items-end">
+
+            <!-- Zone -->
+            <div class="col-md-3">
+                <label class="form-label">Zone</label>
+                <select name="zone" class="form-select form-select-lg">
+                    <option value="">All Zones</option>
+                    {% for z_id, z_name in zones.items %}
+                        <option value="{{ z_id }}"
+                            {% if selected_zone == z_id|stringformat:"s" %}selected{% endif %}>
+                            {{ z_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Site -->
+            <div class="col-md-3">
+                <label class="form-label">Site</label>
+                <select name="site" class="form-select form-select-lg">
+                    <option value="">All Sites</option>
+                    {% for s_id, s_name in sites.items %}
+                        <option value="{{ s_id }}"
+                            {% if selected_site == s_id|stringformat:"s" %}selected{% endif %}>
+                            {{ s_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-md-4 d-flex gap-2">
+                <button class="btn btn-primary btn-lg px-4" type="submit">
+                    Apply Filter
+                </button>
+
+                <a href="{% url request.resolver_match.view_name %}"
+                   class="btn btn-outline-secondary btn-lg px-4">
+                    Reset
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
