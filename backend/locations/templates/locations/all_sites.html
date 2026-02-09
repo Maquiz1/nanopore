@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>All Sites</h2>
+
+    <div class="mb-3">
+        <a href="{% url 'locations:site-add' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Add New Site
+        </a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Site Name</th>
+                <th>PID Prefix</th>
+                <th>Site Type</th>
+                <th>Site Level</th>
+                <th>Total Target</th>
+                <th>Substudy 2 Target</th>
+                <th>Substudy 4 Target</th>
+                 {% if request.user.is_superuser or group|upper in "ADMIN" %}
+                <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for site in sites %}
+            <tr>
+                <td><a href="{% url 'locations:site-detail' site.id %}">{{ site.name }}</a></td>
+                <td>{{ site.pid_prefix }}</td>
+
+                <td>
+                    {% if site.site_type %}
+                        {{ site.site_type.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if site.site_level %}
+                        {{ site.site_level.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>{{ site.target|default:"0" }}</td>
+                <td>{{ site.substudy2Target|default:"0" }}</td>
+                <td>{{ site.substudy4Target|default:"0" }}</td>
+
+                 {% if request.user.is_superuser or group|upper in "ADMIN" %}
+                <td>
+                    <a href="{% url 'locations:site-edit' site.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No sites found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -47,3 +47,43 @@ class SiteDetailView(DetailView):
             'country': country
         })
         return context
+    
+from django.views.generic import ListView, CreateView, UpdateView
+from django.urls import reverse_lazy
+from .models import Site
+from .forms import SiteForm  # We'll create this form next
+
+# ---------------------------
+# List all sites
+# ---------------------------
+class AllSitesListView(ListView):
+    model = Site
+    template_name = 'locations/all_sites.html'
+    context_object_name = 'sites'
+    
+    def get_queryset(self):
+        return Site.objects.all().order_by('pid_prefix')  # or '-created_at' for newest first
+
+
+# ---------------------------
+# Add new site
+# ---------------------------
+class SiteCreateView(CreateView):
+    model = Site
+    form_class = SiteForm
+    template_name = 'locations/site_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('locations:all-sites')
+
+
+# ---------------------------
+# Edit existing site
+# ---------------------------
+class SiteUpdateView(UpdateView):
+    model = Site
+    form_class = SiteForm
+    template_name = 'locations/site_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('locations:all-sites')

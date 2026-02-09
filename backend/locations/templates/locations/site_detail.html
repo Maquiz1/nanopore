@@ -20,4 +20,6 @@
 </div>
 
 <a href="{% url 'locations:district-detail' district.id %}" class="btn btn-secondary">← Back to {{ district.name }}</a>
+
+<a href="{% url 'locations:all-sites' %}"  class="btn btn-primary">← Back to Site Lists</a>
 {% endblock %}
