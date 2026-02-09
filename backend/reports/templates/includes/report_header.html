@@ -1,0 +1,51 @@
+<div class="mb-4">
+
+    <!-- Header Row -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <h2 class="m-0">🧾 {{ page_title }}</h2>
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'dashboard:dashboard' %}"
+               class="btn btn-outline-secondary btn-lg px-4">
+                ← Back to Dashboard
+            </a>
+
+            {% if show_overview_button %}
+                <a href="{% url 'reports:all_queries_overview' %}"
+                   class="btn btn-outline-primary btn-lg px-4">
+                    Queries Overview →
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DREAM FUND subtitle -->
+    <h2 class="text-center">
+        🧾 DREAM FUND – NANOPORE TB SEQUENCING<br>
+
+        <span class="fs-5 fw-normal text-muted">
+
+            {{ subtitle_prefix }}
+
+            (
+            {% if selected_zone or selected_site %}
+                {% if selected_zone %}
+                    {{ selected_zone_name }}
+                {% else %}
+                    All Zones
+                {% endif %}
+                +
+                {% if selected_site %}
+                    {{ selected_site_name }}
+                {% else %}
+                    All Sites
+                {% endif %}
+            {% else %}
+                All Zones + All Sites
+            {% endif %}
+            )
+
+        </span>
+    </h2>
+
+</div>
