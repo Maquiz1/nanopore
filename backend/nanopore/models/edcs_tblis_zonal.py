@@ -23,15 +23,15 @@ from options.models import (
     NanoporeSequencingResults,
     NanoporeSequencingDelayedReasons,
 )
-
 User = get_user_model()
 
 class EdcsTblisZonal(models.Model):
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="zonal_laboratory")
         
+    # # NEW FIELDS
     # Specimen receipt
     date_sputum_received = models.DateField(null=True, blank=True)
-    appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_appearance")
+    appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_appearance")
     sample_volume = models.DecimalField(null=True, blank=True, max_digits=3, decimal_places=1)
     unique_lab_no = models.CharField(max_length=100, unique=True)
     
@@ -61,7 +61,7 @@ class EdcsTblisZonal(models.Model):
     phenotypic_date_performed = models.DateField(null=True, blank=True)
     phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_phenotypic_date_results")
 
-    # Phenotypic DST RESULTS
+    # Phenotypic DST RESULTS (no explicit db_index)
     rifampicin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_rifampicin_phenotypic_dst")
     isoniazid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_isoniazid_phenotypic_dst")
     levofloxacin = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_levofloxacin_phenotypic_dst")
@@ -83,9 +83,11 @@ class EdcsTblisZonal(models.Model):
     prothionamide = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_prothionamide_phenotypic_dst")
     para_aminosalicylic_acid = models.ForeignKey(PhenotypicDSTResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_para_aminosalicylic_acid_phenotypic_dst")
 
-    # Xpert XDR
+    # Xpert XDR (no explicit db_index)
     xpert_xdr_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_xpert_xdr_performed")
     xpert_xdr_date_performed = models.DateField(null=True, blank=True)
+    
+    # XPERT XDR results
     xpert_xdr_isoniazid = models.ForeignKey(XpertXDRResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_isoniazid_xpert_xdr")
     xpert_xdr_fluoroquinolones = models.ForeignKey(XpertXDRResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_fluoroquinolones_xpert_xdr")
     xpert_xdr_amikacin = models.ForeignKey(XpertXDRResultsThree, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_amikacin_xpert_xdr")
@@ -93,37 +95,42 @@ class EdcsTblisZonal(models.Model):
     xpert_xdr_capreomycin = models.ForeignKey(XpertXDRResultsThree, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_capreomycin_xpert_xdr")
     xpert_xdr_ethionamide = models.ForeignKey(XpertXDRResultsTwo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_ethionamide_xpert_xdr")
 
+    # LPA
+    lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa")
+
     # First-Line LPA
-    first_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_first_line_lpa")
-    first_line_lpa_date = models.DateField(null=True, blank=True)
-    first_line_drugs = models.ManyToManyField(FirstLineDrugs, blank=True, related_name="zonal_laboratory_first_line_drugs")
-    lpa1_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_lpa1_mtb")
-    lpa1_rif = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_lpa1_rif")
+    first_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_first_line_lpa")
+    first_line_lpa_date = models.DateField(null=True,blank=True)
+    first_line_drugs = models.ManyToManyField(FirstLineDrugs ,blank=True, related_name="zonal_laboratory_first_line_drugs")
+    lpa1_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_mtb")
+    lpa1_rif = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa1_rif")
     lpa1_inh = models.ManyToManyField(INHResultLPA, blank=True, related_name="zonal_laboratory_lpa1_inh")
 
     # Second-Line LPA
-    second_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_second_line_lpa")
-    second_line_lpa_date = models.DateField(null=True, blank=True)
-    second_line_drugs = models.ManyToManyField(SecondLineDrugs, blank=True, related_name="zonal_laboratory_second_line_drugs")
-    lpa2_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_lpa2_mtb")
-    lpa2_rfluoroquinolones = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_lpa2_rfluoroquinolones")
-    lpa2_aminoglycosides = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_lpa2_aminoglycosides")
-    lpa2_kanamycin = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_lpa2_kanamycin")
+    second_line_lpa = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_second_line_lpa")
+    second_line_lpa_date = models.DateField(null=True,blank=True)
+    second_line_drugs = models.ManyToManyField(SecondLineDrugs,blank=True, related_name="zonal_laboratory_second_line_drugs")
+    lpa2_mtb = models.ForeignKey(MTBResultsLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_mtb")
+    lpa2_rfluoroquinolones = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_rfluoroquinolones")
+    lpa2_aminoglycosides = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_aminoglycosides")
+    lpa2_kanamycin = models.ForeignKey(RIFResultLPA, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_lpa2_kanamycin")
+
 
     # Nanopore sequencing
-    nanopore_done = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nanopore_done")
+    nanopore_done = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_done")
     nanopore_sequencing_date = models.DateField(null=True, blank=True)
-    epi_to_me = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_epi_to_me")
+    epi_to_me = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_epi_to_me")
     epi_to_me_date = models.DateField(null=True, blank=True)
-    epi_to_me_version = models.CharField(max_length=255, null=True, blank=True)
-    sequencing_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_sequencing_results")
-    nanopore_results = models.ForeignKey(NanoporeSequencingResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nanopore_results")
-    sequencing_delayed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_sequencing_delayed")
+    epi_to_me_version = models.CharField(max_length=255,null=True,blank=True)
+    sequencing_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_results")
+    nanopore_results = models.ForeignKey(NanoporeSequencingResults, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_nanopore_results")
+    sequencing_delayed = models.ForeignKey(YesNo, on_delete=models.SET_NULL,null=True,blank=True, related_name="zonal_laboratory_sequencing_delayed")
     sequencing_delayed_days = models.IntegerField(null=True, blank=True)
     sequencing_delayed_reasons = models.ManyToManyField(NanoporeSequencingDelayedReasons, blank=True, related_name="zonal_laboratory_sequencing_delayed_reasons")
     sequencing_delayed_others = models.TextField(null=True, blank=True)
 
-    # Nanopore results for drugs
+
+    # Nanopore sequencing (no explicit db_index)
     nano_amikacin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_amikacin")
     nano_bedaquiline = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_bedaquiline")
     nano_capreomycin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_capreomycin")
@@ -141,7 +148,15 @@ class EdcsTblisZonal(models.Model):
     nano_rifampicin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_rifampicin")
     nano_streptomycin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_nano_streptomycin")
 
-    # Additional fields
+    # nano_terizidone = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # # nano_imipenem = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # # nano_cilastatin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # # nano_meropenem = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # # nano_prothionamide = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # # nano_ethionamide = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # # nano_para_aminosalicylic_acid = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    
+    # ADDITIONAL FIELDS
     remarks = models.TextField(blank=True, null=True)
     
     # Auditing
@@ -151,6 +166,8 @@ class EdcsTblisZonal(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_labs_updated")
 
     class Meta:
+        # verbose_name = "Country"
+        # verbose_name_plural = "Countries"
         ordering = ["-date_sputum_received"]
 
     def __str__(self):
