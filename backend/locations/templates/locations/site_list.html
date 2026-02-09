@@ -2,6 +2,7 @@
 <ul>
   {% for site in sites %}
   <li><a href="{% url 'locations:site-detail' site.id %}">{{ site.name }}</a></li>
+  <a href="{% url 'all-sites' %}">← Back to Site Lists</a>
   {% endfor %}
 </ul>
 <a href="{% url 'district-list' district.region.id %}">← Back to districts</a>
