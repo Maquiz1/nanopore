@@ -1,29 +1,32 @@
 <div class="mb-4">
 
-    <!-- Header Row -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-        <h2 class="m-0">🧾 {{ page_title }}</h2>
+    <!-- Navigation Row -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
 
-        <div class="d-flex gap-2">
-            <a href="{% url 'dashboard:dashboard' %}"
-               class="btn btn-outline-secondary btn-lg px-4">
-                ← Back to Dashboard
+        <!-- LEFT BUTTON -->
+        <a href="{% url 'dashboard:dashboard' %}"
+           class="btn btn-outline-secondary btn-lg px-4">
+            ← Back to Dashboard
+        </a>
+
+        <!-- RIGHT BUTTON -->
+        {% if show_overview_button %}
+            <a href="{% url 'reports:all_queries_overview' %}"
+               class="btn btn-outline-primary btn-lg px-4">
+                Queries Overview →
             </a>
+        {% endif %}
 
-            {% if show_overview_button %}
-                <a href="{% url 'reports:all_queries_overview' %}"
-                   class="btn btn-outline-primary btn-lg px-4">
-                    Queries Overview →
-                </a>
-            {% endif %}
-        </div>
     </div>
 
-    <!-- DREAM FUND subtitle -->
-    <h2 class="text-center">
-        🧾 DREAM FUND – NANOPORE TB SEQUENCING<br>
+    <!-- CENTERED TITLE -->
+    <div class="text-center mt-4">
 
-        <span class="fs-5 fw-normal text-muted">
+        <h2 class="mb-2">🧾 {{ page_title }}</h2>
+
+        <h5 class="fw-normal text-muted">
+
+            DREAM FUND – NANOPORE TB SEQUENCING<br>
 
             {{ subtitle_prefix }}
 
@@ -45,7 +48,8 @@
             {% endif %}
             )
 
-        </span>
-    </h2>
+        </h5>
+
+    </div>
 
 </div>
