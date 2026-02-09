@@ -18,9 +18,9 @@
                 <th>PID Prefix</th>
                 <th>Site Type</th>
                 <th>Site Level</th>
-                <th>Total Target</th>
                 <th>Substudy 2 Target</th>
                 <th>Substudy 4 Target</th>
+                <th>Total Target</th>
                  {% if request.user.is_superuser or group|upper in "ADMIN" %}
                 <th>Actions</th>
                 {% endif %}
@@ -48,9 +48,9 @@
                     {% endif %}
                 </td>
 
-                <td>{{ site.target|default:"0" }}</td>
                 <td>{{ site.substudy2Target|default:"0" }}</td>
                 <td>{{ site.substudy4Target|default:"0" }}</td>
+                <td>{{ site.target|default:"0" }}</td>
 
                  {% if request.user.is_superuser or group|upper in "ADMIN" %}
                 <td>
