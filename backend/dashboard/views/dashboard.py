@@ -5,7 +5,7 @@ from django.utils import timezone
 import json
 from datetime import timedelta
 
-from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory
+from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory,Diagnosis
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 from locations.models import Site
@@ -72,7 +72,7 @@ class DashboardHomeView(ListView):
 
         enrolled_qs = Enrollment.objects.filter(screening__in=qs)
         enrolled_count = enrolled_qs.count()
-
+        
         # ==================================================
         # MODEL-BASED TARGETS (SITE SUM)
         # ==================================================
@@ -113,7 +113,23 @@ class DashboardHomeView(ListView):
             substudy4_enrolled_count / substudy4_required_count * 100, 1
         ) if substudy4_required_count else 0
 
-        # ==================================================
+
+        # Diagnosis
+        diagnosis_qs = Diagnosis.objects.filter(screening__in=qs)
+        # diagnosis_count = diagnosis_qs.count()
+        
+        diagnosis_outcome_qs = diagnosis_qs.filter(
+            screening__diagnosis__tb_outcome2__in=[1,2, 3, 4, 5]
+        )
+
+        diagnosis_outcome_count = diagnosis_outcome_qs.count()
+
+        diagnosis_outcome_progress = round(
+            diagnosis_outcome_count / substudy2_enrolled_count * 100, 1
+        ) if substudy2_enrolled_count else 0
+        
+        
+        # # ==================================================
         # SITE TARGETS (ROLE + FILTER AWARE)
         # ==================================================
         site_targets = (
@@ -188,6 +204,10 @@ class DashboardHomeView(ListView):
             "substudy4_enrolled_count": substudy4_enrolled_count,
             "substudy4_required_count": substudy4_required_count,
             "substudy4_enrolled_progress": substudy4_enrolled_progress,
+            
+            # DIAGNOSIS OUTCOME
+            "diagnosis_outcome_count": diagnosis_outcome_count,
+            "diagnosis_outcome_progress": diagnosis_outcome_progress,
 
             # ZONAL LAB
             "zonal_completed_count": zonal_completed_count,

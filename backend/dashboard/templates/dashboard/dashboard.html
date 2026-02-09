@@ -387,19 +387,19 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
                         <h5 class="card-title">Substudy 2 Completed <br> Treatement Outcomes</h5>
-                        <p class="card-text fs-4">{{ completed_count | intcomma }} / {{ substudy2_count | intcomma }}
+                        <p class="card-text fs-4">{{ diagnosis_outcome_count | intcomma }} / {{ substudy2_enrolled_count | intcomma }}
                         </p>
                         <div class="progress">
                             <div class="progress-bar
-                                {% if substudy2_progress == 100 %}
+                                {% if diagnosis_outcome_progress == 100 %}
                                     bg-success
-                                {% elif substudy2_progress >= 50 %}
+                                {% elif diagnosis_outcome_progress >= 50 %}
                                     bg-info
                                 {% else %}
                                     bg-danger
-                                {% endif %}" role="progressbar" style="width: {{ substudy2_progress }}%;"
-                                aria-valuenow="{{ substudy2_progress }}" aria-valuemin="0" aria-valuemax="100">
-                                {{ substudy2_progress }}%
+                                {% endif %}" role="progressbar" style="width: {{ diagnosis_outcome_progress }}%;"
+                                aria-valuenow="{{ diagnosis_outcome_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ diagnosis_outcome_progress }}%
                             </div>
                         </div>
                     </div>
