@@ -9,8 +9,9 @@
         <a href="{% url 'locations:site-add' %}" class="btn btn-success">
             <i class="fas fa-plus"></i> Add New Site
         </a>
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary mt-3">← Back to dashboard</a>
     </div>
-
+    Total Sites: {{ sites|length }}
     <table class="table table-striped">
         <thead>
             <tr>
