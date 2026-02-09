@@ -14,6 +14,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
+                <th>No.</th>
                 <th>Site Name</th>
                 <th>PID Prefix</th>
                 <th>Site Type</th>
@@ -29,6 +30,7 @@
         <tbody>
             {% for site in sites %}
             <tr>
+                <td>{{ forloop.counter }}</td>
                 <td><a href="{% url 'locations:site-detail' site.id %}">{{ site.name }}</a></td>
                 <td>{{ site.pid_prefix }}</td>
 
