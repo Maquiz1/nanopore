@@ -66,13 +66,13 @@ def get_data_quality_overview(user, zone_id=None, site_id=None):
     )
 
     # Filter by user role (user first, then queryset)
-    qs = filter_queryset_by_user_role(user, qs, site_field="site")
+    qs = filter_queryset_by_user_role(user, qs, site_field="screening__site")
 
     # Apply zone / site filters
     if zone_id:
-        qs = qs.filter(site__district__region__zone_id=zone_id)
+        qs = qs.filter(screening__site__district__region__zone_id=zone_id)
     if site_id:
-        qs = qs.filter(site_id=site_id)
+        qs = qs.filter(screening__site_id=site_id)
 
     zonal_counts = get_zonal_dq_counts(qs)
 

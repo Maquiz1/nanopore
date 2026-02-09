@@ -1,16 +1,15 @@
 from django.views.generic import ListView
-from django.db.models import Count
+from django.db.models import Count, Q, F, IntegerField, ExpressionWrapper, Sum
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 import json
 from datetime import timedelta
 
-from nanopore.models import Screening, Enrollment, Diagnosis, ClinicLaboratory,ZonalLaboratory
+from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
-from locations.models import Country,Zone
-from utils.targets import resolve_substudy_target
-from django.db.models import Q
+from locations.models import Site
+
 
 class DashboardHomeView(ListView):
     model = Screening
@@ -18,13 +17,18 @@ class DashboardHomeView(ListView):
     context_object_name = "object_list"
     paginate_by = 50
 
+    # ==================================================
+    # Base queryset (role + filters)
+    # ==================================================
     def get_queryset(self):
         qs = Screening.objects.select_related(
             "site", "site__district__region__zone", "sex", "enrolled"
         )
+
+        # Apply role-based filtering
         qs = filter_queryset_by_user_role(self.request.user, qs, site_field="site")
 
-        # Filters
+        # Apply GET filters
         zone_id = self.request.GET.get("zone")
         site_id = self.request.GET.get("site")
         start_date = self.request.GET.get("start_date")
@@ -33,377 +37,171 @@ class DashboardHomeView(ListView):
 
         if zone_id:
             qs = qs.filter(site__district__region__zone_id=zone_id)
+
         if site_id:
             qs = qs.filter(site_id=site_id)
+
         if start_date and end_date:
             qs = qs.filter(screening_date__range=[start_date, end_date])
-        if order_by:
-            qs = qs.order_by(order_by)
 
-        return qs
+        return qs.order_by(order_by)
 
+    # ==================================================
+    # Context
+    # ==================================================
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         qs = self.get_queryset()
 
         # Role context
         role_context = get_role_context(self.request.user)
-        context.update(
-            {
-                "is_admin": role_context["is_admin"],
-                "is_zonal_lab": role_context["is_zonal_lab"],
-                "is_national_lab": role_context["is_national_lab"],
-                "is_site_only": role_context["is_site_only"],
-                "zones": {z.id: z.name for z in role_context["zones"]},
-                "sites": {s.id: s.name for s in role_context["sites"]},
-            }
-        )
+        context.update({
+            "is_admin": role_context["is_admin"],
+            "is_zonal_lab": role_context["is_zonal_lab"],
+            "is_national_lab": role_context["is_national_lab"],
+            "is_site_only": role_context["is_site_only"],
+            "zones": {z.id: z.name for z in role_context["zones"]},
+            "sites": {s.id: s.name for s in role_context["sites"]},
+        })
 
-        # --- Counts ---
+        # ==================================================
+        # GLOBAL COUNTS
+        # ==================================================
         screened_count = qs.count()
         eligible_count = qs.filter(eligible=True).count()
-        enrolled_count = Enrollment.objects.filter(screening__in=qs).count()
-        # enrolled_required_count = 2600  # Example required count
-        # enrolled_required_count = Country.objects.first().target or 2600
-        enrolled_required_count = resolve_substudy_target(
-            role_context,
-            "target",
-            2600
+
+        enrolled_qs = Enrollment.objects.filter(screening__in=qs)
+        enrolled_count = enrolled_qs.count()
+
+        # ==================================================
+        # MODEL-BASED TARGETS (SITE SUM)
+        # ==================================================
+        site_ids = qs.values_list("site_id", flat=True).distinct()
+        targets = Site.objects.filter(id__in=site_ids).aggregate(
+            total_target=Sum("target"),
+            substudy2_target=Sum("substudy2Target"),
+            substudy4_target=Sum("substudy4Target"),
         )
 
+        enrolled_required_count = targets["total_target"] or 0
+        substudy2_required_count = targets["substudy2_target"] or 0
+        substudy4_required_count = targets["substudy4_target"] or 0
 
-        if enrolled_required_count > 0:
-            enrolled_progress = round(
-                (enrolled_count / enrolled_required_count) * 100, 1
-            )
-        else:
-            enrolled_progress = 0
-        
-        # ---- Substudy 2 ----
-        completed_count = qs.filter(
-            diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6]
-        ).count()
-        
-        substudy2_count = qs.filter(
-            clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]
-        ).count()
-        
-        if substudy2_count > 0:
-            substudy2_progress = round(completed_count / substudy2_count * 100, 1)
-        else:
-            substudy2_progress = 0
-            
-            
-        # =========================
-        # Substudy 2 (ENROLLED ONLY)
-        # =========================
-        substudy2_enrolled_qs = Enrollment.objects.filter(
-            screening__in=qs,
+        # Progress calculations
+        enrolled_progress = round(
+            enrolled_count / enrolled_required_count * 100, 1
+        ) if enrolled_required_count else 0
+
+        # ==================================================
+        # SUBSTUDY 2 + 4 (ENROLLED ONLY)
+        # ==================================================
+        substudy2_enrolled_qs = enrolled_qs.filter(
             screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]
         )
-
-        substudy2_enrolled_count = substudy2_enrolled_qs.count()
-        # substudy2_required_count = 1600  # Example required count
-        # substudy2_required_count = Country.objects.first().substudy2Target or 1600
-        substudy2_required_count = resolve_substudy_target(
-            role_context,
-            "substudy2Target",
-            1600
-        )
-
-
-        if substudy2_required_count > 0:
-            substudy2_enrolled_progress = round(
-                (substudy2_enrolled_count / substudy2_required_count) * 100, 1
-            )
-        else:
-            substudy2_enrolled_progress = 0
-            
-            
-        # =========================
-        # Substudy 4 (ENROLLED ONLY)
-        # =========================
-        substudy4_enrolled_qs = Enrollment.objects.filter(
-            screening__in=qs,
+        substudy4_enrolled_qs = enrolled_qs.filter(
             screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]
         )
 
+        substudy2_enrolled_count = substudy2_enrolled_qs.count()
         substudy4_enrolled_count = substudy4_enrolled_qs.count()
-        substudy4_required_count = 1000  # Example required count
-        # substudy4_required_count = Country.objects.first().substudy4Target or 1000
-        substudy4_required_count = resolve_substudy_target(
-            role_context,
-            "substudy4Target",
-            1000
-        )
 
+        substudy2_enrolled_progress = round(
+            substudy2_enrolled_count / substudy2_required_count * 100, 1
+        ) if substudy2_required_count else 0
 
-        if substudy4_required_count > 0:
-            substudy4_enrolled_progress = round(
-                (substudy4_enrolled_count / substudy4_required_count) * 100, 1
+        substudy4_enrolled_progress = round(
+            substudy4_enrolled_count / substudy4_required_count * 100, 1
+        ) if substudy4_required_count else 0
+
+        # ==================================================
+        # SITE TARGETS (ROLE + FILTER AWARE)
+        # ==================================================
+        site_targets = (
+            qs.values("site__id", "site__name", "site__target")
+            .annotate(
+                enrolled=Count("enrollment", distinct=True),
+                remaining=ExpressionWrapper(
+                    F("site__target") - Count("enrollment", distinct=True),
+                    output_field=IntegerField(),
+                ),
             )
-        else:
-            substudy4_enrolled_progress = 0
-            
-        # -------------------------
-        # Zonal Lab Tests Progress
-        # -------------------------
-        # Get all ZonalLaboratory records for screenings in qs
-        zonal_qs = ZonalLaboratory.objects.filter(screening__in=qs)
-
-        # Count completed tests
-        zonal_completed_count = zonal_qs.count()  # all tests in ZonalLaboratory
-
-        # Use sum of Substudy counts as denominator
-        total_substudy_counts = (
-            substudy2_count
+            .order_by("site__name")
         )
+        context["site_targets"] = site_targets
 
-        if total_substudy_counts > 0:
-            zonal_progress = round((zonal_completed_count / total_substudy_counts) * 100, 1)
-        else:
-            zonal_progress = 0
-            
-            
-        # CULTURE 
-        culture_completed_count = zonal_qs.filter(culture_performed__in=[1]).count()
-        if total_substudy_counts > 0:
-            culture_progress = round((culture_completed_count / total_substudy_counts) * 100, 1)
-        else:
-            culture_progress = 0
-            
-        # DST
-        dst_completed_count = zonal_qs.filter(phenotypic_performed__in=[1]).count()
-        if total_substudy_counts > 0:
-            dst_progress = round((dst_completed_count / total_substudy_counts) * 100, 1)
-        else:
-            dst_progress = 0
-            
-        # XPERT XDR
-        xpert_xdr_completed_count = zonal_qs.filter(xpert_xdr_performed__in=[1]).count()
-        if total_substudy_counts > 0:
-            xpert_xdr__progress = round((xpert_xdr_completed_count / total_substudy_counts) * 100, 1)
-        else:
-            xpert_xdr__progress = 0
-            
-        # LPA
+        # ==================================================
+        # ZONAL LAB PROGRESS (ALL SUBSTUDIES)
+        # ==================================================
+        zonal_qs = ZonalLaboratory.objects.filter(screening__in=qs)
+        total_substudy_counts = substudy2_enrolled_count
+        zonal_completed_count = zonal_qs.count()
+        zonal_progress = round(
+            zonal_completed_count / total_substudy_counts * 100, 1
+        ) if total_substudy_counts else 0
+
+        # Individual test counts
+        culture_completed_count = zonal_qs.filter(culture_performed=1).count()
+        culture_progress = round(
+            culture_completed_count / total_substudy_counts * 100, 1
+        ) if total_substudy_counts else 0
+        
+        dst_completed_count = zonal_qs.filter(phenotypic_performed=1).count()
+        dst_progress = round(
+            dst_completed_count / total_substudy_counts * 100, 1
+        ) if total_substudy_counts else 0
+        
+        xpert_xdr_completed_count = zonal_qs.filter(xpert_xdr_performed=1).count()
+        xpert_xdr_progress = round(
+            xpert_xdr_completed_count / total_substudy_counts * 100, 1
+        ) if total_substudy_counts else 0
+        
         lpa_completed_count = zonal_qs.filter(
             Q(first_line_lpa=1) | Q(second_line_lpa=1)
         ).distinct().count()
-        if total_substudy_counts > 0:
-            lpa_progress = round((lpa_completed_count / total_substudy_counts) * 100, 1)
-        else:
-            lpa_progress = 0
-            
-        # Nanopore
-        nanopore_completed_count = zonal_qs.filter(nanopore_done__in=[1]).count()
-        if total_substudy_counts > 0:
-            nanopore_progress = round((nanopore_completed_count / total_substudy_counts) * 100, 1)
-        else:
-            nanopore_progress = 0
+        lpa_progress = round(
+            lpa_completed_count / total_substudy_counts * 100, 1
+        ) if total_substudy_counts else 0
+        
+        nanopore_completed_count = zonal_qs.filter(nanopore_done=1).count()
+        nanopore_progress = round(
+            nanopore_completed_count / total_substudy_counts * 100, 1
+        ) if total_substudy_counts else 0
 
-        # Add to context
-        context.update(
-            {
-                "zonal_completed_count": zonal_completed_count,
-                "total_substudy_counts": total_substudy_counts,
-                "zonal_progress": zonal_progress,
-                "culture_completed_count": culture_completed_count,
-                "culture_progress": culture_progress,
-                "dst_completed_count": dst_completed_count,
-                "dst_progress": dst_progress,
-                "xpert_xdr_completed_count": xpert_xdr_completed_count,
-                "xpert_xdr__progress": xpert_xdr__progress,
-                "lpa_completed_count": lpa_completed_count,
-                "lpa_progress": lpa_progress,
-                "nanopore_completed_count": nanopore_completed_count,
-                "nanopore_progress": nanopore_progress,
-            }
-        )
+        # ==================================================
+        # CONTEXT PUSH
+        # ==================================================
+        context.update({
+            # GLOBAL
+            "screened_count": screened_count,
+            "eligible_count": eligible_count,
+            "enrolled_count": enrolled_count,
+            "enrolled_required_count": enrolled_required_count,
+            "enrolled_progress": enrolled_progress,
+            "total_substudy_counts": total_substudy_counts,
 
+            # SUBSTUDY 2
+            "substudy2_enrolled_count": substudy2_enrolled_count,
+            "substudy2_required_count": substudy2_required_count,
+            "substudy2_enrolled_progress": substudy2_enrolled_progress,
 
-        context.update(
-            {
-                "screened_count": screened_count,
-                "eligible_count": eligible_count,
-                "enrolled_count": enrolled_count,
-                "completed_count": completed_count,
-                "substudy2_count": substudy2_count,
-                "substudy2_progress": substudy2_progress,
-                
-                # Enrollment
-                "enrolled_progress": enrolled_progress,
-                "enrolled_required_count": enrolled_required_count,
-                
-                # Substudy 2 (Enrolled Only)
-                "substudy2_enrolled_count": substudy2_enrolled_count,
-                "substudy2_required_count": substudy2_required_count,
-                "substudy2_enrolled_progress": substudy2_enrolled_progress,
-                
-                # Substudy 4 (ENROLLED ONLY)
-                "substudy4_enrolled_count": substudy4_enrolled_count,
-                "substudy4_required_count": substudy4_required_count,
-                "substudy4_enrolled_progress": substudy4_enrolled_progress,
-            }
-        )
+            # SUBSTUDY 4
+            "substudy4_enrolled_count": substudy4_enrolled_count,
+            "substudy4_required_count": substudy4_required_count,
+            "substudy4_enrolled_progress": substudy4_enrolled_progress,
 
-        # --- Zone or Site Aggregation ---
-        zone_id = self.request.GET.get("zone")
-        if screened_count == 0:
-            context["zone_labels_json"] = json.dumps([])
-            context["zone_values_json"] = json.dumps([])
-        else:
-            if zone_id:
-                site_agg = (
-                    qs.values("site__id", "site__name")
-                    .annotate(count=Count("id"))
-                    .order_by("site__name")
-                )
-                context["zone_labels_json"] = json.dumps(
-                    [s["site__name"] for s in site_agg]
-                )
-                context["zone_values_json"] = json.dumps(
-                    [int(s["count"]) for s in site_agg]
-                )
-            else:
-                zone_agg = (
-                    qs.values(
-                        "site__district__region__zone__id",
-                        "site__district__region__zone__name",
-                    )
-                    .annotate(count=Count("id"))
-                    .order_by("site__district__region__zone__name")
-                )
-                context["zone_labels_json"] = json.dumps(
-                    [z["site__district__region__zone__name"] for z in zone_agg]
-                )
-                context["zone_values_json"] = json.dumps(
-                    [int(z["count"]) for z in zone_agg]
-                )
-
-        # --- Monthly Trends (existing) ---
-        qs_time = qs
-        start_date = self.request.GET.get("start_date")
-        end_date = self.request.GET.get("end_date")
-        if start_date and end_date:
-            qs_time = qs_time.filter(screening_date__range=[start_date, end_date])
-
-        time_datasets = []
-        if zone_id:
-            sites = qs_time.values("site__id", "site__name").distinct()
-            for site in sites:
-                site_qs = qs_time.filter(site_id=site["site__id"])
-                counts = (
-                    site_qs.annotate(month=TruncMonth("screening_date"))
-                    .values("month")
-                    .annotate(count=Count("id"))
-                    .order_by("month")
-                )
-                months = [c["month"].strftime("%Y-%m") for c in counts]
-                values = [int(c["count"]) for c in counts]
-                time_datasets.append(
-                    {"label": site["site__name"], "data": values, "dates": months}
-                )
-        else:
-            for zone in role_context["zones"]:
-                zone_qs = qs_time.filter(site__district__region__zone=zone)
-                counts = (
-                    zone_qs.annotate(month=TruncMonth("screening_date"))
-                    .values("month")
-                    .annotate(count=Count("id"))
-                    .order_by("month")
-                )
-                months = [c["month"].strftime("%Y-%m") for c in counts]
-                values = [int(c["count"]) for c in counts]
-                time_datasets.append(
-                    {"label": zone.name, "data": values, "dates": months}
-                )
-
-        all_months = sorted(
-            set(m for dataset in time_datasets for m in dataset["dates"])
-        )
-        for dataset in time_datasets:
-            data_dict = dict(zip(dataset["dates"], dataset["data"]))
-            dataset["data"] = [int(data_dict.get(m, 0)) for m in all_months]
-
-        context["time_labels_json"] = json.dumps(all_months)
-        context["time_datasets_json"] = json.dumps(time_datasets)
-
-        # --- Substudy Counts ---
-        sub_labels, sub2_values, sub4_values = [], [], []
-        if zone_id:
-            sites = qs_time.values("site__id", "site__name").distinct()
-            for site in sites:
-                lab_qs = ClinicLaboratory.objects.filter(
-                    screening__site_id=site["site__id"]
-                )
-                if start_date and end_date:
-                    lab_qs = lab_qs.filter(
-                        screening__screening_date__range=[start_date, end_date]
-                    )
-                sub2_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[2, 3, 4, 5, 6]).count())
-                )
-                sub4_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[1, 7, 8, 9]).count())
-                )
-                sub_labels.append(site["site__name"])
-        else:
-            for zone in role_context["zones"]:
-                lab_qs = ClinicLaboratory.objects.filter(
-                    screening__site__district__region__zone=zone
-                )
-                if start_date and end_date:
-                    lab_qs = lab_qs.filter(
-                        screening__screening_date__range=[start_date, end_date]
-                    )
-                sub2_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[2, 3, 4, 5, 6]).count())
-                )
-                sub4_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[1, 7, 8, 9]).count())
-                )
-                sub_labels.append(zone.name)
-
-        context["substudy_labels_json"] = json.dumps(sub_labels)
-        context["sub2_values_json"] = json.dumps(sub2_values)
-        context["sub4_values_json"] = json.dumps(sub4_values)
-
-        # --- Last 7 Days Trend (integer safe) ---
-        today = timezone.now().date()
-        last7days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
-        last7days_labels = [d.strftime("%b %d") for d in last7days]
-        last7days_values = [int(qs.filter(screening_date=d).count()) for d in last7days]
-
-        context["last7days_labels_json"] = json.dumps(last7days_labels)
-        context["last7days_values_json"] = json.dumps(last7days_values)
-
-        # --- This Month Trend (By Zone) ---
-        first_day = today.replace(day=1)
-        this_month_qs = qs.filter(screening_date__gte=first_day)
-
-        # Group by zone
-        month_zone_agg = (
-            this_month_qs.values("site__district__region__zone__name")
-            .annotate(count=Count("id"))
-            .order_by("site__district__region__zone__name")
-        )
-
-        if month_zone_agg.exists():
-            this_month_labels = [
-                z["site__district__region__zone__name"] or "Unknown"
-                for z in month_zone_agg
-            ]
-            this_month_values = [int(z["count"]) for z in month_zone_agg]
-        else:
-            this_month_labels = []
-            this_month_values = []
-
-        context["this_month_labels_json"] = json.dumps(this_month_labels)
-        context["this_month_values_json"] = json.dumps(this_month_values)
-
-        # --- Fallback if no screenings ---
-        if screened_count == 0:
-            context["message"] = "No screening data available."
+            # ZONAL LAB
+            "zonal_completed_count": zonal_completed_count,
+            "zonal_progress": zonal_progress,
+            "culture_completed_count": culture_completed_count,
+            "culture_progress": culture_progress,
+            "dst_completed_count": dst_completed_count,
+            "dst_progress": dst_progress,
+            "xpert_xdr_completed_count": xpert_xdr_completed_count,
+            "xpert_xdr_progress": xpert_xdr_progress,
+            "lpa_completed_count": lpa_completed_count,
+            "lpa_progress": lpa_progress,
+            "nanopore_completed_count": nanopore_completed_count,
+            "nanopore_progress": nanopore_progress,
+        })
 
         return context

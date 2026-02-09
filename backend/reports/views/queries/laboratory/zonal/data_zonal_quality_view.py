@@ -19,6 +19,15 @@ class ZonalDataQualityReportView(View):
         ).order_by(
             "screening__site__district__region__name","screening__site__name","screening__pid"
         )
+        # qs = Zonal.objects.select_related(
+        #     "screening",
+        #     "screening__site",
+        #     "screening__site__district__region__zone",
+        # ).order_by(
+        #     "screening__site__district__region__name",
+        #     "screening__site__name",
+        #     "screening__pid"
+        # )
 
         role_context = get_role_context(request.user)
         zones = {z.id: z.name for z in role_context.get("zones", [])}
