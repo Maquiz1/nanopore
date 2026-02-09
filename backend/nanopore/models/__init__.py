@@ -4,4 +4,5 @@ from .clinic_lab import ClinicLaboratory
 from .zonal_lab import ZonalLaboratory
 from .diagnosis import Diagnosis
 from .regimen_changes import RegimenChanges
+from .edcs_tblis_zonal import EdcsTblisZonal
 

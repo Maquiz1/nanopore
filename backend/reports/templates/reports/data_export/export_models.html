@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Available Models for Export</h2>
+
+    <!-- Dropdown for All Models Download -->
+    <div class="dropdown mb-3">
+        <button class="btn btn-warning dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-download"></i>
+            <span> Download CSV</span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="downloadDropdown">
+            <li><a class="dropdown-item download-option" href="#" data-url="{% url 'reports:export_all_combined' %}?mode=full">Full Export</a></li>
+            <li><a class="dropdown-item download-option" href="#" data-url="{% url 'reports:export_all_combined' %}?mode=values_only">Values Only</a></li>
+            <li><a class="dropdown-item download-option" href="#" data-url="{% url 'reports:export_all_combined' %}?mode=labels_only">Labels Only</a></li>
+        </ul>
+    </div>
+
+    <!-- Table of individual models -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Model</th>
+                <th>Description</th>
+                <th>Records</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model in models_list %}
+            <tr>
+                <td>{{ model.name }}</td>
+                <td>{{ model.description }}</td>
+                <td><span class="badge bg-secondary">{{ model.count|intcomma }}</span></td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-download"></i> Raw Data
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item download-btn" href="#" data-url="{% url 'reports:export_data' %}?model={{ model.name }}&mode=full">Full</a></li>
+                            <li><a class="dropdown-item download-btn" href="#" data-url="{% url 'reports:export_data' %}?model={{ model.name }}&mode=values_only">Values Only</a></li>
+                            <li><a class="dropdown-item download-btn" href="#" data-url="{% url 'reports:export_data' %}?model={{ model.name }}&mode=labels_only">Labels Only</a></li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+async function realDownload(url, btnIcon, btnText, btn=null) {
+    if(btn) btn.disabled=true;
+    btnIcon.className="fas fa-spinner fa-spin";
+    btnText.innerText=" Generating...";
+
+    try {
+        const response = await fetch(url);
+        if(!response.ok) throw new Error("Export failed");
+
+        const blob = await response.blob();
+        const filename = response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g,"") || "export.csv";
+
+        const link=document.createElement("a");
+        link.href=window.URL.createObjectURL(blob);
+        link.download=filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    } catch(err) {
+        alert("Export failed: "+err.message);
+    }
+
+    btnIcon.className="fas fa-download";
+    btnText.innerText=btnText.dataset.default || btnText.innerText;
+    if(btn) btn.disabled=false;
+}
+
+// Individual model buttons
+document.querySelectorAll(".download-btn").forEach(btn=>{
+    const textSpan=btn;
+    textSpan.dataset.default=textSpan.innerText;
+    btn.addEventListener("click", e=>{
+        e.preventDefault();
+        const icon=btn.querySelector("i")||btn;
+        const text=btn;
+        realDownload(btn.dataset.url, icon, text, btn);
+    });
+});
+
+// All models dropdown
+document.querySelectorAll(".download-option").forEach(item=>{
+    item.addEventListener("click", e=>{
+        e.preventDefault();
+        const url=item.dataset.url;
+        const btn=document.getElementById("downloadDropdown");
+        const icon=btn.querySelector("i");
+        const text=btn.querySelector("span");
+        realDownload(url, icon, text, btn);
+    });
+});
+</script>
+{% endblock %}

@@ -23,8 +23,12 @@ from reports.views import (
     ExportModelRawDataView,
     DownloadModelLabelsView,
     DownloadModelFieldsView,
-    ExportAllModelsRawDataView,  # <-- New view
     
+    list_all_models_view,
+    ExportModelDataView,
+    ExportAllModelsCombinedView,
+    ExportModelRawDataView,
+
     AllOverviewQueriesDashboardView,
     MissingFormQueriesDashboardView,
     SpecificFormQueriesDashboardView,
@@ -72,7 +76,18 @@ urlpatterns = [
     path("site/<int:site_id>/<str:status>/", RecordsBySiteView.as_view(), name="records_by_site_status"),
 
     # Models listing & downloads
-    path('list-all-models/', list_models_view, name='list_models'),
+    # path('list-all-models/', list_models_view, name='list_models'),
+    
+    # Export page (template with all models)
+    path('list-all-models/', list_all_models_view, name='list_models_view'),
+
+    # Single model export or filtered
+    path('export-models/', ExportModelDataView.as_view(), name='export_data'),
+
+    # Export all models combined into one CSV
+    path('export-all-combined/', ExportAllModelsCombinedView.as_view(), name='export_all_combined'),
+
+    # Direct raw export per model
     path('download/<str:model_name>/', ExportModelRawDataView.as_view(), name='download_model_data'),
 
     # New endpoints for labels and field names
@@ -80,7 +95,7 @@ urlpatterns = [
     path('download/<str:model_name>/fields/', DownloadModelFieldsView.as_view(), name='download_model_fields'),
 
     # Export all models into a single CSV
-    path('download/all-models/csv/', ExportAllModelsRawDataView.as_view(), name='download_raw_data_all_models'),
+    # path('download/all-models/csv/', ExportAllModelsRawDataView.as_view(), name='download_raw_data_all_models'),
 
     # Legacy CSV downloads
     path('all/download/csv/', AllCsvDownloadView.as_view(), name='download-all-csv'),
