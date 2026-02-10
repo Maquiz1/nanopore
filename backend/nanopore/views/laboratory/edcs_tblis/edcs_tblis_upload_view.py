@@ -210,7 +210,6 @@ class EdcsTBLISCsvUploadView(View):
                     # delay
                     "sequencing_delayed": get_foreign(YesNo, row.get("sequencing_delayed")),
                     "sequencing_delayed_days": row.get("sequencing_delayed_days") or None,
-                    # "sequencing_delayed_days": safe_int(row.get("sequencing_delayed_days")),
                     "sequencing_delayed_others": row.get("sequencing_delayed_others") or None,
                     
                     # NANOPORE RESULTS                  
