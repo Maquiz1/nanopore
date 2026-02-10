@@ -79,15 +79,23 @@ class ZonalLaboratoryDQSnapshot(models.Model):
     missing_lpa2_kanamycin = models.IntegerField(default=0)
 
     # ── Nanopore
+    missing_nanopore_done = models.IntegerField(default=0)            
     missing_nanopore_sequencing_date = models.IntegerField(default=0)
     missing_nanopore_results = models.IntegerField(default=0)
+    
+    # ── EPI to ME
     missing_epi_to_me = models.IntegerField(default=0)
+    missing_epi_to_me_date = models.IntegerField(default=0)
+    missing_epi_to_me_version = models.IntegerField(default=0)
+    missing_sequencing_results = models.IntegerField(default=0)
+    
+    # ── Delays
     missing_sequencing_delayed = models.IntegerField(default=0)
     missing_sequencing_delayed_days = models.IntegerField(default=0)
     missing_sequencing_delayed_reasons = models.IntegerField(default=0)
     missing_sequencing_delayed_others = models.IntegerField(default=0)
-    missing_epi_to_me_date = models.IntegerField(default=0)
-    missing_epi_to_me_version = models.IntegerField(default=0)
+    
+    # ── Nanopore drug results
     missing_nanopore_drug_results = models.IntegerField(default=0)
 
     class Meta:
