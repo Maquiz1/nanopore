@@ -1,3 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <canvas id="trendChart"></canvas>
@@ -15,3 +20,8 @@ new Chart(document.getElementById("trendChart"), {
     }
 });
 </script>
+
+</div>
+
+{% endblock %}
+
