@@ -14,6 +14,9 @@ from .zonal import ZonalLaboratoryDeleteView
 from .zonal import ZonalLabFormView
 from .zonal import ZonalLabCsvUploadView
 
+from .edcs_tblis import EdcsTBLISLaboratoryListView
+from .edcs_tblis import EdcsTBLISCsvUploadView
+
 
 __all__ = [
     "ClinicLaboratoryListView",
@@ -30,4 +33,8 @@ __all__ = [
     "ZonalLabFormView",  # new form view
     "ClinicLabCsvUploadView",
     "ZonalLabCsvUploadView",
+    
+    #EDCS-TBLIS
+    "EdcsTBLISLaboratoryListView",
+    "EdcsTBLISCsvUploadView"
 ]

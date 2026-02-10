@@ -24,6 +24,10 @@
         <i class="fas fa-globe-africa"></i><span> Graphs</span>
     </a>
 
+    <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+        <i class="fas fa-globe-africa"></i><span> Edcs / TBLIS Data</span>
+    </a>
+
     <a href="{% url 'reports:missing_forms_dashboard' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> snapshots-dashboard</span>
     </a>
@@ -230,6 +234,7 @@
             <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
             <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
             <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
+            <a href="{% url 'nanopore:edcs-tblis-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Edcs-Tblis</a>
         </div>
     </div>
     {% endif %}

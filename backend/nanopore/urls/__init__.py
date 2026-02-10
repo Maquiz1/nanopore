@@ -7,6 +7,7 @@ urlpatterns = [
     path("enrollments/", include("nanopore.urls.enrollment.enrollment_urls")),
     path("clinic-labs/", include("nanopore.urls.laboratory.clinic_urls")),
     path("zonal-labs/", include("nanopore.urls.laboratory.zonal_urls")),
+    path("edcs-tblis/",include("nanopore.urls.laboratory.edcs_tblis_urls")),
     path("diagnoses/", include("nanopore.urls.diagnosis.diagnosis_urls")),
     path("regimen/", include("nanopore.urls.regimen.regimen_urls")),
     path("form-status/", include("nanopore.urls.form_status.form_status_urls")),
