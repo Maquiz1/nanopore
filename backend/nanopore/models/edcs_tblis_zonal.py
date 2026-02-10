@@ -34,6 +34,7 @@ class EdcsTblisZonal(models.Model):
     appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL,null=True,blank=True, related_name="tblis_laboratory_appearance")
     sample_volume = models.DecimalField(null=True, blank=True, max_digits=3, decimal_places=1)
     unique_lab_no = models.CharField(max_length=100, unique=True)
+    # unique_lab_no = models.CharField(max_length=100,null=True,blank=True)
     
     # Culture
     culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="tblis_laboratory_culture_performed")
