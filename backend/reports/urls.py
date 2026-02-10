@@ -47,7 +47,10 @@ from reports.views import (
     NotificationsView,
     AlertsView,
     
-    DreamFundQueriesPDFView
+    DreamFundQueriesPDFView,
+    
+    missing_forms_dashboard,
+    missing_forms_trends,
     )
 
 app_name = "reports"
@@ -123,4 +126,15 @@ urlpatterns = [
 
     path('notifications/', AllOverviewQueriesDashboardView.as_view(), name='notifications-list'),
     path('alerts/', AllOverviewQueriesDashboardView.as_view(), name='alerts-list'),
+    
+    path(
+    "dq/missing-forms/",
+    missing_forms_dashboard,
+    name="missing_forms_dashboard"
+    ),
+    path(
+    "dq/missing-forms-trends/",
+    missing_forms_trends,
+    name="missing_forms_trends"
+    ),
 ]
