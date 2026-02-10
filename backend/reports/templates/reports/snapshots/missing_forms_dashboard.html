@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+<h3>Missing Forms DQ – {{ snapshot.snapshot_date }}</h3>
+
+<div class="row my-3">
+
+<div class="col">Total Issues: <strong>{{ totals.total_issues|default:0 }}</strong></div>
+<div class="col">Enrollment: {{ totals.missing_enrollment }}</div>
+<div class="col">Clinic: {{ totals.missing_clinic }}</div>
+<div class="col">Diagnosis: {{ totals.missing_diagnosis }}</div>
+<div class="col">Regimen: {{ totals.missing_regimen }}</div>
+<div class="col">Zonal: {{ totals.missing_zonal }}</div>
+
+</div>
+
+<table class="table table-sm table-bordered">
+<thead>
+<tr>
+<th>Zone</th>
+<th>Site</th>
+<th>Enrollment</th>
+<th>Clinic</th>
+<th>Diagnosis</th>
+<th>Regimen</th>
+<th>Zonal</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody>
+{% for r in rows %}
+<tr>
+<td>{{ r.zone }}</td>
+<td>{{ r.site }}</td>
+<td>{{ r.missing_enrollment }}</td>
+<td>{{ r.missing_clinic }}</td>
+<td>{{ r.missing_diagnosis }}</td>
+<td>{{ r.missing_regimen }}</td>
+<td>{{ r.missing_zonal }}</td>
+<td><strong>{{ r.total_issues }}</strong></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+</div>
+
+{% endblock %}

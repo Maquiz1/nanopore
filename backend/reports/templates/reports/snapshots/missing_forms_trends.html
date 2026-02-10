@@ -1,0 +1,17 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<canvas id="trendChart"></canvas>
+
+<script>
+new Chart(document.getElementById("trendChart"), {
+    type: "line",
+    data: {
+        labels: {{ dates|safe }},
+        datasets: [{
+            label: "Total Missing Forms",
+            data: {{ totals|safe }},
+            tension: 0.3
+        }]
+    }
+});
+</script>

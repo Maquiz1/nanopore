@@ -24,6 +24,14 @@
         <i class="fas fa-globe-africa"></i><span> Graphs</span>
     </a>
 
+    <a href="{% url 'reports:missing_forms_dashboard' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+        <i class="fas fa-globe-africa"></i><span> snapshots-dashboard</span>
+    </a>
+
+    <a href="{% url 'reports:missing_forms_trends' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+        <i class="fas fa-globe-africa"></i><span> snapshots-trends</span>
+    </a>
+
     {% if user.is_superuser %}
     <a href="{% url 'users:staff_list' %}">
         <i class="fas fa-user-shield"></i><span> Users</span>
