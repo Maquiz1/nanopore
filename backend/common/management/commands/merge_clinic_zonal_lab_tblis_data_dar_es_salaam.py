@@ -51,13 +51,7 @@ class Command(BaseCommand):
             "DF_TZ_SS2_18",
             "DF_TZ_SS2_19",
         )
-        # edcs_df = edcs_df[edcs_df["pid"].astype(str).str.startswith(allowed_prefixes)]
-        # Split EDCS into zonal vs non-zonal
-        mask = edcs_df["pid"].astype(str).str.startswith(allowed_prefixes)
-
-        edcs_zonal = edcs_df[mask].copy()        # will be transformed
-        edcs_non_zonal = edcs_df[~mask].copy()  # keep as-is
-
+        edcs_df = edcs_df[edcs_df["pid"].astype(str).str.startswith(allowed_prefixes)]
 
         # Ensure key columns are comparable as strings
         edcs_df["unique_lab_no"] = edcs_df["unique_lab_no"].astype(str).str.strip()
@@ -65,7 +59,7 @@ class Command(BaseCommand):
 
         # --- Merge ---
         merged_df = pd.merge(
-            edcs_zonal,
+            edcs_df,
             tblis_df,
             how='left',
             left_on='unique_lab_no',
@@ -771,11 +765,6 @@ class Command(BaseCommand):
             "nano_rifampicin",
             "nano_streptomycin",
         ]]
-
-        # Combine transformed zonal with untouched non-zonal
-        final_df = pd.concat([merged_df, edcs_non_zonal], ignore_index=True)
-
-        merged_df = final_df
 
         # --- Save output ---
         merged_df.to_csv(output_csv, index=False)
