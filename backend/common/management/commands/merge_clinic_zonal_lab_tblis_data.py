@@ -103,12 +103,10 @@ class Command(BaseCommand):
             **dict.fromkeys(["Not Applicable", "Not Indicated","See Comment","Brown"], 0),
         }
 
-        
         # Map TBLIS appearance to numeric codes
         if "appearance_tblis" in merged_df.columns:
             merged_df["appearance_tblis"] = merged_df["appearance_tblis"].map(appearance_map)
             # merged_df["appearance_tblis"] = merged_df["appearance_tblis"].map(appearance_map).fillna(0)
-
 
         # --- Replace EDCS appearance with TBLIS values if available ---
         if "appearance_tblis" in merged_df.columns:

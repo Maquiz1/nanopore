@@ -130,6 +130,20 @@ python manage.py merge_clinic_zonal_lab_tblis_data \
 -->
 
 
+<!-- 
+
+------OUTER JOIN-------
+python manage.py merge_clinic_zonal_lab_tblis_data_outer \
+    --edcs ~/Documents/WORKS/NIMR/DREAM/DATA/_2026/_2026_02_11/ZonalLaboratory_raw_data.csv \  
+    --tblis ~/Documents/WORKS/NIMR/DREAM/TB_LIS/_2026/_2026_02_11/CTRL-TBLIS-DFN-AllData-SAMPLES_01-01-2025-to-11-02-2026.csv \  
+    --output ~/Documents/WORKS/NIMR/DREAM/ZONAL_EDCS_TBLIS/_2026/_2026_02_11/edcs_only_not_on_tblis_2026_02_11.csv \
+    --output ~/Documents/WORKS/NIMR/DREAM/ZONAL_EDCS_TBLIS/_2026/_2026_02_11/tblis_only_not_on_edcs_2026_02_11.csv \
+    --output ~/Documents/WORKS/NIMR/DREAM/ZONAL_EDCS_TBLIS/_2026/_2026_02_11/matched_edcs_tblis_2026_02_11.csv
+
+-->
+
+
+
 
 
 
