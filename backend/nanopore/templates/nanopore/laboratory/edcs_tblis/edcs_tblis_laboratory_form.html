@@ -8,7 +8,7 @@
         <div class="col-lg-10">
 
             <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
+                <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
                 <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
             </div>
 
@@ -364,8 +364,9 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
+                            <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="btn btn-info me-2"> Back to Edcs/TBLIS List</a>
                             {% with user_group=request.user.groups.first.name|upper %}
-                            {% if not user_group == "REVIEWER" %}
+                            {% if user_group == "ADMIN" %}
                             <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>
                             {% endif %}
                             {% endwith %}
