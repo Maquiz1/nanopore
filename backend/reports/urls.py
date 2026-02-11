@@ -79,7 +79,7 @@ urlpatterns = [
     path("site/<int:site_id>/<str:status>/", RecordsBySiteView.as_view(), name="records_by_site_status"),
 
     # Models listing & downloads
-    # path('list-all-models/', list_models_view, name='list_models'),
+    path('list-models/', list_models_view, name='list_models'),
     
     # Export page (template with all models)
     path('list-all-models/', list_all_models_view, name='list_models_view'),
