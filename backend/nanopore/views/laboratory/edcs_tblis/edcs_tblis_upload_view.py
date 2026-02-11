@@ -185,7 +185,7 @@ class EdcsTBLISCsvUploadView(View):
                     "xpert_xdr_ethionamide": get_foreign(XpertXDRResultsTwo, row.get("xpert_xdr_ethionamide")),
 
                     # LPA
-                    # "lpa": get_foreign(YesNo,row.get("lpa")),
+                    "lpa": get_foreign(YesNo,row.get("lpa")),
                     "first_line_lpa": get_foreign(YesNo, row.get("first_line_lpa")),
                     "first_line_lpa_date": parse_date_field(row.get("first_line_lpa_date")),
                     "lpa1_mtb": get_foreign(MTBResultsLPA, row.get("lpa1_mtb")),
