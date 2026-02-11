@@ -11,6 +11,8 @@ from nanopore.models.diagnosis import Diagnosis
 from nanopore.models.zonal_lab import ZonalLaboratory
 from nanopore.models.regimen_changes import RegimenChanges
 
+from nanopore.models.edcs_tblis_zonal import EdcsTblisZonal
+
 
 # @staff_member_required
 def list_models_view(request):
@@ -62,6 +64,14 @@ def list_models_view(request):
             "download_url": reverse("reports:download_model_data", args=["RegimenChanges"]),
             "labels_url": reverse("reports:download_model_labels", args=["RegimenChanges"]),
             "fields_url": reverse("reports:download_model_fields", args=["RegimenChanges"]),
+        },
+        {
+            "name": "EdcsTblisZonal",
+            "count": EdcsTblisZonal.objects.count(),
+            "description": "All Edcs/TBLIS records linked to Screening",
+            "download_url": reverse("reports:download_model_data", args=["EdcsTblisZonal"]),
+            "labels_url": reverse("reports:download_model_labels", args=["EdcsTblisZonal"]),
+            "fields_url": reverse("reports:download_model_fields", args=["EdcsTblisZonal"]),
         },
     ]
     return render(
