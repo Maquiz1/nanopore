@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+{% load static %}
+{% load string_extras %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <div class="d-flex justify-content-between mb-3 gap-2">
+                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ object|default:"New" }} Zonal Lab</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-warning">
+                            {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Screening info -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Screening Information</h5>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Screening</label>
+                            <input type="text" class="form-control" value="{{ form.readonly_screening }}" readonly>
+                            {{ form.screening }}
+                        </div>
+
+                        <!-- Lab Details -->
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">Lab Details</h5>
+                        </div>
+
+                        <!-- Specimen Receipt -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Specimen Receipt</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                {{ form.date_sputum_received.label_tag }}
+                                {{ form.date_sputum_received }}
+                                {% for error in form.date_sputum_received.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.appearance.label_tag }}{{ form.appearance }}
+                                {% for error in form.appearance.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.sample_volume.label_tag }}{{ form.sample_volume }}
+                                {% for error in form.sample_volume.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}
+                                {% for error in form.unique_lab_no.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <!-- Culture -->
+                        <div class="p-2 mb-3 bg-primary text-white rounded">
+                            <h5 class="mb-0">Culture</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.culture_performed.label_tag }}
+                                {{ form.culture_performed }}
+                                {% for error in form.culture_performed.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4" id="culture_method" style="display:none;">{{ form.culture_method.label_tag }}{{ form.culture_method }}</div>
+                            <div class="col-md-4" id="microscopy_type" style="display:none;">{{ form.microscopy_type.label_tag }}{{ form.microscopy_type }}</div>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"  id="microscopy_date" style="display:none;">{{ form.microscopy_date.label_tag }}{{ form.microscopy_date }}</div>
+                            <div class="col-md-6"  id="microscopy_results" style="display:none;">{{ form.microscopy_results.label_tag }}{{ form.microscopy_results }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- LJ Results -->
+                        <div class="p-2 mb-3 bg-success text-white rounded" id="lj-header" style="display:none;">
+                            <h5 class="mb-0">LJ Results</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4" id="lj-inoculation-date" style="display:none;">{{ form.lj_inoculation_date.label_tag }}{{ form.lj_inoculation_date }}</div>
+                            <div class="col-md-4" id="lj-results-date" style="display:none;">{{ form.lj_results_date.label_tag }}{{ form.lj_results_date }}</div>
+                            <div class="col-md-4" id="lj-results" style="display:none;">{{ form.lj_results.label_tag }}{{ form.lj_results }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- MGIT Results -->
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="mgit-header" style="display:none;">
+                            <h5 class="mb-0">MGIT Results</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4" id="mgit-inoculation-date" style="display:none;">
+                                {{ form.mgit_inoculation_date.label_tag }}
+                                {{form.mgit_inoculation_date }}
+                            </div>
+                            <div class="col-md-4" id="mgit-results-date" style="display:none;">{{ form.mgit_results_date.label_tag }}{{ form.mgit_results_date }}</div>
+                            <div class="col-md-4" id="mgit-results" style="display:none;">{{ form.mgit_results.label_tag }}{{ form.mgit_results }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- Culture Isolate -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded" id="isolate-header" style="display:none;">
+                            <h5 class="mb-0">Culture Isolate</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6" id="culture-isolate" style="display:none;">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
+                            <div class="col-md-6" id="isolate-date" style="display:none;">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- Phenotypic DST -->
+                        <div class="p-2 mb-3 bg-dark text-white rounded"  id="phenotypic-dst-header" style="display:none;">
+                            <h5 class="mb-0">Phenotypic DST</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4"  id="phenotypic-performed" style="display:none;">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
+                            <div class="col-md-4"  id="phenotypic-date-performed" style="display:none;">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
+                            <div class="col-md-4"  id="phenotypic-date-results" style="display:none;">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
+                        </div>
+                        <hr>
+
+                        <!-- Phenotypic DST RESULTS -->
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-header" style="display:none;">
+                            <h5 class="mb-0">Phenotypic DST RESULTS</h5>
+                        </div>
+                        <div id="phenotypic-dst-results" style="display:none;">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.name in "rifampicin,isoniazid,levofloxacin,moxifloxacin,bedaquiline,linezolid,clofazimine,cycloserine,terizidone,ethambutol,delamanid,pyrazinamide,imipenem,cilastatin,meropenem,amikacin,streptomycin,ethionamide,prothionamide,para_aminosalicylic_acid"|split:"," %}
+                                    <div class="col-md-3 mb-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Xpert XDR -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Xpert XDR</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                {{ form.xpert_xdr_performed.label_tag }}
+                                {{ form.xpert_xdr_performed }}
+                                {% for error in form.xpert_xdr_performed.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6" id="xpert-xdr-date-performed">
+                                {{ form.xpert_xdr_date_performed.label_tag }}{{ form.xpert_xdr_date_performed }}
+                                {% for error in form.xpert_xdr_date_performed.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <!-- Xpert XDR RESULTS -->
+                        <div class="p-2 mb-3 bg-info text-white rounded"  id="xpert-xdr-header" style="display:none;">
+                            <h5 class="mb-0">Xpert XDR RESULTS</h5>
+                        </div>
+                        <div id="xpert-xdr-results" style="display:none;">
+                            <div class="row g-3 mb-3">
+                                {% for field in form %}
+                                    {% if field.name in "xpert_xdr_isoniazid,xpert_xdr_fluoroquinolones,xpert_xdr_amikacin,xpert_xdr_kanamycin,xpert_xdr_capreomycin,xpert_xdr_ethionamide"|split:"," %}
+                                    <div class="col-md-4">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- LPA -->
+                        <div class="p-2 mb-3 bg-primary text-white rounded">
+                            <h5 class="mb-0">LPA</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                {% for field in form %}
+                                    {% if field.name in "lpa"|split:"," %}
+                                    <div class="mb-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- First-Line LPA -->
+                        <div class="p-2 mb-3 bg-primary text-white rounded">
+                            <h5 class="mb-0">First-Line LPA</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6 p-3 border-end">
+                                {% for field in form %}
+                                    {% if field.name in "first_line_lpa,first_line_lpa_date,lpa1_mtb,lpa1_rif,lpa1_inh"|split:"," %}
+                                    <div class="mb-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 p-3" id="first-line-drugs" style="display:none;">
+                                <div class="mb-3">
+                                    {{ form.first_line_drugs.label_tag }}
+                                    {{ form.first_line_drugs }}
+                                    {% for error in form.first_line_drugs.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Second-Line LPA -->
+                        <div class="p-2 mb-3 bg-info text-white rounded">
+                            <h5 class="mb-0">Second-Line LPA</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6 p-3 border-end">
+                                {% for field in form %}
+                                    {% if field.name in "second_line_lpa,second_line_lpa_date,lpa2_mtb,lpa2_rfluoroquinolones,lpa2_aminoglycosides,lpa2_kanamycin"|split:"," %}
+                                    <div class="mb-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 p-3" id="second-line-drugs" style="display:none;">
+                                <div class="mb-3">
+                                    {{ form.second_line_drugs.label_tag }}
+                                    {{ form.second_line_drugs }}
+                                    {% for error in form.second_line_drugs.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nanopore Sequencing -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Nanopore Sequencing</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                                {% if field.name in "nanopore_done,nanopore_sequencing_date"|split:"," %}
+                                <div class="col-md-6">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                                {% if field.name in "epi_to_me,epi_to_me_date,epi_to_me_version,sequencing_results,nanopore_results"|split:"," %}
+                                <div class="col-md-6">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            {% for field in form %}
+                                {% if field.name in "sequencing_delayed,sequencing_delayed_days,sequencing_delayed_reasons,sequencing_delayed_others"|split:"," %}
+                                <div class="col-md-6">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Nanopore Sequencing Results -->
+                        <div id="nanopore-sequencing-results" style="display:none;">
+                            <div class="p-2 mb-3 bg-secondary text-white rounded">
+                                <h5 class="mb-0">Nanopore Sequencing Results</h5>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                {% for field in form %}
+                                    {% if field.name|startswith:"nano_" and field.name in "nano_amikacin,nano_bedaquiline,nano_capreomycin,nano_clofazimine,nano_delamanid,nano_ethambutol,nano_ethionamide,nano_isoniazid,nano_kanamycin,nano_levofloxacin,nano_linezolid,nano_moxifloxacin,nano_pretomanid,nano_pyrazinamide,nano_rifampicin,nano_streptomycin"|split:"," %}
+                                    <div class="col-md-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Remarks</h5>
+                        </div>
+                        <div class="mb-3">{{ form.remarks.label_tag }}{{ form.remarks }}</div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
+                            {% with user_group=request.user.groups.first.name|upper %}
+                            {% if not user_group == "REVIEWER" %}
+                            <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script src="{% static 'custom_js/culture_performed_fields.js' %}"></script>
+<script src="{% static 'custom_js/culture_method_fields.js' %}"></script>
+<script src="{% static 'custom_js/lj_mgit_results_fields.js' %}"></script>
+<script src="{% static 'custom_js/culture_isolate_fileds.js' %}"></script>
+<script src="{% static 'custom_js/phenotypic_dst_fields.js' %}"></script>
+<script src="{% static 'custom_js/xpert_xdr_performed_fields.js' %}"></script>
+<script src="{% static 'custom_js/lpa_fields.js' %}"></script>
+<script src="{% static 'custom_js/first_line_lpa_fields.js' %}"></script>
+<script src="{% static 'custom_js/second_line_lpa_fields.js' %}"></script>
+<script src="{% static 'custom_js/nanopore_sequencing_fields.js' %}"></script>
+<script src="{% static 'custom_js/epi_to_me_fields.js' %}"></script>
+<script src="{% static 'custom_js/sequencing_delayed.js' %}"></script>
+<script src="{% static 'custom_js/sequencing_delayed_reasons.js' %}"></script>
+<script src="{% static 'custom_js/nanopore_results_fields.js' %}"></script >
+
+
+{% endblock %}
+
+

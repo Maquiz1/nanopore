@@ -16,6 +16,7 @@ from .zonal import ZonalLabCsvUploadView
 
 from .edcs_tblis import EdcsTBLISLaboratoryListView
 from .edcs_tblis import EdcsTBLISCsvUploadView
+from .edcs_tblis import EdcsTblisFormView
 
 
 __all__ = [
@@ -36,5 +37,6 @@ __all__ = [
     
     #EDCS-TBLIS
     "EdcsTBLISLaboratoryListView",
-    "EdcsTBLISCsvUploadView"
+    "EdcsTBLISCsvUploadView",
+    "EdcsTblisFormView",  # new form view
 ]
