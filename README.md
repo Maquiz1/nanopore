@@ -111,21 +111,21 @@ pg_dump -U username -h localhost -p 5432 -Fc nanopore > ~/Documents/WORKS/NIMR/D
  
  
  python manage.py merge_clinic_lab_data \
-    --edcs ~/Documents/WORKS/NIMR/DREAM/DATA/_2025_10_27/ZonalLaboratory_raw_data.csv \
-    --tblis ~/Documents/WORKS/NIMR/DREAM/TB_LIS/_2025_10_27/CTRL-TBLIS-DFN-AllData-SAMPLES_01-01-2025-to-12-09-2025.csv \
-    --output ~/Documents/WORKS/NIMR/DREAM/ZONAL_EDCS_TBLIS/_2025_10_27/zonal_edcs_tblis_2025_10_27.csv 
+    --edcs ~/Documents/WORKS/NIMR/DREAM/DATA/_2026/_2026_02_11/ZonalLaboratory_raw_data.csv \
+    --tblis ~/Documents/WORKS/NIMR/DREAM/TB_LIS/_2026/_2026_02_11/CTRL-TBLIS-DFN-AllData-SAMPLES_01-01-2025-to-11-02-2026.csv \
+    --output ~/Documents/WORKS/NIMR/DREAM/ZONAL_EDCS_TBLIS/_2026/_2026_02_11/zonal_edcs_tblis_2026_02_11.csv 
     
 -->
 
 
 
-
+<!-- WORKING FINES -->
  <!-- 
   
 python manage.py merge_clinic_zonal_lab_tblis_data \
-  --edcs ~/Documents/WORKS/NIMR/DREAM/DATA/_2025_10_27/ZonalLaboratory_raw_data.csv \
-  --tblis ~/Documents/WORKS/NIMR/DREAM/TB_LIS/_2025_10_27/CTRL-TBLIS-DFN-AllData-SAMPLES_01-01-2025-to-12-09-2025.csv \
-  --output ~/Documents/WORKS/NIMR/DREAM/ZONAL_EDCS_TBLIS/_2025_12_08/zonal_edcs_tblis_2025_12_08.csv 
+    --edcs ~/Documents/WORKS/NIMR/DREAM/DATA/_2026/_2026_02_11/ZonalLaboratory_raw_data.csv \
+    --tblis ~/Documents/WORKS/NIMR/DREAM/TB_LIS/_2026/_2026_02_11/CTRL-TBLIS-DFN-AllData-SAMPLES_01-01-2025-to-11-02-2026.csv \
+    --output ~/Documents/WORKS/NIMR/DREAM/ZONAL_EDCS_TBLIS/_2026/_2026_02_11/zonal_edcs_tblis_2026_02_11.csv 
     
 -->
 
