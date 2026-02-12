@@ -93,6 +93,10 @@
                 <option value="uncategorized" {% if selected_substudy == "uncategorized" %}selected{% endif %}>Uncategorized</option>
             </select>
         </div>
+        <div class="col-md-2">
+            <label for="unique_lab_no" class="form-label">Lab No.</label>
+            <input type="text" name="unique_lab_no" id="unique_lab_no" class="form-control" value="{{ selected_unique_lab_no }}">
+        </div>
         <div class="col-md-12 text-end">
             <button type="submit" class="btn btn-primary">Apply Filters</button>
             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary">Reset</a>

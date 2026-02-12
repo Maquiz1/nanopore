@@ -18,12 +18,15 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         zone_id = self.request.GET.get("zone")
         site_id = self.request.GET.get("site")
         pid = self.request.GET.get("pid")
+        unique_lab_no = self.request.GET.get("unique_lab_no")
         if zone_id:
             qs = qs.filter(screening__site__district__region__zone_id=zone_id)
         if site_id:
             qs = qs.filter(screening__site_id=site_id)
         if pid:
             qs = qs.filter(screening__pid__icontains=pid)
+        if unique_lab_no:
+            qs = qs.filter(unique_lab_no__icontains=unique_lab_no)
         return qs
 
     def get_context_data(self, **kwargs):
