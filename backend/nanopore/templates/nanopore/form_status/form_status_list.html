@@ -123,7 +123,7 @@
                 <tr>
                     <th>PID</th>
                     <th>Screening Date</th>
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}<th>Facility</th>{% endif %}
+                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}<th>Lab No.</th><th>Facility</th>{% endif %}
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER" %}<th>Zone</th>{% endif %}
                     <th>Substudy</th>
                     <th>Eligibility</th>
@@ -152,6 +152,7 @@
                     </td>
                     <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                    <td>{{ screening.zonal_laboratory.unique_lab_no|default:"-" }}</td>
                     <td>{{ screening.site.name|default:"-" }}</td>
                     {% endif %}
                     {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER" %}
