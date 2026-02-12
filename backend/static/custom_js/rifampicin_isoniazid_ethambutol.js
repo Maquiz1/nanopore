@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to toggle visibility
     function toggleRifampicinIsoniazidEthambutol() {
 
-        // const value = String(Rifampicin?.value || "");
         const value = String(
             Rifampicin?.value === 1 ||
             Isoniazid?.value === 1 ||
@@ -21,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (value === "1") {
-
             phenotypicDstSecondLineHeader.style.display = "block";
             secondLineDstPerformed.style.display = "block";
         } else {
@@ -35,7 +33,12 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleRifampicinIsoniazidEthambutol();
 
     // Update when either result changes
-    Rifampicin.addEventListener("change", toggleRifampicinIsoniazidEthambutol);
-    Isoniazid.addEventListener("change", toggleRifampicinIsoniazidEthambutol);
-    Ethambutol.addEventListener("change", toggleRifampicinIsoniazidEthambutol);
+    // Rifampicin.addEventListener("change", toggleRifampicinIsoniazidEthambutol);
+    // Isoniazid.addEventListener("change", toggleRifampicinIsoniazidEthambutol);
+    // Ethambutol.addEventListener("change", toggleRifampicinIsoniazidEthambutol);
+
+    [Rifampicin, Isoniazid, Ethambutol].forEach(el => {
+    el?.addEventListener("change", togglePhenotypicPerformed);
+    });
+
 });
