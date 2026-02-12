@@ -391,10 +391,10 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                         </p>
                         <div class="progress">
                             <div class="progress-bar
-                                {% if diagnosis_outcome_progress == 100 %}
+                                {% if diagnosis_outcome_progress >= 100 %}
                                     bg-success
                                 {% elif diagnosis_outcome_progress >= 50 %}
-                                    bg-info
+                                    bg-primary
                                 {% else %}
                                     bg-danger
                                 {% endif %}" role="progressbar" style="width: {{ diagnosis_outcome_progress }}%;"
