@@ -22,16 +22,24 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "mgit_inoculation_date", "mgit_results_date", "mgit_results",
             
             # Culture Isolate
-            "culture_isolate", "isolate_date",
+            "culture_isolate", "isolate_date","isolate_unique_lab_no",
             
             # Phenotypic DST
             
             "phenotypic_performed", "phenotypic_date_performed", "phenotypic_date_results",
+            "first_line_dst_performed_date", "first_line_dst_results_date",
+            "second_line_dst_performed_date", "second_line_dst_results_date",
             
             # Phenotypic DST RESULTS
-            "rifampicin", "isoniazid", "levofloxacin", "moxifloxacin", "bedaquiline",
-            "linezolid", "clofazimine", "cycloserine", "terizidone", "ethambutol",
-            "delamanid", "pyrazinamide", "imipenem", "cilastatin", "meropenem",
+            # FIRST LINE
+            "rifampicin", "isoniazid", "ethambutol",
+            
+            # SECOND LINE
+            "levofloxacin", "bedaquiline","linezolid","clofazimine",
+            "cycloserine","delamanid","pretomanid",
+            
+            # TO BE ADDED LETTERS
+            "pyrazinamide", "imipenem", "cilastatin", "meropenem","terizidone","moxifloxacin",
             "amikacin", "streptomycin", "ethionamide", "prothionamide", "para_aminosalicylic_acid",
             
             # Xpert XDR
@@ -132,11 +140,16 @@ class ZonalLaboratoryForm(forms.ModelForm):
             # Culture Isolate
             "culture_isolate": forms.Select(attrs={"class": "form-select"}),
             "isolate_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "isolate_unique_lab_no": forms.TextInput(attrs={"class": "form-control"}),
             
             # Phenotypic DST
             "phenotypic_performed": forms.Select(attrs={"class": "form-select"}),
             "phenotypic_date_performed": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "phenotypic_date_results": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "first_line_dst_performed_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "first_line_dst_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "second_line_dst_performed_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "second_line_dst_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             
             # Phenotypic DST RESULTS
             "rifampicin": forms.Select(attrs={"class": "form-select"}),
@@ -159,6 +172,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "ethionamide": forms.Select(attrs={"class": "form-select"}),
             "prothionamide": forms.Select(attrs={"class": "form-select"}),
             "para_aminosalicylic_acid": forms.Select(attrs={"class": "form-select"}),
+            "pretomanid": forms.Select(attrs={"class": "form-select"}),
             
             # Xpert XDR
             "xpert_xdr_performed": forms.Select(attrs={"class": "form-select"}),

@@ -29,16 +29,22 @@ ZONAL_LABELS = {
     # Culture Isolate
     "culture_isolate":"11. Was the culture isolate submitted to CTRL for phenotypic DST testing?",
     "isolate_date":"11(a). Isolate Date",
+    "isolate_unique_lab_no":"11(b). Isolate Unique Laboratory Number",
     
     # Phenotypic DST
     "phenotypic_performed":"12a. Was phenotypic DST performed?",
     "phenotypic_date_performed":"12(b). Date of performing phenotypic DST?",
     "phenotypic_date_results":"12(c). Date of phenotypic DST Results?",
+    "first_line_dst_performed_date":"12(d). Date of performing first-line DST?",
+    "first_line_dst_results_date":"12(e). Date of first-line DST results?",
+    "second_line_dst_performed_date":"12(f). Date of performing second-line DST?",
+    "second_line_dst_results_date":"12(g). Date of second-line DST results?",
     
     # Phenotypic DST RESULTS
     "rifampicin":"13(a). Rifampicin",
     "isoniazid":"13(b). Isoniazid",
     "levofloxacin":"13(c). Levofloxacin",
+    
     "moxifloxacin":"13(d). Moxifloxacin",
     "bedaquiline":"13(e). Bedaquiline",
     "linezolid":"13(f). Linezolid",
@@ -46,6 +52,7 @@ ZONAL_LABELS = {
     "cycloserine":"13(h). Cycloserine",
     "terizidone":"13(i). Terizidone",
     "ethambutol":"13(j). Ethambutol",
+    
     "delamanid":"13(k). Delamanid",
     "pyrazinamide":"13(l). Pyrazinamide",
     "imipenem":"13(m). Imipenem",
@@ -56,6 +63,7 @@ ZONAL_LABELS = {
     "ethionamide":"13(r). Ethionamide",
     "prothionamide":"13(s). Prothionamide",
     "para_aminosalicylic_acid":"13(t). Para-aminosalicylic acid",
+    "pretomanid":"13(u). Pretomanid",
     
     # Xpert XDR
     "xpert_xdr_performed":"14(a). Was Xpert XDR performed?",

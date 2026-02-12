@@ -437,7 +437,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
                         <h5 class="card-title text-center">Zonal Lab Test Progress</h5>
-
+                        <hr>
                         <!-- Overall Zonal Lab Completed -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small fw-semibold mb-1">
@@ -459,12 +459,13 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
+                        <hr>
 
                         <!-- CULTURE -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small fw-semibold mb-1">
                                 <span>Culture  Tests Done</span>
-                                <span>{{ culture_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                                <span>{{ culture_completed_count|intcomma }} / {{ zonal_completed_count|intcomma }}</span>
                             </div>
                             <div class="progress">
                                 <div class="progress-bar
@@ -481,12 +482,36 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
+                        <hr>
+
+                        <!-- CULTURE ISOLATE -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>Culture  Isolate Tests Done</span>
+                                <span>{{ isolate_completed_count|intcomma }} / {{ culture_completed_count|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if isolate_progress >= 100 %}
+                                        bg-success
+                                    {% elif isolate_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ isolate_progress }}%;"
+                                    aria-valuenow="{{ isolate_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ isolate_progress }}%
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
 
                         <!-- DST -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small fw-semibold mb-1">
                                 <span>DST Tests Done</span>
-                                <span>{{ dst_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
+                                <span>{{ dst_completed_count|intcomma }} / {{ isolate_completed_count|intcomma }}</span>
                             </div>
                             <div class="progress">
                                 <div class="progress-bar
@@ -503,6 +528,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
+                        <hr>
 
                         <!-- XPERT XDR -->
                         <div class="mb-3">
@@ -525,6 +551,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
+                        <hr>
 
                         <!-- LPA -->
                         <div class="mb-3">
@@ -547,11 +574,12 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
+                        <hr>
 
                         <!-- Nanopore -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small fw-semibold mb-1">
-                                <span>Nanopore Tests Done</span>
+                                <span>Nanopore Sequencing Tests Done</span>
                                 <span>{{ nanopore_completed_count|intcomma }} / {{ total_substudy_counts|intcomma }}</span>
                             </div>
                             <div class="progress">
@@ -569,6 +597,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
+                        <hr>
 
                     </div>
 
@@ -577,6 +606,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                             <i class="bi bi-eye"></i> View all Zonal Lab Records
                         </a>
                     </div>
+                    <hr>
                 </div>
             </div>
         </div>
