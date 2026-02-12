@@ -337,7 +337,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
-
+                        {% if user_zone.id == 1 or request.user.is_superuser or group|upper in "ADMIN,REVIEWER" %}
                         <!-- Substudy 4 -->
                         <div>
                             <div class="d-flex justify-content-between small fw-semibold mb-1">
@@ -365,6 +365,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <div class="mt-3">
