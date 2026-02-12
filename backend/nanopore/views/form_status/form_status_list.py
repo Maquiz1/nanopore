@@ -33,6 +33,7 @@ class FormStatusListView(ListView):
         zone_id = self.request.GET.get("zone")
         site_id = self.request.GET.get("site")
         pid = self.request.GET.get("pid")
+        unique_lab_no = self.request.GET.get("unique_lab_no")
         start_date = self.request.GET.get("start_date")
         end_date = self.request.GET.get("end_date")
         status = self.request.GET.get("status")  # 🔹 Status filter
@@ -48,7 +49,10 @@ class FormStatusListView(ListView):
             qs = qs.filter(pid__icontains=pid)
         if start_date and end_date:
             qs = qs.filter(screening_date__range=[start_date, end_date])
-        
+        if unique_lab_no:
+            # qs = qs.filter(Q(clinic_laboratory__unique_lab_no__icontains=unique_lab_no) | Q(zonal_laboratory__unique_lab_no__icontains=unique_lab_no) )
+            qs = qs.filter(Q(zonal_laboratory__unique_lab_no__icontains=unique_lab_no))
+
         # 🔹 Filter by eligibility status using correct field
         if status == "eligible":
             qs = qs.filter(eligible=True)
@@ -64,6 +68,7 @@ class FormStatusListView(ListView):
             qs = qs.filter(id__in=enrolled_screenings)
         elif list_type == "completed":
             qs = qs.filter(diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6])
+        
             
             
         # 🔹 Annotate substudy
@@ -138,6 +143,7 @@ class FormStatusListView(ListView):
         context['selected_zone'] = self.request.GET.get("zone", "")
         context['selected_site'] = self.request.GET.get("site", "")
         context['selected_pid'] = self.request.GET.get("pid", "")
+        context['selected_unique_lab_no'] = self.request.GET.get("unique_lab_no", "")
         context['selected_start_date'] = self.request.GET.get("start_date", "")
         context['selected_end_date'] = self.request.GET.get("end_date", "")
         context['selected_status'] = self.request.GET.get("status", "")  # 🔹 Pass status to template
@@ -156,6 +162,8 @@ class FormStatusListView(ListView):
             query_dict['start_date'] = context['selected_start_date']
         if context['selected_end_date']:
             query_dict['end_date'] = context['selected_end_date']
+        if context['selected_unique_lab_no']:
+            query_dict['unique_lab_no'] = context['selected_unique_lab_no']
         if context['selected_status']:
             query_dict['status'] = context['selected_status']
         if context['list_type']:
