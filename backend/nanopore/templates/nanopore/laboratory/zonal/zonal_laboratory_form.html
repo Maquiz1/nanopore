@@ -149,29 +149,25 @@
                             <div class="col-md-6"  id="isolate-unique-lab-no" style="display:none;">{{ form.isolate_unique_lab_no.label_tag }}{{ form.isolate_unique_lab_no }}</div>
                         </div>
                         <hr>
-                        <div class="row g-3 mb-3">
+                        <!-- <div class="row g-3 mb-3">
                             <div class="col-md-6"  id="phenotypic-date-performed" style="display:none;">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
                             <div class="col-md-6"  id="phenotypic-date-results" style="display:none;">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
                         </div>
-                        <hr>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6"  id="first-line-dst-performed-date" style="display:none;">{{ form.first_line_dst_performed_date.label_tag }}{{ form.first_line_dst_performed_date }}</div>
-                            <div class="col-md-6"  id="first-line-dst-results-date" style="display:none;">{{ form.first_line_dst_results_date.label_tag }}{{ form.first_line_dst_results_date }}</div>
+                        <hr> -->
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-first-line-header" style="display:none;">
+                            <h5 class="mb-0">First Line Phenotypic DST</h5>
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6"  id="second-line-dst-performed-date" style="display:none;">{{ form.second_line_dst_performed_date.label_tag }}{{ form.second_line_dst_performed_date }}</div>
-                            <div class="col-md-6"  id="second-line-dst-results-date" style="display:none;">{{ form.second_line_dst_results_date.label_tag }}{{ form.second_line_dst_results_date }}</div>
+                            <div class="col-md-4"  id="first-line-dst-performed" style="display:none;">{{ form.first_line_dst_performed.label_tag }}{{ form.first_line_dst_performed }}</div>
+                            <div class="col-md-4"  id="first-line-dst-performed-date" style="display:none;">{{ form.first_line_dst_performed_date.label_tag }}{{ form.first_line_dst_performed_date }}</div>
+                            <div class="col-md-4"  id="first-line-dst-results-date" style="display:none;">{{ form.first_line_dst_results_date.label_tag }}{{ form.first_line_dst_results_date }}</div>
                         </div>
                         <hr>
-
-                        <!-- Phenotypic DST RESULTS -->
-                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-header" style="display:none;">
-                            <h5 class="mb-0">Phenotypic DST RESULTS</h5>
-                        </div>
                         <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-first-line-header" style="display:none;">
-                            <h5 class="mb-0">First Line</h5>
+                            <h5 class="mb-0">First Line Phenotypic DST RESULTS</h5>
                         </div>
+                        <hr>
                         <div id="phenotypic-dst-results-first-line" style="display:none;">
                             <div class="row">
                                 {% for field in form %}
@@ -187,9 +183,21 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-second-line-header" style="display:none;">
-                            <h5 class="mb-0">Second Line</h5>
+                        <hr>
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-second-line-header" style="display:none;">
+                            <h5 class="mb-0">Second Line Phenotypic DST</h5>
                         </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4"  id="second-line-dst-performed" style="display:none;">{{ form.second_line_dst_performed.label_tag }}{{ form.second_line_dst_performed }}</div>
+                            <div class="col-md-4"  id="second-line-dst-performed-date" style="display:none;">{{ form.second_line_dst_performed_date.label_tag }}{{ form.second_line_dst_performed_date }}</div>
+                            <div class="col-md-4"  id="second-line-dst-results-date" style="display:none;">{{ form.second_line_dst_results_date.label_tag }}{{ form.second_line_dst_results_date }}</div>
+                        </div>
+                        <hr>
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-second-line-header" style="display:none;">
+                            <h5 class="mb-0">Second Line Phenotypic DST RESULTS</h5>
+                        </div>
+                        <hr>
                         <div id="phenotypic-dst-results-second-line" style="display:none;">
                             <div class="row">
                                 {% for field in form %}
@@ -205,7 +213,10 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-other-header" style="display:none;">
+                        <hr>
+
+                        <!-- Phenotypic DST RESULTS -->
+                        <!-- <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-other-header" style="display:none;">
                             <h5 class="mb-0">Others (Not Required)</h5>
                         </div>
                         <div id="phenotypic-dst-results-other" style="display:none;">
@@ -222,7 +233,7 @@
                                     {% endif %}
                                 {% endfor %}
                             </div>
-                        </div>
+                        </div> -->
 
                         <!-- Xpert XDR -->
                         <div class="p-2 mb-3 bg-info text-white rounded">
@@ -440,6 +451,9 @@
 <script src="{% static 'custom_js/lj_mgit_results_fields.js' %}"></script>
 <script src="{% static 'custom_js/culture_isolate_fileds.js' %}"></script>
 <script src="{% static 'custom_js/phenotypic_dst_fields.js' %}"></script>
+<script src="{% static 'custom_js/first_line_phenotypic_dst_fields.js' %}"></script>
+<script src="{% static 'custom_js/rifampicin_isoniazid_ethambutol.js' %}"></script>
+<script src="{% static 'custom_js/second_line_phenotypic_dst_fields.js' %}"></script>
 <script src="{% static 'custom_js/xpert_xdr_performed_fields.js' %}"></script>
 <script src="{% static 'custom_js/lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/first_line_lpa_fields.js' %}"></script>

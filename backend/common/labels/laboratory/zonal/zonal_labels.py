@@ -35,8 +35,12 @@ ZONAL_LABELS = {
     "phenotypic_performed":"12a. Was phenotypic DST performed?",
     "phenotypic_date_performed":"12(b). Date of performing phenotypic DST?",
     "phenotypic_date_results":"12(c). Date of phenotypic DST Results?",
+    
+    "first_line_dst_performed":"12(d). Was first-line phenotypic DST performed?",
     "first_line_dst_performed_date":"12(d). Date of performing first-line DST?",
     "first_line_dst_results_date":"12(e). Date of first-line DST results?",
+    
+    "second_line_dst_performed":"12(d). Was second-line phenotypic DST performed?",
     "second_line_dst_performed_date":"12(f). Date of performing second-line DST?",
     "second_line_dst_results_date":"12(g). Date of second-line DST results?",
     
