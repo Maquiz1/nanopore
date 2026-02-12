@@ -8,7 +8,7 @@ from datetime import timedelta
 from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory,Diagnosis
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
-from locations.models import Site
+from locations.models import Site,Zone
 
 
 class DashboardHomeView(ListView):
@@ -63,6 +63,26 @@ class DashboardHomeView(ListView):
             "zones": {z.id: z.name for z in role_context["zones"]},
             "sites": {s.id: s.name for s in role_context["sites"]},
         })
+        
+        # context = kwargs
+        user_site = getattr(getattr(self.request.user, "profile", None), "site", None)
+        user_zone = None
+
+        if user_site and user_site.district and user_site.district.region:
+            user_zone = user_site.district.region.zone
+
+        context.update({
+            "user_site": user_site,
+            "user_zone": user_zone,
+            "dar_es_salaam_zone": Zone.objects.filter(name__iexact="Dar es Salaam").first(),
+            "zone_group_1": [1],  # ← add this line
+            "zone_group_2_5": [2, 3, 4,5],  # ← add this line
+            
+        })
+        # context["user_zone"] = user_zone
+        # context["dar_es_salaam_zone"] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
+        # context["zone_group_1"] = [1]  # ← add this line
+        # context["zone_group_2_5"] = [2, 3, 4, 5]  # ← add this line
 
         # ==================================================
         # GLOBAL COUNTS

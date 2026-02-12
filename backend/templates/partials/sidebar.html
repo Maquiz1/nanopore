@@ -10,7 +10,8 @@
     <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
     </a>
-
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
     <!-- Locations -->
     <a href="{% url 'locations:country-list' %}" class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Countries</span>
@@ -19,15 +20,21 @@
     <a href="{% url 'locations:all-sites' %}" class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Sites</span>
     </a>
-
+    {% endif %}
+    {% endwith %}
     <a href="{% url 'dashboard:graphs' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Graphs</span>
     </a>
-
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER LABORATORY_TECHNICIAN" %}
     <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> Edcs / TBLIS Data</span>
     </a>
+    {% endif %}
+    {% endwith %}
 
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
     <a href="{% url 'reports:missing_forms_dashboard' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> snapshots-dashboard</span>
     </a>
@@ -35,6 +42,8 @@
     <a href="{% url 'reports:missing_forms_trends' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> snapshots-trends</span>
     </a>
+    {% endif %}
+    {% endwith %}
 
     {% if user.is_superuser %}
     <a href="{% url 'users:staff_list' %}">
@@ -105,6 +114,7 @@
     {% endif %}
     {% endwith %}
 
+    {% if context_total_issues %}
     <!-- Queries / Total Issues -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -118,6 +128,7 @@
         </a>
 
         <div class="submenu">
+            {% if context_total_issues_components.missing_forms %}
             <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
                 <span><i class="fas fa-clipboard-list me-2"></i> Missing Forms</span>
                 <span class="d-flex align-items-center">
@@ -165,7 +176,9 @@
                 {% endif %}
                 {% endwith %}
             </div>
+            {% endif %}
 
+            {% if context_specific_queries_total %}
             <!-- Form Queries -->
             <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
                 <span><i class="fas fa-clipboard-list me-2"></i> Form Queries</span>
@@ -220,9 +233,11 @@
                 {% endif %}
                 {% endwith %}
             </div>
+            {% endif %}
 
         </div>
     </div>
+    {% endif %}
 
     {% if user.is_superuser %}
     <!-- Uploads -->
