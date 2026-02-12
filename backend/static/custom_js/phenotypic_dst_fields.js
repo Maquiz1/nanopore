@@ -5,26 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Field to show/hide
     const isolateUniqueLabNo = document.getElementById("isolate-unique-lab-no");
 
-    const phenotypicDatePerformed = document.getElementById("phenotypic-date-performed");
-    const phenotypicDateResults = document.getElementById("phenotypic-date-results");
+    // const phenotypicDatePerformed = document.getElementById("phenotypic-date-performed");
+    // const phenotypicDateResults = document.getElementById("phenotypic-date-results");
 
-    const firstLineDstPerformedDate = document.getElementById("first-line-dst-performed-date");
-    const firstLineDstResultsDate = document.getElementById("first-line-dst-results-date");
-
-    const secondLineDstPerformedDate = document.getElementById("second-line-dst-performed-date");
-    const secondLineDstResultsDate = document.getElementById("second-line-dst-results-date");
-
-    // const phenotypicDstResultsHeader = document.getElementById("phenotypic-dst-results-header");
-    // const phenotypicDstResults = document.getElementById("phenotypic-dst-results");
-
-    // const phenotypicDstResultsFirstLineHeader = document.getElementById("phenotypic-dst-results-first-line-header");
-
-
-    // const phenotypicDstResultsSecondLineHeader = document.getElementById("phenotypic-dst-results-second-line-header");
-
-    // const phenotypicDstResultsOtherHeader = document.getElementById("phenotypic-dst-results-other-header");
-    // const phenotypicDstResultsOther = document.getElementById("phenotypic-dst-results-other");
-
+    const phenotypicDstFirstLineHeader = document.getElementById("phenotypic-dst-first-line-header");
+    const firstLineDstPerformed = document.getElementById("first-line-dst-performed");
 
     // Function to toggle visibility
     function togglePhenotypicPerformed() {
@@ -34,47 +19,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (value === "1") {
             isolateUniqueLabNo.style.display = "block";
 
-            phenotypicDatePerformed.style.display = "block";
-            phenotypicDateResults.style.display = "block";
+            // phenotypicDatePerformed.style.display = "block";
+            // phenotypicDateResults.style.display = "block";
 
-            firstLineDstPerformedDate.style.display = "block";
-            firstLineDstResultsDate.style.display = "block";
+            phenotypicDstFirstLineHeader.style.display = "block";
+            firstLineDstPerformed.style.display = "block";
 
-            secondLineDstPerformedDate.style.display = "block";
-            secondLineDstResultsDate.style.display = "block";
-
-            // phenotypicDstResultsHeader.style.display = "block";
-            // phenotypicDstResults.style.display = "block";
-
-            // phenotypicDstResultsFirstLineHeader.style.display = "block";
-
-
-            // phenotypicDstResultsSecondLineHeader.style.display = "block";
-
-
-            // phenotypicDstResultsOtherHeader.style.display = "block";
-            // phenotypicDstResultsOther.style.display = "block";
         } else {
             isolateUniqueLabNo.style.display = "none";
 
-            phenotypicDatePerformed.style.display = "none";
-            phenotypicDateResults.style.display = "none";
+            // phenotypicDatePerformed.style.display = "none";
+            // phenotypicDateResults.style.display = "none";
 
-            firstLineDstPerformedDate.style.display = "none";
-            firstLineDstResultsDate.style.display = "none";
-
-            secondLineDstPerformedDate.style.display = "none";
-            secondLineDstResultsDate.style.display = "none";
-
-            // phenotypicDstResultsHeader.style.display = "none";
-
-            // phenotypicDstResults.style.display = "none";
-
-            // phenotypicDstResultsFirstLineHeader.style.display = "none";
-            // phenotypicDstResultsSecondLineHeader.style.display = "none";
-
-            // phenotypicDstResultsOtherHeader.style.display = "none";
-            // phenotypicDstResultsOther.style.display = "none";
+            phenotypicDstFirstLineHeader.style.display = "none";
+            firstLineDstPerformed.style.display = "none";
         }
     }
 

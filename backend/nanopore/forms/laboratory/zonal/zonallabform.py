@@ -27,8 +27,8 @@ class ZonalLaboratoryForm(forms.ModelForm):
             # Phenotypic DST
             
             "phenotypic_performed", "phenotypic_date_performed", "phenotypic_date_results",
-            "first_line_dst_performed_date", "first_line_dst_results_date",
-            "second_line_dst_performed_date", "second_line_dst_results_date",
+            "first_line_dst_performed","first_line_dst_performed_date", "first_line_dst_results_date",
+            "second_line_dst_performed","second_line_dst_performed_date", "second_line_dst_results_date",
             
             # Phenotypic DST RESULTS
             # FIRST LINE
@@ -146,8 +146,12 @@ class ZonalLaboratoryForm(forms.ModelForm):
             "phenotypic_performed": forms.Select(attrs={"class": "form-select"}),
             "phenotypic_date_performed": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "phenotypic_date_results": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            
+            "first_line_dst_performed": forms.Select(attrs={"class": "form-select"}),
             "first_line_dst_performed_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "first_line_dst_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            
+            "second_line_dst_performed": forms.Select(attrs={"class": "form-select"}),
             "second_line_dst_performed_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "second_line_dst_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             

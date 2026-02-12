@@ -62,8 +62,10 @@ class ZonalLaboratory(models.Model):
     phenotypic_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_phenotypic_performed")
     phenotypic_date_performed = models.DateField(null=True, blank=True)
     phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_phenotypic_date_results")
+    first_line_dst_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_first_line_dst_performed")
     first_line_dst_performed_date = models.DateField(null=True, blank=True)
     first_line_dst_results_date = models.DateField(null=True, blank=True)
+    second_line_dst_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_second_line_dst_performed")
     second_line_dst_performed_date = models.DateField(null=True, blank=True)
     second_line_dst_results_date = models.DateField(null=True, blank=True)
 
