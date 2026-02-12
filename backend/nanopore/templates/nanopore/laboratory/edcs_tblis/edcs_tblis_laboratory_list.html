@@ -29,7 +29,7 @@
                     <th>Site</th>
                     <th>PID</th>
                     <th>Date Sputum Received</th>
-                    <th>Culture Performed</th>
+                    <th>Lab Number</th>
                     <!-- <th>Result</th> -->
                     <th>Actions</th>
                 </tr>
@@ -41,7 +41,7 @@
                     <td>{{ lab.screening.site.name }}</td>
                     <td>{{ lab.screening.pid }}</td>
                     <td>{{ lab.date_sputum_received|date:"M d, Y" }}</td>
-                    <td>{{ lab.culture_performed }}</td>
+                    <td>{{ lab.unique_lab_no }}</td>
                     <!-- <td>{{ lab.result|default:"Pending" }}</td> -->
                     <td>
                         <a href="{% url 'nanopore:edcs-tblis-laboratory-view' lab.pk %}" class="btn btn-sm btn-primary">View</a>
