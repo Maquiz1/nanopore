@@ -158,13 +158,18 @@ class DashboardHomeView(ListView):
         # Individual test counts
         culture_completed_count = zonal_qs.filter(culture_performed=1).count()
         culture_progress = round(
-            culture_completed_count / total_substudy_counts * 100, 1
-        ) if total_substudy_counts else 0
+            culture_completed_count / zonal_completed_count * 100, 1
+        ) if zonal_completed_count else 0
+        
+        isolate_completed_count = zonal_qs.filter(culture_isolate=1).count()
+        isolate_progress = round(
+            isolate_completed_count / culture_completed_count * 100, 1
+        ) if culture_completed_count else 0
         
         dst_completed_count = zonal_qs.filter(phenotypic_performed=1).count()
         dst_progress = round(
-            dst_completed_count / total_substudy_counts * 100, 1
-        ) if total_substudy_counts else 0
+            dst_completed_count / isolate_completed_count * 100, 1
+        ) if isolate_completed_count else 0
         
         xpert_xdr_completed_count = zonal_qs.filter(xpert_xdr_performed=1).count()
         xpert_xdr_progress = round(
@@ -212,6 +217,8 @@ class DashboardHomeView(ListView):
             # ZONAL LAB
             "zonal_completed_count": zonal_completed_count,
             "zonal_progress": zonal_progress,
+            "isolate_completed_count": isolate_completed_count,
+            "isolate_progress": isolate_progress,
             "culture_completed_count": culture_completed_count,
             "culture_progress": culture_progress,
             "dst_completed_count": dst_completed_count,
