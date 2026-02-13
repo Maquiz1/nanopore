@@ -25,10 +25,12 @@ class EdcsTblisZonalForm(forms.ModelForm):
             "culture_isolate", "isolate_date","isolate_unique_lab_no",
             
             # Phenotypic DST
-            "phenotypic_performed", "phenotypic_date_performed", "phenotypic_date_results",
-            "first_line_dst_performed_date", "first_line_dst_results_date",
-            "second_line_dst_performed_date", "second_line_dst_results_date",
             
+            "phenotypic_performed", "phenotypic_date_performed", "phenotypic_date_results",
+            "first_line_dst_performed","first_line_dst_performed_date", "first_line_dst_results_date",
+            "second_line_dst_performed","second_line_dst_performed_date", "second_line_dst_results_date",
+            
+            # Phenotypic DST RESULTS
             # FIRST LINE
             "rifampicin", "isoniazid", "ethambutol",
             
@@ -139,13 +141,17 @@ class EdcsTblisZonalForm(forms.ModelForm):
             "culture_isolate": forms.Select(attrs={"class": "form-select"}),
             "isolate_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "isolate_unique_lab_no": forms.TextInput(attrs={"class": "form-control"}),
-
+            
             # Phenotypic DST
             "phenotypic_performed": forms.Select(attrs={"class": "form-select"}),
             "phenotypic_date_performed": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "phenotypic_date_results": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            
+            "first_line_dst_performed": forms.Select(attrs={"class": "form-select"}),
             "first_line_dst_performed_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "first_line_dst_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            
+            "second_line_dst_performed": forms.Select(attrs={"class": "form-select"}),
             "second_line_dst_performed_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "second_line_dst_results_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             
@@ -171,7 +177,7 @@ class EdcsTblisZonalForm(forms.ModelForm):
             "prothionamide": forms.Select(attrs={"class": "form-select"}),
             "para_aminosalicylic_acid": forms.Select(attrs={"class": "form-select"}),
             "pretomanid": forms.Select(attrs={"class": "form-select"}),
-
+            
             # Xpert XDR
             "xpert_xdr_performed": forms.Select(attrs={"class": "form-select"}),
             "xpert_xdr_date_performed": forms.DateInput(attrs={"type": "date", "class": "form-control"}),

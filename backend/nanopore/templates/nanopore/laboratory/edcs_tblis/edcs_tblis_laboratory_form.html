@@ -8,7 +8,7 @@
         <div class="col-lg-10">
 
             <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
+                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
                 <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
             </div>
 
@@ -145,20 +145,63 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4"  id="phenotypic-performed" style="display:none;">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
-                            <div class="col-md-4"  id="phenotypic-date-performed" style="display:none;">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
-                            <div class="col-md-4"  id="phenotypic-date-results" style="display:none;">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
+                            <div class="col-md-6"  id="phenotypic-performed" style="display:none;">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
+                            <div class="col-md-6"  id="isolate-unique-lab-no" style="display:none;">{{ form.isolate_unique_lab_no.label_tag }}{{ form.isolate_unique_lab_no }}</div>
                         </div>
                         <hr>
-
-                        <!-- Phenotypic DST RESULTS -->
-                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-header" style="display:none;">
-                            <h5 class="mb-0">Phenotypic DST RESULTS</h5>
+                        <!-- <div class="row g-3 mb-3">
+                            <div class="col-md-6"  id="phenotypic-date-performed" style="display:none;">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
+                            <div class="col-md-6"  id="phenotypic-date-results" style="display:none;">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
                         </div>
-                        <div id="phenotypic-dst-results" style="display:none;">
+                        <hr> -->
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-first-line-header" style="display:none;">
+                            <h5 class="mb-0">First Line Phenotypic DST</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4"  id="first-line-dst-performed" style="display:none;">{{ form.first_line_dst_performed.label_tag }}{{ form.first_line_dst_performed }}</div>
+                            <div class="col-md-4"  id="first-line-dst-performed-date" style="display:none;">{{ form.first_line_dst_performed_date.label_tag }}{{ form.first_line_dst_performed_date }}</div>
+                            <div class="col-md-4"  id="first-line-dst-results-date" style="display:none;">{{ form.first_line_dst_results_date.label_tag }}{{ form.first_line_dst_results_date }}</div>
+                        </div>
+                        <hr>
+                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-first-line-header" style="display:none;">
+                            <h5 class="mb-0">First Line Phenotypic DST RESULTS</h5>
+                        </div>
+                        <hr>
+                        <div id="phenotypic-dst-results-first-line" style="display:none;">
                             <div class="row">
                                 {% for field in form %}
-                                    {% if field.name in "rifampicin,isoniazid,levofloxacin,moxifloxacin,bedaquiline,linezolid,clofazimine,cycloserine,terizidone,ethambutol,delamanid,pyrazinamide,imipenem,cilastatin,meropenem,amikacin,streptomycin,ethionamide,prothionamide,para_aminosalicylic_acid"|split:"," %}
+                                    {% if field.name in "rifampicin,isoniazid,ethambutol"|split:"," %}
+                                    <div class="col-md-4 mb-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="p-2 mb-3 bg-warning text-white rounded" id="phenotypic-dst-second-line-header" style="display:none;">
+                            <h5 class="mb-0">Second Line Phenotypic DST</h5>
+                        </div>
+                        <hr>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4"  id="second-line-dst-performed" style="display:none;">{{ form.second_line_dst_performed.label_tag }}{{ form.second_line_dst_performed }}</div>
+                            <div class="col-md-4"  id="second-line-dst-performed-date" style="display:none;">{{ form.second_line_dst_performed_date.label_tag }}{{ form.second_line_dst_performed_date }}</div>
+                            <div class="col-md-4"  id="second-line-dst-results-date" style="display:none;">{{ form.second_line_dst_results_date.label_tag }}{{ form.second_line_dst_results_date }}</div>
+                        </div>
+                        <hr>
+                        <div class="p-2 mb-3 bg-warning text-white rounded" id="phenotypic-dst-results-second-line-header" style="display:none;">
+                            <h5 class="mb-0">Second Line Phenotypic DST RESULTS</h5>
+                        </div>
+                        <hr>
+                        <div id="phenotypic-dst-results-second-line" style="display:none;">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.name in "levofloxacin,bedaquiline,linezolid,clofazimine,cycloserine,delamanid,pretomanid"|split:"," %}
                                     <div class="col-md-3 mb-3">
                                         {{ field.label_tag }}
                                         {{ field }}
@@ -170,6 +213,27 @@
                                 {% endfor %}
                             </div>
                         </div>
+                        <hr>
+
+                        <!-- Phenotypic DST RESULTS -->
+                        <!-- <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-other-header" style="display:none;">
+                            <h5 class="mb-0">Others (Not Required)</h5>
+                        </div>
+                        <div id="phenotypic-dst-results-other" style="display:none;">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.name in "moxifloxacin,terizidone,pyrazinamide,imipenem,cilastatin,meropenem,amikacin,streptomycin,ethionamide,prothionamide,para_aminosalicylic_acid"|split:"," %}
+                                    <div class="col-md-3 mb-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div> -->
 
                         <!-- Xpert XDR -->
                         <div class="p-2 mb-3 bg-info text-white rounded">
@@ -364,9 +428,8 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
-                            <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="btn btn-info me-2"> Back to Edcs/TBLIS List</a>
                             {% with user_group=request.user.groups.first.name|upper %}
-                            {% if user_group == "ADMIN" %}
+                            {% if not user_group == "REVIEWER" %}
                             <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>
                             {% endif %}
                             {% endwith %}
@@ -388,6 +451,9 @@
 <script src="{% static 'custom_js/lj_mgit_results_fields.js' %}"></script>
 <script src="{% static 'custom_js/culture_isolate_fileds.js' %}"></script>
 <script src="{% static 'custom_js/phenotypic_dst_fields.js' %}"></script>
+<script src="{% static 'custom_js/first_line_phenotypic_dst_fields.js' %}"></script>
+<script src="{% static 'custom_js/rifampicin_isoniazid_ethambutol.js' %}"></script>
+<script src="{% static 'custom_js/second_line_phenotypic_dst_fields.js' %}"></script>
 <script src="{% static 'custom_js/xpert_xdr_performed_fields.js' %}"></script>
 <script src="{% static 'custom_js/lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/first_line_lpa_fields.js' %}"></script>
