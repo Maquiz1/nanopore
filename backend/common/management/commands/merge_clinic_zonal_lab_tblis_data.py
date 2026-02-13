@@ -580,7 +580,7 @@ class Command(BaseCommand):
             **dict.fromkeys(["Resistance not Detected","Sensitive"], 3),
             **dict.fromkeys(["Resistance Indeterminate","Indeterminate"], 4),
             **dict.fromkeys(["Resistance Inferred"], 5),
-            **dict.fromkeys(["MTB Not Detected"], 0),
+            **dict.fromkeys(["MTB Not Detected"], 99),
         }
         
         #17(e). INH result:
