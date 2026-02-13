@@ -187,6 +187,24 @@ class DashboardHomeView(ListView):
             dst_completed_count / isolate_completed_count * 100, 1
         ) if isolate_completed_count else 0
         
+        first_line_dst_completed_count = zonal_qs.filter(first_line_dst_performed=1).count()
+        first_line_dst_progress = round(
+            first_line_dst_completed_count / dst_completed_count * 100, 1
+        ) if dst_completed_count else 0
+        
+        # second_line_dst_completed_count = zonal_qs.filter(
+        #     second_line_dst_performed=1
+        # ).filter(
+        #     Q(rifampicin=1) | Q(isoniazid=1) | Q(ethambutol=1)
+        # ).count()
+        second_line_dst_completed_required = zonal_qs.filter(
+            Q(rifampicin=1) | Q(isoniazid=1) | Q(ethambutol=1)
+        ).count()
+        second_line_dst_completed_count = zonal_qs.filter(second_line_dst_performed=1).count()
+        second_line_dst_progress = round(
+            second_line_dst_completed_count / second_line_dst_completed_required * 100, 1
+        ) if second_line_dst_completed_required else 0
+        
         xpert_xdr_completed_count = zonal_qs.filter(xpert_xdr_performed=1).count()
         xpert_xdr_progress = round(
             xpert_xdr_completed_count / total_substudy_counts * 100, 1
@@ -237,8 +255,17 @@ class DashboardHomeView(ListView):
             "isolate_progress": isolate_progress,
             "culture_completed_count": culture_completed_count,
             "culture_progress": culture_progress,
+            
             "dst_completed_count": dst_completed_count,
             "dst_progress": dst_progress,
+            
+            "first_line_dst_completed_count": first_line_dst_completed_count,
+            "first_line_dst_progress": first_line_dst_progress,
+            
+            "second_line_dst_completed_count": second_line_dst_completed_count,
+            "second_line_dst_progress": second_line_dst_progress,
+            "second_line_dst_completed_required": second_line_dst_completed_required,
+            
             "xpert_xdr_completed_count": xpert_xdr_completed_count,
             "xpert_xdr_progress": xpert_xdr_progress,
             "lpa_completed_count": lpa_completed_count,

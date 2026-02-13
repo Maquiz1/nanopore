@@ -508,10 +508,10 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                         </div>
                         <hr>
 
-                        <!-- DST -->
+                        <!-- TOTAL DST -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small fw-semibold mb-1">
-                                <span>DST Tests Done</span>
+                                <span>Total DST Tests Done</span>
                                 <span>{{ dst_completed_count|intcomma }} / {{ isolate_completed_count|intcomma }}</span>
                             </div>
                             <div class="progress">
@@ -526,6 +526,50 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                                     style="width: {{ dst_progress }}%;"
                                     aria-valuenow="{{ dst_progress }}" aria-valuemin="0" aria-valuemax="100">
                                     {{ dst_progress }}%
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <!-- FIRST LINE DST -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>FIRST LINE DST Tests Done</span>
+                                <span>{{ first_line_dst_completed_count|intcomma }} / {{ dst_completed_count|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if first_line_dst_progress >= 100 %}
+                                        bg-success
+                                    {% elif first_line_dst_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ first_line_dst_progress }}%;"
+                                    aria-valuenow="{{ first_line_dst_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ first_line_dst_progress }}%
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <!-- SECOND LINE DST -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                <span>SECOND LINE DST Tests Done</span>
+                                <span>{{ second_line_dst_completed_count|intcomma }} / {{ second_line_dst_completed_required|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar
+                                    {% if second_line_dst_progress >= 100 %}
+                                        bg-success
+                                    {% elif second_line_dst_progress >= 50 %}
+                                        bg-info
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}" role="progressbar"
+                                    style="width: {{ second_line_dst_progress }}%;"
+                                    aria-valuenow="{{ second_line_dst_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ second_line_dst_progress }}%
                                 </div>
                             </div>
                         </div>
