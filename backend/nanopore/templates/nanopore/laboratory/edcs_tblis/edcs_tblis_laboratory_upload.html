@@ -1,3 +1,4 @@
+<!-- nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_upload.html -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -48,40 +49,41 @@
 </div>
 
 <script>
-document.getElementById("uploadForm").addEventListener("submit", function(e){
-
+document.getElementById("uploadForm").addEventListener("submit", function(e) {
     e.preventDefault();
-
     const xhr = new XMLHttpRequest();
     const formData = new FormData(this);
-
-    const bar = document.getElementById("uploadProgress");
-    const wrap = document.getElementById("uploadProgressWrapper");
-
-    wrap.style.display = "block";
-
     xhr.open("POST", "", true);
 
-    xhr.upload.onprogress = function(e){
-        if(e.lengthComputable){
-            const p = Math.round((e.loaded / e.total) * 100);
-            bar.style.width = p + "%";
-            bar.innerText = p + "%";
-        }
-    };
+    xhr.onload = function() {
+        const data = JSON.parse(xhr.responseText);
+        const taskId = data.task_id;
+        const progressBar = document.getElementById("uploadProgress");
+        const progressWrapper = document.getElementById("uploadProgressWrapper");
+        progressWrapper.style.display = "block";
 
-    xhr.onload = function(){
-        if(xhr.status === 200){
-            document.open();
-            document.write(xhr.responseText);
-            document.close();
-        } else {
-            alert("Upload failed");
-        }
+        const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", taskId);
+
+        const interval = setInterval(() => {
+            fetch(TASK_URL)
+            .then(r => r.json())
+            .then(data => {
+                if(data.current && data.total){
+                    const pct = Math.round(data.current / data.total * 100);
+                    progressBar.style.width = pct + "%";
+                    progressBar.innerText = pct + "%";
+                }
+                if(data.current === data.total){
+                    clearInterval(interval);
+                    alert("Upload completed!");
+                }
+            });
+        }, 2000);
     };
 
     xhr.send(formData);
 });
 </script>
+
 
 {% endblock %}

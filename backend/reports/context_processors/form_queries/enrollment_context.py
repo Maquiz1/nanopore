@@ -168,6 +168,31 @@ def enrollment_report_total(request):
     invalid_regimen_months_with_unknown = previous_tx.filter(
         regimen_months_unknown=True
     ).exclude(Q(regimen_months__isnull=True)).count()
+    
+    
+    # =====================================================
+    # TB fields check for tx_previous = 2 or 3
+    # =====================================================
+    tb_fields = [
+        "tb_category", "tb_category_specify",
+        "tx_month", "tx_unknown_month",
+        "tx_year", "tx_unknown_year",
+        "dr_ds",
+        "ltf_months", "ltf_months_unknown",
+        "tb_regimen", "tb_regimen_specify",
+        "regimen_months", "regimen_months_unknown",
+        "tb_outcome"
+    ]
+
+    # tx_previous_2_3_q = Q(tx_previous__in=[2, 3])
+    # tb_fields_filled_q = Q()
+    # for field in tb_fields:
+    #     tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}": ""})
+
+    # tx_previous_2_3_q &= tb_fields_filled_q
+
+    # missing_tx_previous_2_3_tb_filled = enrollments.filter(tx_previous_2_3_q).count()
+
 
     # =====================================================
     # TOTAL ISSUES
@@ -198,6 +223,8 @@ def enrollment_report_total(request):
 
         missing_regimen_months_without_unknown,
         invalid_regimen_months_with_unknown,
+        
+        # missing_tx_previous_2_3_tb_filled,
     ])
 
     return {
@@ -229,4 +256,6 @@ def enrollment_report_total(request):
 
         "missing_regimen_months_without_unknown": missing_regimen_months_without_unknown,
         "invalid_regimen_months_with_unknown": invalid_regimen_months_with_unknown,
+        
+        # "missing_tx_previous_2_3_tb_filled": missing_tx_previous_2_3_tb_filled,
     }

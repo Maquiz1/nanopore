@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+<h3>Upload EDCS-TBLIS Zonal Lab CSV</h3>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+{% if row_errors %}
+<div class="alert alert-danger">
+    <h5>Errors ({{ row_errors|length }})</h5>
+    <table class="table table-sm">
+        {% for error in row_errors %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ error }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+<div class="card p-3 shadow">
+
+<form id="uploadForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {{ form.file.label_tag }}
+    {{ form.file }}
+
+    <button type="submit" class="btn btn-success mt-2">Upload CSV</button>
+</form>
+
+<div class="progress mt-3" style="display:none" id="uploadProgressWrapper">
+    <div class="progress-bar progress-bar-striped progress-bar-animated"
+         id="uploadProgress"
+         style="width:0%">
+        0%
+    </div>
+</div>
+
+</div>
+</div>
+
+<script>
+document.getElementById("uploadForm").addEventListener("submit", function(e){
+
+    e.preventDefault();
+
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData(this);
+
+    xhr.open("POST", "", true);
+
+    xhr.onload = function(){
+
+        const data = JSON.parse(xhr.responseText);
+        const taskId = data.task_id;
+
+        setInterval(()=>{
+            fetch(`/task-status/${taskId}/`)
+              .then(r=>r.json())
+              .then(data=>{
+                if(data.current){
+                    let pct = Math.round(data.current / data.total * 100);
+                    uploadProgress.style.width = pct+"%";
+                    uploadProgress.innerText = pct+"%";
+                }
+              })
+        },2000);
+    };
+
+    xhr.send(formData);
+});
+</script>
+
+{% endblock %}

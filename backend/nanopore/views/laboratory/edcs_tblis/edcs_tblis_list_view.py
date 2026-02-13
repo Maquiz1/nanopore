@@ -35,3 +35,6 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         context["sites"] = Site.objects.all()
         context["request"] = self.request
         return context
+    
+
+
