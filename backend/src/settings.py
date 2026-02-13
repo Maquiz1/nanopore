@@ -228,10 +228,16 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # LOGOUT_REDIRECT_URL = 'users:login'          # where to go after logout
 
 
+INSTALLED_APPS += ["django_celery_results"]
 
 # Redis broker
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+# CELERY_RESULT_BACKEND = "django-db"
 
 # Timezone
 CELERY_TIMEZONE = "Africa/Dar_es_Salaam"

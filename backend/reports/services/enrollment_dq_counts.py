@@ -95,6 +95,30 @@ def get_enrollment_dq_counts(user, zone_id=None, site_id=None):
         "missing_regimen_months_without_unknown": missing_regimen_months_without_unknown,
         "invalid_regimen_months_with_unknown": invalid_regimen_months_with_unknown,
     }
+    
+    # --- TB fields check ---
+    tb_fields = [
+        "tb_category", "tb_category_specify",
+        "tx_month", "tx_unknown_month",
+        "tx_year", "tx_unknown_year",
+        "dr_ds",
+        "ltf_months", "ltf_months_unknown",
+        "tb_regimen", "tb_regimen_specify",
+        "regimen_months", "regimen_months_unknown",
+        "tb_outcome"
+    ]
+    
+    # Build Q object for tx_previous in [2,3] and any TB field filled
+    tx_previous_issues_q = Q(tx_previous__in=[2, 3])
+    tb_fields_filled_q = Q()
+    for field in tb_fields:
+        tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}": ""})
+
+    # Combine tx_previous and TB fields check
+    tx_previous_issues_q &= tb_fields_filled_q
+
+    # Count issues
+    counts["tx_previous_2_3_tb_filled"] = qs.filter(tx_previous_issues_q).count()
 
     counts["total_issues"] = sum(counts.values())
 

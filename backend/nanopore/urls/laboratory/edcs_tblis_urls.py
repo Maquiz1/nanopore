@@ -1,4 +1,4 @@
-# nanopore/urls/zonal_laboratory_urls.py
+# nanopore/urls/laboratory/zonal_laboratory_urls.py
 from django.urls import path
 from nanopore.views import (
     EdcsTBLISLaboratoryListView,
@@ -7,6 +7,7 @@ from nanopore.views import (
     # ZonalLabFormView,
     EdcsTBLISCsvUploadView,
     EdcsTblisFormView,
+    task_status
 )
 
 urlpatterns = [
@@ -18,4 +19,7 @@ urlpatterns = [
     # path("zonal-lab/<int:pk>/delete/", ZonalLaboratoryDeleteView.as_view(), name="zonal-laboratory-delete"),
     
     path('upload-edcs-tblis/', EdcsTBLISCsvUploadView.as_view(), name="edcs-tblis-upload-csv"),
+    
+    path("task-status/<str:task_id>/", task_status, name="task-status"),
+
 ]

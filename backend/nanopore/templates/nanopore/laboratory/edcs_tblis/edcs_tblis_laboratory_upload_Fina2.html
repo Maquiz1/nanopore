@@ -1,4 +1,3 @@
-<!-- nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_upload.html -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -49,41 +48,35 @@
 </div>
 
 <script>
-document.getElementById("uploadForm").addEventListener("submit", function(e) {
+document.getElementById("uploadForm").addEventListener("submit", function(e){
+
     e.preventDefault();
+
     const xhr = new XMLHttpRequest();
     const formData = new FormData(this);
+
     xhr.open("POST", "", true);
 
-    xhr.onload = function() {
+    xhr.onload = function(){
+
         const data = JSON.parse(xhr.responseText);
         const taskId = data.task_id;
-        const progressBar = document.getElementById("uploadProgress");
-        const progressWrapper = document.getElementById("uploadProgressWrapper");
-        progressWrapper.style.display = "block";
 
-        const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", taskId);
-
-        const interval = setInterval(() => {
-            fetch(TASK_URL)
-            .then(r => r.json())
-            .then(data => {
-                if(data.current && data.total){
-                    const pct = Math.round(data.current / data.total * 100);
-                    progressBar.style.width = pct + "%";
-                    progressBar.innerText = pct + "%";
+        setInterval(()=>{
+            fetch(`/task-status/${taskId}/`)
+              .then(r=>r.json())
+              .then(data=>{
+                if(data.current){
+                    let pct = Math.round(data.current / data.total * 100);
+                    uploadProgress.style.width = pct+"%";
+                    uploadProgress.innerText = pct+"%";
                 }
-                if(data.current === data.total){
-                    clearInterval(interval);
-                    alert("Upload completed!");
-                }
-            });
-        }, 2000);
+              })
+        },2000);
     };
 
     xhr.send(formData);
 });
 </script>
-
 
 {% endblock %}
