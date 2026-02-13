@@ -34,7 +34,6 @@ class EdcsTblisZonal(models.Model):
     appearance = models.ForeignKey(SampleAppearance, on_delete=models.SET_NULL,null=True,blank=True, related_name="tblis_laboratory_appearance")
     sample_volume = models.DecimalField(null=True, blank=True, max_digits=3, decimal_places=1)
     unique_lab_no = models.CharField(max_length=100, unique=True)
-    # unique_lab_no = models.CharField(max_length=100,null=True,blank=True)
     
     # Culture
     culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="tblis_laboratory_culture_performed")
@@ -56,17 +55,19 @@ class EdcsTblisZonal(models.Model):
     # Culture isolate
     culture_isolate = models.ForeignKey(YesNoNA, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_laboratory_culture_isolate")
     isolate_date = models.DateField(null=True, blank=True)
-    isolate_unique_lab_no = models.CharField(max_length=100,null=True, blank=True, unique=True)
+    isolate_unique_lab_no = models.CharField(max_length=100,null=True, blank=True, unique=True,help_text="Lab number, must be unique if present for isolate dst"
+)
 
     # Phenotypic DST
     phenotypic_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_laboratory_phenotypic_performed")
     phenotypic_date_performed = models.DateField(null=True, blank=True)
     phenotypic_date_results = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_laboratory_phenotypic_date_results")
+    first_line_dst_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_first_line_dst_performed")
     first_line_dst_performed_date = models.DateField(null=True, blank=True)
     first_line_dst_results_date = models.DateField(null=True, blank=True)
+    second_line_dst_performed = models.ForeignKey(YesNo, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_second_line_dst_performed")
     second_line_dst_performed_date = models.DateField(null=True, blank=True)
     second_line_dst_results_date = models.DateField(null=True, blank=True)
-    
 
     # Phenotypic DST RESULTS (no explicit db_index)
     # FIRST LINE
@@ -162,7 +163,7 @@ class EdcsTblisZonal(models.Model):
     nano_rifampicin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_laboratory_nano_rifampicin")
     nano_streptomycin = models.ForeignKey(NanoporeResults, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_laboratory_nano_streptomycin")
 
-    # nano_terizidone = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
+    # # nano_terizidone = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     # # nano_imipenem = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     # # nano_cilastatin = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     # # nano_meropenem = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")

@@ -147,22 +147,33 @@ class EdcsTBLISCsvUploadView(View):
 
                     "culture_isolate": get_foreign(YesNoNA, row.get("culture_isolate")),
                     "isolate_date": parse_date_field(row.get("isolate_date")),
+                    "isolate_unique_lab_no": row.get("unique_lab_no") or None,
 
                     "phenotypic_performed": get_foreign(YesNo, row.get("phenotypic_performed")),
-                    "phenotypic_date_performed": parse_date_field(row.get("phenotypic_date_performed")),
-                    "phenotypic_date_results": parse_date_field(row.get("phenotypic_date_results")),
+                    # "phenotypic_date_performed": parse_date_field(row.get("phenotypic_date_performed")),
+                    # "phenotypic_date_results": parse_date_field(row.get("phenotypic_date_results")),
+                    "first_line_dst_performed": get_foreign(YesNo, row.get("first_line_dst_performed")),
+                    "first_line_dst_performed_date": parse_date_field(row.get("first_line_dst_performed_date")),
+                    "first_line_dst_results_date": parse_date_field(row.get("first_line_dst_results_date")),
+                    
+                    "second_line_dst_performed": get_foreign(YesNo, row.get("second_line_dst_performed")),
+                    "second_line_dst_performed_date": parse_date_field(row.get("second_line_dst_performed_date")),
+                    "second_line_dst_results_date": parse_date_field(row.get("second_line_dst_results_date")),
 
                     # DST results
                     "rifampicin": get_foreign(PhenotypicDSTResults, row.get("rifampicin")),
                     "isoniazid": get_foreign(PhenotypicDSTResults, row.get("isoniazid")),
+                    "ethambutol": get_foreign(PhenotypicDSTResults, row.get("ethambutol")),
+ 
                     "levofloxacin": get_foreign(PhenotypicDSTResults, row.get("levofloxacin")),
                     "moxifloxacin": get_foreign(PhenotypicDSTResults, row.get("moxifloxacin")),
                     "bedaquiline": get_foreign(PhenotypicDSTResults, row.get("bedaquiline")),
                     "linezolid": get_foreign(PhenotypicDSTResults, row.get("linezolid")),
                     "clofazimine": get_foreign(PhenotypicDSTResults, row.get("clofazimine")),
+                    "pretomanid": get_foreign(PhenotypicDSTResults, row.get("pretomanid")),
+                    
                     "cycloserine": get_foreign(PhenotypicDSTResults, row.get("cycloserine")),
                     "terizidone": get_foreign(PhenotypicDSTResults, row.get("terizidone")),
-                    "ethambutol": get_foreign(PhenotypicDSTResults, row.get("ethambutol")),
                     "delamanid": get_foreign(PhenotypicDSTResults, row.get("delamanid")),
                     "pyrazinamide": get_foreign(PhenotypicDSTResults, row.get("pyrazinamide")),
                     "imipenem": get_foreign(PhenotypicDSTResults, row.get("imipenem")),
