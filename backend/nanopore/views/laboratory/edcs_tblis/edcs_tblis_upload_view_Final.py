@@ -102,41 +102,21 @@ class EdcsTBLISCsvUploadView(View):
 
     def post(self, request, *args, **kwargs):
         form = EdcsTBLISLabUploadForm(request.POST, request.FILES)
-
         if not form.is_valid():
             return render(request, self.template_name, {"form": form})
 
         file = form.cleaned_data["file"]
-
         if not file.name.endswith(".csv"):
             messages.error(request, "Please upload a CSV file.")
             return render(request, self.template_name, {"form": form})
 
-        # ---- SAFE CSV READ ----
-        try:
-            data_set = file.read().decode("utf-8-sig")
-        except UnicodeDecodeError:
-            messages.error(request, "CSV must be UTF-8 encoded.")
-            return render(request, self.template_name, {"form": form})
+        data_set = file.read().decode("utf-8")
+        reader = csv.DictReader(io.StringIO(data_set))
 
-        try:
-            reader = csv.DictReader(io.StringIO(data_set))
-        except Exception:
-            messages.error(request, "Invalid CSV structure.")
-            return render(request, self.template_name, {"form": form})
-
-        if not reader.fieldnames:
-            messages.error(request, "CSV file has no headers.")
-            return render(request, self.template_name, {"form": form})
-
-        count_created = 0
-        count_updated = 0
-        row_errors = []
+        count_created, count_updated, row_errors = 0, 0, []
 
         for idx, row in enumerate(reader, start=2):
-
-            pid = str(row.get("pid", "")).strip()
-
+            pid = row.get("pid") or row.get("pid")
             if not pid:
                 row_errors.append(f"Row {idx}: Missing pid")
                 continue
@@ -144,7 +124,7 @@ class EdcsTBLISCsvUploadView(View):
             try:
                 screening = Screening.objects.filter(pid=pid).first()
                 if not screening:
-                    raise ValidationError(f"No Screening found with pid={pid}")
+                    raise ValueError(f"No Screening found with pid={pid}")
 
                 defaults = {
                     "date_sputum_received": parse_date_field(row.get("date_sputum_received")),
@@ -267,21 +247,16 @@ class EdcsTBLISCsvUploadView(View):
                     "remarks": row.get("remarks") or None,
                 }
 
-
                 lab, created = EdcsTblisZonal.objects.update_or_create(
-                    screening=screening,
-                    defaults=defaults
+                    screening=screening, defaults=defaults
                 )
 
-                # ---- SAFE M2M ----
-                try:
-                    lab.culture_method.set(split_m2m(CultureMethod, row.get("culture_method")))
-                    lab.first_line_drugs.set(split_m2m(FirstLineDrugs, row.get("first_line_drugs")))
-                    lab.second_line_drugs.set(split_m2m(SecondLineDrugs, row.get("second_line_drugs")))
-                    lab.lpa1_inh.set(split_m2m(INHResultLPA, row.get("lpa1_inh")))
-                    lab.sequencing_delayed_reasons.set(split_m2m(NanoporeSequencingDelayedReasons, row.get("sequencing_delayed_reasons")))
-                except Exception as e:
-                    raise ValidationError(f"M2M error: {e}")
+                # ManyToMany
+                lab.culture_method.set(split_m2m(CultureMethod, row.get("culture_method")))
+                lab.first_line_drugs.set(split_m2m(FirstLineDrugs, row.get("first_line_drugs")))
+                lab.second_line_drugs.set(split_m2m(SecondLineDrugs, row.get("second_line_drugs")))
+                lab.lpa1_inh.set(split_m2m(INHResultLPA, row.get("lpa1_inh")))
+                lab.sequencing_delayed_reasons.set(split_m2m(NanoporeSequencingDelayedReasons, row.get("sequencing_delayed_reasons")))
 
                 count_created += int(created)
                 count_updated += int(not created)
@@ -289,15 +264,16 @@ class EdcsTBLISCsvUploadView(View):
             except Exception as e:
                 row_errors.append(f"Row {idx} (pid={pid}): {e}")
 
+        # --- Feedback ---
         if row_errors:
-            messages.error(request, "Some rows failed. Fix CSV and re-upload.")
-            return render(request, self.template_name, {
-                "form": EdcsTBLISLabUploadForm(),
-                "row_errors": row_errors,
-                "count_created": count_created,
-                "count_updated": count_updated,
-            })
+            messages.error(request, "Some rows had errors. Please fix them and re-upload.")
+            return render(
+                request,
+                self.template_name,
+                {"form": EdcsTBLISLabUploadForm(), "row_errors": row_errors,
+                 "count_created": count_created, "count_updated": count_updated},
+            )
 
-        messages.success(request, f"Imported {count_created} new and updated {count_updated} records.")
+        if count_created or count_updated:
+            messages.success(request, f"Imported {count_created} new and updated {count_updated} records.")
         return redirect("nanopore:edcs-tblis-laboratory-list")
-

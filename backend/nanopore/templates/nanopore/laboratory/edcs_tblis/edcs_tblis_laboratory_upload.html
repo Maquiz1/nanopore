@@ -1,72 +1,87 @@
 {% extends "base.html" %}
-
 {% block content %}
+
 <div class="container mt-4">
-    <h2>Upload EDCS-TBLIS Zonal lab Data (CSV)</h2>
-    <p>
-        Please make sure your file follows the required format.
-        👉 <a href="{% url 'nanopore:screening-template-csv' %}" class="btn btn-sm btn-outline-primary">
-            Download Template
-        </a>
-    </p>
 
-    <!-- Display Django messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
-                {{ message }}
-            </div>
+<h3>Upload EDCS-TBLIS Zonal Lab CSV</h3>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+{% if row_errors %}
+<div class="alert alert-danger">
+    <h5>Errors ({{ row_errors|length }})</h5>
+    <table class="table table-sm">
+        {% for error in row_errors %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ error }}</td>
+        </tr>
         {% endfor %}
-    {% endif %}
+    </table>
+</div>
+{% endif %}
 
-    <!-- Display counts of successful imports -->
-    {% if count_created or count_updated %}
-        <div class="alert alert-success">
-            <strong>Success:</strong> Imported {{ count_created }} new and updated {{ count_updated }} screenings.
-        </div>
-    {% endif %}
+<div class="card p-3 shadow">
 
-    <!-- Display row errors -->
-    {% if row_errors %}
-        <div class="alert alert-danger">
-            <h5>Errors in CSV ({{ row_errors|length }} total):</h5>
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Error</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for error in row_errors %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ error }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <p>Please fix the errors in your CSV and re-upload.</p>
-        </div>
-    {% endif %}
+<form id="uploadForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
 
-    <!-- Upload form -->
-    <div class="card shadow-sm p-3">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="mb-3">
-                {{ form.file.label_tag }}<br>
-                {{ form.file }}
-                {% if form.file.errors %}
-                    <div class="text-danger">
-                        {% for error in form.file.errors %}
-                            {{ error }}<br>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            <button type="submit" class="btn btn-success">Upload CSV</button>
-        </form>
+    {{ form.file.label_tag }}
+    {{ form.file }}
+
+    <button type="submit" class="btn btn-success mt-2">Upload CSV</button>
+</form>
+
+<div class="progress mt-3" style="display:none" id="uploadProgressWrapper">
+    <div class="progress-bar progress-bar-striped progress-bar-animated"
+         id="uploadProgress"
+         style="width:0%">
+        0%
     </div>
 </div>
+
+</div>
+</div>
+
+<script>
+document.getElementById("uploadForm").addEventListener("submit", function(e){
+
+    e.preventDefault();
+
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData(this);
+
+    const bar = document.getElementById("uploadProgress");
+    const wrap = document.getElementById("uploadProgressWrapper");
+
+    wrap.style.display = "block";
+
+    xhr.open("POST", "", true);
+
+    xhr.upload.onprogress = function(e){
+        if(e.lengthComputable){
+            const p = Math.round((e.loaded / e.total) * 100);
+            bar.style.width = p + "%";
+            bar.innerText = p + "%";
+        }
+    };
+
+    xhr.onload = function(){
+        if(xhr.status === 200){
+            document.open();
+            document.write(xhr.responseText);
+            document.close();
+        } else {
+            alert("Upload failed");
+        }
+    };
+
+    xhr.send(formData);
+});
+</script>
+
 {% endblock %}
