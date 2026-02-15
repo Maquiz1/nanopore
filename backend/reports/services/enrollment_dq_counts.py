@@ -99,26 +99,37 @@ def get_enrollment_dq_counts(user, zone_id=None, site_id=None):
     # --- TB fields check ---
     tb_fields = [
         "tb_category", "tb_category_specify",
-        "tx_month", "tx_unknown_month",
-        "tx_year", "tx_unknown_year",
+        "tx_month",
+        "tx_year",
         "dr_ds",
-        "ltf_months", "ltf_months_unknown",
+        "ltf_months",
         "tb_regimen", "tb_regimen_specify",
-        "regimen_months", "regimen_months_unknown",
-        "tb_outcome"
+        "regimen_months",
+        "tb_otcome"
     ]
-    
-    # Build Q object for tx_previous in [2,3] and any TB field filled
-    tx_previous_issues_q = Q(tx_previous__in=[2, 3])
+
+    # tx_previous = 2 or 3
+    tx_previous_q = Q(tx_previous__in=[2, 3])
+
+    # Any TB field filled (not null AND not empty string)
     tb_fields_filled_q = Q()
     for field in tb_fields:
-        tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}": ""})
+        tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True})
 
-    # Combine tx_previous and TB fields check
-    tx_previous_issues_q &= tb_fields_filled_q
+    # Any "unknown" flag TRUE (these must be FALSE)
+    unknown_true_q = (
+        Q(tx_unknown_month=True) |
+        Q(tx_unknown_year=True) |
+        Q(ltf_months_unknown=True) |
+        Q(regimen_months_unknown=True)
+    )
+
+    # ISSUE:
+    # tx_previous in [2,3] AND (any TB filled OR any unknown true)
+    tx_previous_issues_q = tx_previous_q & (tb_fields_filled_q | unknown_true_q)
 
     # Count issues
-    counts["tx_previous_2_3_tb_filled"] = qs.filter(tx_previous_issues_q).count()
+    counts["tx_previous_2_3_should_be_empty"] = qs.filter(tx_previous_issues_q).count()
 
     counts["total_issues"] = sum(counts.values())
 

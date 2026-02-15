@@ -191,28 +191,42 @@ class EnrollmentDataQualityReportView(View):
 
 
         # ─────────────────────────────────────────────
-        # NEW: Check tx_previous = 2 or 3 but TB fields are filled
+        # tx_previous = 2 or 3 → TB must be empty AND unknown flags must be False
         # ─────────────────────────────────────────────
+
         tb_fields = [
             "tb_category", "tb_category_specify",
-            "tx_month", "tx_unknown_month",
-            "tx_year", "tx_unknown_year",
+            "tx_month",
+            "tx_year",
             "dr_ds",
-            "ltf_months", "ltf_months_unknown",
+            "ltf_months",
             "tb_regimen", "tb_regimen_specify",
-            "regimen_months", "regimen_months_unknown",
-            "tb_outcome"
+            "regimen_months",
+            "tb_otcome"
         ]
 
-        # tx_previous_2_3_q = Q(tx_previous__in=[2, 3])
-        # tb_fields_filled_q = Q()
-        # for field in tb_fields:
-        #     tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}": ""})
+        # tx_previous = 2 or 3
+        tx_previous_2_3_q = Q(tx_previous__in=[2, 3])
 
-        # tx_previous_2_3_q &= tb_fields_filled_q
+        # Any TB field filled
+        tb_fields_filled_q = Q()
+        for field in tb_fields:
+            tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True})
 
-        # missing_tx_previous_2_3_tb_filled_qs = enrollments.filter(tx_previous_2_3_q)
-        # count_missing_tx_previous_2_3_tb_filled = missing_tx_previous_2_3_tb_filled_qs.count()
+        # Any unknown flag TRUE (these must be FALSE)
+        unknown_true_q = (
+            Q(tx_unknown_month=True) |
+            Q(tx_unknown_year=True) |
+            Q(ltf_months_unknown=True) |
+            Q(regimen_months_unknown=True)
+        )
+
+        # ISSUE:
+        # tx_previous in [2,3] AND (TB filled OR unknown flag TRUE)
+        tx_previous_2_3_issue_q = tx_previous_2_3_q & (tb_fields_filled_q | unknown_true_q)
+
+        missing_tx_previous_2_3_tb_filled_qs = enrollments.filter(tx_previous_2_3_issue_q)
+        count_missing_tx_previous_2_3_tb_filled = missing_tx_previous_2_3_tb_filled_qs.count()
 
         # ─────────────────────────────────────────────
         # Prepare context
@@ -270,8 +284,8 @@ class EnrollmentDataQualityReportView(View):
             "invalid_regimen_months_with_unknown": invalid_regimen_months_with_unknown_qs,
             "count_invalid_regimen_months_with_unknown": invalid_regimen_months_with_unknown_qs.count(),
             
-            # "missing_tx_previous_2_3_tb_filled": missing_tx_previous_2_3_tb_filled_qs,
-            # "count_missing_tx_previous_2_3_tb_filled": count_missing_tx_previous_2_3_tb_filled,
+            "missing_tx_previous_2_3_tb_filled": missing_tx_previous_2_3_tb_filled_qs,
+            "count_missing_tx_previous_2_3_tb_filled": count_missing_tx_previous_2_3_tb_filled,
 
         }
 
@@ -300,7 +314,7 @@ class EnrollmentDataQualityReportView(View):
                 context["count_invalid_unknown_year_dependencies"],
                 context["count_missing_regimen_months_without_unknown"],
                 context["count_invalid_regimen_months_with_unknown"],
-                # context["count_missing_tx_previous_2_3_tb_filled"],
+                context["count_missing_tx_previous_2_3_tb_filled"],
             ]
         )
 

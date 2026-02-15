@@ -1,4 +1,5 @@
 <!-- nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_upload.html -->
+
 {% extends "base.html" %}
 {% block content %}
 
@@ -12,19 +13,8 @@
     {% endfor %}
 {% endif %}
 
-{% if row_errors %}
-<div class="alert alert-danger">
-    <h5>Errors ({{ row_errors|length }})</h5>
-    <table class="table table-sm">
-        {% for error in row_errors %}
-        <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ error }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-</div>
-{% endif %}
+<!-- ASYNC ERRORS WILL APPEAR HERE -->
+<div id="asyncErrors"></div>
 
 <div class="card p-3 shadow">
 
@@ -49,41 +39,71 @@
 </div>
 
 <script>
-document.getElementById("uploadForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const xhr = new XMLHttpRequest();
-    const formData = new FormData(this);
-    xhr.open("POST", "", true);
+document.getElementById("uploadForm").addEventListener("submit", function(e){
+ e.preventDefault();
 
-    xhr.onload = function() {
-        const data = JSON.parse(xhr.responseText);
-        const taskId = data.task_id;
-        const progressBar = document.getElementById("uploadProgress");
-        const progressWrapper = document.getElementById("uploadProgressWrapper");
-        progressWrapper.style.display = "block";
+ const xhr = new XMLHttpRequest();
+ const formData = new FormData(this);
 
-        const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", taskId);
+ xhr.open("POST", "", true);
 
-        const interval = setInterval(() => {
-            fetch(TASK_URL)
-            .then(r => r.json())
-            .then(data => {
-                if(data.current && data.total){
-                    const pct = Math.round(data.current / data.total * 100);
-                    progressBar.style.width = pct + "%";
-                    progressBar.innerText = pct + "%";
-                }
-                if(data.current === data.total){
-                    clearInterval(interval);
-                    alert("Upload completed!");
-                }
+ xhr.onload = function(){
+   const data = JSON.parse(xhr.responseText);
+   const taskId = data.task_id;
+
+   const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", taskId);
+
+   document.getElementById("uploadProgressWrapper").style.display = "block";
+
+   const interval = setInterval(()=>{
+     fetch(TASK_URL)
+       .then(r=>r.json())
+       .then(data=>{
+
+         if(data.current){
+           let pct = Math.round(data.current / data.total * 100);
+           uploadProgress.style.width = pct+"%";
+           uploadProgress.innerText = pct+"%";
+         }
+
+         // DONE
+        if(data.state === "SUCCESS"){
+           clearInterval(interval);
+
+           // SHOW ERRORS
+            if(data.errors && data.errors.length){
+
+            let html = `
+            <div class="alert alert-danger mt-3">
+            <h5>Errors (${data.errors.length})</h5>
+            <table class="table table-sm table-bordered">
+            `;
+
+            data.errors.forEach((e,i)=>{
+            html += `<tr><td>${i+1}</td><td>${e}</td></tr>`;
             });
-        }, 2000);
-    };
 
-    xhr.send(formData);
+            html += "</table></div>";
+
+            document.querySelector(".container").insertAdjacentHTML("beforeend", html);
+
+            }else{
+
+            let html = `
+            <div class="alert alert-success mt-3">
+            Imported ${data.created} created / ${data.updated} updated
+            </div>
+            `;
+
+            document.querySelector(".container").insertAdjacentHTML("beforeend", html);
+            }
+         }
+       })
+   },2000);
+ };
+
+ xhr.send(formData);
 });
 </script>
-
 
 {% endblock %}
