@@ -6,7 +6,7 @@ from utils.roles import get_role_context
 # Adjust file names / module paths according to your actual structure
 from .form_queries.screening_context import screening_report_total
 from .form_queries.enrollment_context import enrollment_report_total
-from .form_queries.regimen_context   import regimen_report_total     # assuming you moved it to regimen_context.py
+from .form_queries.regimen_context_processor   import regimen_report_total     # assuming you moved it to regimen_context.py
 from .form_queries.diagnosis_context import diagnosis_report_total   # assuming separate file
 from .form_queries.clinic_laboratory_context    import clinic_report_total      # assuming separate file
 from .form_queries.zonal_laboratory_context import zonal_report_total       # assuming separate file
