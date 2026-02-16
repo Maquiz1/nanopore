@@ -26,5 +26,5 @@ __all__ = [
     "DiagnosisDataQualityReportView",
     "RegimenDataQualityReportView",
     "ZonalDataQualityReportView",
-    "ZonalDataQualityReportView",
+    "ZonalDataQualityView",
 ]
