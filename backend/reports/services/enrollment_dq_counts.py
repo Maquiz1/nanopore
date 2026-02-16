@@ -72,6 +72,58 @@ def get_enrollment_dq_counts(user, zone_id=None, site_id=None):
     missing_regimen_months_without_unknown = previous_tx.filter(regimen_months__isnull=True, regimen_months_unknown=False).count()
     invalid_regimen_months_with_unknown = previous_tx.filter(regimen_months_unknown=True).exclude(regimen_months__isnull=True).count()
 
+# ─────────────────────────────────────────────
+    # tx_previous = 2 or 3 → TB must be empty AND unknown flags must be False
+    # ─────────────────────────────────────────────
+
+    tx_previous_2_3_q = Q(tx_previous__in=[2, 3])
+
+    tb_fields_filled_q = Q()
+
+    # Char fields (can contain "")
+    char_fields = [
+        "tb_category_specify",
+        "tb_regimen_specify",
+    ]
+
+    for field in char_fields:
+        tb_fields_filled_q |= (
+            ~Q(**{f"{field}__isnull": True}) &
+            ~Q(**{f"{field}": ""})
+        )
+
+    # Numeric / FK /Date fields (only check NOT NULL)
+    non_char_fields = [
+        "tb_category",
+        "tx_month",
+        "tx_year",
+        "dr_ds",
+        "ltf_months",
+        "tb_regimen",
+        "regimen_months",
+        "tb_otcome"
+    ]
+
+    for field in non_char_fields:
+        tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True})
+
+    # Unknown flags must be FALSE
+    unknown_true_q = (
+        Q(tx_unknown_month=True) |
+        Q(tx_unknown_year=True) |
+        Q(ltf_months_unknown=True) |
+        Q(regimen_months_unknown=True)
+    )
+
+    # Final issue condition
+    missing_tx_previous_2_3_tb_filled_qs = qs.filter(
+        tx_previous_2_3_q
+    ).filter(
+        tb_fields_filled_q | unknown_true_q
+    )
+    
+    missing_tx_previous_2_3_tb_filled = missing_tx_previous_2_3_tb_filled_qs.count()
+    
     counts = {
         "missing_hiv_status": missing_hiv_status,
         "missing_other_diseases": missing_other_diseases,
@@ -94,43 +146,10 @@ def get_enrollment_dq_counts(user, zone_id=None, site_id=None):
         "invalid_unknown_year_dependencies": invalid_unknown_year_dependencies,
         "missing_regimen_months_without_unknown": missing_regimen_months_without_unknown,
         "invalid_regimen_months_with_unknown": invalid_regimen_months_with_unknown,
+        "missing_tx_previous_2_3_tb_filled" : missing_tx_previous_2_3_tb_filled
     }
-    
-    # --- TB fields check ---
-    tb_fields = [
-        "tb_category", "tb_category_specify",
-        "tx_month",
-        "tx_year",
-        "dr_ds",
-        "ltf_months",
-        "tb_regimen", "tb_regimen_specify",
-        "regimen_months",
-        "tb_otcome"
-    ]
-
-    # tx_previous = 2 or 3
-    tx_previous_q = Q(tx_previous__in=[2, 3])
-
-    # Any TB field filled (not null AND not empty string)
-    tb_fields_filled_q = Q()
-    for field in tb_fields:
-        tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True})
-
-    # Any "unknown" flag TRUE (these must be FALSE)
-    unknown_true_q = (
-        Q(tx_unknown_month=True) |
-        Q(tx_unknown_year=True) |
-        Q(ltf_months_unknown=True) |
-        Q(regimen_months_unknown=True)
-    )
-
-    # ISSUE:
-    # tx_previous in [2,3] AND (any TB filled OR any unknown true)
-    tx_previous_issues_q = tx_previous_q & (tb_fields_filled_q | unknown_true_q)
 
     # Count issues
-    counts["tx_previous_2_3_should_be_empty"] = qs.filter(tx_previous_issues_q).count()
-
     counts["total_issues"] = sum(counts.values())
 
     return counts
