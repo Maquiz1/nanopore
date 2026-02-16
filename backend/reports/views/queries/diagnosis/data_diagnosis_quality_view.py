@@ -269,7 +269,7 @@ class DiagnosisDataQualityReportView(View):
             "count_missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2.count(),
             
             "missing_tb_diagnosis_2_should_be_empty":missing_tb_diagnosis_2_should_be_empty,
-            "count_missing_tb_diagnosis_2_should_be_empty":missing_tb_diagnosis_2_should_be_empty.count(),
+            "count_missing_tb_diagnosis_2_should_be_empty":count_missing_tb_diagnosis_2_should_be_empty,
 
         }
 
