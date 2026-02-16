@@ -44,6 +44,41 @@ def get_diagnosis_dq_counts(user, zone_id=None, site_id=None):
     pending_tb_outcome_qs = long_treatment_qs.filter(tb_outcome2__isnull=True)
     pending_tb_outcome_date_qs = long_treatment_qs.filter(tb_outcome2__in=[1,2,3,4,5], tb_outcome2_date__isnull=True)
 
+    # =====================================================
+    # tb_diagnosis = 2 → all TB diagnosis fields must be EMPTY
+    # =====================================================
+
+    tb_diag_fields = [
+        "tb_diagnosis_date",
+        "tb_diagnosis_made",
+        "diagnosis_made_other",
+        "bacteriological_diagnosis",
+        "tb_clinically_other",
+        "clinician_received_date",
+        "tb_treatment",
+        "tb_treatment_date",
+        "tb_facility",
+        "tb_reason",
+        "tb_register_number",
+        "tb_regimen",
+        "tb_regimen_other",
+        "regimen_changed",
+        "tb_outcome2",
+        "tb_outcome2_date",
+    ]
+
+    tb_diag_filled_q = Q()
+    for field in tb_diag_fields:
+        tb_diag_filled_q |= ~Q(**{f"{field}__isnull": True})
+
+    missing_tb_diagnosis_2_should_be_empty = qs.filter(
+        tb_diagnosis=2
+    ).filter(
+        tb_diag_filled_q | Q(tb_diagnosed_clinically__isnull=False)
+    ).distinct()
+
+    count_missing_tb_diagnosis_2_should_be_empty = missing_tb_diagnosis_2_should_be_empty.count()
+
     counts = {
         "missing_tb_diagnosis": qs.filter(tb_diagnosis__isnull=True).count(),
         "missing_tb_diagnosis_date": qs.filter(tb_diagnosis=1, tb_diagnosis_date__isnull=True).count(),
@@ -66,6 +101,8 @@ def get_diagnosis_dq_counts(user, zone_id=None, site_id=None):
         "missing_tb_reason": qs.filter(tb_treatment=96, tb_reason__isnull=True).count(),
         "pending_tb_outcome": pending_tb_outcome_qs.count(),
         "pending_tb_outcome_date": pending_tb_outcome_date_qs.count(),
+        
+        "missing_tb_diagnosis_2_should_be_empty":count_missing_tb_diagnosis_2_should_be_empty
     }
 
     counts["total_issues"] = sum(counts.values())
