@@ -189,31 +189,42 @@ class EnrollmentDataQualityReportView(View):
             regimen_months_unknown=True
         ).exclude(regimen_months__isnull=True)
 
-
         # ─────────────────────────────────────────────
         # tx_previous = 2 or 3 → TB must be empty AND unknown flags must be False
         # ─────────────────────────────────────────────
 
-        tb_fields = [
-            "tb_category", "tb_category_specify",
+        tx_previous_2_3_q = Q(tx_previous__in=[2, 3])
+
+        tb_fields_filled_q = Q()
+
+        # Char fields (can contain "")
+        char_fields = [
+            "tb_category_specify",
+            "tb_regimen_specify",
+        ]
+
+        for field in char_fields:
+            tb_fields_filled_q |= (
+                ~Q(**{f"{field}__isnull": True}) &
+                ~Q(**{f"{field}": ""})
+            )
+
+        # Numeric / FK /Date fields (only check NOT NULL)
+        non_char_fields = [
+            "tb_category",
             "tx_month",
             "tx_year",
             "dr_ds",
             "ltf_months",
-            "tb_regimen", "tb_regimen_specify",
+            "tb_regimen",
             "regimen_months",
             "tb_otcome"
         ]
 
-        # tx_previous = 2 or 3
-        tx_previous_2_3_q = Q(tx_previous__in=[2, 3])
-
-        # Any TB field filled
-        tb_fields_filled_q = Q()
-        for field in tb_fields:
+        for field in non_char_fields:
             tb_fields_filled_q |= ~Q(**{f"{field}__isnull": True})
 
-        # Any unknown flag TRUE (these must be FALSE)
+        # Unknown flags must be FALSE
         unknown_true_q = (
             Q(tx_unknown_month=True) |
             Q(tx_unknown_year=True) |
@@ -221,11 +232,13 @@ class EnrollmentDataQualityReportView(View):
             Q(regimen_months_unknown=True)
         )
 
-        # ISSUE:
-        # tx_previous in [2,3] AND (TB filled OR unknown flag TRUE)
-        tx_previous_2_3_issue_q = tx_previous_2_3_q & (tb_fields_filled_q | unknown_true_q)
+        # Final issue condition
+        missing_tx_previous_2_3_tb_filled_qs = enrollments.filter(
+            tx_previous_2_3_q
+        ).filter(
+            tb_fields_filled_q | unknown_true_q
+        )
 
-        missing_tx_previous_2_3_tb_filled_qs = enrollments.filter(tx_previous_2_3_issue_q)
         count_missing_tx_previous_2_3_tb_filled = missing_tx_previous_2_3_tb_filled_qs.count()
 
         # ─────────────────────────────────────────────

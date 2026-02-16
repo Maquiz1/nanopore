@@ -148,8 +148,8 @@ class EnrollmentForm(forms.ModelForm):
         if date_info:
             if date_info > today:
                 self.add_error("date_information_collected", "Date of information collection cannot be in the future.")
-            if enrollment_date and date_info < enrollment_date:
-                self.add_error("date_information_collected", "Date of information collection cannot be before enrollment date.")
+            # if enrollment_date and date_info < enrollment_date:
+            #     self.add_error("date_information_collected", "Date of information collection cannot be before enrollment date.")
 
         # Validate sputum_date
         if sputum_date:
