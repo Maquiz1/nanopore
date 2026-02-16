@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const treatmentDateStr = TbTreatmentDate?.value || "";
 
         let show = false;
-
+        
         // Only proceed if treatment = 1 and date is not empty
         if (treatmentValue === "1" && treatmentDateStr) {
             const treatmentDate = new Date(treatmentDateStr);
