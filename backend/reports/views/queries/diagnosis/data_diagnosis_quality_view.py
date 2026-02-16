@@ -143,36 +143,51 @@ class DiagnosisDataQualityReportView(View):
         # tb_diagnosis = 2 → all TB diagnosis fields must be EMPTY
         # =====================================================
 
-        tb_diag_fields = [
-            "tb_diagnosis_date",
-            "tb_diagnosis_made",
+        tb_diag_filled_q = Q()
+
+        # CharFields (can be "")
+        char_fields = [
             "diagnosis_made_other",
-            "bacteriological_diagnosis",
             "tb_clinically_other",
-            "clinician_received_date",
-            "tb_treatment",
-            "tb_treatment_date",
             "tb_facility",
             "tb_reason",
             "tb_register_number",
-            "tb_regimen",
             "tb_regimen_other",
+        ]
+
+        for field in char_fields:
+            tb_diag_filled_q |= (
+                ~Q(**{f"{field}__isnull": True}) &
+                ~Q(**{f"{field}": ""})
+            )
+
+        # Date / FK / Integer fields (only check NOT NULL)
+        non_char_fields = [
+            "tb_diagnosis_date",
+            "tb_diagnosis_made",
+            "bacteriological_diagnosis",
+            "clinician_received_date",
+            "tb_treatment",
+            "tb_treatment_date",
+            "tb_regimen",
             "regimen_changed",
             "tb_outcome2",
             "tb_outcome2_date",
         ]
 
-        tb_diag_filled_q = Q()
-        for field in tb_diag_fields:
+        for field in non_char_fields:
             tb_diag_filled_q |= ~Q(**{f"{field}__isnull": True})
+
+        # M2M
+        tb_diag_m2m_q = Q(tb_diagnosed_clinically__isnull=False)
 
         missing_tb_diagnosis_2_should_be_empty = diagnoses.filter(
             tb_diagnosis=2
         ).filter(
-            tb_diag_filled_q | Q(tb_diagnosed_clinically__isnull=False)
+            tb_diag_filled_q | tb_diag_m2m_q
         ).distinct()
 
-        count_missing_tb_diagnosis_2_should_be_empty = missing_tb_diagnosis_2_should_be_empty.count()
+        # count_missing_tb_diagnosis_2_should_be_empty = missing_tb_diagnosis_2_should_be_empty.count()
 
         # ─────────────────────────────────────────────
         # Prepare context
@@ -269,7 +284,7 @@ class DiagnosisDataQualityReportView(View):
             "count_missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2.count(),
             
             "missing_tb_diagnosis_2_should_be_empty":missing_tb_diagnosis_2_should_be_empty,
-            "count_missing_tb_diagnosis_2_should_be_empty":count_missing_tb_diagnosis_2_should_be_empty,
+            "count_missing_tb_diagnosis_2_should_be_empty":missing_tb_diagnosis_2_should_be_empty.count(),
 
         }
 
