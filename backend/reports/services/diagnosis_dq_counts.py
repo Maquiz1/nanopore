@@ -4,7 +4,16 @@ from django.db.models import Q, Count
 from utils.permissions import filter_queryset_by_user_role
 from django.utils import timezone
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
+
+# Helper: calculate months on treatment
+def calc_months(start_date, end_date):
+    if not start_date:
+        return None
+    rd = relativedelta(end_date, start_date)
+    return rd.years * 12 + rd.months
+        
 def get_diagnosis_dq_counts(user, zone_id=None, site_id=None):
     Diagnosis = apps.get_model("nanopore", "Diagnosis")
     qs = Diagnosis.objects.select_related(
@@ -20,8 +29,9 @@ def get_diagnosis_dq_counts(user, zone_id=None, site_id=None):
     if site_id:
         qs = qs.filter(screening__site_id=site_id)
 
-    today = timezone.now().date()
-    six_months_ago = today - timedelta(days=180)
+    # today = timezone.now().date()
+    # six_months_ago = today - timedelta(days=180)
+    six_months_ago = timezone.now().date() - relativedelta(months=6)
 
     # Duplicate TB register numbers
     duplicate_tb_register_numbers = (
