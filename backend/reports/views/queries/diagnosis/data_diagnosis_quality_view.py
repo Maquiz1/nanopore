@@ -6,6 +6,7 @@ from django.apps import apps
 from utils.permissions import filter_queryset_by_user_role
 from django.db.models import Count
 from utils.roles import get_role_context
+from django.db.models import Q
 
 class DiagnosisDataQualityReportView(View):
     template_name = "reports/data_quality/diagnosis/data_diagnosis_quality_report.html"
@@ -138,6 +139,41 @@ class DiagnosisDataQualityReportView(View):
             tb_diagnosis_made2__isnull=True
         )
         
+        # =====================================================
+        # tb_diagnosis = 2 → all TB diagnosis fields must be EMPTY
+        # =====================================================
+
+        tb_diag_fields = [
+            "tb_diagnosis_date",
+            "tb_diagnosis_made",
+            "diagnosis_made_other",
+            "bacteriological_diagnosis",
+            "tb_clinically_other",
+            "clinician_received_date",
+            "tb_treatment",
+            "tb_treatment_date",
+            "tb_facility",
+            "tb_reason",
+            "tb_register_number",
+            "tb_regimen",
+            "tb_regimen_other",
+            "regimen_changed",
+            "tb_outcome2",
+            "tb_outcome2_date",
+        ]
+
+        tb_diag_filled_q = Q()
+        for field in tb_diag_fields:
+            tb_diag_filled_q |= ~Q(**{f"{field}__isnull": True})
+
+        missing_tb_diagnosis_2_should_be_empty = diagnoses.filter(
+            tb_diagnosis=2
+        ).filter(
+            tb_diag_filled_q | Q(tb_diagnosed_clinically__isnull=False)
+        ).distinct()
+
+        count_missing_tb_diagnosis_2_should_be_empty = missing_tb_diagnosis_2_should_be_empty.count()
+
         # ─────────────────────────────────────────────
         # Prepare context
         # ─────────────────────────────────────────────
@@ -231,6 +267,9 @@ class DiagnosisDataQualityReportView(View):
             
             "missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2,
             "count_missing_tb_diagnosis_made2" : missing_tb_diagnosis_made2.count(),
+            
+            "missing_tb_diagnosis_2_should_be_empty":missing_tb_diagnosis_2_should_be_empty,
+            "count_missing_tb_diagnosis_2_should_be_empty":missing_tb_diagnosis_2_should_be_empty.count(),
 
         }
 
@@ -272,6 +311,10 @@ class DiagnosisDataQualityReportView(View):
             context["count_missing_tb_other_diagnosis"],
             context["count_missing_tb_other_specify"],
             context["count_missing_tb_diagnosis_made2"],
+            
+            
+            context["count_missing_tb_diagnosis_2_should_be_empty"],            
+            
         ])
 
         return render(request, self.template_name, context)

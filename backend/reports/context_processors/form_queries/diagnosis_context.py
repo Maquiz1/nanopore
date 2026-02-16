@@ -4,6 +4,7 @@ from django.utils import timezone
 from utils.permissions import filter_queryset_by_user_role
 from django.db.models import Count
 from utils.roles import get_role_context
+from django.db.models import Q
 
 def diagnosis_report_total(request):
     """
@@ -158,6 +159,41 @@ def diagnosis_report_total(request):
     pending_tb_outcome = long_treatment.filter(tb_outcome2__isnull=True).count()
     pending_tb_outcome_date = long_treatment.filter(tb_outcome2__in=[1, 2, 3, 4, 5], tb_outcome2_date__isnull=True).count()
 
+    # =====================================================
+    # tb_diagnosis = 2 → all TB diagnosis fields must be EMPTY
+    # =====================================================
+
+    tb_diag_fields = [
+        "tb_diagnosis_date",
+        "tb_diagnosis_made",
+        "diagnosis_made_other",
+        "bacteriological_diagnosis",
+        "tb_clinically_other",
+        "clinician_received_date",
+        "tb_treatment",
+        "tb_treatment_date",
+        "tb_facility",
+        "tb_reason",
+        "tb_register_number",
+        "tb_regimen",
+        "tb_regimen_other",
+        "regimen_changed",
+        "tb_outcome2",
+        "tb_outcome2_date",
+    ]
+
+    tb_diag_filled_q = Q()
+    for field in tb_diag_fields:
+        tb_diag_filled_q |= ~Q(**{f"{field}__isnull": True})
+
+    missing_tb_diagnosis_2_should_be_empty = diagnoses.filter(
+        tb_diagnosis=2
+    ).filter(
+        tb_diag_filled_q | Q(tb_diagnosed_clinically__isnull=False)
+    ).distinct()
+
+    count_missing_tb_diagnosis_2_should_be_empty = missing_tb_diagnosis_2_should_be_empty.count()
+
     # ─────────────────────────────────────────────
     # TOTAL
     # ─────────────────────────────────────────────
@@ -183,6 +219,7 @@ def diagnosis_report_total(request):
         + missing_tb_reason
         + pending_tb_outcome
         + pending_tb_outcome_date
+        + count_missing_tb_diagnosis_2_should_be_empty
     )
 
     return {
@@ -208,4 +245,5 @@ def diagnosis_report_total(request):
         "missing_tb_reason": missing_tb_reason,
         "pending_tb_outcome": pending_tb_outcome,
         "pending_tb_outcome_date": pending_tb_outcome_date,
+        "missing_tb_diagnosis_2_should_be_empty":count_missing_tb_diagnosis_2_should_be_empty
     }
