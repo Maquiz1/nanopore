@@ -316,7 +316,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSample1">
-                    Sample1 missing fields ({{ count_missing_date_sample1_collected|add:count_missing_date_sample1_received|add:count_missing_appearance_sample1|add:count_missing_sample1_volume|add:count_missing_invalid_sample1_volume }})
+                    Sample1 missing/invalid fields ({{ count_missing_date_sample1_collected|add:count_missing_date_sample1_received|add:count_missing_appearance_sample1|add:count_missing_sample1_volume|add:count_missing_invalid_sample1_volume }})
                 </button>
             </h2>
             <div id="collapseSample1" class="accordion-collapse collapse">
@@ -419,7 +419,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSample2">
-                    Sample2 missing fields ({{ count_missing_date_sample2_collected|add:count_missing_date_sample2_received|add:count_missing_appearance_sample1|add:count_missing_sample2_volume|add:count_missing_invalid_sample2_volume }})
+                    Sample2 missing/invalid fields ({{ count_missing_date_sample2_collected|add:count_missing_date_sample2_received|add:count_missing_appearance_sample1|add:count_missing_sample2_volume|add:count_missing_invalid_sample2_volume }})
                 </button>
             </h2>
             <div id="collapseSample2" class="accordion-collapse collapse">
@@ -522,7 +522,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAFBMicroscopy">
-                    Missing AFB Microscopy Conducted ({{ count_missing_afb_microscopy_conducted|default:"0"  | intcomma  }})
+                    missing/invalid AFB Microscopy Conducted ({{ count_missing_afb_microscopy_conducted|default:"0"  | intcomma  }})
                 </button>
             </h2>
             <div id="collapseAFBMicroscopy" class="accordion-collapse collapse show">
@@ -551,7 +551,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAFBDetails">
-                    AFB detail fields missing ({{ count_missing_afb_a_date|add:count_missing_technique_a|add:count_missing_afb_a_results|add:count_missing_afb_b_date|add:count_missing_technique_b|add:count_missing_afb_b_results }})
+                    AFB detail fields missing/invalid ({{ count_missing_afb_a_date|add:count_missing_technique_a|add:count_missing_afb_a_results|add:count_missing_afb_b_date|add:count_missing_technique_b|add:count_missing_afb_b_results }})
                 </button>
             </h2>
             <div id="collapseAFBDetails" class="accordion-collapse collapse">
