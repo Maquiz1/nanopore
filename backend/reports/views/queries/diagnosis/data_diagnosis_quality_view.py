@@ -7,9 +7,17 @@ from utils.permissions import filter_queryset_by_user_role
 from django.db.models import Count
 from utils.roles import get_role_context
 from django.db.models import Q
+from dateutil.relativedelta import relativedelta
 
 class DiagnosisDataQualityReportView(View):
     template_name = "reports/data_quality/diagnosis/data_diagnosis_quality_report.html"
+
+    # # Helper: calculate months on treatment
+    # def calc_months(start_date, end_date):
+    #         if not start_date:
+    #             return None
+    #         rd = relativedelta(end_date, start_date)
+    #         return rd.years * 12 + rd.months
 
     def get(self, request, *args, **kwargs):
         Diagnosis = apps.get_model("nanopore", "Diagnosis")
@@ -93,31 +101,49 @@ class DiagnosisDataQualityReportView(View):
         # ─────────────────────────────────────────────
         # TB DIAGNOSIS & TREATMENT
         # ─────────────────────────────────────────────
-        six_months_ago = timezone.now().date() - timedelta(days=180)
+
         today = timezone.now().date()
+        six_months_ago = today - relativedelta(months=6)
 
-        # Long treatment patients (≥6 months)
-        long_treatment = diagnoses.filter(tb_treatment=1, tb_treatment_date__lte=six_months_ago)
+        # Helper: calculate months on treatment
+        def calc_months(start_date, end_date):
+            if not start_date:
+                return None
+            rd = relativedelta(end_date, start_date)
+            return rd.years * 12 + rd.months
 
-        # Annotate months_on_treatment
-        for diag in long_treatment:
-            if diag.tb_treatment_date:
-                diag.months_on_treatment = (today - diag.tb_treatment_date).days // 30
-            else:
-                diag.months_on_treatment = None
+        # Long treatment patients (≥ 6 months)
+        long_treatment = diagnoses.filter(
+            tb_treatment=1,
+            tb_treatment_date__lte=six_months_ago
+        )
 
         # ─────────────────────────────────────────────
         # Pending TB outcomes
         # ─────────────────────────────────────────────
-        pending_tb_outcome = long_treatment.filter(tb_outcome2__isnull=True)
-        pending_tb_outcome_date = long_treatment.filter(tb_outcome2__in=[1,2,3,4,5], tb_outcome2_date__isnull=True)
 
-        # Annotate months for template
-        for diag in pending_tb_outcome:
-            diag.months_on_treatment = (today - diag.tb_treatment_date).days // 30 if diag.tb_treatment_date else None
-        for diag in pending_tb_outcome_date:
-            diag.months_on_treatment = (today - diag.tb_treatment_date).days // 30 if diag.tb_treatment_date else None
+        pending_tb_outcome = long_treatment.filter(
+            Q(tb_outcome2__isnull=True)
+        )
 
+        pending_tb_outcome_date = long_treatment.filter(
+            Q(tb_outcome2__in=[1, 2, 3, 4, 5]) &
+            Q(tb_outcome2_date__isnull=True)
+        )
+
+        # # ─────────────────────────────────────────────
+        # # Annotate months_on_treatment (single logic)
+        # # ─────────────────────────────────────────────
+
+        querysets = [
+            long_treatment,
+            pending_tb_outcome,
+            pending_tb_outcome_date,
+        ]
+
+        for qs in querysets:
+            for diag in qs:
+                diag.months_on_treatment = calc_months(diag.tb_treatment_date, today)
 
         missing_tb_diagnosed_clinically = (
             diagnoses

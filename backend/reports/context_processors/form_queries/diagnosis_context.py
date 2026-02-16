@@ -5,6 +5,7 @@ from utils.permissions import filter_queryset_by_user_role
 from django.db.models import Count
 from utils.roles import get_role_context
 from django.db.models import Q
+from dateutil.relativedelta import relativedelta
 
 def diagnosis_report_total(request):
     """
@@ -153,7 +154,8 @@ def diagnosis_report_total(request):
     # ─────────────────────────────────────────────
     # TB OUTCOME CHECK (≥6 MONTHS TREATMENT)
     # ─────────────────────────────────────────────
-    six_months_ago = timezone.now().date() - timedelta(days=180)
+    # six_months_ago = timezone.now().date() - timedelta(days=180)
+    six_months_ago = timezone.now().date() - relativedelta(months=6)
     long_treatment = diagnoses.filter(tb_treatment=1, tb_treatment_date__lte=six_months_ago)
 
     pending_tb_outcome = long_treatment.filter(tb_outcome2__isnull=True).count()
