@@ -97,7 +97,8 @@ TEMPLATES = [
                 "reports.context_processors.form_queries.clinic_laboratory_context.clinic_report_total",
                 "reports.context_processors.form_queries.diagnosis_context.diagnosis_report_total",
                 "reports.context_processors.form_queries.zonal_laboratory_context.zonal_report_total",
-                "reports.context_processors.form_queries.regimen_context.regimen_report_total",
+                # "reports.context_processors.form_queries.regimen_context.regimen_report_total",
+                "reports.context_processors.form_queries.regimen_context_processor.regimen_report_total",
                 "reports.context_processors.specific_queries_total.specific_queries_total",   # ← add this line
                 'reports.context_processors.total_context.global_total_issues',
             ],
