@@ -4,7 +4,6 @@
         const tbDiagnosisField = document.getElementById("id_tb_diagnosis");
         const tbDiagnosisDateSections = document.getElementById("tb-diagnosis-date-sections");
         const tbDiagnosisMadeSections = document.getElementById("tb-diagnosis-made-sections");
-        const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
         const tbSections = document.getElementById("tb-sections");
 
 
@@ -12,6 +11,7 @@
         const tbDiagnosisMadeField = document.getElementById("id_tb_diagnosis_made");
         const clinicalDiagnosisSection = document.querySelector(".clinical-diagnosis-section");
         const bacteriologicalDiagnosisSection = document.querySelector(".bacteriological-diagnosis-section");
+        const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
 
 
         // ===== Field References =====
@@ -23,7 +23,7 @@
 
         // ===== Field References =====
         const tbRegimenField = document.getElementById("id_tb_regimen");
-        const tbRegimenChangedSection = document.querySelector("#regimen-changed-section");
+        // const tbRegimenChangedSection = document.querySelector("#regimen-changed-section");
         const tbRegimenOtherSection = document.querySelector("#tb-regimen-other-section");
 
         // ===== Non-TB Sections =====
@@ -79,7 +79,7 @@
             } else {
                 clinicalDiagnosisSection.style.display = "none";
                 bacteriologicalDiagnosisSection.style.display = "none";
-                tbDiagnosisMadeOtherSections.style.display = "block";
+                tbDiagnosisMadeOtherSections.style.display = "none";
             }
         }
 
@@ -264,11 +264,11 @@
 
         toggleAddButton();
         tbDiagnosisField.addEventListener("change", toggleTbSections);
-        // tbDiagnosisMadeField.addEventListener("change", toggleDiagnosisMadeSections);
+        tbDiagnosisMadeField.addEventListener("change", toggleDiagnosisMadeSections);
         // ===== Run on change =====
-        if (tbDiagnosisMadeField) {
-            tbDiagnosisMadeField.addEventListener("change", toggleDiagnosisMadeSections);
-        }
+        // if (tbDiagnosisMadeField) {
+        //     tbDiagnosisMadeField.addEventListener("change", toggleDiagnosisMadeSections);
+        // }
 
         if (tbTreatmentField) {
             tbTreatmentField.addEventListener("change", toggleTbTreatmentSections);
