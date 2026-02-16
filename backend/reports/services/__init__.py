@@ -8,8 +8,17 @@ from .clinic_dq_counts import get_clinic_dq_counts
 from .zonal_dq_counts import get_zonal_dq_counts
 from .missing_form_dq_counts import get_missing_forms_counts
 from .overview_dq_counts import get_data_quality_overview
-from .zonal_problem_lists import get_zonal_problem_lists
-from .zonal_dq import get_zonal_dq
+# from .zonal_problem_lists import get_zonal_problem_lists
+
+
+# from .zonal_dq import get_zonal_dq
+# reports/services/zonal_dq/__init__.py
+from . zonal_dq import get_duplicate_lab_numbers
+from . zonal_dq import get_zonal_dq
+from . zonal_dq import get_zonal_problem_lists
+from . zonal_dq import get_zonal_queryset
+from . zonal_dq import serialize_record
+from . zonal_dq import get_zonal_stats
 
 __all__ = [
     "get_screening_dq_counts",
@@ -26,7 +35,14 @@ __all__ = [
     
     "get_data_quality_overview",
     "get_zonal_problem_lists",
+    
+    
+    "get_duplicate_lab_numbers",
     "get_zonal_dq",
+    "get_zonal_problem_lists",
+    "get_zonal_queryset",
+    "serialize_record",
+    "get_zonal_stats", 
 ]
 
 

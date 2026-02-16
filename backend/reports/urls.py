@@ -40,7 +40,9 @@ from reports.views import (
     ClinicDataQualityReportView,
     DiagnosisDataQualityReportView,
     RegimenDataQualityReportView,
-    ZonalDataQualityReportView,
+    # ZonalDataQualityReportView,
+    
+    ZonalDataQualityView,
     
     # DataQualityReportPDFView,
     
@@ -118,7 +120,8 @@ urlpatterns = [
     path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
     path('diagnosis-quality/', DiagnosisDataQualityReportView.as_view(), name='diagnosis_quality_report'),
     path('regimen-quality/', RegimenDataQualityReportView.as_view(), name='regimen_quality_report'),
-    path('zonal-quality/', ZonalDataQualityReportView.as_view(), name='zonal_quality_report'),
+    # path('zonal-quality/', ZonalDataQualityReportView.as_view(), name='zonal_quality_report'),
+    path('zonal-quality/', ZonalDataQualityView.as_view(), name='zonal_quality_report'),
 
     path('data-quality/pdf/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf'),
     path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),

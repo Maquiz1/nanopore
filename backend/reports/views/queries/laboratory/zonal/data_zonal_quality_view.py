@@ -30,6 +30,7 @@ class ZonalDataQualityView(View):
         context = {
             "total_records": qs.count(),
             "stats": stats,
+            **{f"count_{k}": v for k, v in stats.items()},
             "total_issues": total_issues,
             **problem_lists,
         }
