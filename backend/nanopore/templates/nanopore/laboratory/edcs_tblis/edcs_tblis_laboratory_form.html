@@ -427,12 +427,15 @@
                         <div class="mb-3">{{ form.remarks.label_tag }}{{ form.remarks }}</div>
 
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
-                            {% with user_group=request.user.groups.first.name|upper %}
+                            <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="btn btn-warning me-2">Back to Edcs/TBLIS list</a>
+                            <!-- <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a> -->
+                            <!-- {% with user_group=request.user.groups.first.name|upper %}
                             {% if not user_group == "REVIEWER" %}
                             <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>
                             {% endif %}
-                            {% endwith %}
+                            {% endwith %} -->
+                            <!-- <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button> -->
+                            <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="btn btn-info me-2">Back to Edcs/TBLIS Queries</a>
                         </div>
                     </form>
                 </div>
