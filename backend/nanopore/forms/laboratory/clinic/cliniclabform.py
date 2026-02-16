@@ -118,31 +118,80 @@ class ClinicLaboratoryForm(forms.ModelForm):
         self.fields["appearance_sample1"].required = True
         self.fields["sample1_volume"].required = True
 
+    def validate_sample(self, sample_no, date_collected, appearance, volume):
+
+        if not date_collected:
+            raise ValidationError(f"Date of Sample {sample_no} collection is required.")
+
+        if not appearance:
+            raise ValidationError(f"Appearance of Sample {sample_no} is required.")
+
+        if not volume:
+            raise ValidationError(f"Sample {sample_no} volume is required.")
+
+        try:
+            vol = float(volume)   # accepts int / decimal / float
+            if vol <= 0:
+                raise ValidationError(f"Sample {sample_no} volume must be greater than zero.")
+        except (TypeError, ValueError):
+            raise ValidationError(f"Sample {sample_no} volume must be numeric.")
+
+
     def clean(self):
         cleaned_data = super().clean()
 
-        screening = cleaned_data.get("screening")
+        sample_received = cleaned_data.get("sample_received")
+
         date_sample1_collected = cleaned_data.get("date_sample1_collected")
         appearance_sample1 = cleaned_data.get("appearance_sample1")
         sample1_volume = cleaned_data.get("sample1_volume")
 
-        # ✅ Custom validation messages for clarity
-        if not date_sample1_collected:
-            raise ValidationError("Date of Sample 1 collection is required.")
-        if not appearance_sample1:
-            raise ValidationError("Appearance of Sample 1 is required.")
-        if not sample1_volume:
-            raise ValidationError("Sample 1 volume is required.")
+        date_sample2_collected = cleaned_data.get("date_sample2_collected")
+        appearance_sample2 = cleaned_data.get("appearance_sample2")
+        sample2_volume = cleaned_data.get("sample2_volume")
 
-        # Prevent duplicate laboratory record for same screening
+        # ─────────────────────────────
+        # SAMPLE VALIDATION
+        # ─────────────────────────────
+
+        if sample_received == 1:
+
+            self.validate_sample(
+                1,
+                date_sample1_collected,
+                appearance_sample1,
+                sample1_volume,
+            )
+
+        if sample_received == 2:
+
+            self.validate_sample(
+                1,
+                date_sample1_collected,
+                appearance_sample1,
+                sample1_volume,
+            )
+
+            self.validate_sample(
+                2,
+                date_sample2_collected,
+                appearance_sample2,
+                sample2_volume,
+            )
+
+        # ─────────────────────────────
+        # Prevent duplicate lab record
+        # ─────────────────────────────
+
         screening = cleaned_data.get("screening")
         if screening:
-            # Exclude the current instance when checking for duplicates
             qs = ClinicLaboratory.objects.filter(screening=screening)
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
+
             if qs.exists():
                 raise ValidationError(
                     f"This screening {screening} already has a laboratory record."
                 )
+
         return cleaned_data
