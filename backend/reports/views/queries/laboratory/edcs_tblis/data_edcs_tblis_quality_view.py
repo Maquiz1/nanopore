@@ -9,7 +9,7 @@ from reports.services.zonal_dq import get_zonal_dq
 
 class EdcsTBLISDataQualityView(View):
 
-    template_name = "reports/data_quality/laboratory/edcs_tblis/data_edcs_tblis_quality_report.html.html"
+    template_name = "reports/data_quality/laboratory/edcs_tblis/data_edcs_tblis_quality_report.html"
 
     def get(self, request, *args, **kwargs):
 
