@@ -230,6 +230,12 @@
                         <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
                     </a>
                     {% endif %}
+                    {% if context_edcs_tblis_report_total %}
+                    <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="d-flex justify-content-between">
+                        <span>Edcs/TBLIS</span>
+                        <span class="badge bg-danger rounded-pill">{{ context_edcs_tblis_report_total|intcomma }}</span>
+                    </a>
+                    {% endif %}
                 {% endif %}
                 {% endwith %}
             </div>
