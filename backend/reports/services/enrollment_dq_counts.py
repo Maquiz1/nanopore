@@ -72,7 +72,7 @@ def get_enrollment_dq_counts(user, zone_id=None, site_id=None):
     missing_regimen_months_without_unknown = previous_tx.filter(regimen_months__isnull=True, regimen_months_unknown=False).count()
     invalid_regimen_months_with_unknown = previous_tx.filter(regimen_months_unknown=True).exclude(regimen_months__isnull=True).count()
 
-# ─────────────────────────────────────────────
+    # ─────────────────────────────────────────────
     # tx_previous = 2 or 3 → TB must be empty AND unknown flags must be False
     # ─────────────────────────────────────────────
 
