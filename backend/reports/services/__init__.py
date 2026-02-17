@@ -1,12 +1,14 @@
 # reports/services/__init__.py
 from .screening_dq_counts import get_screening_dq_counts
+from .screening_dq import get_screening_queryset,get_screening_dq
 from .enrollment_dq_counts import get_enrollment_dq_counts
-from .clinic_dq import get_clinic_queryset,get_clinic_dq
 from .enrollment_dq import get_enrollment_queryset,get_enrollment_dq
+from .clinic_dq_counts import get_clinic_dq_counts
+from .clinic_dq import get_clinic_queryset,get_clinic_dq
 from .diagnosis_dq_counts import get_diagnosis_dq_counts
+from .diagnosis_dq import get_diagnosis_queryset,get_diagnosis_dq
 from .regimen_dq_counts import get_regimen_dq_counts
 from .regimen_dq import get_regimen_queryset,get_regimen_dq
-from .clinic_dq_counts import get_clinic_dq_counts
 from .zonal_dq_counts import get_zonal_dq_counts
 from .missing_form_dq_counts import get_missing_forms_counts
 from .overview_dq_counts import get_data_quality_overview
@@ -23,7 +25,10 @@ from . zonal_dq import serialize_record
 from . zonal_dq import get_zonal_stats
 
 __all__ = [
+    # SCREENING
     "get_screening_dq_counts",
+    "get_screening_queryset",
+    "get_screening_dq",
     
     # ENROLLMENT
     "get_enrollment_dq_counts",
@@ -45,6 +50,7 @@ __all__ = [
     "get_clinic_queryset",
     "get_clinic_dq",
     
+    # ZONAL
     "get_zonal_dq_counts",
     "get_missing_forms_counts",
     

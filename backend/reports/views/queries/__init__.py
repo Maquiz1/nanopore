@@ -1,6 +1,7 @@
 from .forms.missing_form_details_queries_view import MissingFormDetailsQueriesView
 from .forms.data_form_quality_pdf_document import DreamFundQueriesPDFView
 from .screening.data_screening_quality_view import ScreeningDataQualityReportView
+from .screening.data_quality_screening_view import ScreeningDataQualityView
 from .enrollment.data_enrollment_quality_view import EnrollmentDataQualityReportView
 from .enrollment.data_quality_enrollment_view import EnrollmentDataQualityView
 from .laboratory.clinic.data_clinic_quality_view import ClinicDataQualityReportView
@@ -24,7 +25,9 @@ __all__ = [
     "MissingFormDetailsQueriesView",
     # "DataQualityReportPDFView",
     "DreamFundQueriesPDFView",
+    
     "ScreeningDataQualityReportView",
+    "ScreeningDataQualityView",
     
     "EnrollmentDataQualityReportView",
     "EnrollmentDataQualityView",
