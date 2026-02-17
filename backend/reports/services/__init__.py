@@ -30,7 +30,10 @@ __all__ = [
     "get_enrollment_queryset",
     "get_enrollment_dq",
     
+    # DIAGNOSIS
     "get_diagnosis_dq_counts",
+    "get_diagnosis_queryset",
+    "get_diagnosis_dq",
     
     # REGIMEN
     "get_regimen_dq_counts",
