@@ -150,6 +150,37 @@ def get_clinic_dq(qs):
     missing_afb_a_date = qs.filter(afb_yes_q, afb_a_date__isnull=True)
     missing_technique_a = qs.filter(afb_yes_q, technique_a__isnull=True)
     missing_afb_a_results = qs.filter(afb_yes_q, afb_a_results__isnull=True)
+    
+    # AFB B (must match clinic_dq_counts.py logic)
+    missing_afb_b_base_q = (
+        afb_yes_q &
+        Q(
+            afb_a_date__isnull=False,
+            technique_a__isnull=False,
+            afb_a_results__isnull=False
+        ) &
+        (
+            Q(afb_b_date__isnull=True) |
+            Q(technique_b__isnull=True) |
+            Q(afb_b_results__isnull=True)
+        )
+    )
+
+    missing_afb_b_date = qs.filter(
+        missing_afb_b_base_q,
+        afb_b_date__isnull=True
+    )
+
+    missing_technique_b = qs.filter(
+        missing_afb_b_base_q,
+        technique_b__isnull=True
+    )
+
+    missing_afb_b_results = qs.filter(
+        missing_afb_b_base_q,
+        afb_b_results__isnull=True
+    )
+
 
     # Xpert
     missing_xpert_mtb_rif_conducted = qs.filter(
@@ -180,20 +211,28 @@ def get_clinic_dq(qs):
         "missing_sample_reason_when_received_2": missing_sample_reason_when_received_2,
         "missing_new_reason_when_new_sample_2": missing_new_reason_when_new_sample_2,
         "missing_other_reason_when_sample_reason_96": missing_other_reason_when_sample_reason_96,
+
         "missing_date_sample1_collected": missing_date_sample1_collected,
         "missing_date_sample1_received": missing_date_sample1_received,
         "missing_appearance_sample1": missing_appearance_sample1,
         "missing_sample1_volume": missing_sample1_volume,
         "missing_invalid_sample1_volume": invalid_sample1_volume,
+
         "missing_date_sample2_collected": missing_date_sample2_collected,
         "missing_date_sample2_received": missing_date_sample2_received,
         "missing_appearance_sample2": missing_appearance_sample2,
         "missing_sample2_volume": missing_sample2_volume,
         "missing_invalid_sample2_volume": invalid_sample2_volume,
+
         "missing_afb_microscopy_conducted": missing_afb_microscopy_conducted,
         "missing_afb_a_date": missing_afb_a_date,
         "missing_technique_a": missing_technique_a,
         "missing_afb_a_results": missing_afb_a_results,
+
+        "missing_afb_b_date": missing_afb_b_date,
+        "missing_technique_b": missing_technique_b,
+        "missing_afb_b_results": missing_afb_b_results,
+
         "missing_xpert_mtb_rif_conducted": missing_xpert_mtb_rif_conducted,
         "missing_xpert_date": missing_xpert_date,
         "missing_xpert_mtb": missing_xpert_mtb,
