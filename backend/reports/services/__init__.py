@@ -1,6 +1,7 @@
 # reports/services/__init__.py
 from .screening_dq_counts import get_screening_dq_counts
 from .enrollment_dq_counts import get_enrollment_dq_counts
+from .clinic_dq import get_clinic_queryset,get_clinic_dq
 from .enrollment_dq import get_enrollment_queryset,get_enrollment_dq
 from .diagnosis_dq_counts import get_diagnosis_dq_counts
 from .regimen_dq_counts import get_regimen_dq_counts
@@ -24,17 +25,23 @@ from . zonal_dq import get_zonal_stats
 __all__ = [
     "get_screening_dq_counts",
     
+    # ENROLLMENT
     "get_enrollment_dq_counts",
     "get_enrollment_queryset",
     "get_enrollment_dq",
     
     "get_diagnosis_dq_counts",
     
+    # REGIMEN
     "get_regimen_dq_counts",
     "get_regimen_queryset",
     "get_regimen_dq",
     
+    # CLINIC
     "get_clinic_dq_counts",
+    "get_clinic_queryset",
+    "get_clinic_dq",
+    
     "get_zonal_dq_counts",
     "get_missing_forms_counts",
     

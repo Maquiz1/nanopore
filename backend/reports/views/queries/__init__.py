@@ -4,6 +4,7 @@ from .screening.data_screening_quality_view import ScreeningDataQualityReportVie
 from .enrollment.data_enrollment_quality_view import EnrollmentDataQualityReportView
 from .enrollment.data_quality_enrollment_view import EnrollmentDataQualityView
 from .laboratory.clinic.data_clinic_quality_view import ClinicDataQualityReportView
+from .laboratory.clinic.data_quality_clinic_view import ClinicDataQualityView
 from .diagnosis.data_diagnosis_quality_view import DiagnosisDataQualityReportView
 from .regimen.data_regimen_quality_view import RegimenDataQualityReportView
 from .laboratory.zonal.data_zonal_quality_view_Final_Working import ZonalDataQualityReportView
@@ -28,6 +29,8 @@ __all__ = [
     "EnrollmentDataQualityView",
     
     "ClinicDataQualityReportView",
+    "ClinicDataQualityView",
+    
     "DiagnosisDataQualityReportView",
     "RegimenDataQualityReportView",
     "ZonalDataQualityReportView",
