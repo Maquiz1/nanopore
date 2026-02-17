@@ -1,0 +1,47 @@
+# reports/views/queries/enrollment/data_enrollment_quality_view.py
+
+from django.views import View
+from django.shortcuts import render
+
+from reports.services.enrollment_dq import (
+    get_enrollment_queryset,
+    get_enrollment_dq,
+)
+
+
+class EnrollmentDataQualityView(View):
+
+    template_name = (
+        "reports/data_quality/enrollments/data_enrollment_quality_report.html"
+    )
+
+    def get(self, request, *args, **kwargs):
+
+        # Read filters from URL params
+        zone_id = request.GET.get("zone")
+        site_id = request.GET.get("site")
+
+        zone_id = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id = int(site_id) if site_id and site_id.isdigit() else None
+
+        # Build filtered queryset
+        qs = get_enrollment_queryset(
+            request.user,
+            zone_id,
+            site_id,
+        )
+
+        # Run DQ checks
+        problem_lists, stats = get_enrollment_dq(qs)
+
+        total_issues = stats.get("enrollment_report_total", 0)
+
+        context = {
+            "total_records": qs.count(),
+            "stats": stats,
+            **stats,               # gives count_missing_...
+            "total_issues": total_issues,
+            **problem_lists,       # gives missing_hiv_status etc (querysets)
+        }
+
+        return render(request, self.template_name, context)
