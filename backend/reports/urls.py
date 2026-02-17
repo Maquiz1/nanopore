@@ -44,7 +44,10 @@ from reports.views import (
     ClinicDataQualityView,
     
     DiagnosisDataQualityReportView,
-    RegimenDataQualityReportView,
+    
+    # RegimenDataQualityReportView,
+    RegimenDataQualityView,
+    
     # ZonalDataQualityReportView,
     
     ZonalDataQualityView,
@@ -130,7 +133,10 @@ urlpatterns = [
     path('clinic-quality/', ClinicDataQualityView.as_view(), name='clinic_quality_report'),
     
     path('diagnosis-quality/', DiagnosisDataQualityReportView.as_view(), name='diagnosis_quality_report'),
-    path('regimen-quality/', RegimenDataQualityReportView.as_view(), name='regimen_quality_report'),
+    
+    # path('regimen-quality/', RegimenDataQualityReportView.as_view(), name='regimen_quality_report'),
+    path('regimen-quality/', RegimenDataQualityView.as_view(), name='regimen_quality_report'),
+        
     # path('zonal-quality/', ZonalDataQualityReportView.as_view(), name='zonal_quality_report'),
     path('zonal-quality/', ZonalDataQualityView.as_view(), name='zonal_quality_report'),
     path('edcs-tblis-quality/', EdcsTBLISDataQualityView.as_view(), name='edcs_tblis_quality_report'),

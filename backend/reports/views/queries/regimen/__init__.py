@@ -1,5 +1,5 @@
-from . data_regimen_quality_view import RegimenDataQualityReportView
+from . data_quality_regimen_view import RegimenDataQualityView
 
 __all__ = [
-    "RegimenDataQualityReportView",
+    "RegimenDataQualityView",
 ]
