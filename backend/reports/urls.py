@@ -43,7 +43,8 @@ from reports.views import (
     # ClinicDataQualityReportView,
     ClinicDataQualityView,
     
-    DiagnosisDataQualityReportView,
+    # DiagnosisDataQualityReportView,
+    DiagnosisDataQualityView,
     
     # RegimenDataQualityReportView,
     RegimenDataQualityView,
@@ -132,8 +133,9 @@ urlpatterns = [
     # path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
     path('clinic-quality/', ClinicDataQualityView.as_view(), name='clinic_quality_report'),
     
-    path('diagnosis-quality/', DiagnosisDataQualityReportView.as_view(), name='diagnosis_quality_report'),
-    
+    # path('diagnosis-quality/', DiagnosisDataQualityReportView.as_view(), name='diagnosis_quality_report'),
+    path('diagnosis-quality/', DiagnosisDataQualityView.as_view(), name='diagnosis_quality_report'),
+
     # path('regimen-quality/', RegimenDataQualityReportView.as_view(), name='regimen_quality_report'),
     path('regimen-quality/', RegimenDataQualityView.as_view(), name='regimen_quality_report'),
         
