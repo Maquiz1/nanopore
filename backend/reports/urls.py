@@ -36,9 +36,13 @@ from reports.views import (
     
     # FormsDataQualityReportView,
     ScreeningDataQualityReportView,
+    
     # EnrollmentDataQualityReportView,
     EnrollmentDataQualityView,
-    ClinicDataQualityReportView,
+
+    # ClinicDataQualityReportView,
+    ClinicDataQualityView,
+    
     DiagnosisDataQualityReportView,
     RegimenDataQualityReportView,
     # ZonalDataQualityReportView,
@@ -118,10 +122,13 @@ urlpatterns = [
     
     # path('data-quality/', FormsDataQualityReportView.as_view(), name='forms_quality_report'),
     path('screening-quality/', ScreeningDataQualityReportView.as_view(), name='screening_quality_report'),
+    
     # path('enrollment-quality/', EnrollmentDataQualityReportView.as_view(), name='enrollment_quality_report'),
     path('enrollment-quality/', EnrollmentDataQualityView.as_view(), name='enrollment_quality_report'),
     
-    path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
+    # path('clinic-quality/', ClinicDataQualityReportView.as_view(), name='clinic_quality_report'),
+    path('clinic-quality/', ClinicDataQualityView.as_view(), name='clinic_quality_report'),
+    
     path('diagnosis-quality/', DiagnosisDataQualityReportView.as_view(), name='diagnosis_quality_report'),
     path('regimen-quality/', RegimenDataQualityReportView.as_view(), name='regimen_quality_report'),
     # path('zonal-quality/', ZonalDataQualityReportView.as_view(), name='zonal_quality_report'),
