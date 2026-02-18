@@ -31,7 +31,10 @@ from reports.views import (
 
     AllOverviewQueriesDashboardView,
     MissingFormQueriesDashboardView,
-    SpecificFormQueriesDashboardView,
+    
+    # SpecificFormQueriesDashboardView,
+    SpecificFormDataQualityDashboardView,
+    
     MissingFormDetailsQueriesView,
     
     # FormsDataQualityReportView,
@@ -121,8 +124,10 @@ urlpatterns = [
 
     path('data-quality/all-issues/', AllOverviewQueriesDashboardView.as_view(), name='all_queries_overview'),
     path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
-    path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
     
+    # path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
+    path("specific-form-queries/", SpecificFormDataQualityDashboardView.as_view(), name="specific_form_queries"),
+
     # path("missing-form-details-queries/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
     path("missing-form-details-queries/<str:form_type>/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
     
