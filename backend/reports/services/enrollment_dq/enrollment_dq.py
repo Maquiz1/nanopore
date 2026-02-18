@@ -37,6 +37,8 @@ def get_enrollment_dq(qs):
     # BASIC REQUIRED FIELDS
     # ─────────────────────────────────────────────
 
+    missing_tx_previous = qs.filter(tx_previous__isnull=True)
+
     missing_hiv_status = qs.filter(hiv_status__isnull=True)
 
     missing_other_diseases = qs.filter(other_diseases__isnull=True)
@@ -70,6 +72,12 @@ def get_enrollment_dq(qs):
     # ─────────────────────────────────────────────
 
     previous_tx = qs.filter(tx_previous=1)
+    
+    missing_tb_category_specify = qs.filter(
+        tb_category__value=96
+    ).filter(
+        Q(tb_category_specify__isnull=True) | Q(tb_category_specify="")
+    )
 
     missing_dr_ds = previous_tx.filter(dr_ds__isnull=True)
 
@@ -87,12 +95,6 @@ def get_enrollment_dq(qs):
         tb_regimen=8
     ).filter(
         Q(tb_regimen_specify__isnull=True) | Q(tb_regimen_specify="")
-    )
-
-    missing_tb_category_specify = qs.filter(
-        tb_category__value=96
-    ).filter(
-        Q(tb_category_specify__isnull=True) | Q(tb_category_specify="")
     )
 
     invalid_ltf_months = qs.filter(
@@ -197,6 +199,7 @@ def get_enrollment_dq(qs):
     # ─────────────────────────────────────────────
 
     counts = {
+        "missing_tx_previous":missing_tx_previous,
         "missing_hiv_status": missing_hiv_status,
         "missing_other_diseases": missing_other_diseases,
         "missing_sputum_collected": missing_sputum_collected,
