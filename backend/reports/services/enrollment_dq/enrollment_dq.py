@@ -3,6 +3,7 @@
 from django.apps import apps
 from django.db.models import Count, Q
 from utils.permissions import filter_queryset_by_user_role
+from django.db.models.functions import Trim
 
 
 def get_enrollment_queryset(user, zone_id=None, site_id=None):
@@ -61,8 +62,12 @@ def get_enrollment_dq(qs):
     # -------------------------------
     # sputum_reasons check: sputum_collected=1 → sputum_reasons must be empty
     # -------------------------------
-    invalid_sputum_reasons_qs = qs.filter(
-        Q(sputum_collected=1) & (~Q(sputum_reasons__isnull=True) & ~Q(sputum_reasons=""))
+    invalid_sputum_reasons_qs = qs.annotate(
+        sputum_reasons_trimmed=Trim("sputum_reasons")
+    ).filter(
+        Q(sputum_collected=1) &
+        Q(sputum_reasons_trimmed__isnull=False) &
+        ~Q(sputum_reasons_trimmed="")
     )
 
 
