@@ -16,11 +16,15 @@ from .laboratory.edcs_tblis.data_edcs_tblis_quality_view import EdcsTBLISDataQua
 from .all_queries_overview_dashboard_view import AllOverviewQueriesDashboardView
 from .forms.missing_form_queries_dashboard_view import MissingFormQueriesDashboardView
 from .forms.specific_form_queries_dashboard_view import SpecificFormQueriesDashboardView
+from .forms.specific_form_data_quality_dashboard_view import SpecificFormDataQualityDashboardView
 
 __all__ = [
     "AllOverviewQueriesDashboardView",
     "MissingFormQueriesDashboardView",
+    
     "SpecificFormQueriesDashboardView",
+    "SpecificFormDataQualityDashboardView",
+    
     # "FormsDataQualityReportView",
     "MissingFormDetailsQueriesView",
     # "DataQualityReportPDFView",
