@@ -86,7 +86,7 @@ def get_enrollment_dq(qs):
         Q(tb_category_specify__isnull=True) | Q(tb_category_specify="")
     )
     
-    # TB CATEGORY NOT REQUIRED
+    # TB CATEGORY SPECIFY NOT REQUIRED
     # Categories where "specify" should be empty
     tb_category_1_2_3_5_q = Q(tb_category__in=[1, 2, 3, 5])
 
@@ -104,6 +104,29 @@ def get_enrollment_dq(qs):
     # Filter invalid rows: category in [1,2,3,5] AND "specify" is filled
     invalid_tb_category_1_2_3_5 = qs.filter(
         tb_category_1_2_3_5_q & tb_category_specify_filled
+    )
+    
+    # TB 10e. If LTF or treatment failure for how long the participant received TB treatment? ( Months): NOT REQUIRED
+    # Categories where LTF fields should be empty / False
+    tb_category_1_4_5_q = Q(tb_category__in=[1, 4, 5])
+
+    # Non-char fields to check for emptiness
+    ltf_months_non_char_fields = ["ltf_months"]
+
+    # Q for fields that are filled (i.e., invalid)
+    ltf_months_filled = Q()
+    for field in ltf_months_non_char_fields:
+        ltf_months_filled |= ~Q(**{f"{field}__isnull": True})
+
+    # Also check if unknown flag is True
+    ltf_months_invalid_flag = Q(ltf_months_unknown=True)
+
+    # Combine conditions: either filled or unknown=True
+    invalid_ltf_months_q = ltf_months_filled | ltf_months_invalid_flag
+
+    # Final filter: category in [1,4,5] AND invalid LTF fields
+    invalid_tb_category_1_4_5 = qs.filter(
+        tb_category_1_4_5_q & invalid_ltf_months_q
     )
     
     # DR OR DS
@@ -230,6 +253,7 @@ def get_enrollment_dq(qs):
         "missing_tx_previous":missing_tx_previous,
         "missing_tb_category":missing_tb_category,
         "invalid_tb_category_1_2_3_5":invalid_tb_category_1_2_3_5,
+        "invalid_tb_category_1_4_5":invalid_tb_category_1_4_5,
         "missing_hiv_status": missing_hiv_status,
         "missing_other_diseases": missing_other_diseases,
         "missing_sputum_collected": missing_sputum_collected,
