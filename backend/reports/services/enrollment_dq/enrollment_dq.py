@@ -78,6 +78,7 @@ def get_enrollment_dq(qs):
         Q(sputum_collected=2) & ~Q(sputum_date__isnull=True)
     )
     
+    # DISEASE MEDICAL
     missing_diseases_medical = (
         qs.filter(other_diseases=1)
         .annotate(diseases_medical_count=Count("diseases_medical", distinct=True))
@@ -89,6 +90,24 @@ def get_enrollment_dq(qs):
     ).filter(
         Q(diseases_specify__isnull=True) | Q(diseases_specify="")
     ).distinct()
+    
+    invalid_diseases_medical_qs = qs.filter(
+        Q(other_diseases__in=[2, 3]) &
+        Q(diseases_medical__isnull=False)
+    ).distinct()
+    
+    invalid_diseases_specify_qs = qs.annotate(
+        diseases_specify_trimmed=Trim("diseases_specify")
+    ).filter(
+        # diseases_specify is filled (not null, not empty, not whitespace)
+        Q(diseases_specify_trimmed__isnull=False) &
+        ~Q(diseases_specify_trimmed="") &
+        # AND condition is NOT the allowed one
+        ~(
+            Q(other_diseases=11) &
+            Q(other_diseases__value=96)
+        )
+    )
 
     # ─────────────────────────────────────────────
     # TB Treatment (tx_previous = 1)
@@ -277,15 +296,6 @@ def get_enrollment_dq(qs):
         "missing_tb_category":missing_tb_category,
         "invalid_tb_category_1_2_3_5":invalid_tb_category_1_2_3_5,
         "invalid_tb_category_1_4_5":invalid_tb_category_1_4_5,
-        "missing_hiv_status": missing_hiv_status,
-        "missing_other_diseases": missing_other_diseases,
-        "missing_sputum_collected": missing_sputum_collected,
-        "invalid_sputum_reasons_qs":invalid_sputum_reasons_qs,
-        "invalid_sputum_date_qs":invalid_sputum_date_qs,
-        "missing_sputum_date": missing_sputum_date,
-        "missing_sputum_reasons": missing_sputum_reasons,
-        "missing_diseases_medical": missing_diseases_medical,
-        "missing_diseases_specify": missing_diseases_specify,
         "missing_dr_ds": missing_dr_ds,
         "missing_tb_regimen": missing_tb_regimen,
         "missing_tb_outcome": missing_tb_outcome,
@@ -301,6 +311,17 @@ def get_enrollment_dq(qs):
         "missing_regimen_months_without_unknown": missing_regimen_months_without_unknown,
         "invalid_regimen_months_with_unknown": invalid_regimen_months_with_unknown,
         "missing_tx_previous_2_3_tb_filled": missing_tx_previous_2_3_tb_filled,
+        "missing_hiv_status": missing_hiv_status,
+        "missing_other_diseases": missing_other_diseases,
+        "missing_diseases_medical": missing_diseases_medical,
+        "missing_diseases_specify": missing_diseases_specify,
+        "invalid_diseases_medical_qs":invalid_diseases_medical_qs,
+        "invalid_diseases_specify_qs":invalid_diseases_specify_qs,
+        "missing_sputum_collected": missing_sputum_collected,
+        "invalid_sputum_reasons_qs":invalid_sputum_reasons_qs,
+        "invalid_sputum_date_qs":invalid_sputum_date_qs,
+        "missing_sputum_date": missing_sputum_date,
+        "missing_sputum_reasons": missing_sputum_reasons,
     }
 
     totals = {f"count_{k}": v.count() for k, v in counts.items()}
