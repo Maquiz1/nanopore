@@ -87,24 +87,23 @@ def get_enrollment_dq(qs):
     )
     
     # TB CATEGORY NOT REQUIRED
-    tb_category_1_2_3_5_q = Q(tb_category__in=[1,2,3,5])
+    # Categories where "specify" should be empty
+    tb_category_1_2_3_5_q = Q(tb_category__in=[1, 2, 3, 5])
 
-    tb_category_specify_char_fields = [
-        "tb_category_specify",
-    ]
+    # Fields that should be empty for these categories
+    tb_category_specify_char_fields = ["tb_category_specify"]
 
-    tb_category_1_2_3_5_filled = Q()
-
+    # Build a Q object for fields that are NOT empty
+    tb_category_specify_filled = Q()
     for field in tb_category_specify_char_fields:
-        tb_category_1_2_3_5_filled |= (
+        tb_category_specify_filled |= (
             ~Q(**{f"{field}__isnull": True}) &
             ~Q(**{f"{field}": ""})
         )
-        
-    invalid_tb_category_1_2_3_5_filled = qs.filter(
-        tb_category_1_2_3_5_q
-    ).filter(
-        tb_category_1_2_3_5_filled
+
+    # Filter invalid rows: category in [1,2,3,5] AND "specify" is filled
+    invalid_tb_category_1_2_3_5 = qs.filter(
+        tb_category_1_2_3_5_q & tb_category_specify_filled
     )
     
     # DR OR DS
@@ -230,7 +229,7 @@ def get_enrollment_dq(qs):
     counts = {
         "missing_tx_previous":missing_tx_previous,
         "missing_tb_category":missing_tb_category,
-        "invalid_tb_category_1_2_3_5_filled":invalid_tb_category_1_2_3_5_filled,
+        "invalid_tb_category_1_2_3_5":invalid_tb_category_1_2_3_5,
         "missing_hiv_status": missing_hiv_status,
         "missing_other_diseases": missing_other_diseases,
         "missing_sputum_collected": missing_sputum_collected,
