@@ -73,6 +73,12 @@ def get_enrollment_dq(qs):
 
     previous_tx = qs.filter(tx_previous=1)
     
+    missing_tb_category = qs.filter(
+        tx_previous=1
+    ).filter(
+        Q(tb_category__isnull=True)
+    )
+    
     missing_tb_category_specify = qs.filter(
         tb_category__value=96
     ).filter(
@@ -200,6 +206,7 @@ def get_enrollment_dq(qs):
 
     counts = {
         "missing_tx_previous":missing_tx_previous,
+        "missing_tb_category":missing_tb_category,
         "missing_hiv_status": missing_hiv_status,
         "missing_other_diseases": missing_other_diseases,
         "missing_sputum_collected": missing_sputum_collected,
