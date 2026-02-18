@@ -63,9 +63,9 @@ class ClinicDataQualityView(View):
             "selected_site_name": selected_site_name,
             "total_records": qs.count(),
             "stats": stats,
-            **stats,             # gives count_missing_...
+            **stats,               # gives count_missing_...
             "total_issues": total_issues,
-            **problem_lists,     # gives missing_* querysets
+            **problem_lists,       # gives missing_tb_diagnosis etc (querysets)
         }
 
         return render(request, self.template_name, context)
