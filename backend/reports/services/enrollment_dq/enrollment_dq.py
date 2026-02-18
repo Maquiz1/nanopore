@@ -43,6 +43,8 @@ def get_enrollment_dq(qs):
 
     missing_other_diseases = qs.filter(other_diseases__isnull=True)
 
+    #  Samples collections
+
     missing_sputum_collected = qs.filter(sputum_collected__isnull=True)
 
     missing_sputum_date = qs.filter(
@@ -55,6 +57,22 @@ def get_enrollment_dq(qs):
         sputum_reasons__isnull=True
     )
 
+    # INVALID SPUTUMS
+    # -------------------------------
+    # sputum_reasons check: sputum_collected=1 → sputum_reasons must be empty
+    # -------------------------------
+    invalid_sputum_reasons_qs = qs.filter(
+        Q(sputum_collected=1) & (~Q(sputum_reasons__isnull=True) & ~Q(sputum_reasons=""))
+    )
+
+
+    # -------------------------------
+    # sputum_date check: sputum_collected=2 → sputum_date must be empty
+    # -------------------------------
+    invalid_sputum_date_qs = qs.filter(
+        Q(sputum_collected=2) & ~Q(sputum_date__isnull=True)
+    )
+    
     missing_diseases_medical = (
         qs.filter(other_diseases=1)
         .annotate(diseases_medical_count=Count("diseases_medical", distinct=True))
@@ -257,6 +275,8 @@ def get_enrollment_dq(qs):
         "missing_hiv_status": missing_hiv_status,
         "missing_other_diseases": missing_other_diseases,
         "missing_sputum_collected": missing_sputum_collected,
+        "invalid_sputum_reasons_qs":invalid_sputum_reasons_qs,
+        "invalid_sputum_date_qs":invalid_sputum_date_qs,
         "missing_sputum_date": missing_sputum_date,
         "missing_sputum_reasons": missing_sputum_reasons,
         "missing_diseases_medical": missing_diseases_medical,
