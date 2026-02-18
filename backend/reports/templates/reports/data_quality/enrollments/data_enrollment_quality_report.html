@@ -312,90 +312,6 @@
         </div>
         {% endif %}
 
-        <!-- Missing Sputum Collected -->
-        {% if missing_sputum_collected %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumCollected">
-                    Missing Sputum Collected ({{ missing_sputum_collected.count }})
-                </button>
-            </h2>
-            <div id="collapseSputumCollected" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm">
-                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
-                            <tbody>
-                                {% for rec in missing_sputum_collected %}
-                                <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
-                                    <td>{{ rec.screening.site.name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Missing Sputum Date -->
-        {% if missing_sputum_date %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumDate">
-                    Missing Sputum Date ({{ missing_sputum_date.count }})
-                </button>
-            </h2>
-            <div id="collapseSputumDate" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm">
-                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
-                            <tbody>
-                                {% for rec in missing_sputum_date %}
-                                <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
-                                    <td>{{ rec.screening.site.name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Missing Sputum Reasons -->
-        {% if missing_sputum_reasons %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumReasons">
-                    Missing Sputum Reasons ({{ missing_sputum_reasons.count }})
-                </button>
-            </h2>
-            <div id="collapseSputumReasons" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm">
-                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
-                            <tbody>
-                                {% for rec in missing_sputum_reasons %}
-                                <tr>
-                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
-                                    <td>{{ rec.screening.site.name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
         <!-- Missing Diseases Medical -->
         {% if missing_diseases_medical %}
         <div class="accordion-item">
@@ -928,6 +844,91 @@
         </div>
         {% endif %}
 
+
+         <!-- Missing Sputum Collected -->
+        {% if missing_sputum_collected %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumCollected">
+                    Missing Sputum Collected ({{ missing_sputum_collected.count }})
+                </button>
+            </h2>
+            <div id="collapseSputumCollected" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_sputum_collected %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Sputum Date -->
+        {% if missing_sputum_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumDate">
+                    Missing Sputum Date ({{ missing_sputum_date.count }})
+                </button>
+            </h2>
+            <div id="collapseSputumDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_sputum_date %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Sputum Reasons -->
+        {% if missing_sputum_reasons %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSputumReasons">
+                    Missing Sputum Reasons ({{ missing_sputum_reasons.count }})
+                </button>
+            </h2>
+            <div id="collapseSputumReasons" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="table-light"><tr><th>PID</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for rec in missing_sputum_reasons %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:enrollment-update' pk=rec.id %}?next={{ request.get_full_path|urlencode }}">{{ rec.screening.pid }}</a></td>
+                                    <td>{{ rec.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
         <!-- invalid_sputum_reasons_qs -->
         {% if count_invalid_sputum_reasons_qs %}
         <div class="accordion-item">
