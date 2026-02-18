@@ -1,18 +1,34 @@
 # reports/context_processors/screening_context.py
 
-from reports.services.screening_dq import get_screening_queryset, get_screening_dq
+from reports.services.screening_dq import (
+    get_screening_queryset,
+    get_screening_dq,
+)
 
 
 def screening_report_total(request):
-    if not request.user.is_authenticated:
-        return {"context_screening_report_total": 0}
+    """
+    Navbar screening data quality counter.
+    Uses screening_dq service to avoid duplicated logic.
+    """
 
+    if not request.user.is_authenticated:
+        return {
+            "context_screening_report_total": 0
+        }
+
+    # No zone/site filters for navbar (global view based on role)
     qs = get_screening_queryset(request.user)
-    _, totals = get_screening_dq(qs)
+
+    problem_lists, stats = get_screening_dq(qs, request.user)
+
+    total_issues = stats.get("screening_report_total", 0)
 
     return {
-        "context_screening_report_total": totals["screening_report_total"]
+        "context_screening_report_total": total_issues,
+        **stats,   # gives count_missing_..., count_duplicate_pids, etc.
     }
+
 
 
 # from django.apps import apps
