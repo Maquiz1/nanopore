@@ -14,13 +14,18 @@ from .laboratory.zonal.data_zonal_quality_view_Final_Working import ZonalDataQua
 from .laboratory.zonal.data_zonal_quality_view import ZonalDataQualityView
 from .laboratory.edcs_tblis.data_edcs_tblis_quality_view import EdcsTBLISDataQualityView
 from .all_queries_overview_dashboard_view import AllOverviewQueriesDashboardView
+from .total_data_quality_issues_dashboard_view import TotalDataQualityDashboardView
 from .forms.missing_form_queries_dashboard_view import MissingFormQueriesDashboardView
+from .forms.missing_form_data_quality_dashboard_view import MissingFormDataQualityDashboardView
 from .forms.specific_form_queries_dashboard_view import SpecificFormQueriesDashboardView
 from .forms.specific_form_data_quality_dashboard_view import SpecificFormDataQualityDashboardView
 
 __all__ = [
     "AllOverviewQueriesDashboardView",
+    "TotalDataQualityDashboardView",
+    
     "MissingFormQueriesDashboardView",
+    "MissingFormDataQualityDashboardView",
     
     "SpecificFormQueriesDashboardView",
     "SpecificFormDataQualityDashboardView",

@@ -11,8 +11,10 @@ from .regimen_dq_counts import get_regimen_dq_counts
 from .regimen_dq import get_regimen_queryset,get_regimen_dq
 from .zonal_dq_counts import get_zonal_dq_counts
 from .missing_form_dq_counts import get_missing_forms_counts
+from .missing_form_dq import get_missing_forms_dq
 from .specific_form_queries_dq_counts import get_specific_form_dq_counts
 from .overview_dq_counts import get_data_quality_overview
+from .total_dq import get_total_data_quality_overview
 # from .zonal_problem_lists import get_zonal_problem_lists
 
 
@@ -68,6 +70,10 @@ __all__ = [
     
     "get_specific_form_dq_counts",
     "get_specific_form_dq",
+    
+    "get_missing_forms_dq",
+    
+    "get_total_data_quality_overview",
 ]
 
 

@@ -21,7 +21,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h3 class="card-title mb-4 text-warning fw-bold">Total Data Quality Issues</h3>
                     <p class="display-2 fw-bolder text-warning mb-2">
-                        {{ total_issues|default:0 | intcomma }}
+                        {{ grand_total_queries|default:0 | intcomma }}
                     </p>
                     <p class="lead text-muted mb-2">All detected problems across the system</p>
                     <p class="text-muted mb-3" style="font-size: 1.1rem;">
@@ -44,7 +44,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-danger fw-bold">Missing Forms</h4>
                     <p class="display-3 fw-bold text-danger mb-2">
-                        {{ forms_report_total.total_form_missing|default:0 | intcomma }}
+                        {{ total_missing_issues|default:0 | intcomma }}
                     </p>
                     <p class="lead text-muted mb-2">Eligible screenings without required form(s)</p>
                     <p class="text-muted mb-0" style="font-size: 1.05rem;">
@@ -62,7 +62,7 @@
                 <div class="card-body text-center d-flex flex-column justify-content-center py-5">
                     <h4 class="card-title mb-4 text-primary fw-bold">Form Queries</h4>
                     <p class="display-3 fw-bold text-primary mb-2">
-                        {{ specific_queries_total|default:0 | intcomma }}
+                        {{ total_specific_issues|default:0 | intcomma }}
                     </p>
                     <p class="lead text-muted mb-2">
                         Missing or invalid fields in submitted forms
