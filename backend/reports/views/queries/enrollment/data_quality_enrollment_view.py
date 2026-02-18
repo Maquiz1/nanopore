@@ -30,6 +30,11 @@ class EnrollmentDataQualityView(View):
 
         zone_id = int(zone_id) if zone_id and zone_id.isdigit() else None
         site_id = int(site_id) if site_id and site_id.isdigit() else None
+        
+        # zone_id_int = int(zone_id) if zone_id and zone_id.isdigit() else None
+        # site_id_int = int(site_id) if site_id and site_id.isdigit() else None
+        selected_zone_name = zones.get(zone_id, "") if zone_id else "All Zones"
+        selected_site_name = sites.get(site_id, "") if site_id else "All Sites"
 
         # Validate filters against allowed zones/sites
         if zone_id and zone_id not in zones:
@@ -55,6 +60,8 @@ class EnrollmentDataQualityView(View):
             "sites": sites,
             "selected_zone": zone_id,
             "selected_site": site_id,
+            "selected_zone_name": selected_zone_name,
+            "selected_site_name": selected_site_name,
             "total_records": qs.count(),
             "stats": stats,
             **stats,               # gives count_missing_...
