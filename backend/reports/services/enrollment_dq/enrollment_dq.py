@@ -73,6 +73,7 @@ def get_enrollment_dq(qs):
 
     previous_tx = qs.filter(tx_previous=1)
     
+    # TB CATEGORY
     missing_tb_category = qs.filter(
         tx_previous=1
     ).filter(
@@ -84,7 +85,29 @@ def get_enrollment_dq(qs):
     ).filter(
         Q(tb_category_specify__isnull=True) | Q(tb_category_specify="")
     )
+    
+    # TB CATEGORY NOT REQUIRED
+    tb_category_1_2_3_5_q = Q(tb_category__in=[1,2,3,5])
 
+    tb_category_specify_char_fields = [
+        "tb_category_specify",
+    ]
+
+    tb_category_1_2_3_5_filled = Q()
+
+    for field in tb_category_specify_char_fields:
+        tb_category_1_2_3_5_filled |= (
+            ~Q(**{f"{field}__isnull": True}) &
+            ~Q(**{f"{field}": ""})
+        )
+        
+    invalid_tb_category_1_2_3_5_filled = qs.filter(
+        tb_category_1_2_3_5_q
+    ).filter(
+        tb_category_1_2_3_5_filled
+    )
+    
+    # DR OR DS
     missing_dr_ds = previous_tx.filter(dr_ds__isnull=True)
 
     missing_tb_regimen = previous_tx.filter(tb_regimen__isnull=True)
@@ -207,6 +230,7 @@ def get_enrollment_dq(qs):
     counts = {
         "missing_tx_previous":missing_tx_previous,
         "missing_tb_category":missing_tb_category,
+        "invalid_tb_category_1_2_3_5_filled":invalid_tb_category_1_2_3_5_filled,
         "missing_hiv_status": missing_hiv_status,
         "missing_other_diseases": missing_other_diseases,
         "missing_sputum_collected": missing_sputum_collected,
