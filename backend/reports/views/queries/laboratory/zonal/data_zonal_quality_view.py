@@ -6,6 +6,7 @@ from django.apps import apps
 
 from reports.services.zonal_dq import get_zonal_dq
 
+from utils.roles import get_role_context
 
 class ZonalDataQualityView(View):
 
@@ -15,10 +16,26 @@ class ZonalDataQualityView(View):
 
         # Get model dynamically
         Zonal = apps.get_model("nanopore", "ZonalLaboratory")
+        
+        role_context = get_role_context(request.user)
 
-        # Read filters from URL params (?zone_id=1&site_id=2)
-        zone_id = request.GET.get("zone_id")
-        site_id = request.GET.get("site_id")
+        # Prepare zone and site mappings for template
+        zones = {z.id: z.name for z in role_context.get("zones", [])}
+        sites = {s.id: s.name for s in role_context.get("sites", [])}
+
+        # Read filters from URL params
+        zone_id = request.GET.get("zone")
+        site_id = request.GET.get("site")
+
+        zone_id = int(zone_id) if zone_id and zone_id.isdigit() else None
+        site_id = int(site_id) if site_id and site_id.isdigit() else None
+
+        # Validate filters against allowed zones/sites
+        if zone_id and zone_id not in zones:
+            zone_id = None
+
+        if site_id and site_id not in sites:
+            site_id = None
 
         qs, stats, total_issues, problem_lists = get_zonal_dq(
             request.user,
@@ -28,6 +45,10 @@ class ZonalDataQualityView(View):
         )
 
         context = {
+            "zones": zones,
+            "sites": sites,
+            "selected_zone": zone_id,
+            "selected_site": site_id,
             "total_records": qs.count(),
             "stats": stats,
             **{f"count_{k}": v for k, v in stats.items()},
