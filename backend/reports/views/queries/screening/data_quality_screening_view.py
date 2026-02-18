@@ -28,7 +28,7 @@ class ScreeningDataQualityView(View):
         )
 
         # Run DQ checks
-        problem_lists, stats = get_screening_dq(qs)
+        problem_lists, stats = get_screening_dq(qs,request.user)
 
         total_issues = stats.get("screening_report_total", 0)
 
