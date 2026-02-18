@@ -9,9 +9,7 @@ from reports.services.screening_dq import (
 
 class ScreeningDataQualityView(View):
 
-    template_name = (
-        "reports/data_quality/screening/data_screening_quality_report.html"
-    )
+    template_name = "reports/data_quality/screenings/data_screening_quality_report.html"
 
     def get(self, request, *args, **kwargs):
 

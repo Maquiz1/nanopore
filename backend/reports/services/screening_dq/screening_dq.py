@@ -67,7 +67,6 @@ def get_screening_dq(qs, user=None):
     # ───────────────────────────────
     # Non-eligible
     # ───────────────────────────────
-    count_not_eligible = 0
     if user:
         role_context = get_role_context(user)
         is_admin = role_context.get("is_admin", False)
@@ -76,7 +75,6 @@ def get_screening_dq(qs, user=None):
 
         if is_full_access:
             not_eligible_qs = qs.filter(eligible=False)
-            count_not_eligible = not_eligible_qs.count()
         else:
             not_eligible_qs = qs.none()
     else:
