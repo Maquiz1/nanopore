@@ -29,8 +29,11 @@ from reports.views import (
     ExportAllModelsCombinedView,
     ExportModelRawDataView,
 
-    AllOverviewQueriesDashboardView,
-    MissingFormQueriesDashboardView,
+    # AllOverviewQueriesDashboardView,
+    TotalDataQualityDashboardView,
+    
+    # MissingFormQueriesDashboardView,
+    MissingFormDataQualityDashboardView,
     
     # SpecificFormQueriesDashboardView,
     SpecificFormDataQualityDashboardView,
@@ -122,8 +125,12 @@ urlpatterns = [
     path('screenings/download/csv/', ScreeningCsvDownloadView.as_view(), name='download-screenings-csv'),
     path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
 
-    path('data-quality/all-issues/', AllOverviewQueriesDashboardView.as_view(), name='all_queries_overview'),
-    path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
+    # path('data-quality/all-issues/', AllOverviewQueriesDashboardView.as_view(), name='all_queries_overview'),
+    path('data-quality/all-issues/', TotalDataQualityDashboardView.as_view(), name='all_queries_overview'),
+
+    # path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
+    path("queries/", MissingFormDataQualityDashboardView.as_view(), name="missing_form_queries"),
+
     
     # path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
     path("specific-form-queries/", SpecificFormDataQualityDashboardView.as_view(), name="specific_form_queries"),
@@ -156,8 +163,8 @@ urlpatterns = [
     path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),
     path('enrollment/data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='enrollment_data_quality_pdf'),
 
-    path('notifications/', AllOverviewQueriesDashboardView.as_view(), name='notifications-list'),
-    path('alerts/', AllOverviewQueriesDashboardView.as_view(), name='alerts-list'),
+    path('notifications/', TotalDataQualityDashboardView.as_view(), name='notifications-list'),
+    path('alerts/', TotalDataQualityDashboardView.as_view(), name='alerts-list'),
     
     path(
     "dq/missing-forms/",
