@@ -91,22 +91,28 @@ def get_enrollment_dq(qs):
         Q(diseases_specify__isnull=True) | Q(diseases_specify="")
     ).distinct()
     
+    # invalid_diseases_medical_qs = qs.filter(
+    #     Q(other_diseases=2) &
+    #     Q(diseases_medical__isnull=False)
+    # ).distinct()
+    
     invalid_diseases_medical_qs = qs.filter(
         Q(other_diseases__in=[2, 3]) &
         Q(diseases_medical__isnull=False)
     ).distinct()
     
-    invalid_diseases_specify_qs = qs.annotate(
-        diseases_specify_trimmed=Trim("diseases_specify")
-    ).filter(
-        # diseases_specify is filled (not null, not empty, not whitespace)
-        Q(diseases_specify_trimmed__isnull=False) &
-        ~Q(diseases_specify_trimmed="") &
-        # AND condition is NOT the allowed one
-        ~(
-            Q(other_diseases=11) &
-            Q(other_diseases__value=96)
+    invalid_diseases_specify_qs = (
+        qs.annotate(
+            diseases_specify_trimmed=Trim("diseases_specify")
         )
+        # diseases_specify is filled
+        .filter(
+            Q(diseases_specify_trimmed__isnull=False) &
+            ~Q(diseases_specify_trimmed="")
+        )
+        # AND diseases_medical does NOT contain 11
+        .exclude(diseases_medical=11)
+        .distinct()
     )
 
     # ─────────────────────────────────────────────
