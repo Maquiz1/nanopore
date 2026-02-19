@@ -89,6 +89,20 @@ def get_diagnosis_dq(qs):
     missing_tb_diagnosis_2_should_be_empty = qs.filter(tb_diagnosis=2).filter(
         tb_diag_filled_q | tb_diag_m2m_q
     ).distinct()
+    
+    # tb_diagnosis = 1 → all Diagnosis other than TB fields must be EMPTY
+    tb_tb_diagnosis_is_1_q = Q(tb_diagnosis=1) | Q(tb_diagnosis__value=1) | Q(tb_diagnosis__name__iexact="1")
+    diag_other_than_tb_filled_q = Q()
+    diag_other_than_tb_non_char_fields = [
+        "tb_other_diagnosis",
+        "tb_diagnosis_made2",
+    ]
+    for field in diag_other_than_tb_non_char_fields:
+        diag_other_than_tb_filled_q |= ~Q(**{f"{field}__isnull": True})
+        
+    invalid_diag_other_than_tb_filled = qs.filter(
+        tb_tb_diagnosis_is_1_q & diag_other_than_tb_filled_q
+    )
 
     # ──────────────────────────────
     # Problem querysets
@@ -104,9 +118,6 @@ def get_diagnosis_dq(qs):
         "missing_tb_clinically_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made=1, tb_diagnosed_clinically__value=96, tb_clinically_other__isnull=True).distinct(),
         "missing_bacteriological_diagnosis": qs.filter(tb_diagnosis=1, tb_diagnosis_made=2, bacteriological_diagnosis__isnull=True),
         "missing_clinician_received_date": qs.filter(tb_diagnosis=1, tb_diagnosis_made=2, clinician_received_date__isnull=True),
-        "missing_tb_other_diagnosis": qs.filter(tb_diagnosis=2, tb_other_diagnosis__isnull=True),
-        "missing_tb_diagnosis_made2": qs.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True),
-        "missing_tb_other_specify": qs.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True),
         "missing_tb_treatment_date": qs.filter(tb_treatment=1, tb_treatment_date__isnull=True),
         "missing_tb_register_number": qs.filter(tb_treatment=1, tb_register_number__isnull=True),
         "duplicate_tb_register_number": duplicate_tb_register_number_qs,
@@ -117,6 +128,12 @@ def get_diagnosis_dq(qs):
         "pending_tb_outcome": pending_tb_outcome_qs,
         "pending_tb_outcome_date": pending_tb_outcome_date_qs,
         "missing_tb_diagnosis_2_should_be_empty": missing_tb_diagnosis_2_should_be_empty,
+        
+        # DIAGNOSIS OTHER THAN TB
+        "missing_tb_other_diagnosis": qs.filter(tb_diagnosis=2, tb_other_diagnosis__isnull=True),
+        "missing_tb_diagnosis_made2": qs.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True),
+        "missing_tb_other_specify": qs.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True),
+        "invalid_diag_other_than_tb_filled":invalid_diag_other_than_tb_filled,
     }
 
     # ──────────────────────────────
