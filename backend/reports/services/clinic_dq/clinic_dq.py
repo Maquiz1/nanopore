@@ -175,18 +175,26 @@ def get_clinic_dq(qs):
     
     # SAMPLE RECEIVED RULE
     # sample_received = 1 → sample_reason must be empty
-    sample_received_1_q = Q(sample_received=1) | Q(sample_received__value=1) | Q(sample_received__name__iexact="1")
-    invalid_sample_reason_when_received_1 = qs.filter(
-        sample_received_1_q & is_filled_non_char("sample_reason")
+    # Case 1: sample_received = 1 → sample_reason and new_sample must be empty
+    sample_received_1_q = (
+        Q(sample_received=1) | Q(sample_received__value=1) | Q(sample_received__name__iexact="1")
+    )
+    invalid_sample_received_1 = qs.filter(
+        sample_received_1_q & (is_filled_non_char("sample_reason") | is_filled_non_char("new_sample"))
     )
 
-    # sample_received = 2 → new_sample must be empty
-    sample_received_2_q = Q(sample_received=2) | Q(sample_received__value=2) | Q(sample_received__name__iexact="2")
-    invalid_new_sample_when_received_2 = qs.filter(
-        sample_received_2_q & is_filled_non_char("new_sample")
+    # Case 2: sample_received = 2 AND new_sample = 2 → number_received must be empty
+    sample_received_2_q = (
+        Q(sample_received=2) | Q(sample_received__value=2) | Q(sample_received__name__iexact="2")
     )
-    
-    invalid_sample_sample_received_rule = invalid_sample_reason_when_received_1 | invalid_new_sample_when_received_2
+    new_sample_2_q = Q(new_sample=2) | Q(new_sample__value=2) | Q(new_sample__name__iexact="2")
+
+    invalid_sample_received_2_new_2 = qs.filter(
+        sample_received_2_q & new_sample_2_q & is_filled_non_char("number_received")
+    )
+
+    # Combine both rules
+    invalid_sample_sample_received_rule = invalid_sample_received_1 | invalid_sample_received_2_new_2
 
     # SAMPLE REASON RULE
     # Sample reason = 1 → other_reason must be empty
