@@ -4,10 +4,18 @@ import csv
 from django.apps import apps
 from django.core.exceptions import ValidationError
 
-from nanopore.views.laboratory.edcs_tblis.edcs_tblis_upload_view import (
+from celery import shared_task, Task
+import csv
+from django.apps import apps
+from django.core.exceptions import ValidationError
+
+from utils.edcs_tblis_helpers import (
     safe_int, safe_decimal, parse_date_field,
     get_foreign, split_m2m
 )
+from .tasks_base import RevocableTask
+
+# rest of import_edcs_tblis task remains the same
 
 from options.models import (
     SampleAppearance, YesNo, CultureMethod, MicroscopyType, CultureMicroscopyResults,
@@ -18,27 +26,36 @@ from options.models import (
     NanoporeSequencingResults, NanoporeSequencingDelayedReasons
 )
 
+from . tasks_base import RevocableTask
+
 
 @shared_task(bind=True)
 def import_edcs_tblis(self, filepath):
-
     Screening = apps.get_model("nanopore", "Screening")
     EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
 
     total = sum(1 for _ in open(filepath)) - 1
     processed = 0
-
     row_errors = []
     created = 0
     updated = 0
 
     with open(filepath, newline="") as f:
         reader = csv.DictReader(f)
-
         for idx, row in enumerate(reader, start=2):
 
-            pid = row.get("pid")
+            # Stop immediately if revoked
+            if self.request.called_directly is False and getattr(self.request, "revoke", False):
+                return {
+                    "current": processed,
+                    "total": total,
+                    "created": created,
+                    "updated": updated,
+                    "errors": row_errors,
+                    "state": "REVOKED"
+                }
 
+            pid = row.get("pid")
             try:
                 screening = Screening.objects.filter(pid=pid).first()
                 if not screening:
@@ -165,11 +182,13 @@ def import_edcs_tblis(self, filepath):
                     "remarks": row.get("remarks") or None,
                 }
 
+
                 lab, was_created = EdcsTblisZonal.objects.update_or_create(
                     screening=screening,
                     defaults=defaults
                 )
 
+                # set M2M
                 lab.culture_method.set(split_m2m(CultureMethod, row.get("culture_method")))
                 lab.first_line_drugs.set(split_m2m(FirstLineDrugs, row.get("first_line_drugs")))
                 lab.second_line_drugs.set(split_m2m(SecondLineDrugs, row.get("second_line_drugs")))
@@ -197,4 +216,5 @@ def import_edcs_tblis(self, filepath):
         "created": created,
         "updated": updated,
         "errors": row_errors,
+        "state": "SUCCESS",
     }

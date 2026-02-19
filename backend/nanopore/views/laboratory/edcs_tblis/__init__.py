@@ -5,7 +5,8 @@ from .edcs_tblis_list_view import EdcsTBLISLaboratoryListView
 # from .zonal_laboratory_delete import ZonalLaboratoryDeleteView
 from .edcs_tblis_laboratory_form_view import EdcsTblisFormView  # new form view
 from .edcs_tblis_upload_view import EdcsTBLISCsvUploadView
-from .task_status import task_status
+# from .task_status import task_status
+from .edcs_tblis_task_views import RevokeEdcsTblisTaskView,TaskStatusView
 
 
 __all__ = [
@@ -16,5 +17,7 @@ __all__ = [
     # "ZonalLaboratoryDeleteView",
     "EdcsTblisFormView",  # new form view
     "EdcsTBLISCsvUploadView",
-    "task_status",
+    # "task_status",
+    "RevokeEdcsTblisTaskView",
+    "TaskStatusView",
 ]

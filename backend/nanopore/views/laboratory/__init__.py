@@ -15,9 +15,9 @@ from .zonal import ZonalLabFormView
 from .zonal import ZonalLabCsvUploadView
 
 from .edcs_tblis import EdcsTBLISLaboratoryListView
-from .edcs_tblis import EdcsTBLISCsvUploadView
+from .edcs_tblis import EdcsTBLISCsvUploadView,RevokeEdcsTblisTaskView,TaskStatusView
 from .edcs_tblis import EdcsTblisFormView
-from .edcs_tblis import task_status
+# from .edcs_tblis import task_status
 
 __all__ = [
     "ClinicLaboratoryListView",
@@ -39,6 +39,8 @@ __all__ = [
     "EdcsTBLISLaboratoryListView",
     "EdcsTBLISCsvUploadView",
     "EdcsTblisFormView",  # new form view
+    "RevokeEdcsTblisTaskView",
     
-    "task_status",
+    # "task_status",
+    "TaskStatusView",
 ]

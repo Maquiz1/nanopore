@@ -1,109 +1,156 @@
-<!-- nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_upload.html -->
-
 {% extends "base.html" %}
 {% block content %}
 
 <div class="container mt-4">
+    <h3>Upload EDCS-TBLIS Zonal Lab CSV</h3>
 
-<h3>Upload EDCS-TBLIS Zonal Lab CSV</h3>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
 
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-{% endif %}
+    <!-- ASYNC ERRORS WILL APPEAR HERE -->
+    <div id="errorTableWrapper"></div>
 
-<!-- ASYNC ERRORS WILL APPEAR HERE -->
-<div id="asyncErrors"></div>
+    <div class="card p-3 shadow">
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.file.label_tag }}
+            {{ form.file }}
+            <div class="mt-2 d-flex gap-2">
+                <button type="submit" class="btn btn-success" id="uploadBtn">Upload CSV</button>
+                <button type="button" class="btn btn-danger" id="cancelBtn" style="display:none">Cancel Upload</button>
+            </div>
+        </form>
 
-<div class="card p-3 shadow">
-
-<form id="uploadForm" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    {{ form.file.label_tag }}
-    {{ form.file }}
-
-    <button type="submit" class="btn btn-success mt-2">Upload CSV</button>
-</form>
-
-<div class="progress mt-3" style="display:none" id="uploadProgressWrapper">
-    <div class="progress-bar progress-bar-striped progress-bar-animated"
-         id="uploadProgress"
-         style="width:0%">
-        0%
+        <div class="progress mt-3" style="display:none" id="uploadProgressWrapper">
+            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                 id="uploadProgress"
+                 style="width:0%">
+                0%
+            </div>
+        </div>
     </div>
 </div>
 
-</div>
-</div>
-
 <script>
-document.getElementById("uploadForm").addEventListener("submit", function(e){
- e.preventDefault();
+const uploadForm = document.getElementById("uploadForm");
+const uploadProgressWrapper = document.getElementById("uploadProgressWrapper");
+const uploadProgress = document.getElementById("uploadProgress");
+const uploadBtn = document.getElementById("uploadBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const errorTableWrapper = document.getElementById("errorTableWrapper");
 
- const xhr = new XMLHttpRequest();
- const formData = new FormData(this);
+let intervalId = null;
+let currentTaskId = null;
 
- xhr.open("POST", "", true);
+uploadForm.addEventListener("submit", function(e){
+    e.preventDefault();
 
- xhr.onload = function(){
-   const data = JSON.parse(xhr.responseText);
-   const taskId = data.task_id;
+    uploadBtn.disabled = true;
+    uploadBtn.innerText = "Uploading...";
+    cancelBtn.style.display = "inline-block";
+    errorTableWrapper.innerHTML = "";
 
-   const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", taskId);
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData(this);
 
-   document.getElementById("uploadProgressWrapper").style.display = "block";
+    // --- Track actual upload progress ---
+    xhr.upload.addEventListener("progress", function(event){
+        if(event.lengthComputable){
+            let percent = Math.round((event.loaded / event.total) * 100);
+            uploadProgressWrapper.style.display = "block";
+            uploadProgress.style.width = percent + "%";
+            uploadProgress.innerText = percent + "%";
+            uploadProgress.classList.add("uploading");
+            uploadProgress.classList.remove("processing");
+        }
+    });
 
-   const interval = setInterval(()=>{
-     fetch(TASK_URL)
-       .then(r=>r.json())
-       .then(data=>{
+    xhr.open("POST", "", true);
 
-         if(data.current){
-           let pct = Math.round(data.current / data.total * 100);
-           uploadProgress.style.width = pct+"%";
-           uploadProgress.innerText = pct+"%";
-         }
+    xhr.onload = function(){
+        const data = JSON.parse(xhr.responseText);
+        currentTaskId = data.task_id;
+        const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", currentTaskId);
 
-         // DONE
-        if(data.state === "SUCCESS"){
-           clearInterval(interval);
+        // --- Start server-side processing progress polling ---
+        intervalId = setInterval(()=>{
+            fetch(TASK_URL)
+                .then(r => r.json())
+                .then(data => {
+                    if(data.current && data.total){
+                        let pct = Math.round((data.current / data.total) * 100);
+                        uploadProgress.style.width = pct + "%";
+                        uploadProgress.innerText = pct + "%";
+                        uploadProgress.classList.remove("uploading");
+                        uploadProgress.classList.add("processing");
+                    }
 
-           // SHOW ERRORS
-            if(data.errors && data.errors.length){
+                    if(data.state === "SUCCESS" || data.state === "REVOKED"){
+                        clearInterval(intervalId);
+                        uploadBtn.disabled = false;
+                        uploadBtn.innerText = "Upload CSV";
+                        cancelBtn.style.display = "none";
 
-            let html = `
-            <div class="alert alert-danger mt-3">
-            <h5>Errors (${data.errors.length})</h5>
-            <table class="table table-sm table-bordered">
-            `;
+                        if(data.state === "REVOKED"){
+                            errorTableWrapper.innerHTML = `
+                                <div class="alert alert-warning">Upload cancelled by user.</div>
+                            `;
+                            uploadProgressWrapper.style.display = "none";
+                            return;
+                        }
 
-            data.errors.forEach((e,i)=>{
-            html += `<tr><td>${i+1}</td><td>${e}</td></tr>`;
+                        if(data.errors && data.errors.length){
+                            let html = `
+                                <div class="alert alert-danger">
+                                    <h5>Errors (${data.errors.length})</h5>
+                                    <table class="table table-sm table-bordered">
+                                        <thead><tr><th>#</th><th>Error</th></tr></thead>
+                                        <tbody>
+                            `;
+                            data.errors.forEach((e,i)=>{
+                                html += `<tr><td>${i+1}</td><td>${e}</td></tr>`;
+                            });
+                            html += "</tbody></table></div>";
+                            errorTableWrapper.innerHTML = html;
+                        } else {
+                            errorTableWrapper.innerHTML = `
+                                <div class="alert alert-success">
+                                    Imported ${data.created} created / ${data.updated} updated
+                                </div>
+                            `;
+                        }
+                    }
+                })
+        }, 2000);
+    };
+
+    xhr.send(formData);
+});
+
+// Cancel button
+cancelBtn.addEventListener("click", function(){
+    if(currentTaskId){
+        fetch("{% url 'nanopore:task-revoke' 'TASKID' %}".replace("TASKID", currentTaskId), {method:"POST"})
+            .then(()=> {
+                clearInterval(intervalId);
+                uploadBtn.disabled = false;
+                uploadBtn.innerText = "Upload CSV";
+                cancelBtn.style.display = "none";
+                uploadProgressWrapper.style.display = "none";
+                errorTableWrapper.innerHTML = `
+                    <div class="alert alert-warning">Upload cancelled by user.</div>
+                `;
             });
-
-            html += "</table></div>";
-
-            document.querySelector(".container").insertAdjacentHTML("beforeend", html);
-
-            }else{
-
-            let html = `
-            <div class="alert alert-success mt-3">
-            Imported ${data.created} created / ${data.updated} updated
-            </div>
-            `;
-
-            document.querySelector(".container").insertAdjacentHTML("beforeend", html);
-            }
-         }
-       })
-   },2000);
- };
-
- xhr.send(formData);
+    }
 });
 </script>
+
+<style>
+#uploadProgress.uploading { background-color: #0d6efd; } /* blue upload */
+#uploadProgress.processing { background-color: #198754; } /* green processing */
+</style>
 
 {% endblock %}
