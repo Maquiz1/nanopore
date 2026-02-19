@@ -517,6 +517,35 @@
         </div>
         {% endif %}
 
+        {# invalid_number_received_1_filled #}
+        {% if count_iinvalid_number_received_1_filled %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseiinvalid_number_received_1_filled">
+                    4. Number of samples received is "1" but some fileds are invalid ({{ count_iinvalid_number_received_1_filled|default:"0"  | intcomma  }})
+                </button>
+            </h2>
+            <div id="collapseiinvalid_number_received_1_filled" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for c in iinvalid_number_received_1_filled|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.screening.pid }}</a></td>
+                                    <td>{{ c.screening.site.district.region.zone.name }}</td>
+                                    <td>{{ c.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {# AFB microscopy required by business rule #}
         {% if count_missing_afb_microscopy_conducted %}
         <div class="accordion-item">

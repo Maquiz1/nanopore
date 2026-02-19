@@ -215,6 +215,20 @@ def get_clinic_dq(qs):
         sample2_volume__isnull=True
     )
 
+    # Invalid Sample
+    number_received_1_q = Q(number_received=1) | Q(number_received__value=1) | Q(number_received__name__iexact="1")
+
+    invalid_number_received_1_filled = qs.filter(
+        number_received_1_q &
+        (
+            is_filled_non_char("date_sample2_collected") |
+            is_filled_non_char("date_sample2_received") |
+            is_filled_non_char("appearance_sample2") |
+            is_filled_non_char("sample2_volume")
+        )
+    )
+    
+    
     # AFB
     missing_afb_microscopy_conducted = qs.filter(
         afb_xpert_required_q,
@@ -304,16 +318,25 @@ def get_clinic_dq(qs):
         "missing_new_reason_when_new_sample_2": missing_new_reason_when_new_sample_2,
         "missing_other_reason_when_sample_reason_96": missing_other_reason_when_sample_reason_96,
 
+        # Sample 1
         "missing_date_sample1_collected": missing_date_sample1_collected,
         "missing_date_sample1_received": missing_date_sample1_received,
         "missing_appearance_sample1": missing_appearance_sample1,
         "missing_sample1_volume": missing_sample1_volume,
+        
+        # INVALID SAMPLE 1 VOLUME
         "missing_invalid_sample1_volume": invalid_sample1_volume,
-
+        
+        # INVALID RULE FOR ALL
+        "invalid_number_received_1_filled":invalid_number_received_1_filled,
+        
+        # Sample 2
         "missing_date_sample2_collected": missing_date_sample2_collected,
         "missing_date_sample2_received": missing_date_sample2_received,
         "missing_appearance_sample2": missing_appearance_sample2,
         "missing_sample2_volume": missing_sample2_volume,
+        
+        # INVALID SAMPLE 2 VOLUME
         "missing_invalid_sample2_volume": invalid_sample2_volume,
 
         # AFB
