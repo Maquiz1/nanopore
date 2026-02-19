@@ -146,18 +146,17 @@ def get_screening_dq(qs, user=None):
         reasons_1_q & is_filled_char("reasons_other")
     )
 
+    # ────────────────
+    # Combine all rules if needed
+    # ────────────────
+    invalid_enrollment_rules = invalid_enrolled_1 | invalid_reasons_1
+
     # 3️⃣ Rule 3 — consent = 2 → consent_date must be empty
     consent_2_q = Q(consent=2) | Q(consent__value=2) | Q(consent__name__iexact="2")
 
     invalid_consent_2 = qs.filter(
         consent_2_q & is_filled_non_char("consent_date")
     )
-
-    # ────────────────
-    # Combine all rules if needed
-    # ────────────────
-    invalid_enrollment_rules = invalid_enrolled_1 | invalid_reasons_1 | invalid_consent_2
-
 
     # ── NON-ELIGIBLE (ROLE CONTROLLED) ──
     if is_full_access:
@@ -188,6 +187,7 @@ def get_screening_dq(qs, user=None):
         "invalid_length_pids": invalid_length_pids,
         "not_eligible": not_eligible_qs,  # always present, but may be empty
         "invalid_enrollment_rules":invalid_enrollment_rules,
+        "invalid_consent_2":invalid_consent_2,
     }
 
     # ── TOTALS ──
