@@ -25,9 +25,7 @@ from options.models import (
     MTBResultsLPA, RIFResultLPA, INHResultLPA, NanoporeResults,
     NanoporeSequencingResults, NanoporeSequencingDelayedReasons
 )
-
-from . tasks_base import RevocableTask
-
+from nanopore.models import ZonalLaboratory
 
 @shared_task(bind=True)
 def import_edcs_tblis(self, filepath):
@@ -210,6 +208,15 @@ def import_edcs_tblis(self, filepath):
                 meta={"current": processed, "total": total}
             )
 
+    # after processing all rows, before return
+    total_tblis_records = EdcsTblisZonal.objects.count()
+    total_edcs_records = ZonalLaboratory.objects.count()
+
+    percentage = 0
+    if total_edcs_records:
+        percentage = round((total_tblis_records / total_edcs_records) * 100, 2)
+
+
     return {
         "current": processed,
         "total": total,
@@ -217,4 +224,7 @@ def import_edcs_tblis(self, filepath):
         "updated": updated,
         "errors": row_errors,
         "state": "SUCCESS",
+        "total_edcs_records": total_edcs_records,
+        "total_tblis_records": total_tblis_records,
+        "percentage_uploaded": percentage
     }
