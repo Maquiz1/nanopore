@@ -801,6 +801,36 @@
         </div>
         {% endif %}
 
+        {# invalid_xpert_mtb_filled #}
+        {% if count_invalid_xpert_mtb_filled %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseinvalid_xpert_mtb_filled">
+                    9(b). Xpert MTB/RIF (Ultra) Test Result is either not detected or no result or error but some fileds are invalid ({{ count_invalid_xpert_mtb_filled|default:"0"  | intcomma  }})
+                </button>
+            </h2>
+            <div id="collapseinvalid_xpert_mtb_filled" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for c in invalid_xpert_mtb_filled|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.screening.pid }}</a></td>
+                                    <td>{{ c.screening.site.district.region.zone.name }}</td>
+                                    <td>{{ c.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+
     </div>
     {% else %}
     <div class="alert alert-success text-center py-5">

@@ -37,6 +37,46 @@ def get_clinic_queryset(user, zone_id=None, site_id=None):
 
 
 def get_clinic_dq(qs):
+    def is_true(field):
+        """
+        Field is explicitly True
+        """
+        return Q(**{field: True})
+
+
+    def is_false(field):
+        """
+        Field is explicitly False
+        """
+        return Q(**{field: False})
+
+
+    def is_checked(field):
+        """
+        Checkbox is checked (True)
+        """
+        return Q(**{field: True})
+
+
+    def is_unchecked(field):
+        """
+        Checkbox is False OR NULL (treat as not checked)
+        Useful when BooleanField(null=True)
+        """
+        return Q(**{field: False}) | Q(**{f"{field}__isnull": True})
+
+    
+    def is_filled_char(field):
+        return (
+            Q(**{f"{field}__isnull": False}) &
+            ~Q(**{f"{field}__regex": r'^\s*$'})
+        )
+
+    def is_filled_non_char(field):
+        return Q(**{f"{field}__isnull": False})
+    
+    def m2m_has_any(field):
+        return Q(**{f"{field}__isnull": False})
 
     # ─────────────────────────────────────────────
     # Q Helpers
@@ -54,8 +94,27 @@ def get_clinic_dq(qs):
     afb_yes_q = Q(afb_microscopy_conducted__name__iexact="yes")
     xpert_yes_q = Q(xpert_mtb_rif_conducted__name__iexact="yes")
 
+    # EXPERT MTB
     xpert_in_2_6_q = Q(xpert_mtb__value__in=[2,3,4,5,6]) | Q(xpert_mtb__name__in=["2","3","4","5","6"])
     xpert_is_8_q = Q(xpert_mtb__value=8) | Q(xpert_mtb__name__iexact="8")
+    
+    # xpert_mtb = 1,7,8,9 → fields (tb_regimen_other) must be EMPTY
+    xpert_mtb_condition_q = (
+        Q(xpert_mtb__in=[1,7,8,9]) |
+        Q(xpert_mtb__value__in=[1,7,8,9]) |
+        Q(xpert_mtb__name__in=["1","7","8","9"])
+    )
+    
+    case_invalid_xpert_mtb_q = (
+        is_filled_non_char("error_code") |
+        is_filled_non_char("xpert_rif") |
+        is_filled_non_char("ct_value") |
+        is_true("ct_na")
+    )
+
+    invalid_xpert_mtb_filled = qs.filter(
+        xpert_mtb_condition_q & case_invalid_xpert_mtb_q
+    )
 
     # ─────────────────────────────────────────────
     # Volume Validation
@@ -233,12 +292,14 @@ def get_clinic_dq(qs):
         "missing_technique_b": missing_technique_b,
         "missing_afb_b_results": missing_afb_b_results,
 
+        # expert mtb
         "missing_xpert_mtb_rif_conducted": missing_xpert_mtb_rif_conducted,
         "missing_xpert_date": missing_xpert_date,
         "missing_xpert_mtb": missing_xpert_mtb,
         "missing_error_code": missing_error_code,
         "missing_xpert_rif": missing_xpert_rif,
         "missing_ct_value": missing_ct_value,
+        "invalid_xpert_mtb_filled":invalid_xpert_mtb_filled,
     }
 
     totals = {f"count_{k}": v.count() for k, v in problem_lists.items()}
