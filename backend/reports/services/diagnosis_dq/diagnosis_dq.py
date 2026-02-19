@@ -212,16 +212,16 @@ def get_diagnosis_dq(qs):
     
     # tb_diagnosed_clinically = 1,2,3,4,5,6,7,8 → field(tb_clinically_other) must be EMPTY
     # Condition: any tb_diagnosed_clinically in [1..8]
-    tb_diag_clinical_condition_q = Q(tb_diagnosed_clinically__in=[1,2,3,4,5,6,7,8]) | \
-                                    Q(tb_diagnosed_clinically__value__in=[1,2,3,4,5,6,7,8]) | \
-                                    Q(tb_diagnosed_clinically__name__in=["1","2","3","4","5","6","7","8"])
+    tb_diag_not_9_q = (
+        Q(tb_diagnosed_clinically__in=[1,2,3,4,5,6,7,8]) |
+        Q(tb_diagnosed_clinically__value__in=[1,2,3,4,5,6,7,8]) |
+        Q(tb_diagnosed_clinically__name__in=["1","2","3","4","5","6","7","8"])
+    )
 
-    # Check if tb_clinically_other is filled
-    tb_clinically_other_filled_q = is_filled_char("tb_clinically_other")
-
-    # Final invalid records
     invalid_tb_clinically_other = qs.filter(
-        tb_diag_clinical_condition_q & tb_clinically_other_filled_q
+        tb_diag_not_9_q &
+        Q(tb_clinically_other__isnull=False) &
+        ~Q(tb_clinically_other__regex=r'^\s*$')
     ).distinct()
     
     # ──────────────────────────────
