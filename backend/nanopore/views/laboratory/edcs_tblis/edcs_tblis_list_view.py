@@ -44,12 +44,13 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             round((total_tblis_records / total_edcs_records) * 100, 2)
             if total_edcs_records else 0
         )
-        last_upload = ZonalLaboratory.objects.order_by("-updated_at").first()
+        last_upload = EdcsTblisZonal.objects.order_by("-updated_at").first()
 
         context.update({
             "total_edcs_records": total_edcs_records,
             "total_tblis_records": total_tblis_records,
             "percentage_uploaded": percentage_uploaded,
-            "last_upload": last_upload.updated_at if last_upload else None
+            "last_upload": last_upload.updated_at if last_upload else None,
+            "last_upload_by": last_upload.updated_by if last_upload else None,
         })
         return context

@@ -26,7 +26,10 @@
                 <strong>Total TBLIS Records:</strong> {{ total_tblis_records }}<br>
                 <strong>Uploaded %:</strong> {{ percentage_uploaded }}%<br>
                 {% if last_upload %}
-                    <strong>Last Upload:</strong> {{ last_upload|date:"M d, Y H:i" }}
+                    <strong>Last Upload:</strong> {{ last_upload|date:"M d, Y H:i" }}<br>
+                    {% if last_upload_by %}
+                        by {{ last_upload_by.get_full_name|default:last_upload_by.username }}
+                    {% endif %} 
                 {% else %}
                     <strong>Last Upload:</strong> No uploads yet
                 {% endif %}
