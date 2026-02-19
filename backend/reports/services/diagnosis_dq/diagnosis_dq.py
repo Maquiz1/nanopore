@@ -103,6 +103,22 @@ def get_diagnosis_dq(qs):
     invalid_diag_other_than_tb_filled = qs.filter(
         tb_tb_diagnosis_is_1_q & diag_other_than_tb_filled_q
     )
+    
+    # tb_other_diagnosis = 1,2,4,5 → 12(a). If Other Mention ( or If Bacterial pneumonia, specify causative species if known): field must be EMPTY
+    tb_other_diag_condition_q = (
+        Q(tb_other_diagnosis__in=[1,2,4,5]) |
+        Q(tb_other_diagnosis__value__in=[1,2,4,5]) |
+        Q(tb_other_diagnosis__name__in=["1","2","4","5"])
+    )
+
+    mention_tb_other_specify_filled_q = (
+        Q(tb_other_specify__isnull=False) &
+        ~Q(tb_other_specify="")
+    )
+
+    invalid_mention_tb_other_specify_filled = qs.filter(
+        tb_other_diag_condition_q & mention_tb_other_specify_filled_q
+    )
 
     # ──────────────────────────────
     # Problem querysets
@@ -134,6 +150,7 @@ def get_diagnosis_dq(qs):
         "missing_tb_diagnosis_made2": qs.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True),
         "missing_tb_other_specify": qs.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True),
         "invalid_diag_other_than_tb_filled":invalid_diag_other_than_tb_filled,
+        "invalid_mention_tb_other_specify_filled":invalid_mention_tb_other_specify_filled,
     }
 
     # ──────────────────────────────
