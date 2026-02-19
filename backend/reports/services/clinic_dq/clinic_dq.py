@@ -203,14 +203,14 @@ def get_clinic_dq(qs):
         Q(sample_received__name__iexact="2")
     )
 
-    new_sample_2_q = (
-        Q(new_sample=2) |
-        Q(new_sample__value=2) |
-        Q(new_sample__name__iexact="2")
-    )
+    # new_sample_2_q = (
+    #     Q(new_sample=2) |
+    #     Q(new_sample__value=2) |
+    #     Q(new_sample__name__iexact="2")
+    # )
 
     invalid_sample_received_2_new_sample_2 = qs.filter(
-        sample_received_2_q & new_sample_2_q & is_filled_non_char("number_received")
+        sample_received_2_q & is_filled_non_char("number_received")
     )
 
     # Combine both rules
