@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load humanize %}
+{% load humanize colors %}
 
 {% block content %}
 <div class="container mt-4">
@@ -66,29 +66,46 @@
             {% for site in sites %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td><a href="#">{{ site.district.region.zone.name }}</a></td>
+                <td>{{ site.district.region.zone.name }}</td>
                 <td><a href="{% url 'locations:site-detail' site.id %}">{{ site.name }}</a></td>
-                <td>{{ site.actual_substudy2|default:"0" }}</td>
+
+                <td class="{{ site.actual_substudy2|perc_color:site.substudy2Target }}">
+                    {{ site.actual_substudy2|default:"0" }}
+                </td>
                 <td>{{ site.substudy2Target|default:"0" }}</td>
-                <td>{{ site.actual_substudy4|default:"0" }}</td>
+
+                <td class="{{ site.actual_substudy4|perc_color:site.substudy4Target }}">
+                    {{ site.actual_substudy4|default:"0" }}
+                </td>
                 <td>{{ site.substudy4Target|default:"0" }}</td>
-                <td>{{ site.actual_total|default:"0" }}</td>
+
+                <td class="{{ site.actual_total|perc_color:site.target }}">
+                    {{ site.actual_total|default:"0" }}
+                </td>
                 <td>{{ site.target|default:"0" }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="text-center">No sites found for the selected filters.</td>
+                <td colspan="9" class="text-center">No sites found for the selected filters.</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot class="table-light">
             <tr>
-                <th colspan="2">Total</th>
-                <th>{{ actual_substudy2 }}</th>
+                <th colspan="3">Total</th>
+                <th class="{{ actual_substudy2|perc_color:total_substudy2_target }}">
+                    {{ actual_substudy2 }}
+                </th>
                 <th>{{ total_substudy2_target }}</th>
-                <th>{{ actual_substudy4 }}</th>
+
+                <th class="{{ actual_substudy4|perc_color:total_substudy4_target }}">
+                    {{ actual_substudy4 }}
+                </th>
                 <th>{{ total_substudy4_target }}</th>
-                <th>{{ actual_total }}</th>
+
+                <th class="{{ actual_total|perc_color:total_target }}">
+                    {{ actual_total }}
+                </th>
                 <th>{{ total_target }}</th>
             </tr>
         </tfoot>
