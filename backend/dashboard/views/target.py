@@ -19,7 +19,13 @@ class SiteTargetsView(ListView):
         Annotate each site with actual enrolled counts for total, substudy2, and substudy4.
         Apply role-based filtering and optional GET filters: zone, site, start_date, end_date.
         """
-        qs = Site.objects.all().order_by("name")
+        # qs = Site.objects.all().order_by("name")
+        # Only active sites
+        # qs = Site.objects.filter(is_active=True).order_by("name")
+        qs = Site.objects.filter(is_active=True).order_by(
+            "district__region__zone__name",  # sort by zone name first
+            "name"                           # then by site name
+        )
 
         # Role-based filtering
         qs = filter_queryset_by_user_role(self.request.user, qs, site_field="id")
