@@ -173,13 +173,32 @@ def get_clinic_dq(qs):
         other_reason__isnull=True
     )
     
+    # SAMPLE RECEIVED RULE
+    # sample_received = 1 → sample_reason must be empty
+    sample_received_1_q = Q(sample_received=1) | Q(sample_received__value=1) | Q(sample_received__name__iexact="1")
+    invalid_sample_reason_when_received_1 = qs.filter(
+        sample_received_1_q & is_filled_non_char("sample_reason")
+    )
+
+    # sample_received = 2 → new_sample must be empty
+    sample_received_2_q = Q(sample_received=2) | Q(sample_received__value=2) | Q(sample_received__name__iexact="2")
+    invalid_new_sample_when_received_2 = qs.filter(
+        sample_received_2_q & is_filled_non_char("new_sample")
+    )
     
+    invalid_sample_sample_received_rule = invalid_sample_reason_when_received_1 | invalid_new_sample_when_received_2
+
     # SAMPLE REASON RULE
     # Sample reason = 1 → other_reason must be empty
-    sample_reason_1_q = Q(sample_reason=1) | Q(sample_reason__value=1) | Q(sample_reason__name__iexact="1")
+    # Sample reason = 1 or 2 → other_reason must be empty
+    sample_reason_1_2_q = (
+        Q(sample_reason__in=[1, 2]) |
+        Q(sample_reason__value__in=[1, 2]) |
+        Q(sample_reason__name__in=["1", "2"])
+    )
 
     invalid_other_reason_rule = qs.filter(
-        sample_reason_1_q & is_filled_char("other_reason")
+        sample_reason_1_2_q & is_filled_char("other_reason")
     )
 
     # NEW SAMPLE RULE
@@ -345,6 +364,7 @@ def get_clinic_dq(qs):
         "missing_new_reason_when_new_sample_2": missing_new_reason_when_new_sample_2,
         "missing_other_reason_when_sample_reason_96": missing_other_reason_when_sample_reason_96,
         
+        "invalid_sample_sample_received_rule":invalid_sample_sample_received_rule,
         "invalid_other_reason_rule":invalid_other_reason_rule,
         "invalid_new_sample_rule":invalid_new_sample_rule,
 
