@@ -1,7 +1,7 @@
     document.addEventListener("DOMContentLoaded", function () {
 
         // ===== Fields =====
-        const TbDiagnosisField = document.getElementById("id_tb_diagnosis");
+        const tbDiagnosisField = document.getElementById("id_tb_diagnosis");
         const tbDiagnosisDateSections = document.getElementById("tb-diagnosis-date-sections");
         const tbDiagnosisMadeSections = document.getElementById("tb-diagnosis-made-sections");
         const tbSections = document.getElementById("tb-sections");
@@ -40,12 +40,12 @@
 
         // ===== Functions =====
         function toggleTbSections() {
-            if (TbDiagnosisField.value === "1") {
+            if (tbDiagnosisField.value === "1") {
                 tbDiagnosisDateSections.style.display = "block";
                 tbDiagnosisMadeSections.style.display = "block";
                 tbTreatmentOutcomesSections.style.display = "block";
                 nonTbSections.style.display = "none";
-            } else if (TbDiagnosisField.value === "2") {
+            } else if (tbDiagnosisField.value === "2") {
                 tbSections.style.display = "none";
                 tbDiagnosisDateSections.style.display = "none";
                 tbDiagnosisMadeSections.style.display = "none";
@@ -233,7 +233,7 @@
         toggleTbRegimenSection();
 
         toggleAddButton();
-        TbDiagnosisField.addEventListener("change", toggleTbSections);
+        tbDiagnosisField.addEventListener("change", toggleTbSections);
 
         if (tbTreatmentField) {
             tbTreatmentField.addEventListener("change", toggleTbTreatmentSections);

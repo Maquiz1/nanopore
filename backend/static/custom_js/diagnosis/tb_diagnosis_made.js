@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
 
     function toggleTbDiagnosisMadeField() {
+        // const TbDiagnosisMadeFieldValue = String(TbDiagnosisMadeField?.value || "");
+
         const value = String(TbDiagnosisMadeField?.value || "");
 
         if (value === "1") {
