@@ -48,7 +48,7 @@
         <span class="fs-5 fw-normal text-muted">
             Screening Data Quality Report (
             {% if selected_zone or selected_site %}
-                {% if selected_zone %}{{ selected_zone_name }}{% else %}All Zones{% endif %} +
+                {% if selected_zone %}{{ selected_site.district.region.zone.name }}{% else %}All Zones{% endif %} +
                 {% if selected_site %}{{ selected_site_name }}{% else %}All Sites{% endif %}
             {% else %}
                 All Zones + All Sites
@@ -144,7 +144,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                     <td><span class="badge bg-warning">Not Eligible</span></td>
                                 </tr>
@@ -184,7 +184,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -227,7 +227,7 @@
                                     </td>
                                     <td>{{ s.pid1 }}</td>
                                     <td>{{ s.pid2 }}</td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -266,7 +266,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -305,7 +305,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -344,7 +344,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -383,7 +383,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -422,7 +422,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -461,7 +461,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -500,7 +500,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -539,7 +539,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -578,7 +578,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -617,7 +617,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -656,7 +656,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -695,7 +695,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -734,7 +734,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -773,7 +773,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -812,7 +812,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -851,7 +851,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -890,7 +890,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -929,7 +929,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -968,7 +968,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone.name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site.name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -1007,7 +1007,7 @@
                                             {{ s.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site.district.region.zone.name }}</td>
                                     <td>{{ s.site_name }}</td>
                                 </tr>
                                 {% endfor %}
@@ -1035,7 +1035,7 @@
                 <p class="text-muted">
                     {% if selected_zone or selected_site %}
                         All {{ label|default:"screening" }} records for
-                        {% if selected_zone %}<strong>{{ selected_zone_name }}</strong>{% else %}all zones{% endif %}
+                        {% if selected_zone %}<strong>{{ selected_site.district.region.zone.name }}</strong>{% else %}all zones{% endif %}
                         and
                         {% if selected_site %}<strong>{{ selected_site_name }}</strong>{% else %}all sites{% endif %}
                         are complete.
