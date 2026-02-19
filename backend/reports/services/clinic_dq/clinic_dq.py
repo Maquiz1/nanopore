@@ -173,6 +173,23 @@ def get_clinic_dq(qs):
         other_reason__isnull=True
     )
 
+    # 1️⃣ Case 1 — new_sample = 1 → new_reason must be empty
+    new_sample_1_q = Q(new_sample=1) | Q(new_sample__value=1) | Q(new_sample__name__iexact="1")
+
+    invalid_new_sample_1 = qs.filter(
+        new_sample_1_q & is_filled_char("new_reason")
+    )
+    
+    # 2️⃣ Case 2 — new_sample = 2 → number_received must be empty
+    new_sample_2_q = Q(new_sample=2) | Q(new_sample__value=2) | Q(new_sample__name__iexact="2")
+
+    invalid_new_sample_2 = qs.filter(
+        new_sample_2_q & is_filled_non_char("number_received")
+    )
+    
+    invalid_new_sample_rule = invalid_new_sample_1 | invalid_new_sample_2
+
+
     # Sample 1
     missing_date_sample1_collected = qs.filter(
         number_received__isnull=False,
@@ -317,6 +334,8 @@ def get_clinic_dq(qs):
         "missing_sample_reason_when_received_2": missing_sample_reason_when_received_2,
         "missing_new_reason_when_new_sample_2": missing_new_reason_when_new_sample_2,
         "missing_other_reason_when_sample_reason_96": missing_other_reason_when_sample_reason_96,
+        
+        "invalid_new_sample_rule":invalid_new_sample_rule,
 
         # Sample 1
         "missing_date_sample1_collected": missing_date_sample1_collected,
