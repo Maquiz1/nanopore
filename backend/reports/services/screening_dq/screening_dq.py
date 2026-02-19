@@ -25,6 +25,46 @@ def get_screening_dq(qs, user=None):
         problem_lists: dict of querysets for each DQ issue
         totals: dict of counts for each issue
     """
+    def is_true(field):
+        """
+        Field is explicitly True
+        """
+        return Q(**{field: True})
+
+
+    def is_false(field):
+        """
+        Field is explicitly False
+        """
+        return Q(**{field: False})
+
+
+    def is_checked(field):
+        """
+        Checkbox is checked (True)
+        """
+        return Q(**{field: True})
+
+
+    def is_unchecked(field):
+        """
+        Checkbox is False OR NULL (treat as not checked)
+        Useful when BooleanField(null=True)
+        """
+        return Q(**{field: False}) | Q(**{f"{field}__isnull": True})
+
+    
+    def is_filled_char(field):
+        return (
+            Q(**{f"{field}__isnull": False}) &
+            ~Q(**{f"{field}__regex": r'^\s*$'})
+        )
+
+    def is_filled_non_char(field):
+        return Q(**{f"{field}__isnull": False})
+    
+    def m2m_has_any(field):
+        return Q(**{f"{field}__isnull": False})
 
     # ── ROLE CHECK ──
     is_full_access = False
@@ -86,6 +126,38 @@ def get_screening_dq(qs, user=None):
         pid__isnull=False,
         pid__regex=r"^(?!.{16}$).*$"
     )
+    
+    
+    # ────────────────
+    # ENROLLED / REASONS / CONSENT RULES
+    # ────────────────
+
+    # 1️⃣ Rule 1 — enrolled = 1 → reasons must be empty
+    enrolled_1_q = Q(enrolled=1) | Q(enrolled__value=1) | Q(enrolled__name__iexact="1")
+
+    invalid_enrolled_1 = qs.filter(
+        enrolled_1_q & is_filled_non_char("reasons")
+    )
+
+    # 2️⃣ Rule 2 — reasons = 1 → reasons_other must be empty
+    reasons_1_q = Q(reasons=1) | Q(reasons__value=1) | Q(reasons__name__iexact="1")
+
+    invalid_reasons_1 = qs.filter(
+        reasons_1_q & is_filled_char("reasons_other")
+    )
+
+    # 3️⃣ Rule 3 — consent = 2 → consent_date must be empty
+    consent_2_q = Q(consent=2) | Q(consent__value=2) | Q(consent__name__iexact="2")
+
+    invalid_consent_2 = qs.filter(
+        consent_2_q & is_filled_non_char("consent_date")
+    )
+
+    # ────────────────
+    # Combine all rules if needed
+    # ────────────────
+    invalid_enrollment_rules = invalid_enrolled_1 | invalid_reasons_1 | invalid_consent_2
+
 
     # ── NON-ELIGIBLE (ROLE CONTROLLED) ──
     if is_full_access:
@@ -115,6 +187,7 @@ def get_screening_dq(qs, user=None):
         "mismatched_pids": mismatched_pids,
         "invalid_length_pids": invalid_length_pids,
         "not_eligible": not_eligible_qs,  # always present, but may be empty
+        "invalid_enrollment_rules":invalid_enrollment_rules,
     }
 
     # ── TOTALS ──

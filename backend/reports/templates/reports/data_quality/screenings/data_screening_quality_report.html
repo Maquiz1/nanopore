@@ -941,6 +941,45 @@
         </div>
         {% endif %}
 
+        <!-- invalid_enrollment_rules -->
+        {% if count_invalid_enrollment_rules %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseinvalid_enrollment_rules">
+                    11(a). Was this patient enrolled? is "YES" or "NO" but contains some invalid fields ({{ count_invalid_enrollment_rules }})
+                </button>
+            </h2>
+            <div id="collapseinvalid_enrollment_rules" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Zone</th>
+                                    <th>Site</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in invalid_enrollment_rules %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'nanopore:screening-update' pk=s.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">
+                                            {{ s.pid }}
+                                        </a>
+                                    </td>
+                                    <td>{{ s.zone_name }}</td>
+                                    <td>{{ s.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- No issues message – updated to include new fields -->
         {% if not not_eligible and not duplicate_pids and not mismatched_pids and not invalid_length_pids and not missing_screening_date and not missing_pid1 and not missing_pid2 and not missing_sex and not missing_age_dob and not missing_consent and not missing_age18years and not missing_present_symptoms and not missing_genexpert_confirmation and not missing_produce_resp_sample and not missing_unable_understand and not missing_not_willing and not missing_enrolled and not missing_reasons and not missing_consent_date_when_yes and not missing_reasons_other %}
             {% if total_issues|add:0 == 0 %}
