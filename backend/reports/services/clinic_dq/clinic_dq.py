@@ -85,7 +85,7 @@ def get_clinic_dq(qs):
     sample_received_is_2_q = Q(sample_received__value=2) | Q(sample_received__name__iexact="2")
     sample_received_is_1_q = Q(sample_received__value=1) | Q(sample_received__name__iexact="1")
     missing_new_sample = qs.filter(
-        sample_received=1,
+        sample_received=2,
         new_sample__isnull=True
     )
     new_sample_is_1_q = Q(new_sample__value=1) | Q(new_sample__name__iexact="1")
