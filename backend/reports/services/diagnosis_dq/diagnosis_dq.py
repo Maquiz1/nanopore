@@ -209,6 +209,21 @@ def get_diagnosis_dq(qs):
         invalid_tb_treatment_3
     )
     
+    
+    # tb_diagnosed_clinically = 1,2,3,4,5,6,7,8 → field(tb_clinically_other) must be EMPTY
+    # Condition: any tb_diagnosed_clinically in [1..8]
+    tb_diag_clinical_condition_q = Q(tb_diagnosed_clinically__in=[1,2,3,4,5,6,7,8]) | \
+                                    Q(tb_diagnosed_clinically__value__in=[1,2,3,4,5,6,7,8]) | \
+                                    Q(tb_diagnosed_clinically__name__in=["1","2","3","4","5","6","7","8"])
+
+    # Check if tb_clinically_other is filled
+    tb_clinically_other_filled_q = is_filled_char("tb_clinically_other")
+
+    # Final invalid records
+    invalid_tb_clinically_other = qs.filter(
+        tb_diag_clinical_condition_q & tb_clinically_other_filled_q
+    ).distinct()
+    
     # ──────────────────────────────
     # Problem querysets
     # ──────────────────────────────
@@ -216,15 +231,18 @@ def get_diagnosis_dq(qs):
         "missing_tb_diagnosis": qs.filter(tb_diagnosis__isnull=True),
         "missing_tb_diagnosis_date": qs.filter(tb_diagnosis=1, tb_diagnosis_date__isnull=True),
         "missing_tb_diagnosis_made": qs.filter(tb_diagnosis=1, tb_diagnosis_made__isnull=True),
-        
+        "missing_diagnosis_made_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True),
+
         # TB TREATMENT
         "missing_tb_treatment": qs.filter(tb_diagnosis=1, tb_treatment__isnull=True),
         "invalid_tb_treatment_started":invalid_tb_treatment_started,
         
-        "missing_diagnosis_made_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True),
+        # TB DIAGNOSIS CLINICALLY
         "missing_tb_diagnosed_clinically": qs.filter(tb_diagnosis=1, tb_diagnosis_made=1)
             .annotate(clinical_count=Count("tb_diagnosed_clinically")).filter(clinical_count=0),
         "missing_tb_clinically_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made=1, tb_diagnosed_clinically__value=96, tb_clinically_other__isnull=True).distinct(),
+        "invalid_tb_clinically_other":invalid_tb_clinically_other,
+        
         "missing_bacteriological_diagnosis": qs.filter(tb_diagnosis=1, tb_diagnosis_made=2, bacteriological_diagnosis__isnull=True),
         "missing_clinician_received_date": qs.filter(tb_diagnosis=1, tb_diagnosis_made=2, clinician_received_date__isnull=True),
         "missing_tb_treatment_date": qs.filter(tb_treatment=1, tb_treatment_date__isnull=True),
