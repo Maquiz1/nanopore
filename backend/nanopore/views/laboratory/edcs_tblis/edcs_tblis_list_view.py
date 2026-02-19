@@ -1,7 +1,8 @@
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
 from locations.models import Zone, Site
-from nanopore.models import Enrollment, ClinicLaboratory, Diagnosis, ZonalLaboratory,EdcsTblisZonal
+from nanopore.models import EdcsTblisZonal, ZonalLaboratory
 from utils.permissions import filter_queryset_by_user_role
 
 
@@ -14,6 +15,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         qs = EdcsTblisZonal.objects.select_related("screening__site", "screening__sex")
         qs = filter_queryset_by_user_role(self.request.user, qs, site_field="screening__site")
+
         # Filters
         zone_id = self.request.GET.get("zone")
         site_id = self.request.GET.get("site")
@@ -34,7 +36,20 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         context["zones"] = Zone.objects.all()
         context["sites"] = Site.objects.all()
         context["request"] = self.request
+
+        # Upload stats
+        total_tblis_records = EdcsTblisZonal.objects.count()
+        total_edcs_records = ZonalLaboratory.objects.count()
+        percentage_uploaded = (
+            round((total_tblis_records / total_edcs_records) * 100, 2)
+            if total_edcs_records else 0
+        )
+        last_upload = ZonalLaboratory.objects.order_by("-updated_at").first()
+
+        context.update({
+            "total_edcs_records": total_edcs_records,
+            "total_tblis_records": total_tblis_records,
+            "percentage_uploaded": percentage_uploaded,
+            "last_upload": last_upload.updated_at if last_upload else None
+        })
         return context
-    
-
-

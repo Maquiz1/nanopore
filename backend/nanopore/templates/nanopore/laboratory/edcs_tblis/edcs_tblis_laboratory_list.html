@@ -18,6 +18,21 @@
         </a>
     </div> -->
 
+    <div class="mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Upload Information</h5>
+            <p>
+                <strong>Total EDCS Records:</strong> {{ total_edcs_records }}<br>
+                <strong>Total TBLIS Records:</strong> {{ total_tblis_records }}<br>
+                <strong>Uploaded %:</strong> {{ percentage_uploaded }}%<br>
+                {% if last_upload %}
+                    <strong>Last Upload:</strong> {{ last_upload|date:"M d, Y H:i" }}
+                {% else %}
+                    <strong>Last Upload:</strong> No uploads yet
+                {% endif %}
+            </p>
+        </div>
+    </div>
     <hr class="my-3">
 
     Total Records: {{ page_obj.paginator.count }}
