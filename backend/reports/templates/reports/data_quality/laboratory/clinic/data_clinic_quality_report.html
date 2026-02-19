@@ -668,6 +668,35 @@
         </div>
         {% endif %}
 
+        {# invalid_afb_microscopy_conducted_filled #}
+        {% if count_invalid_afb_microscopy_conducted_filled %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseinvalid_afb_microscopy_conducted_filled">
+                    8. Was AFB microscopy conducted at TB clinic? is "No" but some fileds are invalid ({{ count_invalid_afb_microscopy_conducted_filled|default:"0"  | intcomma  }})
+                </button>
+            </h2>
+            <div id="collapseinvalid_afb_microscopy_conducted_filled" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for c in invalid_afb_microscopy_conducted_filled|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.screening.pid }}</a></td>
+                                    <td>{{ c.screening.site.district.region.zone.name }}</td>
+                                    <td>{{ c.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {# Xpert required by business rule #}
         {% if count_missing_xpert_mtb_rif_conducted %}
         <div class="accordion-item">
