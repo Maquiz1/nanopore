@@ -8,15 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
 
     function toggleTbDiagnosisMadeField() {
-        // const TbDiagnosisMadeFieldValue = String(TbDiagnosisMadeField?.value || "");
-
-        // Show if LJ is 1-4 OR MGIT is 1 - THIS WORKS TOO
-        // const show = ["1"].includes(TbDiagnosisMadeFieldValue);
-
-        // clinicalDiagnosisSection.style.display = show ? "block" : "none";
-        // bacteriologicalDiagnosisSection.style.display = show ? "block" : "none";
-        // tbDiagnosisMadeOtherSections.style.display = show ? "block" : "none";
-
         const value = String(TbDiagnosisMadeField?.value || "");
 
         if (value === "1") {
