@@ -84,6 +84,10 @@ def get_clinic_dq(qs):
 
     sample_received_is_2_q = Q(sample_received__value=2) | Q(sample_received__name__iexact="2")
     sample_received_is_1_q = Q(sample_received__value=1) | Q(sample_received__name__iexact="1")
+    missing_new_sample = qs.filter(
+        sample_received=1,
+        new_sample__isnull=True
+    )
     new_sample_is_1_q = Q(new_sample__value=1) | Q(new_sample__name__iexact="1")
     new_sample_is_2_q = Q(new_sample__value=2) | Q(new_sample__name__iexact="2")
     sample_reason_is_96_q = Q(sample_reason__value=96) | Q(sample_reason__name__iexact="96")
@@ -366,6 +370,7 @@ def get_clinic_dq(qs):
 
     problem_lists = {
         "missing_sample_received": missing_sample_received,
+        "missing_new_sample": missing_new_sample,
         "missing_number_received": missing_number_received,
         "missing_sample_reason_when_received_2": missing_sample_reason_when_received_2,
         "missing_new_reason_when_new_sample_2": missing_new_reason_when_new_sample_2,
