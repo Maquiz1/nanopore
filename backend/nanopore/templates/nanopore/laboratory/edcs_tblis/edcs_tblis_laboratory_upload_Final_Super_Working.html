@@ -10,9 +10,6 @@
         {% endfor %}
     {% endif %}
 
-    <!-- LAST UPLOAD INFO -->
-    <div id="lastUploadInfo" class="mb-3"></div>
-
     <!-- ASYNC ERRORS WILL APPEAR HERE -->
     <div id="errorTableWrapper"></div>
 
@@ -34,9 +31,6 @@
                 0%
             </div>
         </div>
-
-        <!-- UPLOAD STATISTICS -->
-        <div id="uploadStats" class="mt-3"></div>
     </div>
 </div>
 
@@ -47,8 +41,6 @@ const uploadProgress = document.getElementById("uploadProgress");
 const uploadBtn = document.getElementById("uploadBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 const errorTableWrapper = document.getElementById("errorTableWrapper");
-const lastUploadInfo = document.getElementById("lastUploadInfo");
-const uploadStats = document.getElementById("uploadStats");
 
 let intervalId = null;
 let currentTaskId = null;
@@ -64,6 +56,7 @@ uploadForm.addEventListener("submit", function(e){
     const xhr = new XMLHttpRequest();
     const formData = new FormData(this);
 
+    // --- Track actual upload progress ---
     xhr.upload.addEventListener("progress", function(event){
         if(event.lengthComputable){
             let percent = Math.round((event.loaded / event.total) * 100);
@@ -82,7 +75,7 @@ uploadForm.addEventListener("submit", function(e){
         currentTaskId = data.task_id;
         const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", currentTaskId);
 
-        // --- Poll for server-side processing ---
+        // --- Start server-side processing progress polling ---
         intervalId = setInterval(()=>{
             fetch(TASK_URL)
                 .then(r => r.json())
@@ -98,46 +91,17 @@ uploadForm.addEventListener("submit", function(e){
                     if(data.state === "SUCCESS" || data.state === "REVOKED"){
                         clearInterval(intervalId);
                         uploadBtn.disabled = false;
+                        uploadBtn.innerText = "Upload CSV";
                         cancelBtn.style.display = "none";
-                        uploadProgressWrapper.style.display = "none";
-
-                        // Rename button if errors exist
-                        if(data.errors && data.errors.length){
-                            uploadBtn.innerText = "Re-upload CSV";
-                        } else {
-                            uploadBtn.innerText = "Upload CSV";
-                        }
-
-                        // Show last upload info
-                        let now = new Date();
-                        lastUploadInfo.innerHTML = `
-                            <strong>Last Upload:</strong> ${now.toLocaleString()}
-                        `;
-
-                        // // Show upload stats
-                        // if(data.total_records_in_model){
-                        //     let pct_total = Math.round((data.created / data.total_records_in_model) * 100);
-                        //     uploadStats.innerHTML = `
-                        //         <strong>Uploaded:</strong> ${data.created} / ${data.total_records_in_model} (${pct_total}%)
-                        //     `;
-                        // }
-                        // Show upload stats
-                        if(data.total_edcs_records !== undefined && data.total_tblis_records !== undefined){
-                            uploadStats.innerHTML = `
-                                <strong>EDCS Records:</strong> ${data.total_edcs_records} <br>
-                                <strong>TBLIS Records:</strong> ${data.total_tblis_records} <br>
-                                <strong>Uploaded %:</strong> ${data.percentage_uploaded}%
-                            `;
-                        }
 
                         if(data.state === "REVOKED"){
                             errorTableWrapper.innerHTML = `
                                 <div class="alert alert-warning">Upload cancelled by user.</div>
                             `;
+                            uploadProgressWrapper.style.display = "none";
                             return;
                         }
 
-                        // Show errors
                         if(data.errors && data.errors.length){
                             let html = `
                                 <div class="alert alert-danger">
