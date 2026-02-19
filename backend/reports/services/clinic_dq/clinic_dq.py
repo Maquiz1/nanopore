@@ -172,7 +172,17 @@ def get_clinic_dq(qs):
         sample_reason_is_96_q,
         other_reason__isnull=True
     )
+    
+    
+    # SAMPLE REASON RULE
+    # Sample reason = 1 → other_reason must be empty
+    sample_reason_1_q = Q(sample_reason=1) | Q(sample_reason__value=1) | Q(sample_reason__name__iexact="1")
 
+    invalid_other_reason_rule = qs.filter(
+        sample_reason_1_q & is_filled_char("other_reason")
+    )
+
+    # NEW SAMPLE RULE
     # 1️⃣ Case 1 — new_sample = 1 → new_reason must be empty
     new_sample_1_q = Q(new_sample=1) | Q(new_sample__value=1) | Q(new_sample__name__iexact="1")
 
@@ -335,6 +345,7 @@ def get_clinic_dq(qs):
         "missing_new_reason_when_new_sample_2": missing_new_reason_when_new_sample_2,
         "missing_other_reason_when_sample_reason_96": missing_other_reason_when_sample_reason_96,
         
+        "invalid_other_reason_rule":invalid_other_reason_rule,
         "invalid_new_sample_rule":invalid_new_sample_rule,
 
         # Sample 1
