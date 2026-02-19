@@ -251,5 +251,4 @@
 
         regimenChangedField.addEventListener("change", toggleAddButton);
         bindRegimenButtons();
-
     });
