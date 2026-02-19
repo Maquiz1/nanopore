@@ -116,6 +116,35 @@
     {% if total_issues %}
     <div class="accordion" id="clinicIssuesAccordion">
 
+        {# invalid_sample_sample_received_rule #}
+        {% if count_invalid_sample_sample_received_rule %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseinvalid_sample_sample_received_rule">
+                    2(a). Is at least one sputum sample received? is "Yes" or "No" but some fields are invalid ({{ count_invalid_sample_sample_received_rule|default:"0"  | intcomma  }})
+                </button>
+            </h2>
+            <div id="collapseinvalid_sample_sample_received_rule" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for c in invalid_sample_sample_received_rule|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.screening.pid }}</a></td>
+                                    <td>{{ c.screening.site.district.region.zone.name }}</td>
+                                    <td>{{ c.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {# Missing Sample Received #}
         {% if count_missing_sample_received %}
         <div class="accordion-item">
@@ -328,35 +357,6 @@
                                             {{ c.screening.pid }}
                                         </a>
                                     </td>
-                                    <td>{{ c.screening.site.district.region.zone.name }}</td>
-                                    <td>{{ c.screening.site.name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {# invalid_sample_sample_received_rule #}
-        {% if count_invalid_sample_sample_received_rule %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseinvalid_sample_sample_received_rule">
-                    2(a). Is at least one sputum sample received? is "Yes" or "No" but some fields are invalid ({{ count_invalid_sample_sample_received_rule|default:"0"  | intcomma  }})
-                </button>
-            </h2>
-            <div id="collapseinvalid_sample_sample_received_rule" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
-                            <tbody>
-                                {% for c in invalid_sample_sample_received_rule|default:"" %}
-                                <tr>
-                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.screening.pid }}</a></td>
                                     <td>{{ c.screening.site.district.region.zone.name }}</td>
                                     <td>{{ c.screening.site.name }}</td>
                                 </tr>
