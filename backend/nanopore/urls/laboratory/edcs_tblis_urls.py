@@ -7,7 +7,9 @@ from nanopore.views import (
     # ZonalLabFormView,
     EdcsTBLISCsvUploadView,
     EdcsTblisFormView,
-    task_status
+    RevokeEdcsTblisTaskView,
+    # task_status
+    TaskStatusView,
 )
 
 urlpatterns = [
@@ -19,7 +21,7 @@ urlpatterns = [
     # path("zonal-lab/<int:pk>/delete/", ZonalLaboratoryDeleteView.as_view(), name="zonal-laboratory-delete"),
     
     path('upload-edcs-tblis/', EdcsTBLISCsvUploadView.as_view(), name="edcs-tblis-upload-csv"),
-    
-    path("task-status/<str:task_id>/", task_status, name="task-status"),
-
+    path('edcs-tblis/revoke/<str:task_id>/', RevokeEdcsTblisTaskView.as_view(), name='task-revoke'),
+    # path("task-status/<str:task_id>/", task_status, name="task-status"),
+    path("task-status/<str:task_id>/", TaskStatusView.as_view(), name="task-status"),
 ]

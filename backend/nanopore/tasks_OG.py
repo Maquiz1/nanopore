@@ -4,18 +4,10 @@ import csv
 from django.apps import apps
 from django.core.exceptions import ValidationError
 
-from celery import shared_task, Task
-import csv
-from django.apps import apps
-from django.core.exceptions import ValidationError
-
-from utils.edcs_tblis_helpers import (
+from nanopore.views.laboratory.edcs_tblis.edcs_tblis_upload_view import (
     safe_int, safe_decimal, parse_date_field,
     get_foreign, split_m2m
 )
-from .tasks_base import RevocableTask
-
-# rest of import_edcs_tblis task remains the same
 
 from options.models import (
     SampleAppearance, YesNo, CultureMethod, MicroscopyType, CultureMicroscopyResults,
@@ -26,26 +18,28 @@ from options.models import (
     NanoporeSequencingResults, NanoporeSequencingDelayedReasons
 )
 
-from . tasks_base import RevocableTask
-
 
 @shared_task(bind=True)
 def import_edcs_tblis(self, filepath):
+
     Screening = apps.get_model("nanopore", "Screening")
     EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
 
     total = sum(1 for _ in open(filepath)) - 1
     processed = 0
+
     row_errors = []
     created = 0
     updated = 0
 
     with open(filepath, newline="") as f:
         reader = csv.DictReader(f)
+
         for idx, row in enumerate(reader, start=2):
 
-            # Stop immediately if revoked
-            if self.request.called_directly is False and getattr(self.request, "revoke", False):
+            # --- Check if task was revoked ---
+            if self.request.called_directly is False and self.is_revoked():
+                # Stop processing immediately
                 return {
                     "current": processed,
                     "total": total,
@@ -56,11 +50,13 @@ def import_edcs_tblis(self, filepath):
                 }
 
             pid = row.get("pid")
+
             try:
                 screening = Screening.objects.filter(pid=pid).first()
                 if not screening:
                     raise ValidationError(f"No Screening found pid={pid}")
 
+                # --- build defaults dict and set M2M fields ---
                 defaults = {
                     "date_sputum_received": parse_date_field(row.get("date_sputum_received")),
                     "appearance": get_foreign(SampleAppearance, row.get("appearance")),
@@ -182,13 +178,24 @@ def import_edcs_tblis(self, filepath):
                     "remarks": row.get("remarks") or None,
                 }
 
+                # lab, was_created = EdcsTblisZonal.objects.update_or_create(
+                #     screening=screening,
+                #     defaults=defaults
+                # )
+
+                # lab.culture_method.set(split_m2m(CultureMethod, row.get("culture_method")))
+                # lab.first_line_drugs.set(split_m2m(FirstLineDrugs, row.get("first_line_drugs")))
+                # lab.second_line_drugs.set(split_m2m(SecondLineDrugs, row.get("second_line_drugs")))
+                # lab.lpa1_inh.set(split_m2m(INHResultLPA, row.get("lpa1_inh")))
+                # lab.sequencing_delayed_reasons.set(
+                #     split_m2m(NanoporeSequencingDelayedReasons, row.get("sequencing_delayed_reasons"))
+                # )
 
                 lab, was_created = EdcsTblisZonal.objects.update_or_create(
                     screening=screening,
                     defaults=defaults
                 )
 
-                # set M2M
                 lab.culture_method.set(split_m2m(CultureMethod, row.get("culture_method")))
                 lab.first_line_drugs.set(split_m2m(FirstLineDrugs, row.get("first_line_drugs")))
                 lab.second_line_drugs.set(split_m2m(SecondLineDrugs, row.get("second_line_drugs")))
@@ -205,6 +212,7 @@ def import_edcs_tblis(self, filepath):
 
             processed += 1
 
+            # Update progress
             self.update_state(
                 state="PROGRESS",
                 meta={"current": processed, "total": total}
