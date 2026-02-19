@@ -311,6 +311,35 @@
         </div>
         {% endif %}
 
+        {# invalid_new_sample_rule #}
+        {% if count_invalid_new_sample_rule %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseinvalid_new_sample_rule">
+                    4. Number of samples received is "1" but some fileds are invalid ({{ count_invalid_new_sample_rule|default:"0"  | intcomma  }})
+                </button>
+            </h2>
+            <div id="collapseinvalid_new_sample_rule" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light"><tr><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for c in invalid_new_sample_rule|default:"" %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:clinic-laboratory-update' pk=c.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ c.screening.pid }}</a></td>
+                                    <td>{{ c.screening.site.district.region.zone.name }}</td>
+                                    <td>{{ c.screening.site.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {# Sample1 fields (required when number_received present) #}
         {% if count_missing_date_sample1_collected or count_missing_date_sample1_received or count_missing_appearance_sample1 or count_missing_sample1_volume or count_missing_invalid_sample1_volume %}
         <div class="accordion-item">
