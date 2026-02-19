@@ -245,10 +245,6 @@ def get_diagnosis_dq(qs):
         is_filled_char("diagnosis_made_other")
     )
 
-    invalid_tb_diagnosis_made_1 = qs.filter(
-        tb_diagnosis_made_1_q & case1_diagnosis_made_invalid_q
-    )
-    
     # CASE 2
     tb_diagnosis_made_2_q = (
         Q(tb_diagnosis_made=2) |
@@ -261,11 +257,6 @@ def get_diagnosis_dq(qs):
         is_filled_char("diagnosis_made_other")
     )
 
-    invalid_tb_diagnosis_made_2 = qs.filter(
-        tb_diagnosis_made_2_q & case2_diagnosis_made_invalid_q
-    ).distinct()
-    
-    
     # CASE 3
     tb_diagnosis_made_3_q = (
         Q(tb_diagnosis_made=3) |
@@ -279,15 +270,17 @@ def get_diagnosis_dq(qs):
         is_filled_non_char("clinician_received_date")
     )
 
-    invalid_tb_diagnosis_made_3 = qs.filter(
-        tb_diagnosis_made_3_q & case3_diagnosis_made_invalid_q
-    ).distinct()
-    
-    invalid_tb_diagnosis_made = (
-        invalid_tb_diagnosis_made_1 |
-        invalid_tb_diagnosis_made_2 |
-        invalid_tb_diagnosis_made_3
+    # ✅ Combine Q objects ONLY
+    combined_invalid_tb_diagnosis_made_q = (
+        (tb_diagnosis_made_1_q & case1_diagnosis_made_invalid_q) |
+        (tb_diagnosis_made_2_q & case2_diagnosis_made_invalid_q) |
+        (tb_diagnosis_made_3_q & case3_diagnosis_made_invalid_q)
     )
+
+    # ✅ Single queryset, single distinct
+    invalid_tb_diagnosis_made = qs.filter(
+        combined_invalid_tb_diagnosis_made_q
+    ).distinct()
 
     # ──────────────────────────────
     # Problem querysets
