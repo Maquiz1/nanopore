@@ -625,6 +625,37 @@
         </div>
         {% endif %}
 
+        <!-- invalid_tb_treatment_started -->
+        {% if count_invalid_tb_treatment_started %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseinvalid_tb_treatment_started">
+                    8(a). Was TB treatment started? is either Yes or Referred or not started but some fields are invalid ({{ count_invalid_tb_treatment_started }})
+                </button>
+            </h2>
+            <div id="collapseinvalid_tb_treatment_started" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead class="table-light">
+                                <tr><th>PID</th><th>Site</th><th>Treatment Start</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in invalid_tb_treatment_started %}
+                                <tr>
+                                    <td><a href="{% url 'nanopore:diagnosis-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}">{{ item.screening.pid }}</a></td>
+                                    <td>{{ item.screening.site.name }}</td>
+                                    <td>{{ item.tb_treatment_date|date:"d/m/Y"|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- 17. Missing Outcome Date (for outcomes 1-5) -->
         {% if count_missing_tb_outcome2_date %}
         <div class="accordion-item">

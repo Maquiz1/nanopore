@@ -136,6 +136,79 @@ def get_diagnosis_dq(qs):
         tb_regimen_condition_q & tb_regimen_other_filled_q
     )
 
+
+    # tb_treatment = 1 → fields(tb_facility,tb_reason) must be EMPTY
+    # tb_treatment = 2 → fields(tb_treatment_date,tb_reason,tb_register_number,tb_regimen,regimen_changed) must be EMPTY
+    # tb_treatment = 3 → fields(tb_treatment_date,tb_facility,tb_register_number,tb_regimen,regimen_changed) must be EMPTY
+    def is_filled_char(field):
+        return (
+            Q(**{f"{field}__isnull": False}) &
+            ~Q(**{f"{field}__regex": r'^\s*$'})
+        )
+
+    def is_filled_non_char(field):
+        return Q(**{f"{field}__isnull": False})
+    
+    # IF 1
+    tb_treatment_1_q = (
+        Q(tb_treatment=1) |
+        Q(tb_treatment__value=1) |
+        Q(tb_treatment__name__iexact="1")
+    )
+
+    case1_invalid_q = (
+        is_filled_char("tb_facility") |
+        is_filled_char("tb_reason")
+    )
+
+    invalid_tb_treatment_1 = qs.filter(
+        tb_treatment_1_q & case1_invalid_q
+    )
+    
+    # IF 2
+    tb_treatment_2_q = (
+        Q(tb_treatment=2) |
+        Q(tb_treatment__value=2) |
+        Q(tb_treatment__name__iexact="2")
+    )
+
+    case2_invalid_q = (
+        is_filled_non_char("tb_treatment_date") |
+        is_filled_char("tb_reason") |
+        is_filled_char("tb_register_number") |
+        is_filled_non_char("tb_regimen") |
+        is_filled_non_char("regimen_changed")
+    )
+
+    invalid_tb_treatment_2 = qs.filter(
+        tb_treatment_2_q & case2_invalid_q
+    )
+    
+    # IF 3
+    tb_treatment_3_q = (
+        Q(tb_treatment=3) |
+        Q(tb_treatment__value=3) |
+        Q(tb_treatment__name__iexact="3")
+    )
+
+    case3_invalid_q = (
+        is_filled_non_char("tb_treatment_date") |
+        is_filled_char("tb_facility") |
+        is_filled_char("tb_register_number") |
+        is_filled_non_char("tb_regimen") |
+        is_filled_non_char("regimen_changed")
+    )
+
+    invalid_tb_treatment_3 = qs.filter(
+        tb_treatment_3_q & case3_invalid_q
+    )
+    
+    invalid_tb_treatment_started = (
+        invalid_tb_treatment_1 |
+        invalid_tb_treatment_2 |
+        invalid_tb_treatment_3
+    )
+    
     # ──────────────────────────────
     # Problem querysets
     # ──────────────────────────────
@@ -143,7 +216,11 @@ def get_diagnosis_dq(qs):
         "missing_tb_diagnosis": qs.filter(tb_diagnosis__isnull=True),
         "missing_tb_diagnosis_date": qs.filter(tb_diagnosis=1, tb_diagnosis_date__isnull=True),
         "missing_tb_diagnosis_made": qs.filter(tb_diagnosis=1, tb_diagnosis_made__isnull=True),
+        
+        # TB TREATMENT
         "missing_tb_treatment": qs.filter(tb_diagnosis=1, tb_treatment__isnull=True),
+        "invalid_tb_treatment_started":invalid_tb_treatment_started,
+        
         "missing_diagnosis_made_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True),
         "missing_tb_diagnosed_clinically": qs.filter(tb_diagnosis=1, tb_diagnosis_made=1)
             .annotate(clinical_count=Count("tb_diagnosed_clinically")).filter(clinical_count=0),
