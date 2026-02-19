@@ -1,7 +1,7 @@
     document.addEventListener("DOMContentLoaded", function () {
 
         // ===== Fields =====
-        const tbDiagnosisField = document.getElementById("id_tb_diagnosis");
+        const TbDiagnosisField = document.getElementById("id_tb_diagnosis");
         const tbDiagnosisDateSections = document.getElementById("tb-diagnosis-date-sections");
         const tbDiagnosisMadeSections = document.getElementById("tb-diagnosis-made-sections");
         const tbSections = document.getElementById("tb-sections");
@@ -40,14 +40,24 @@
 
         // ===== Functions =====
         function toggleTbSections() {
-            if (tbDiagnosisField.value === "1") {
+            if (TbDiagnosisField.value === "1") {
                 tbDiagnosisDateSections.style.display = "block";
+                if (tbDiagnosisDateSections) tbDiagnosisDateSections.style.display = "block";
+
                 tbDiagnosisMadeSections.style.display = "block";
                 tbTreatmentOutcomesSections.style.display = "block";
                 nonTbSections.style.display = "none";
-            } else if (tbDiagnosisField.value === "2") {
+
+                // 🔥 IMPORTANT: re-run child toggles
+                toggleTbTreatmentSections();
+                toggleTbRegimenSection();
+                toggleTbOtherSpecify();
+
+            } else if (TbDiagnosisField.value === "2") {
                 tbSections.style.display = "none";
                 tbDiagnosisDateSections.style.display = "none";
+                if (tbDiagnosisDateSections) tbDiagnosisDateSections.style.display = "none";
+
                 tbDiagnosisMadeSections.style.display = "none";
                 tbTreatmentOutcomesSections.style.display = "none";
                 nonTbSections.style.display = "block";
@@ -233,7 +243,7 @@
         toggleTbRegimenSection();
 
         toggleAddButton();
-        tbDiagnosisField.addEventListener("change", toggleTbSections);
+        TbDiagnosisField.addEventListener("change", toggleTbSections);
 
         if (tbTreatmentField) {
             tbTreatmentField.addEventListener("change", toggleTbTreatmentSections);
@@ -251,5 +261,58 @@
 
         regimenChangedField.addEventListener("change", toggleAddButton);
         bindRegimenButtons();
+
+
+
+
+
+
+
+
+
+
+
+
+    // Result fields
+    const TbDiagnosisMadeField = document.getElementById("id_tb_diagnosis_made");
+
+    // const TbDiagnosisField2 = document.getElementById("id_tb_diagnosis");
+
+    // Field to show/hide
+    const clinicalDiagnosisSection = document.getElementById("clinical-diagnosis-section");
+    const bacteriologicalDiagnosisSection = document.getElementById("bacteriological-diagnosis-section");
+    const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
+
+    function toggleTbDiagnosisMadeField() {
+        const value = String(TbDiagnosisMadeField?.value || "");
+
+        if (value === "1") {
+            clinicalDiagnosisSection.style.display = "block";
+            bacteriologicalDiagnosisSection.style.display = "none";
+            tbDiagnosisMadeOtherSections.style.display = "none";
+        }else if (value === "2") {
+            clinicalDiagnosisSection.style.display = "none";
+            bacteriologicalDiagnosisSection.style.display = "block";
+            tbDiagnosisMadeOtherSections.style.display = "none";
+        }else if (value === "3") {  // Other
+            clinicalDiagnosisSection.style.display = "none";
+            bacteriologicalDiagnosisSection.style.display = "none";
+            tbDiagnosisMadeOtherSections.style.display = "block";
+        } else {
+            clinicalDiagnosisSection.style.display = "none";
+            bacteriologicalDiagnosisSection.style.display = "none";
+            tbDiagnosisMadeOtherSections.style.display = "none";
+        }
+    }
+
+    // Initial state on page load
+    toggleTbDiagnosisMadeField();
+
+    // Update when either result changes
+    TbDiagnosisMadeField.addEventListener("change", toggleTbDiagnosisMadeField);
+    // TbDiagnosisField2.addEventListener("change", toggleTbDiagnosisMadeField);
+
+
+
 
     });
