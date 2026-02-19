@@ -11,7 +11,7 @@ from utils.permissions import filter_queryset_by_user_role
 
 class SiteTargetsView(ListView):
     model = Site
-    template_name = "dashboard/target/site_targets.html"
+    template_name = "dashboard/site_targets.html"
     context_object_name = "sites"
 
     def get_queryset(self):
