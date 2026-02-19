@@ -119,6 +119,22 @@ def get_diagnosis_dq(qs):
     invalid_mention_tb_other_specify_filled = qs.filter(
         tb_other_diag_condition_q & mention_tb_other_specify_filled_q
     )
+    
+    # tb_regimen = 1,2,3,4,5,6 → 9(b). Regimens specify: field(tb_regimen_other) must be EMPTY
+    tb_regimen_condition_q = (
+        Q(tb_regimen__in=[1,2,3,4,5,6]) |
+        Q(tb_regimen__value__in=[1,2,3,4,5,6]) |
+        Q(tb_regimen__name__in=["1","2","3","4","5","6"])
+    )
+
+    tb_regimen_other_filled_q = (
+        Q(tb_regimen_other__isnull=False) &
+        ~Q(tb_regimen_other="")
+    )
+
+    invalid_tb_regimen_other_filled = qs.filter(
+        tb_regimen_condition_q & tb_regimen_other_filled_q
+    )
 
     # ──────────────────────────────
     # Problem querysets
@@ -137,8 +153,13 @@ def get_diagnosis_dq(qs):
         "missing_tb_treatment_date": qs.filter(tb_treatment=1, tb_treatment_date__isnull=True),
         "missing_tb_register_number": qs.filter(tb_treatment=1, tb_register_number__isnull=True),
         "duplicate_tb_register_number": duplicate_tb_register_number_qs,
+        
+        # TB REGIMEN
         "missing_tb_regimen": qs.filter(tb_treatment=1, tb_regimen__isnull=True),
+        "missing_tb_regimen_other":qs.filter(tb_regimen=7, tb_regimen_other__isnull=True),
+        "invalid_tb_regimen_other_filled":invalid_tb_regimen_other_filled,
         "missing_regimen_changed": qs.filter(tb_treatment=1, regimen_changed__isnull=True),
+        
         "missing_tb_facility": qs.filter(tb_treatment=2, tb_facility__isnull=True),
         "missing_tb_reason": qs.filter(tb_treatment=96, tb_reason__isnull=True),
         "pending_tb_outcome": pending_tb_outcome_qs,
