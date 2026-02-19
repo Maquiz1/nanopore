@@ -254,7 +254,25 @@ def get_clinic_dq(qs):
         missing_afb_b_base_q,
         afb_b_results__isnull=True
     )
-
+    
+    
+    afb_microscopy_conducted_condition_2_q = (
+        Q(afb_microscopy_conducted=2) |
+        Q(afb_microscopy_conducted__value=2) |
+        Q(afb_microscopy_conducted__name__iexact="2")
+    )
+    
+    invalid_afb_microscopy_conducted_filled = qs.filter(
+        afb_microscopy_conducted_condition_2_q &
+        (
+            is_filled_non_char("afb_a_date") |
+            is_filled_non_char("afb_b_date") |
+            is_filled_non_char("technique_a") |
+            is_filled_non_char("technique_b") |
+            is_filled_non_char("afb_a_results") |
+            is_filled_non_char("afb_b_results")
+        )
+    )
 
     # Xpert
     missing_xpert_mtb_rif_conducted = qs.filter(
@@ -298,6 +316,7 @@ def get_clinic_dq(qs):
         "missing_sample2_volume": missing_sample2_volume,
         "missing_invalid_sample2_volume": invalid_sample2_volume,
 
+        # AFB
         "missing_afb_microscopy_conducted": missing_afb_microscopy_conducted,
         "missing_afb_a_date": missing_afb_a_date,
         "missing_technique_a": missing_technique_a,
@@ -306,7 +325,8 @@ def get_clinic_dq(qs):
         "missing_afb_b_date": missing_afb_b_date,
         "missing_technique_b": missing_technique_b,
         "missing_afb_b_results": missing_afb_b_results,
-
+        "invalid_afb_microscopy_conducted_filled":invalid_afb_microscopy_conducted_filled,
+        
         # expert mtb
         "missing_xpert_mtb_rif_conducted": missing_xpert_mtb_rif_conducted,
         "missing_xpert_date": missing_xpert_date,
