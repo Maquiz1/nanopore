@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Site Targets vs Actual Enrollments</h2>
+
+    <!-- ===== Filter Form ===== -->
+    <form method="get" class="row g-3 mb-3">
+        <div class="col-md-3">
+            <label for="zone" class="form-label">Zone</label>
+            <select name="zone" id="zone" class="form-select">
+                <option value="">All Zones</option>
+                {% for zone in zones %}
+                    <option value="{{ zone.id }}" {% if filter_zone|default:'' == zone.id|stringformat:"s" %}selected{% endif %}>{{ zone.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="site" class="form-label">Site</label>
+            <input type="text" name="site" id="site" class="form-control" value="{{ filter_site }}">
+        </div>
+        <div class="col-md-2">
+            <label for="start_date" class="form-label">Start Date</label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ filter_start_date }}">
+        </div>
+        <div class="col-md-2">
+            <label for="end_date" class="form-label">End Date</label>
+            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ filter_end_date }}">
+        </div>
+        <div class="col-md-2 align-self-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <!-- ===== Targets Table ===== -->
+    <table class="table table-bordered table-striped mt-3">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Site Name</th>
+                <th>Total Target</th>
+                <th>Actual Enrolled</th>
+                <th>Substudy 2 Target</th>
+                <th>Substudy 2 Actual</th>
+                <th>Substudy 4 Target</th>
+                <th>Substudy 4 Actual</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for site in sites %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ site.name }}</td>
+                <td>{{ site.target|default:"0" }}</td>
+                <td>{{ site.actual_total|default:"0" }}</td>
+                <td>{{ site.substudy2Target|default:"0" }}</td>
+                <td>{{ site.actual_substudy2|default:"0" }}</td>
+                <td>{{ site.substudy4Target|default:"0" }}</td>
+                <td>{{ site.actual_substudy4|default:"0" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No sites found for the selected filters.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2">Total</th>
+                <th>{{ total_target }}</th>
+                <th>{{ actual_total }}</th>
+                <th>{{ total_substudy2_target }}</th>
+                <th>{{ actual_substudy2 }}</th>
+                <th>{{ total_substudy4_target }}</th>
+                <th>{{ actual_substudy4 }}</th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary mt-3">← Back to Dashboard</a>
+</div>
+{% endblock %}
