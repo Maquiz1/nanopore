@@ -149,6 +149,9 @@ def get_diagnosis_dq(qs):
     def is_filled_non_char(field):
         return Q(**{f"{field}__isnull": False})
     
+    def m2m_has_any(field):
+        return Q(**{f"{field}__isnull": False})
+    
     # IF 1
     tb_treatment_1_q = (
         Q(tb_treatment=1) |
@@ -225,14 +228,78 @@ def get_diagnosis_dq(qs):
         nine_selected_q
     ).distinct()
     
+    
+    # tb_diagnosis_made = 1 → field(bacteriological_diagnosis,clinician_received_date,diagnosis_made_other) must be EMPTY
+    # tb_diagnosis_made = 2 → field(tb_diagnosed_clinically,diagnosis_made_other) must be EMPTY
+    # tb_diagnosis_made = 3 → field(tb_diagnosed_clinically,bacteriological_diagnosis,clinician_received_date) must be EMPTY
+    # CASE 1
+    tb_diagnosis_made_1_q = (
+        Q(tb_diagnosis_made=1) |
+        Q(tb_diagnosis_made__value=1) |
+        Q(tb_diagnosis_made__name__iexact="1")
+    )
+
+    case1_diagnosis_made_invalid_q = (
+        is_filled_non_char("bacteriological_diagnosis") |
+        is_filled_non_char("clinician_received_date") |
+        is_filled_char("diagnosis_made_other")
+    )
+
+    invalid_tb_diagnosis_made_1 = qs.filter(
+        tb_diagnosis_made_1_q & case1_diagnosis_made_invalid_q
+    )
+    
+    # CASE 2
+    tb_diagnosis_made_2_q = (
+        Q(tb_diagnosis_made=2) |
+        Q(tb_diagnosis_made__value=2) |
+        Q(tb_diagnosis_made__name__iexact="2")
+    )
+
+    case2_diagnosis_made_invalid_q = (
+        m2m_has_any("tb_diagnosed_clinically") |
+        is_filled_char("diagnosis_made_other")
+    )
+
+    invalid_tb_diagnosis_made_2 = qs.filter(
+        tb_diagnosis_made_2_q & case2_diagnosis_made_invalid_q
+    ).distinct()
+    
+    
+    # CASE 3
+    tb_diagnosis_made_3_q = (
+        Q(tb_diagnosis_made=3) |
+        Q(tb_diagnosis_made__value=3) |
+        Q(tb_diagnosis_made__name__iexact="3")
+    )
+
+    case3_diagnosis_made_invalid_q = (
+        m2m_has_any("tb_diagnosed_clinically") |
+        is_filled_non_char("bacteriological_diagnosis") |
+        is_filled_non_char("clinician_received_date")
+    )
+
+    invalid_tb_diagnosis_made_3 = qs.filter(
+        tb_diagnosis_made_3_q & case3_diagnosis_made_invalid_q
+    ).distinct()
+    
+    invalid_tb_diagnosis_made = (
+        invalid_tb_diagnosis_made_1 |
+        invalid_tb_diagnosis_made_2 |
+        invalid_tb_diagnosis_made_3
+    )
+
     # ──────────────────────────────
     # Problem querysets
     # ──────────────────────────────
     problem_lists = {
         "missing_tb_diagnosis": qs.filter(tb_diagnosis__isnull=True),
         "missing_tb_diagnosis_date": qs.filter(tb_diagnosis=1, tb_diagnosis_date__isnull=True),
+        
+        # DIAGNOSIS MADE
         "missing_tb_diagnosis_made": qs.filter(tb_diagnosis=1, tb_diagnosis_made__isnull=True),
         "missing_diagnosis_made_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True),
+        "invalid_tb_diagnosis_made":invalid_tb_diagnosis_made,
 
         # TB TREATMENT
         "missing_tb_treatment": qs.filter(tb_diagnosis=1, tb_treatment__isnull=True),
