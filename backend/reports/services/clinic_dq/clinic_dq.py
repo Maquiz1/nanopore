@@ -98,6 +98,21 @@ def get_clinic_dq(qs):
     xpert_in_2_6_q = Q(xpert_mtb__value__in=[2,3,4,5,6]) | Q(xpert_mtb__name__in=["2","3","4","5","6"])
     xpert_is_8_q = Q(xpert_mtb__value=8) | Q(xpert_mtb__name__iexact="8")
     
+    # xpert_mtb_rif_conducted = 2 → fields (xpert_date,xpert_mtb) must be EMPTY
+    xpert_mtb_rif_conducted_2_q = (
+        Q(xpert_mtb_rif_conducted=2) |
+        Q(xpert_mtb_rif_conducted__value=2) |
+        Q(xpert_mtb_rif_conducted__name__iexact="2")
+    )
+    
+    invalid_xpert_mtb_rif_conducted_2_filled = qs.filter(
+        xpert_mtb_rif_conducted_2_q &
+        (
+            Q(xpert_date__isnull=False) |
+            Q(xpert_mtb__isnull=False)
+        )
+    )
+
     # xpert_mtb = 1,7,8,9 → fields (tb_regimen_other) must be EMPTY
     xpert_mtb_condition_q = (
         Q(xpert_mtb__in=[1,7,8,9]) |
@@ -296,6 +311,7 @@ def get_clinic_dq(qs):
         "missing_xpert_mtb_rif_conducted": missing_xpert_mtb_rif_conducted,
         "missing_xpert_date": missing_xpert_date,
         "missing_xpert_mtb": missing_xpert_mtb,
+        "invalid_xpert_mtb_rif_conducted_2_filled":invalid_xpert_mtb_rif_conducted_2_filled,
         "missing_error_code": missing_error_code,
         "missing_xpert_rif": missing_xpert_rif,
         "missing_ct_value": missing_ct_value,
