@@ -66,11 +66,11 @@
                         </div>
                         <hr>
 
-                        <div class="row mb-3" id="tb-diagnosis-made-sections-row">
-                            <div class="col-md-6" id="tb-diagnosis-made-sections">
+                        <div class="row mb-3">
+                            <div class="col-md-6" id="tb-diagnosis-made-sections"  style="display:none;">
                                 {{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}
                             </div>
-                            <div class="col-md-6" id="tb-diagnosis-made-other-sections">
+                            <div class="col-md-6" id="tb-diagnosis-made-other-sections" style="display:none;">
                                 {{ form.diagnosis_made_other.label_tag }} {{ form.diagnosis_made_other }}
                             </div>
                         </div>
@@ -114,7 +114,7 @@
                                 <hr>
                             </div>
                         </div>
-                        
+
                         <!-- TB sections -->
                         <div id="tb-sections">
                             <!-- TB Treatment -->
@@ -327,6 +327,6 @@
 
 {% block extra_scripts %}
 <script src="{% static 'custom_js/diagnosis/all.js' %}"></script>
-<script src="{% static 'custom_js/diagnosis/tb_outcome.js' %}"></script>
-<script src="{% static 'custom_js/diagnosis/tb_diagnosis_made.js' %}"></script>
+<!-- <script src="{% static 'custom_js/diagnosis/tb_outcome.js' %}"></script> -->
+<!-- <script src="{% static 'custom_js/diagnosis/tb_diagnosis_made.js' %}"></script> -->
 {% endblock %}
