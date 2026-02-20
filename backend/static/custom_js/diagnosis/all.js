@@ -12,6 +12,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const bacteriologicalDiagnosisSection = document.getElementById("bacteriological-diagnosis-section");
     const tbSections = document.getElementById("tb-sections");
 
+    const tbDiagnosedClinicallyField = document.getElementById("id_tb_diagnosed_clinically");
+    const tbDiagnosedClinicallyCheckboxes = document.querySelectorAll("input[name='tb_diagnosed_clinically']");
+    const tbClinicallyOtherSection = document.getElementById("tb-clinically-other");
+
     const tbTreatmentField = document.getElementById("id_tb_treatment");
     const tbTreatmentStartedSection = document.getElementById("tb-treatment-started-section");
     const tbTreatmentFacilitySection = document.getElementById("tb-treatment-facility-section");
@@ -72,6 +76,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if(nonTbSections) nonTbSections.style.display = "block";
         }
         toggleTbDiagnosisMade();
+    }
+
+    function toggleTbClinicallyOther() {
+        const anyChecked = Array.from(tbDiagnosedClinicallyCheckboxes)
+                                .some(cb => cb.value === "9" && cb.checked);
+        tbClinicallyOtherSection.style.display = anyChecked ? "block" : "none";
     }
 
     // ===========================
@@ -259,6 +269,16 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleTbOtherSpecify();
     toggleAddButton();
     bindRegimenButtons();
+    // Initial state
+    // toggleTbClinicallyOther();
+    // Attach change listener to all checkboxes
+    tbDiagnosedClinicallyCheckboxes.forEach(cb => cb.addEventListener("change", toggleTbClinicallyOther));
+
+    // Initial state
+    toggleTbClinicallyOther();
+
+    // Update whenever selection changes
+    tbDiagnosedClinicallyField.addEventListener("change", toggleTbClinicallyOther);
 
     if(tbDiagnosisField) tbDiagnosisField.addEventListener("change", toggleTbSections);
     if(tbDiagnosisMadeField) tbDiagnosisMadeField.addEventListener("change", toggleTbDiagnosisMade);
