@@ -76,46 +76,47 @@
                         </div>
                         <hr>
 
+
+                        <div id="bacteriological-diagnosis-section" style="display:none;">
+                            <!-- Bacteriological Diagnosis -->
+                            <div class="bacteriological-diagnosis-section">
+                                <div class="p-2 mb-3 bg-info text-white rounded">
+                                    <h5 class="mb-0">Bacteriological Diagnosis</h5>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        {{ form.bacteriological_diagnosis.label_tag }}
+                                        {{ form.bacteriological_diagnosis }}</div>
+                                    <div class="col-md-6">
+                                        {{ form.clinician_received_date.label_tag }}
+                                        {{ form.clinician_received_date }}</div>
+                                </div>
+                                <hr>
+                            </div>
+                        </div>
+
+                        <div id="clinical-diagnosis-section" style="display:none;">
+                            <!-- Clinical Diagnosis -->
+                            <div class="clinical-diagnosis-section">
+                                <div class="p-2 mb-3 bg-info text-white rounded">
+                                    <h5 class="mb-0">Clinical Diagnosis</h5>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        {{ form.tb_diagnosed_clinically.label_tag }}
+                                        {{ form.tb_diagnosed_clinically }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
+                                </div>
+                                <hr>
+                            </div>
+                        </div>
+                        
                         <!-- TB sections -->
                         <div id="tb-sections">
-                            <div id="bacteriological-diagnosis-section" style="display:none;">
-                                <!-- Bacteriological Diagnosis -->
-                                <div class="bacteriological-diagnosis-section">
-                                    <div class="p-2 mb-3 bg-info text-white rounded">
-                                        <h5 class="mb-0">Bacteriological Diagnosis</h5>
-                                    </div>
-                                    <hr>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            {{ form.bacteriological_diagnosis.label_tag }}
-                                            {{ form.bacteriological_diagnosis }}</div>
-                                        <div class="col-md-6">
-                                            {{ form.clinician_received_date.label_tag }}
-                                            {{ form.clinician_received_date }}</div>
-                                    </div>
-                                    <hr>
-                                </div>
-                            </div>
-
-                            <div id="clinical-diagnosis-section" style="display:none;">
-                                <!-- Clinical Diagnosis -->
-                                <div class="clinical-diagnosis-section">
-                                    <div class="p-2 mb-3 bg-info text-white rounded">
-                                        <h5 class="mb-0">Clinical Diagnosis</h5>
-                                    </div>
-                                    <hr>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            {{ form.tb_diagnosed_clinically.label_tag }}
-                                            {{ form.tb_diagnosed_clinically }}
-                                        </div>
-                                        <div class="col-md-6">
-                                            {{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
-                                    </div>
-                                    <hr>
-                                </div>
-                            </div>
-
                             <!-- TB Treatment -->
                             <div class="p-2 mb-3 bg-warning text-white rounded">
                                 <h5 class="mb-0">TB Treatment</h5>
