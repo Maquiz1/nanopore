@@ -66,7 +66,7 @@
         {% endif %}
         <div class="col-md-4">
             <label for="pid" class="form-label">PID</label>
-            <input type="text" name="pid" id="pid" class="form-control" value="{{ selected_pid }}">
+            <input type="text" name="pid" id="pid" placeholder="Enter Patient ID" class="form-control" value="{{ selected_pid }}">
         </div>
         <div class="col-md-4">
             <label for="start_date" class="form-label">From</label>
@@ -95,7 +95,7 @@
         </div>
         <div class="col-md-4">
             <label for="unique_lab_no" class="form-label">Lab No.</label>
-            <input type="text" name="unique_lab_no" id="unique_lab_no" class="form-control" value="{{ selected_unique_lab_no }}">
+            <input type="text" name="unique_lab_no" id="unique_lab_no" placeholder="Enter Lab Number" class="form-control" value="{{ selected_unique_lab_no }}">
         </div>
         <div class="col-md-12 text-end">
             <button type="submit" class="btn btn-primary">Apply Filters</button>
