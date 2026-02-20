@@ -45,7 +45,7 @@
     <!-- 🔹 Filter Bar -->
     <form method="get" class="row g-3 mb-4">
         {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
-        <div class="col-md-3">
+        <div class="col-md-4">
             <label for="zone" class="form-label">Zone</label>
             <select name="zone" id="zone" class="form-select">
                 <option value="">-- All Zones --</option>
@@ -54,7 +54,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <label for="site" class="form-label">Site</label>
             <select name="site" id="site" class="form-select">
                 <option value="">-- All Sites --</option>
@@ -64,19 +64,19 @@
             </select>
         </div>
         {% endif %}
-        <div class="col-md-2">
+        <div class="col-md-4">
             <label for="pid" class="form-label">PID</label>
             <input type="text" name="pid" id="pid" class="form-control" value="{{ selected_pid }}">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-4">
             <label for="start_date" class="form-label">From</label>
             <input type="date" name="start_date" id="start_date" class="form-control" value="{{ selected_start_date }}">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-4">
             <label for="end_date" class="form-label">To</label>
             <input type="date" name="end_date" id="end_date" class="form-control" value="{{ selected_end_date }}">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-4">
             <label for="status" class="form-label">Status</label>
             <select name="status" id="status" class="form-select">
                 <option value="">-- All --</option>
@@ -84,7 +84,7 @@
                 <option value="not_eligible" {% if selected_status == "not_eligible" %}selected{% endif %}>Not Eligible</option>
             </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-4">
             <label for="substudy" class="form-label">Substudy</label>
             <select name="substudy" id="substudy" class="form-select">
                 <option value="">-- All --</option>
@@ -93,7 +93,7 @@
                 <option value="uncategorized" {% if selected_substudy == "uncategorized" %}selected{% endif %}>Uncategorized</option>
             </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-4">
             <label for="unique_lab_no" class="form-label">Lab No.</label>
             <input type="text" name="unique_lab_no" id="unique_lab_no" class="form-control" value="{{ selected_unique_lab_no }}">
         </div>
