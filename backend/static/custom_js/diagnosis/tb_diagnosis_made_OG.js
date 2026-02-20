@@ -1,46 +1,36 @@
 document.addEventListener("DOMContentLoaded", function () {
-
-    // ===== Fields =====
+    // Result fields
     const TbDiagnosisMadeField = document.getElementById("id_tb_diagnosis_made");
-    const TbDiagnosisField = document.getElementById("id_tb_diagnosis");
 
-    // ===== Sections =====
+    // Field to show/hide
     const clinicalDiagnosisSection = document.getElementById("clinical-diagnosis-section");
     const bacteriologicalDiagnosisSection = document.getElementById("bacteriological-diagnosis-section");
     const tbDiagnosisMadeOtherSections = document.getElementById("tb-diagnosis-made-other-sections");
 
-    // ===== Safety check (avoid JS errors if elements missing) =====
-    if (!TbDiagnosisMadeField || !TbDiagnosisField) return;
-
     function toggleTbDiagnosisMadeField() {
+        // const TbDiagnosisMadeFieldValue = String(TbDiagnosisMadeField?.value || "");
 
-        const diagnosisValue = String(TbDiagnosisField.value || "");
-        const value = String(TbDiagnosisMadeField.value || "");
+        // Show if LJ is 1-4 OR MGIT is 1 - THIS WORKS TOO
+        // const show = ["1"].includes(TbDiagnosisMadeFieldValue);
 
-        // If TB Diagnosis is NOT "1", hide everything
-        if (diagnosisValue !== "1") {
-            clinicalDiagnosisSection.style.display = "none";
-            bacteriologicalDiagnosisSection.style.display = "none";
-            tbDiagnosisMadeOtherSections.style.display = "none";
-            return;
-        }
+        // clinicalDiagnosisSection.style.display = show ? "block" : "none";
+        // bacteriologicalDiagnosisSection.style.display = show ? "block" : "none";
+        // tbDiagnosisMadeOtherSections.style.display = show ? "block" : "none";
 
-        // Otherwise toggle based on Diagnosis Made
+        const value = String(TbDiagnosisMadeField?.value || "");
+
         if (value === "1") {
             clinicalDiagnosisSection.style.display = "block";
             bacteriologicalDiagnosisSection.style.display = "none";
             tbDiagnosisMadeOtherSections.style.display = "none";
-
-        } else if (value === "2") {
+        }else if (value === "2") {
             clinicalDiagnosisSection.style.display = "none";
             bacteriologicalDiagnosisSection.style.display = "block";
             tbDiagnosisMadeOtherSections.style.display = "none";
-
-        } else if (value === "3") {
+        }else if (value === "3") {  // Other
             clinicalDiagnosisSection.style.display = "none";
             bacteriologicalDiagnosisSection.style.display = "none";
             tbDiagnosisMadeOtherSections.style.display = "block";
-
         } else {
             clinicalDiagnosisSection.style.display = "none";
             bacteriologicalDiagnosisSection.style.display = "none";
@@ -48,11 +38,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ===== Run on page load =====
+    // Initial state on page load
     toggleTbDiagnosisMadeField();
 
-    // ===== Re-run when either field changes =====
+    // Update when either result changes
     TbDiagnosisMadeField.addEventListener("change", toggleTbDiagnosisMadeField);
-    TbDiagnosisField.addEventListener("change", toggleTbDiagnosisMadeField);
-
 });
