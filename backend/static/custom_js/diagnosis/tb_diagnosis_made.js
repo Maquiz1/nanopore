@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // }
 
     function toggleTbDiagnosisMadeField() {
-        const diagnosisValue = tbDiagnosisField?.value || "";
+        const diagnosisValue = TbDiagnosisField?.value || "";
         const value = String(TbDiagnosisMadeField?.value || "");
 
         // If TB diagnosis is not 1, hide everything
