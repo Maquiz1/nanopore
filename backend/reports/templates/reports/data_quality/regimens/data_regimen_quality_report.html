@@ -164,7 +164,7 @@
                             {% for r in missing_date %}
                             <tr>
                                 <td>
-                                    <a href="#">
+                                    <a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}">
                                         {{ r.pid }}
                                     </a>
                                 </td>
@@ -172,6 +172,7 @@
                                 <td>{{ r.drug }}</td>
                                 <td>{{ r.change_type }}</td>
                                 <td>{{ r.reason }}</td>
+                                <td>{{ r.specify }}</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -216,13 +217,14 @@
                             {% for r in missing_drug %}
                             <tr>
                                 <td>
-                                    <a href="#">
+                                    <a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}">
                                         {{ r.pid }}
                                     </a>
                                 </td>
                                 <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.change_type }}</td>
                                 <td>{{ r.reason }}</td>
+                                <td>{{ r.specify }}</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -266,7 +268,7 @@
                             {% for r in missing_changes %}
                             <tr>
                                 <td>
-                                    <a href="#">
+                                    <a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}">
                                         {{ r.pid }}
                                     </a>
                                 </td>
@@ -316,7 +318,7 @@
                             {% for r in missing_reason %}
                             <tr>
                                 <td>
-                                    <a href="#">
+                                    <a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}">
                                         {{ r.pid }}
                                     </a>
                                 </td>
@@ -362,19 +364,21 @@
                                 <th>Site</th>
                                 <th>Drug</th>
                                 <th>Reason</th>
+                                <th>Specify</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in missing_specify_when_other %}
                             <tr>
                                 <td>
-                                    <a href="#">
+                                    <a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}">
                                         {{ r.pid }}
                                     </a>
                                 </td>
                                 <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.drug }}</td>
                                 <td>{{ r.reason }}</td>
+                                <td>{{ r.specify }}</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -420,13 +424,17 @@
                             {% for r in invalid_reason_filled %}
                             <tr>
                                 <td>
-                                    <a href="#">
+                                    <!-- <a href="#">
+                                        {{ r.pid }}
+                                    </a> -->
+                                    <a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}">
                                         {{ r.pid }}
                                     </a>
                                 </td>
                                 <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.drug }}</td>
                                 <td>{{ r.reason }}</td>
+                                <td>{{ r.specify }}</td>
                             </tr>
                             {% empty %}
                             <tr>
