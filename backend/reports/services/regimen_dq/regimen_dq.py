@@ -29,6 +29,47 @@ def get_regimen_queryset(user, zone_id=None, site_id=None):
 
 
 def get_regimen_dq(qs):
+    def is_true(field):
+        """
+        Field is explicitly True
+        """
+        return Q(**{field: True})
+
+
+    def is_false(field):
+        """
+        Field is explicitly False
+        """
+        return Q(**{field: False})
+
+
+    def is_checked(field):
+        """
+        Checkbox is checked (True)
+        """
+        return Q(**{field: True})
+
+
+    def is_unchecked(field):
+        """
+        Checkbox is False OR NULL (treat as not checked)
+        Useful when BooleanField(null=True)
+        """
+        return Q(**{field: False}) | Q(**{f"{field}__isnull": True})
+
+    
+    def is_filled_char(field):
+        return (
+            Q(**{f"{field}__isnull": False}) &
+            ~Q(**{f"{field}__regex": r'^\s*$'})
+        )
+
+    def is_filled_non_char(field):
+        return Q(**{f"{field}__isnull": False})
+    
+    def m2m_has_any(field):
+        return Q(**{f"{field}__isnull": False})
+    
     reason_is_96_q = (
         Q(reason__value=96) |
         Q(reason__name__iexact="96") |
@@ -43,6 +84,21 @@ def get_regimen_dq(qs):
     missing_specify = qs.filter(reason_is_96_q).filter(
         Q(specify__isnull=True) | Q(specify="")
     )
+    
+    # xpert_mtb = 1,2 → fields (specify) must be EMPTY
+    reason_condition_q = (
+        Q(reason__in=[1,2]) |
+        Q(reason__value__in=[1,2]) |
+        Q(reason__name__in=["1","2"])
+    )
+    
+    case_invalid_reason_q = (
+        is_filled_non_char("specify")
+    )
+
+    invalid_reason_filled = qs.filter(
+        reason_condition_q & case_invalid_reason_q
+    )
 
     counts = {
         "missing_date": missing_date,
@@ -50,6 +106,7 @@ def get_regimen_dq(qs):
         "missing_changes": missing_changes,
         "missing_reason": missing_reason,
         "missing_specify": missing_specify,
+        "invalid_reason_filled":invalid_reason_filled
     }
 
     totals = {f"count_{k}": v.count() for k, v in counts.items()}
