@@ -39,6 +39,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const regimenScreeningInput = document.getElementById("regimenScreeningId");
     const regimenTableBody = document.querySelector("#regimenChangesTable tbody");
 
+    const regimenReasonField = document.getElementById("id_reason");
+    const regimenSpecifySection = document.getElementById("regimen-specify-section");
+
     // ===========================
     // TB Diagnosis Made
     // ===========================
@@ -130,6 +133,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if(!tbRegimenField) return;
         const value = tbRegimenField.value;
         if(tbRegimenOtherSection) tbRegimenOtherSection.style.display = (value === "7") ? "block" : "none";
+    }
+
+    function toggleRegimenSpecify() {
+        if (!regimenReasonField || !regimenSpecifySection) return;
+
+        const value = regimenReasonField.value;
+        regimenSpecifySection.style.display = (value === "3") ? "block" : "none";
     }
 
     // ===========================
@@ -286,4 +296,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if(tbRegimenField) tbRegimenField.addEventListener("change", toggleTbRegimenSection);
     if(tbOtherDiagnosisField) tbOtherDiagnosisField.addEventListener("change", toggleTbOtherSpecify);
     if(regimenChangedField) regimenChangedField.addEventListener("change", toggleAddButton);
+
+    toggleRegimenSpecify();
+
+    if (regimenReasonField) {
+        regimenReasonField.addEventListener("change", toggleRegimenSpecify);
+    }
 });

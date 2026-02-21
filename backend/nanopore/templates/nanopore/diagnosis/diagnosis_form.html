@@ -67,7 +67,7 @@
                         <hr>
 
                         <div class="row mb-3">
-                            <div class="col-md-6" id="tb-diagnosis-made-sections"  style="display:none;">
+                            <div class="col-md-6">
                                 {{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}
                             </div>
                             <div class="col-md-6" id="tb-diagnosis-made-other-sections" style="display:none;">
@@ -314,7 +314,28 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    {{ regimen_form.as_p }}
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ regimen_form.date.label_tag }} {{ regimen_form.date }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ regimen_form.drug.label_tag }} {{ regimen_form.drug }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ regimen_form.changes.label_tag }} {{ regimen_form.changes }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ regimen_form.reason.label_tag }}
+                            {{ regimen_form.reason }}
+                        </div>
+
+                        <div  class="col-md-12" id="regimen-specify-section">
+                            {{ regimen_form.specify.label_tag }}
+                            {{ regimen_form.specify }}
+                        </div>
+                    </div>
+                    <hr>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="regimenModalSaveBtn">Save</button>
