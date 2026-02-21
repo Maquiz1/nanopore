@@ -49,7 +49,7 @@
             Regimen Change Data Quality Report (
             {% if selected_zone or selected_site %}
                 {% if selected_zone %}{{ selected_zone_name }}{% else %}All Zones{% endif %} +
-                {% if selected_site %}{{ selected_site_name }}{% else %}All Sites{% endif %}
+                {% if selected_site %}{{ selected_screening.site.name }}{% else %}All Sites{% endif %}
             {% else %}
                 All Zones + All Sites
             {% endif %}
@@ -168,7 +168,7 @@
                                         {{ r.pid }}
                                     </a>
                                 </td>
-                                <td>{{ r.site_name }}</td>
+                                <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.drug }}</td>
                                 <td>{{ r.change_type }}</td>
                                 <td>{{ r.reason }}</td>
@@ -220,7 +220,7 @@
                                         {{ r.pid }}
                                     </a>
                                 </td>
-                                <td>{{ r.site_name }}</td>
+                                <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.change_type }}</td>
                                 <td>{{ r.reason }}</td>
                             </tr>
@@ -270,7 +270,7 @@
                                         {{ r.pid }}
                                     </a>
                                 </td>
-                                <td>{{ r.site_name }}</td>
+                                <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.drug }}</td>
                             </tr>
                             {% empty %}
@@ -320,7 +320,7 @@
                                         {{ r.pid }}
                                     </a>
                                 </td>
-                                <td>{{ r.site_name }}</td>
+                                <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.drug }}</td>
                                 <td>{{ r.change_type }}</td>
                             </tr>
@@ -345,7 +345,7 @@
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed"
                         data-bs-toggle="collapse"
-                        data-bs-target="#collapseinvalid_reason_filled">
+                        data-bs-target="#collapseRegimenSpecify">
                     Missing Specify (Reason = Other)
                     ({{ count_missing_specify_when_other }})
                 </button>
@@ -372,7 +372,7 @@
                                         {{ r.pid }}
                                     </a>
                                 </td>
-                                <td>{{ r.site_name }}</td>
+                                <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.drug }}</td>
                                 <td>{{ r.reason }}</td>
                             </tr>
@@ -397,7 +397,7 @@
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed"
                         data-bs-toggle="collapse"
-                        data-bs-target="#collapseRegimenSpecify">
+                        data-bs-target="#collapseinvalid_reason_filled">
                     Invalid Specify Reason filled
                     ({{ count_invalid_reason_filled }})
                 </button>
@@ -424,7 +424,7 @@
                                         {{ r.pid }}
                                     </a>
                                 </td>
-                                <td>{{ r.site_name }}</td>
+                                <td>{{ r.screening.site.name }}</td>
                                 <td>{{ r.drug }}</td>
                                 <td>{{ r.reason }}</td>
                             </tr>
@@ -463,7 +463,7 @@
                     All regimen records for
                     {% if selected_zone %}<strong>{{ selected_zone_name }}</strong>{% else %}all zones{% endif %}
                     and
-                    {% if selected_site %}<strong>{{ selected_site_name }}</strong>{% else %}all sites{% endif %}
+                    {% if selected_site %}<strong>{{ selected_screening.site.name }}</strong>{% else %}all sites{% endif %}
                     are complete.
                 {% else %}
                     All checked regimen records are complete.
