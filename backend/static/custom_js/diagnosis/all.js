@@ -299,7 +299,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     toggleRegimenSpecify();
 
-    if (regimenReasonField) {
-        regimenReasonField.addEventListener("change", toggleRegimenSpecify);
+    // if (regimenReasonField) {
+    //     regimenReasonField.addEventListener("change", toggleRegimenSpecify);
+    // }
+    // ADD THIS HERE
+    if (regimenModalEl) {
+        regimenModalEl.addEventListener("shown.bs.modal", function () {
+            toggleRegimenSpecify();
+        });
     }
 });
