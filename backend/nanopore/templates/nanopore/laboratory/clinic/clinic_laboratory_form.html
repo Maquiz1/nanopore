@@ -204,6 +204,53 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="historyModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">Field History</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Old Value</th>
+                    <th>New Value</th>
+                </tr>
+            </thead>
+            <tbody id="history-body">
+                <!-- Filled by JS -->
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="queryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Raise Query</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="queryForm">
+          <input type="hidden" name="field" id="query-field">
+          <div class="mb-3">
+            <label for="query-text" class="form-label">Query / Comment</label>
+            <textarea class="form-control" name="query" id="query-text" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-warning">Submit Query</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 
@@ -241,6 +288,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const xpertRifSection = document.getElementById("xpert-rif-section");
     const ctValueDetailsSection = document.getElementById("ct-value-details-section");
     const errorCodeSection = document.getElementById("error-code-section");
+
+
+    const historyModal = document.getElementById('historyModal');
+    const historyBody = document.getElementById('history-body');
+
+    const queryModal = document.getElementById('queryModal');
+    const queryFieldInput = document.getElementById('query-field');
 
     // ===== Functions =====
 
@@ -386,6 +440,51 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Run on page load
     initializeXpertSections();
+
+
+    
+    // When opening history modal
+    historyModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const field = button.getAttribute('data-field');
+
+        // TODO: fetch history via AJAX
+        fetch(`/audit-history/${field}/`)
+            .then(res => res.json())
+            .then(data => {
+                historyBody.innerHTML = '';
+                data.forEach(item => {
+                    const row = `<tr>
+                        <td>${item.changed_at}</td>
+                        <td>${item.user}</td>
+                        <td>${item.old}</td>
+                        <td>${item.new}</td>
+                    </tr>`;
+                    historyBody.innerHTML += row;
+                });
+            });
+    });
+
+    // When opening query modal
+    queryModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const field = button.getAttribute('data-field');
+        queryFieldInput.value = field;
+    });
+
+    // Optional: AJAX submit query
+    document.getElementById('queryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/raise-query/', {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        }).then(() => {
+            alert('Query submitted!');
+            bootstrap.Modal.getInstance(queryModal).hide();
+        });
+    });
 
 });
 </script>
