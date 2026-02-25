@@ -50,28 +50,56 @@
                         </div>
                         <hr>
                         <div class="row g-3 mb-3">
+                            <!-- Sample Received -->
                             <div class="col-md-4" id="sample-received-section">
                                 {{ form.sample_received.label_tag }}
-                                {{ form.sample_received }}
+                                <div class="input-group input-group-sm">
+                                    {{ form.sample_received }}
+                                    <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#historyModal" data-field="sample_received" title="View History">
+                                        🕒
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#queryModal" data-field="sample_received" title="Raise Query">
+                                        ❗
+                                    </button>
+                                </div>
                                 {% for error in form.sample_received.errors %}
-                                    <div class="text-danger">
-                                        {{ error }}
-                                    </div>
+                                    <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            <div class="ms-2 d-flex flex-column gap-1">
-                                <!-- History button -->
-                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#historyModal" data-field="some_field">
-                                    🕒
-                                </button>
 
-                                <!-- Raise query button -->
-                                <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#queryModal" data-field="some_field">
-                                    ❗
-                                </button>
+                            <!-- Sample Reason -->
+                            <div class="col-md-4" id="sample-reason-section">
+                                {{ form.sample_reason.label_tag }}
+                                <div class="input-group input-group-sm">
+                                    {{ form.sample_reason }}
+                                    <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#historyModal" data-field="sample_reason" title="View History">
+                                        🕒
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#queryModal" data-field="sample_reason" title="Raise Query">
+                                        ❗
+                                    </button>
+                                </div>
+                                {% for error in form.sample_reason.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                            <div class="col-md-4" id="sample-reason-section">{{ form.sample_reason.label_tag }}{{ form.sample_reason }}{% for error in form.sample_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
-                            <div class="col-md-4" id="other-reason-section">{{ form.other_reason.label_tag }}{{ form.other_reason }}{% for error in form.other_reason.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}</div>
+
+                            <!-- Other Reason -->
+                            <div class="col-md-4" id="other-reason-section">
+                                {{ form.other_reason.label_tag }}
+                                <div class="input-group input-group-sm">
+                                    {{ form.other_reason }}
+                                    <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#historyModal" data-field="other_reason" title="View History">
+                                        🕒
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#queryModal" data-field="other_reason" title="Raise Query">
+                                        ❗
+                                    </button>
+                                </div>
+                                {% for error in form.other_reason.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
                         </div>
                         <hr>
 
@@ -442,7 +470,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeXpertSections();
 
 
-    
+
     // When opening history modal
     historyModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
