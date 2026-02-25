@@ -63,7 +63,9 @@ class ClinicLaboratory(models.Model):
     # Additional fields
     remarks = models.TextField(blank=True, null=True)
     
+    is_reviewed = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
+    
     locked_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

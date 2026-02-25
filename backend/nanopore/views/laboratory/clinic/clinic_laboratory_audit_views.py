@@ -3,43 +3,84 @@ from django.views.generic import DetailView
 from django.shortcuts import get_object_or_404
 from nanopore.models import ClinicLaboratory
 
+
 class ClinicLaboratoryAuditView(LoginRequiredMixin, DetailView):
     model = ClinicLaboratory
     template_name = "nanopore/laboratory/clinic/clinic_laboratory_audit.html"
     context_object_name = "object"
 
     def get_object(self):
-        return get_object_or_404(ClinicLaboratory, pk=self.kwargs.get("pk"))
+        return get_object_or_404(
+            ClinicLaboratory,
+            pk=self.kwargs.get("pk")
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         obj = self.object
 
-        historical_records = obj.history.all().order_by('-history_date')
+        # Oldest → Newest
+        historical_records = list(
+            obj.history.all().order_by("history_date")
+        )
+
         changes = []
 
-        # Map history_type symbols to readable labels
         history_type_map = {
-            '+': 'Created',
-            '~': 'Updated',
-            '-': 'Deleted'
+            "+": "Created",
+            "~": "Updated",
+            "-": "Deleted",
         }
 
-        for i in range(len(historical_records) - 1):
-            new_record = historical_records[i]
-            old_record = historical_records[i + 1]
+        for index, record in enumerate(historical_records):
 
-            delta = new_record.diff_against(old_record)
+            # Safe user display
+            if record.history_user:
+                user_display = (
+                    record.history_user.get_full_name()
+                    or record.history_user.username
+                )
+            else:
+                user_display = "System"
+
+            history_label = history_type_map.get(
+                record.history_type,
+                record.history_type
+            )
+
+            # ─────────────────────────────
+            # HANDLE CREATED RECORD
+            # ─────────────────────────────
+            if index == 0:
+                changes.append({
+                    "field": "Record Created",
+                    "old": "",
+                    "new": "",
+                    "changed_by": user_display,
+                    "changed_at": record.history_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    "history_type": history_label,
+                    "reason": record.history_change_reason or "",
+                })
+                continue
+
+            # ─────────────────────────────
+            # HANDLE UPDATED / DELETED
+            # ─────────────────────────────
+            previous_record = historical_records[index - 1]
+            delta = record.diff_against(previous_record)
 
             for change in delta.changes:
                 changes.append({
                     "field": change.field,
-                    "old": str(change.old),
-                    "new": str(change.new),
-                    "changed_by": getattr(new_record.history_user, "get_full_name", lambda: str(new_record.history_user))(),
-                    "changed_at": new_record.history_date.strftime("%Y-%m-%d %H:%M:%S"),
-                    "history_type": history_type_map.get(new_record.history_type, new_record.history_type)
+                    "old": str(change.old) if change.old is not None else "",
+                    "new": str(change.new) if change.new is not None else "",
+                    "changed_by": user_display,
+                    "changed_at": record.history_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    "history_type": history_label,
+                    "reason": record.history_change_reason or "",
                 })
 
-        context["changes"] = changes
+        # Newest first for display
+        context["changes"] = reversed(changes)
+
         return context
