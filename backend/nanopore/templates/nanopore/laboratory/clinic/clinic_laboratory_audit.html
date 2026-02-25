@@ -4,6 +4,16 @@
 
 <div class="container mt-4">
 
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+         <a href="{% url 'nanopore:clinic-laboratory-list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+        <h2>Clinic Laboratory</h2>
+    </div>
+
     <h4 class="mb-4">
         Audit Trail – PID: <strong>{{ object.screening.pid }}</strong>
     </h4>
