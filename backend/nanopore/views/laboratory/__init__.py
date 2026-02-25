@@ -20,6 +20,8 @@ from .edcs_tblis import EdcsTBLISLaboratoryListView
 from .edcs_tblis import EdcsTBLISCsvUploadView,RevokeEdcsTblisTaskView,TaskStatusView
 from .edcs_tblis import EdcsTblisFormView
 # from .edcs_tblis import task_status
+from .clinic import audit_history_ajax
+from .clinic import raise_query
 
 __all__ = [
     "ClinicLaboratoryListView",
@@ -47,4 +49,6 @@ __all__ = [
     "TaskStatusView",
     
     "ClinicLaboratoryAuditView",
+    "audit_history_ajax",
+    "raise_query"
 ]
