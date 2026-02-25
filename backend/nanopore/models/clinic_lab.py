@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from . import Screening
+from simple_history.models import HistoricalRecords
 from options.models import (
     XpertMTB,
     YesNo, # Assuming this model exists
@@ -17,6 +18,7 @@ from options.models import (
 User = get_user_model()
 
 class ClinicLaboratory(models.Model):
+    history = HistoricalRecords()
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="clinic_laboratory")
         
     # Sputum sample
@@ -60,6 +62,21 @@ class ClinicLaboratory(models.Model):
 
     # Additional fields
     remarks = models.TextField(blank=True, null=True)
+    
+    is_locked = models.BooleanField(default=False)
+    locked_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="clinic_labs_locked"
+    )
+    locked_at = models.DateTimeField(null=True, blank=True)
+    
+    reason_for_change = models.TextField(
+        blank=True, null=True, 
+        help_text="Reason for modifying a record; required if record is locked"
+    )
     
     # Auditing
     created_at = models.DateTimeField(auto_now_add=True)

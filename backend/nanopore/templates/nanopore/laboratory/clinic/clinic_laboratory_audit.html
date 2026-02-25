@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Audit Trail for PID: {{ object.screening.pid }}</h2>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Date</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Field</th>
+        <th>Old Value</th>
+        <th>New Value</th>
+    </tr>
+
+    {% for change in changes %}
+    <tr>
+        <td>{{ change.changed_at }}</td>
+        <td>{{ change.changed_by }}</td>
+        <td>
+            {% if change.history_type == "+" %} Created
+            {% elif change.history_type == "~" %} Updated
+            {% elif change.history_type == "-" %} Deleted
+            {% endif %}
+        </td>
+        <td>{{ change.field }}</td>
+        <td>{{ change.old }}</td>
+        <td>{{ change.new }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">No audit history available.</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

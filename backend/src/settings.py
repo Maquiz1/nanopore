@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "django_celery_beat",
+    "simple_history",
 ]
 
 # Middleware
@@ -75,6 +76,7 @@ MIDDLEWARE = [
     # 'users.middleware.AutoLogoutMiddleware',  # ✅ Auto logout
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 # URLs and templates

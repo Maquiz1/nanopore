@@ -7,6 +7,16 @@ from common.labels.laboratory.clinic.clinic_labels import (
 from options.models import SampleReason
 
 class ClinicLaboratoryForm(forms.ModelForm):
+    
+    reason_for_change = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            "class": "form-control",
+            "rows": 3
+        }),
+        label="Reason for Change"
+    )
+        
     class Meta:
         model = ClinicLaboratory
         fields = [
@@ -44,6 +54,8 @@ class ClinicLaboratoryForm(forms.ModelForm):
             "ct_value",
             "ct_na",
             "remarks",
+            
+            "reason_for_change",
         ]
         # fields = TB_LABELS.keys()
         labels = CLINIC_LABELS
@@ -108,6 +120,12 @@ class ClinicLaboratoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["screening"].disabled = True
 
+        # Optional: Make reason placeholder visible if record is locked
+        if self.instance.pk and getattr(self.instance, "is_locked", False):
+            self.fields["reason_for_change"].widget.attrs["placeholder"] = (
+                "This record is locked. Provide reason for change."
+            )
+        
         # ✅ order display by clinical code
         self.fields["sample_reason"].queryset = (
             SampleReason.objects.order_by("value")
@@ -193,5 +211,25 @@ class ClinicLaboratoryForm(forms.ModelForm):
                 raise ValidationError(
                     f"This screening {screening} already has a laboratory record."
                 )
+                
+        # ─────────────────────────────
+        # 🔐 REQUIRE REASON IF LOCKED
+        # ─────────────────────────────
+
+        if self.instance.pk and getattr(self.instance, "is_locked", False):
+
+            # Detect real data changes (ignore reason field)
+            changed_fields = [
+                field for field in self.changed_data
+                if field != "reason_for_change"
+            ]
+
+            if changed_fields:
+                reason = cleaned_data.get("reason_for_change")
+
+                if not reason:
+                    raise ValidationError(
+                        "This record is locked. Reason for Change is required."
+                    )
 
         return cleaned_data
