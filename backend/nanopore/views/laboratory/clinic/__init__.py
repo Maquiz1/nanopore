@@ -6,6 +6,8 @@ from .clinic_laboratory_delete import ClinicLaboratoryDeleteView
 from .clinic_laboratory_form import ClinicLaboratoryFormView
 from .clinic_laboratory_upload_values import ClinicLabCsvUploadView
 from .clinic_laboratory_audit_views import ClinicLaboratoryAuditView
+from .audit_history_ajax import audit_history_ajax
+from .audit_raise_query import raise_query
 
 
 __all__ = [
@@ -17,5 +19,7 @@ __all__ = [
     "ClinicLaboratoryFormView",
     "ClinicLabCsvUploadView",
     "ClinicLaboratoryAuditView",
+    "audit_history_ajax",
+    "raise_query"
 ]
 

@@ -7,6 +7,7 @@ from nanopore.views import (
     ClinicLaboratoryFormView,
     ClinicLabCsvUploadView,
     ClinicLaboratoryAuditView,
+    audit_history_ajax,
 )
 
 urlpatterns = [
@@ -23,5 +24,6 @@ urlpatterns = [
         ClinicLaboratoryAuditView.as_view(),
         name="clinic-lab-audit",
     ),
+    path('audit-history/<str:field>/', audit_history_ajax, name='audit-history')
     
 ]
