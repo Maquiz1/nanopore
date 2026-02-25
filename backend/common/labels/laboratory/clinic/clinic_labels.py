@@ -36,5 +36,7 @@ CLINIC_LABELS = {
     "ct_value":"9(c). SPC Cycle Threshold (Ct) Value",
     "ct_na":"No SPC-Ct value (no result)",
     
-    "remarks":"10. Any comments or remarks about the patient or sample"
+    "remarks":"10. Any comments or remarks about the patient or sample",
+    
+    "reason_for_change" : "Reason for cahnge",
 }

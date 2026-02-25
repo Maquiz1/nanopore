@@ -5,6 +5,8 @@ from .clinic import ClinicLaboratoryUpdateView
 from .clinic import ClinicLaboratoryDeleteView
 from .clinic import ClinicLaboratoryFormView
 from .clinic import ClinicLabCsvUploadView
+from .clinic import ClinicLaboratoryAuditView
+
 
 from .zonal import ZonalLaboratoryListView
 from .zonal import ZonalLaboratoryDetailView
@@ -43,4 +45,6 @@ __all__ = [
     
     # "task_status",
     "TaskStatusView",
+    
+    "ClinicLaboratoryAuditView",
 ]

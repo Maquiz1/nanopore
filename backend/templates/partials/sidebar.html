@@ -79,7 +79,6 @@
     {% endif %}
     {% endwith %}
 
-    {% if user.is_superuser %}
     <!-- Forms -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -87,15 +86,14 @@
             <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
-            <a href="{% url 'nanopore:form-status-list' %}"><i class="fas fa-list-ul"></i> All</a>
+            <!-- <a href="{% url 'nanopore:form-status-list' %}"><i class="fas fa-list-ul"></i> All</a>
             <a href="{% url 'nanopore:screening-list' %}"><i class="fas fa-user-check"></i> Screenings</a>
-            <a href="{% url 'nanopore:enrollment-list' %}"><i class="fas fa-user-plus"></i> Enrollment</a>
+            <a href="{% url 'nanopore:enrollment-list' %}"><i class="fas fa-user-plus"></i> Enrollment</a> -->
             <a href="{% url 'nanopore:clinic-laboratory-list' %}"><i class="fas fa-vial"></i> Clinic Laboratory</a>
-            <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i> Zonal Laboratory</a>
-            <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
+            <!-- <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i> Zonal Laboratory</a>
+            <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a> -->
         </div>
     </div>
-    {% endif %}
 
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}

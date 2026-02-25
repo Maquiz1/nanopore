@@ -5,6 +5,8 @@ from .clinic_laboratory_update import ClinicLaboratoryUpdateView
 from .clinic_laboratory_delete import ClinicLaboratoryDeleteView
 from .clinic_laboratory_form import ClinicLaboratoryFormView
 from .clinic_laboratory_upload_values import ClinicLabCsvUploadView
+from .clinic_laboratory_audit_views import ClinicLaboratoryAuditView
+
 
 __all__ = [
     "ClinicLaboratoryListView",
@@ -12,6 +14,8 @@ __all__ = [
     "ClinicLaboratoryCreateView",
     "ClinicLaboratoryUpdateView",
     "ClinicLaboratoryDeleteView",
-    "ClinicLaboratoryFormView"
-    "ClinicLabCsvUploadView"
+    "ClinicLaboratoryFormView",
+    "ClinicLabCsvUploadView",
+    "ClinicLaboratoryAuditView",
 ]
+
