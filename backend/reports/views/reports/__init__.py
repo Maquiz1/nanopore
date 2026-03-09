@@ -18,10 +18,10 @@ from .reports import CompletedRecordsView
 from .reports import InProgressRecordsView
 from .reports import RecordsByZoneView
 from .reports import RecordsBySiteView
-from .snapshots import missing_forms_dashboard
+# from .snapshots import missing_forms_dashboard
 # from .zonal_lab_dq_dashboard import zonal_lab_dq_dashboard
-from .snapshots import missing_forms_trends
-from .snapshots.specific_form_snapshot import specific_form_snapshot_view
+# from .snapshots import missing_forms_trends
+# from .snapshots.specific_form_snapshot import specific_form_snapshot_view
 
 __all__ = [
     "BaseRecordsListView",
@@ -45,8 +45,8 @@ __all__ = [
     "InProgressRecordsView",
     "RecordsByZoneView",
     "RecordsBySiteView",
-    "missing_forms_dashboard",
+    # "missing_forms_dashboard",
     # "zonal_lab_dq_dashboard",
-    "missing_forms_trends",
-    "specific_form_snapshot_view",
+    # "missing_forms_trends",
+    # "specific_form_snapshot_view",
 ]

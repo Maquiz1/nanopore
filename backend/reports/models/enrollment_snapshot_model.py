@@ -1,6 +1,6 @@
 # reports/models/enrollment.py
 from django.db import models
-from .general_base import DataQualitySnapshot
+from .general_base_snapshot_model import DataQualitySnapshot
 
 
 class EnrollmentDQSnapshot(models.Model):

@@ -179,7 +179,7 @@ urlpatterns = [
     ),
     
     path(
-    "dq/specific-form-snapshots/<str:form>/",
+    "dq/specific-form-snapshots/",
     specific_form_snapshot_view,
     name="form-specific-snapshots"
     ),
