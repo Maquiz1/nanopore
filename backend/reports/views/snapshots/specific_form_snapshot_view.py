@@ -184,6 +184,20 @@ def specific_form_snapshot_view(request):
         "total": sum(x["total"] for x in facility_table),
     }
 
+
+    # =====================
+    # Top Sites Chart
+    # =====================
+
+    top_sites_qs = ScreeningDQSnapshot.objects.values(
+        "site__name"
+    ).annotate(
+        total=Sum("total_issues")
+    ).order_by("-total")
+
+    top_site_labels = [x["site__name"] for x in top_sites_qs]
+    top_site_totals = [x["total"] or 0 for x in top_sites_qs]
+
     context = {
 
         "dates": json.dumps(dates),
@@ -204,6 +218,9 @@ def specific_form_snapshot_view(request):
 
         "facility_table": facility_table,
         "facility_total": facility_total,
+        
+        "top_site_labels": json.dumps(top_site_labels),
+"       top_site_totals": json.dumps(top_site_totals),
 
         "latest_counts": {
             "screening": screening[-1] if screening else 0,
