@@ -29,11 +29,11 @@ def get_diagnosis_queryset(user, zone_id=None, site_id=None):
         qs = qs.filter(screening__site_id=site_id)
 
     # Sort by Zone → Site → PID
-    # qs = qs.order_by(
-    #     "screening__site__district__region__zone__name",
-    #     "screening__site__name",
-    #     "screening__pid"
-    # )
+    qs = qs.order_by(
+        "screening__site__district__region__zone__name",
+        "screening__site__name",
+        "screening__pid"
+    )
     
     return qs
 
@@ -56,13 +56,27 @@ def get_diagnosis_dq(qs):
         tb_diagnosis=1, tb_treatment=1, tb_register_number__in=duplicate_tb_register_numbers
     )
 
-    # Long treatment patients (≥6 months)
+    # # Long treatment patients (≥6 months)
     long_treatment_qs = qs.filter(tb_treatment=1, tb_treatment_date__lte=six_months_ago)
     pending_tb_outcome_qs = long_treatment_qs.filter(tb_outcome2__isnull=True)
     pending_tb_outcome_date_qs = long_treatment_qs.filter(
         tb_outcome2__in=[1, 2, 3, 4, 5], tb_outcome2_date__isnull=True
     )
+    
+    # # Long treatment patients (≥6 months)
+    # long_treatment_qs = qs.filter(tb_treatment=1, tb_treatment_date__lte=six_months_ago)
 
+    # # Add months_on_treatment for all long treatment patients
+    # for diag in long_treatment_qs:
+    #     diag.months_on_treatment = calc_months(diag.tb_treatment_date, today)
+
+    # # Now filter the ones with pending outcomes
+    # pending_tb_outcome_qs = [diag for diag in long_treatment_qs if diag.tb_outcome2 is None]
+    
+    # pending_tb_outcome_date_qs = long_treatment_qs.filter(
+    #     tb_outcome2__in=[1, 2, 3, 4, 5], tb_outcome2_date__isnull=True
+    # )
+    
     # tb_diagnosis = 2 → all TB fields must be EMPTY
     tb_diag_filled_q = Q()
     char_fields = [
@@ -327,6 +341,8 @@ def get_diagnosis_dq(qs):
         "missing_tb_reason": qs.filter(tb_treatment=96, tb_reason__isnull=True),
         "pending_tb_outcome": pending_tb_outcome_qs,
         "pending_tb_outcome_date": pending_tb_outcome_date_qs,
+        
+        "long_treatment_qs": long_treatment_qs,
         "missing_tb_diagnosis_2_should_be_empty": missing_tb_diagnosis_2_should_be_empty,
         
         # DIAGNOSIS OTHER THAN TB
@@ -342,5 +358,13 @@ def get_diagnosis_dq(qs):
     # ──────────────────────────────
     totals = {f"count_{k}": v.count() for k, v in problem_lists.items()}
     totals["diagnosis_report_total"] = sum(totals.values())
+    
+    # totals = {}
+    # for k, v in problem_lists.items():
+    #     if hasattr(v, 'count'):  # queryset
+    #         totals[f"count_{k}"] = v.count()
+    #     else:  # list
+    #         totals[f"count_{k}"] = len(v)
+    # totals["diagnosis_report_total"] = sum(totals.values())
 
     return problem_lists, totals

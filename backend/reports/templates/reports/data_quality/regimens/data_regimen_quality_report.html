@@ -360,9 +360,13 @@
                     <table class="table table-sm table-bordered">
                         <thead>
                             <tr>
-                                <th>PID</th>
+                                <th>No.</th>
+                                <th>Zone</th>
                                 <th>Site</th>
+                                <th>PID</th>
+                                <th>Date</th>
                                 <th>Drug</th>
+                                <th>Change</th>
                                 <th>Reason</th>
                                 <th>Specify</th>
                             </tr>
@@ -370,13 +374,17 @@
                         <tbody>
                             {% for r in missing_specify_when_other %}
                             <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ r.screening.site.district.region.zone.name }}</td>
+                                <td>{{ r.screening.site.name }}</td>
                                 <td>
                                     <a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}">
                                         {{ r.pid }}
                                     </a>
                                 </td>
-                                <td>{{ r.screening.site.name }}</td>
+                                <td>{{ r.date }}</td>
                                 <td>{{ r.drug }}</td>
+                                <td>{{ r.changes }}</td>
                                 <td>{{ r.reason }}</td>
                                 <td>{{ r.specify }}</td>
                             </tr>

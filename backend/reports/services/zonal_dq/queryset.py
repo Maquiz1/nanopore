@@ -18,10 +18,10 @@ def get_zonal_queryset(user, ZonalModel, zone_id=None, site_id=None):
         qs = qs.filter(screening__site_id=site_id)
 
     # Sort by Zone → Site → PID
-    # qs = qs.order_by(
-    #     "screening__site__district__region__zone__name",
-    #     "screening__site__name",
-    #     "screening__pid"
-    # )
+    qs = qs.order_by(
+        "screening__site__district__region__zone__name",
+        "screening__site__name",
+        "screening__pid"
+    )
     
     return qs

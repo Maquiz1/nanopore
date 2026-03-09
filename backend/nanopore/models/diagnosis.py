@@ -64,6 +64,16 @@ class Diagnosis(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="diagnoses_updated")
 
+    # ── Property for months on treatment ──
+    @property
+    def months_on_treatment(self):
+        from reports.services.diagnosis_dq import calc_months
+        from django.utils import timezone
+        today = timezone.now().date()
+        if self.tb_treatment_date:
+            return calc_months(self.tb_treatment_date, today)
+        return None
+    
     class Meta:
         # verbose_name = "Country"
         # verbose_name_plural = "Countries"
