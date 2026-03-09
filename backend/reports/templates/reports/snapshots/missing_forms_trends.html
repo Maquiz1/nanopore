@@ -3,25 +3,75 @@
 
 <div class="container mt-4">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <h2>Missing Forms Trends</h2>
 
-<canvas id="trendChart"></canvas>
+    <!-- Filters Form -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="zone" class="form-label">Zone</label>
+            <input type="text" name="zone" id="zone" class="form-control"
+                   value="{{ filters.zone|default:'' }}">
+        </div>
+        <div class="col-md-3">
+            <label for="site" class="form-label">Site</label>
+            <input type="text" name="site" id="site" class="form-control"
+                   value="{{ filters.site|default:'' }}">
+        </div>
+        <div class="col-md-3">
+            <label for="form" class="form-label">Form Name</label>
+            <input type="text" name="form" id="form" class="form-control"
+                   value="{{ filters.form|default:'' }}">
+        </div>
+        <div class="col-md-3">
+            <label for="start_date" class="form-label">Start Date</label>
+            <input type="date" name="start_date" id="start_date" class="form-control"
+                   value="{{ filters.start_date|default:'' }}">
+        </div>
+        <div class="col-md-3">
+            <label for="end_date" class="form-label">End Date</label>
+            <input type="date" name="end_date" id="end_date" class="form-control"
+                   value="{{ filters.end_date|default:'' }}">
+        </div>
+        <div class="col-md-12 mt-2">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'reports:missing-forms-trends' %}" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
 
-<script>
-new Chart(document.getElementById("trendChart"), {
-    type: "line",
-    data: {
-        labels: {{ dates|safe }},
-        datasets: [{
-            label: "Total Missing Forms",
-            data: {{ totals|safe }},
-            tension: 0.3
-        }]
-    }
-});
-</script>
+    <!-- Chart -->
+    <canvas id="trendChart" style="max-height:400px;"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ dates|safe }},
+            datasets: [{
+                label: 'Total Missing Forms',
+                data: {{ totals|safe }},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: { title: { display: true, text: 'Snapshot Date' } },
+                y: { title: { display: true, text: 'Total Missing Forms' }, beginAtZero: true }
+            }
+        }
+    });
+    </script>
 
 </div>
 
 {% endblock %}
-

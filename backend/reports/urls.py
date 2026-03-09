@@ -174,6 +174,6 @@ urlpatterns = [
     path(
     "dq/missing-forms-trends/",
     missing_forms_trends,
-    name="missing_forms_trends"
+    name="missing-forms-trends"
     ),
 ]
