@@ -63,20 +63,6 @@ def get_diagnosis_dq(qs):
         tb_outcome2__in=[1, 2, 3, 4, 5], tb_outcome2_date__isnull=True
     )
     
-    # # Long treatment patients (≥6 months)
-    # long_treatment_qs = qs.filter(tb_treatment=1, tb_treatment_date__lte=six_months_ago)
-
-    # # Add months_on_treatment for all long treatment patients
-    # for diag in long_treatment_qs:
-    #     diag.months_on_treatment = calc_months(diag.tb_treatment_date, today)
-
-    # # Now filter the ones with pending outcomes
-    # pending_tb_outcome_qs = [diag for diag in long_treatment_qs if diag.tb_outcome2 is None]
-    
-    # pending_tb_outcome_date_qs = long_treatment_qs.filter(
-    #     tb_outcome2__in=[1, 2, 3, 4, 5], tb_outcome2_date__isnull=True
-    # )
-    
     # tb_diagnosis = 2 → all TB fields must be EMPTY
     tb_diag_filled_q = Q()
     char_fields = [
