@@ -313,8 +313,8 @@ def specific_form_snapshot_view(request):
         "top_site_labels": json.dumps(top_site_labels),
         "top_site_totals": json.dumps(top_site_totals),
         
-        # "top_zone_labels": json.dumps(top_zone_labels),
-        # "top_zone_totals": json.dumps(top_zone_totals),
+        "top_zone_labels": json.dumps(top_zone_labels),
+        "top_zone_totals": json.dumps(top_zone_totals),
 
         "top_form_labels": json.dumps(top_form_labels),
         "top_form_totals": json.dumps(top_form_totals),
