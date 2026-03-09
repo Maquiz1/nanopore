@@ -1,77 +1,523 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
 
 <div class="container mt-4">
 
-    <h2>Missing Forms Trends</h2>
+    <h2 class="mb-4">Missing Forms Data Quality Dashboard</h2>
+    <!-- ===================== -->
+    <!-- Filters -->
+    <!-- ===================== -->
 
-    <!-- Filters Form -->
     <form method="get" class="row g-3 mb-4">
+
         <div class="col-md-3">
-            <label for="zone" class="form-label">Zone</label>
-            <input type="text" name="zone" id="zone" class="form-control"
-                   value="{{ filters.zone|default:'' }}">
+
+            <label class="form-label">Zone</label>
+
+            <select name="zone" class="form-select" onchange="this.form.submit()">
+
+                <option value="">All Zones</option>
+
+                {% for z in zones %}
+                <option value="{{ z.id }}" {% if filters.zone == z.id|stringformat:"s" %}selected{% endif %}>
+                    {{ z.name }}
+                </option>
+                {% endfor %}
+
+            </select>
+
         </div>
+
+
+
         <div class="col-md-3">
-            <label for="site" class="form-label">Site</label>
-            <input type="text" name="site" id="site" class="form-control"
-                   value="{{ filters.site|default:'' }}">
+
+            <label class="form-label">Site</label>
+
+            <select name="site" class="form-select">
+
+                <option value="">All Sites</option>
+
+                {% for s in sites %}
+                <option value="{{ s.id }}" {% if filters.site == s.id|stringformat:"s" %}selected{% endif %}>
+                    {{ s.name }}
+                </option>
+                {% endfor %}
+
+            </select>
+
         </div>
+
         <div class="col-md-3">
-            <label for="form" class="form-label">Form Name</label>
-            <input type="text" name="form" id="form" class="form-control"
-                   value="{{ filters.form|default:'' }}">
+
+            <label class="form-label">Form</label>
+
+            <select name="form" class="form-select">
+
+                <option value="">All Forms</option>
+
+                <option value="enrollment" {% if filters.form == "enrollment" %}selected{% endif %}>
+                    Enrollment
+                </option>
+
+                <option value="clinic" {% if filters.form == "clinic" %}selected{% endif %}>
+                    Clinic
+                </option>
+
+                <option value="diagnosis" {% if filters.form == "diagnosis" %}selected{% endif %}>
+                    Diagnosis
+                </option>
+
+                <option value="regimen" {% if filters.form == "regimen" %}selected{% endif %}>
+                    Regimen
+                </option>
+
+                <option value="zonal" {% if filters.form == "zonal" %}selected{% endif %}>
+                    Zonal Lab
+                </option>
+
+            </select>
+
         </div>
+
+
+
         <div class="col-md-3">
-            <label for="start_date" class="form-label">Start Date</label>
-            <input type="date" name="start_date" id="start_date" class="form-control"
-                   value="{{ filters.start_date|default:'' }}">
+
+            <label class="form-label">Start Date</label>
+
+            <input type="date" name="start_date" class="form-control"
+                value="{{ filters.start_date|default_if_none:'' }}">
+
         </div>
+
+
+
         <div class="col-md-3">
-            <label for="end_date" class="form-label">End Date</label>
-            <input type="date" name="end_date" id="end_date" class="form-control"
-                   value="{{ filters.end_date|default:'' }}">
+
+            <label class="form-label">End Date</label>
+
+            <input type="date" name="end_date" class="form-control" value="{{ filters.end_date|default_if_none:'' }}">
+
         </div>
-        <div class="col-md-12 mt-2">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-            <a href="{% url 'reports:missing-forms-trends' %}" class="btn btn-secondary">Reset</a>
+
+
+
+        <div class="col-md-12">
+
+            <button type="submit" class="btn btn-primary">
+                Apply Filters
+            </button>
+
+            <a href="{% url 'reports:missing-forms-trends' %}" class="btn btn-secondary">
+                Reset
+            </a>
+
         </div>
+
     </form>
 
-    <!-- Chart -->
-    <canvas id="trendChart" style="max-height:400px;"></canvas>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    const ctx = document.getElementById('trendChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: {{ dates|safe }},
-            datasets: [{
-                label: 'Total Missing Forms',
-                data: {{ totals|safe }},
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                tension: 0.3,
-                fill: true,
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: true },
-                tooltip: { mode: 'index', intersect: false }
-            },
-            scales: {
-                x: { title: { display: true, text: 'Snapshot Date' } },
-                y: { title: { display: true, text: 'Total Missing Forms' }, beginAtZero: true }
-            }
-        }
-    });
-    </script>
+
+    <!-- ===================== -->
+    <!-- Summary Cards -->
+    <!-- ===================== -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-2">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6>Enrollment</h6>
+                    <h3>{{ latest_counts.enrollment|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6>Clinic</h6>
+                    <h3>{{ latest_counts.clinic|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6>Diagnosis</h6>
+                    <h3>{{ latest_counts.diagnosis|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6>Regimen</h6>
+                    <h3>{{ latest_counts.regimen|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6>Zonal Lab</h6>
+                    <h3>{{ latest_counts.zonal|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm text-center bg-light">
+                <div class="card-body">
+                    <h6>Total</h6>
+                    <h3>{{ latest_counts.total|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- Total Missing Trend -->
+    <!-- ===================== -->
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5>Total Missing Forms Trend</h5>
+        </div>
+
+        <div class="card-body">
+            <canvas id="totalTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- Detailed Trends -->
+    <!-- ===================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <h5>Missing Forms Trends by Type</h5>
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="trendChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================== -->
+    <!-- Zone Chart -->
+    <!-- ===================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <h5>Missing Forms by Zone</h5>
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="zoneChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================== -->
+    <!-- Site Chart -->
+    <!-- ===================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <h5>Top 10 Sites with Missing Forms</h5>
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="siteChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- Zone Performance Table -->
+    <!-- ===================== -->
+
+    <div class="card shadow-sm mt-4">
+
+        <div class="card-header">
+            <h5>Zone Performance</h5>
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-striped">
+
+                <thead>
+                    <tr>
+                        <th>Zone</th>
+                        <th>Enrollment</th>
+                        <th>Clinic</th>
+                        <th>Diagnosis</th>
+                        <th>Regimen</th>
+                        <th>Zonal</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for row in zone_performance %}
+
+                    <tr>
+                        <td>{{ row.zone }}</td>
+                        <td>{{ row.enrollment }}</td>
+                        <td>{{ row.clinic }}</td>
+                        <td>{{ row.diagnosis }}</td>
+                        <td>{{ row.regimen }}</td>
+                        <td>{{ row.zonal }}</td>
+                        <td><strong>{{ row.total }}</strong></td>
+                    </tr>
+
+                    {% endfor %}
+
+                    <tr class="table-dark">
+                        <td><strong>TOTAL</strong></td>
+                        <td><strong>{{ zone_total.enrollment }}</strong></td>
+                        <td><strong>{{ zone_total.clinic }}</strong></td>
+                        <td><strong>{{ zone_total.diagnosis }}</strong></td>
+                        <td><strong>{{ zone_total.regimen }}</strong></td>
+                        <td><strong>{{ zone_total.zonal }}</strong></td>
+                        <td><strong>{{ zone_total.total }}</strong></td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================== -->
+    <!-- Facility Performance Table -->
+    <!-- ===================== -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            <h5>Facility Performance</h5>
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-striped">
+
+                <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Enrollment</th>
+                        <th>Clinic</th>
+                        <th>Diagnosis</th>
+                        <th>Regimen</th>
+                        <th>Zonal</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for row in facility_table %}
+
+                    <tr>
+                        <td>{{ row.site }}</td>
+                        <td>{{ row.enrollment }}</td>
+                        <td>{{ row.clinic }}</td>
+                        <td>{{ row.diagnosis }}</td>
+                        <td>{{ row.regimen }}</td>
+                        <td>{{ row.zonal }}</td>
+                        <td><strong>{{ row.total }}</strong></td>
+                    </tr>
+
+                    {% endfor %}
+
+                    <tr class="table-dark">
+                        <td><strong>TOTAL</strong></td>
+                        <td><strong>{{ facility_total.enrollment }}</strong></td>
+                        <td><strong>{{ facility_total.clinic }}</strong></td>
+                        <td><strong>{{ facility_total.diagnosis }}</strong></td>
+                        <td><strong>{{ facility_total.regimen }}</strong></td>
+                        <td><strong>{{ facility_total.zonal }}</strong></td>
+                        <td><strong>{{ facility_total.total }}</strong></td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+    /* ================= Total Trend ================= */
+
+    const totalTrendCtx = document.getElementById('totalTrendChart');
+
+    if (totalTrendCtx) {
+        new Chart(totalTrendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ total_dates| safe }},
+    datasets: [{
+        label: 'Total Missing Forms',
+        data: {{ total_values| safe }},
+        borderColor: 'rgb(255,99,132)',
+        backgroundColor: 'rgba(255,99,132,0.2)',
+        borderWidth: 3,
+        tension: 0.3,
+        fill: true
+            }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: { display: true }
+        }
+    }
+    });
+}
+
+
+    /* ================= Detailed Trends ================= */
+
+    const trendCtx = document.getElementById('trendChart');
+
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ dates| safe }},
+    datasets: [
+        {
+            label: 'Enrollment',
+            data: {{ enrollment| safe }},
+        borderColor: 'rgb(255,99,132)',
+        tension: 0.3
+                },
+        {
+            label: 'Clinic',
+            data: {{ clinic| safe }},
+        borderColor: 'rgb(54,162,235)',
+        tension: 0.3
+                },
+        {
+            label: 'Diagnosis',
+            data: {{ diagnosis| safe }},
+        borderColor: 'rgb(255,206,86)',
+        tension: 0.3
+                },
+        {
+            label: 'Regimen',
+            data: {{ regimen| safe }},
+        borderColor: 'rgb(75,192,192)',
+        tension: 0.3
+                },
+        {
+            label: 'Zonal',
+            data: {{ zonal| safe }},
+        borderColor: 'rgb(153,102,255)',
+        tension: 0.3
+                }
+    ]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: { position: 'top' }
+        }
+    }
+    });
+}
+
+
+    /* ================= Zone Chart ================= */
+
+    const zoneCtx = document.getElementById('zoneChart');
+
+    if (zoneCtx) {
+        new Chart(zoneCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ zone_labels| safe }},
+    datasets: [{
+        label: 'Missing Forms',
+        data: {{ zone_totals| safe }},
+        backgroundColor: 'rgba(255,99,132,0.6)'
+            }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: { display: true }
+        }
+    }
+    });
+}
+
+
+    /* ================= Site Chart ================= */
+
+    const siteCtx = document.getElementById('siteChart');
+
+    if (siteCtx) {
+        new Chart(siteCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ site_labels| safe }},
+    datasets: [{
+        label: 'Missing Forms',
+        data: {{ site_totals| safe }},
+        backgroundColor: 'rgba(54,162,235,0.7)'
+            }]
+        },
+    options: {
+        indexAxis: 'y',
+            responsive: true,
+                plugins: {
+            legend: { display: true }
+        }
+    }
+    });
+}
+
+</script>
 
 {% endblock %}
