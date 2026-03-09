@@ -34,8 +34,10 @@ def specific_form_snapshot_view(request):
         snapshots = snapshots.filter(snapshot_date__lte=end_date)
 
     if not start_date and not end_date:
-        snapshots = snapshots.order_by("-snapshot_date")[:7]
-        snapshots = reversed(list(snapshots))
+        snapshots = list(DataQualitySnapshot.objects.order_by("-snapshot_date")[:7])
+        snapshots.reverse()
+    else:
+        snapshots = list(snapshots)
 
     dates = []
     screening = []
@@ -99,49 +101,23 @@ def specific_form_snapshot_view(request):
 
     for zone in zones:
 
-        zone_trends[zone.name] = []
+        zone_data = []
 
         for snap in snapshots:
 
-            s = (
-                ScreeningDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
-                    total=Sum("total_issues")
-                )["total"]
-                or 0
-            )
-            e = (
-                EnrollmentDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
-                    total=Sum("total_issues")
-                )["total"]
-                or 0
-            )
-            c = (
-                ClinicDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
-                    total=Sum("total_issues")
-                )["total"]
-                or 0
-            )
-            d = (
-                DiagnosisDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
-                    total=Sum("total_issues")
-                )["total"]
-                or 0
-            )
-            r = (
-                RegimenDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
-                    total=Sum("total_issues")
-                )["total"]
-                or 0
-            )
-            z = (
-                ZonalLaboratoryDQSnapshot.objects.filter(
-                    snapshot=snap, zone=zone
-                ).aggregate(total=Sum("total_issues"))["total"]
-                or 0
-            )
+            s = ScreeningDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            e = EnrollmentDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            c = ClinicDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            d = DiagnosisDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            r = RegimenDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            z = ZonalLaboratoryDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
 
-            zone_trends[zone.name].append(s + e + c + d + r + z)
+            zone_total = s + e + c + d + r + z
 
+            zone_data.append(zone_total)
+
+        zone_trends[zone.name] = zone_data
+        
     # =====================
     # Zone Performance Table
     # =====================
