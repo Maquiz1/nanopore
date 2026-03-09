@@ -28,6 +28,13 @@ def get_diagnosis_queryset(user, zone_id=None, site_id=None):
     if site_id:
         qs = qs.filter(screening__site_id=site_id)
 
+    # Sort by Zone → Site → PID
+    # qs = qs.order_by(
+    #     "screening__site__district__region__zone__name",
+    #     "screening__site__name",
+    #     "screening__pid"
+    # )
+    
     return qs
 
 

@@ -32,9 +32,15 @@ def get_clinic_queryset(user, zone_id=None, site_id=None):
 
     if site_id:
         qs = qs.filter(screening__site_id=site_id)
+        
+    # Sort by Zone → Site → PID
+    # qs = qs.order_by(
+    #     "screening__site__district__region__zone__name",
+    #     "screening__site__name",
+    #     "screening__pid"
+    # )
 
     return qs
-
 
 def get_clinic_dq(qs):
     def is_true(field):
@@ -312,19 +318,70 @@ def get_clinic_dq(qs):
     missing_afb_a_results = qs.filter(afb_yes_q, afb_a_results__isnull=True)
     
     # AFB B (must match clinic_dq_counts.py logic)
-    missing_afb_b_base_q = (
+    # AFB B (fixed logic)
+
+    # AFB A completion states
+    afb_a_complete_q = Q(
+        afb_a_date__isnull=False,
+        technique_a__isnull=False,
+        afb_a_results__isnull=False
+    )
+
+    afb_a_incomplete_q = ~afb_a_complete_q
+
+
+    # AFB B states
+    afb_b_all_filled_q = Q(
+        afb_b_date__isnull=False,
+        technique_b__isnull=False,
+        afb_b_results__isnull=False
+    )
+
+    afb_b_all_empty_q = Q(
+        afb_b_date__isnull=True,
+        technique_b__isnull=True,
+        afb_b_results__isnull=True
+    )
+
+    afb_b_partial_q = ~afb_b_all_filled_q & ~afb_b_all_empty_q
+
+
+    # ------------------------------------------------
+    # INVALID CASE 1
+    # AFB A incomplete but B filled
+    # ------------------------------------------------
+
+    invalid_b_when_a_incomplete_q = (
         afb_yes_q &
-        Q(
-            afb_a_date__isnull=False,
-            technique_a__isnull=False,
-            afb_a_results__isnull=False
-        ) &
+        afb_a_incomplete_q &
         (
-            Q(afb_b_date__isnull=True) |
-            Q(technique_b__isnull=True) |
-            Q(afb_b_results__isnull=True)
+            Q(afb_b_date__isnull=False) |
+            Q(technique_b__isnull=False) |
+            Q(afb_b_results__isnull=False)
         )
     )
+
+
+    # ------------------------------------------------
+    # INVALID CASE 2
+    # AFB A complete but B partially filled
+    # ------------------------------------------------
+
+    invalid_b_partial_q = (
+        afb_yes_q &
+        afb_a_complete_q &
+        afb_b_partial_q
+    )
+
+
+    # ------------------------------------------------
+    # Combine both invalid situations
+    # ------------------------------------------------
+
+    missing_afb_b_base_q = invalid_b_when_a_incomplete_q | invalid_b_partial_q
+
+
+    # Field specific errors (context names unchanged)
 
     missing_afb_b_date = qs.filter(
         missing_afb_b_base_q,
