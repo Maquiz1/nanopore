@@ -103,12 +103,42 @@ def specific_form_snapshot_view(request):
 
         for snap in snapshots:
 
-            s = ScreeningDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            e = EnrollmentDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            c = ClinicDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            d = DiagnosisDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            r = RegimenDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            z = ZonalLaboratoryDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            s = (
+                ScreeningDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
+                    total=Sum("total_issues")
+                )["total"]
+                or 0
+            )
+            e = (
+                EnrollmentDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
+                    total=Sum("total_issues")
+                )["total"]
+                or 0
+            )
+            c = (
+                ClinicDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
+                    total=Sum("total_issues")
+                )["total"]
+                or 0
+            )
+            d = (
+                DiagnosisDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
+                    total=Sum("total_issues")
+                )["total"]
+                or 0
+            )
+            r = (
+                RegimenDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(
+                    total=Sum("total_issues")
+                )["total"]
+                or 0
+            )
+            z = (
+                ZonalLaboratoryDQSnapshot.objects.filter(
+                    snapshot=snap, zone=zone
+                ).aggregate(total=Sum("total_issues"))["total"]
+                or 0
+            )
 
             zone_trends[zone.name].append(s + e + c + d + r + z)
 
@@ -120,23 +150,55 @@ def specific_form_snapshot_view(request):
 
     for zone in zones:
 
-        s = ScreeningDQSnapshot.objects.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        e = EnrollmentDQSnapshot.objects.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        c = ClinicDQSnapshot.objects.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        d = DiagnosisDQSnapshot.objects.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        r = RegimenDQSnapshot.objects.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        z = ZonalLaboratoryDQSnapshot.objects.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        s = (
+            ScreeningDQSnapshot.objects.filter(zone=zone).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        e = (
+            EnrollmentDQSnapshot.objects.filter(zone=zone).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        c = (
+            ClinicDQSnapshot.objects.filter(zone=zone).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        d = (
+            DiagnosisDQSnapshot.objects.filter(zone=zone).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        r = (
+            RegimenDQSnapshot.objects.filter(zone=zone).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        z = (
+            ZonalLaboratoryDQSnapshot.objects.filter(zone=zone).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
 
-        zone_performance.append({
-            "zone": zone.name,
-            "screening": s,
-            "enrollment": e,
-            "clinic": c,
-            "diagnosis": d,
-            "regimen": r,
-            "zonal": z,
-            "total": s + e + c + d + r + z
-        })
+        zone_performance.append(
+            {
+                "zone": zone.name,
+                "screening": s,
+                "enrollment": e,
+                "clinic": c,
+                "diagnosis": d,
+                "regimen": r,
+                "zonal": z,
+                "total": s + e + c + d + r + z,
+            }
+        )
 
     zone_total = {
         "screening": sum(x["screening"] for x in zone_performance),
@@ -156,23 +218,55 @@ def specific_form_snapshot_view(request):
 
     for site in Site.objects.all():
 
-        s = ScreeningDQSnapshot.objects.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        e = EnrollmentDQSnapshot.objects.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        c = ClinicDQSnapshot.objects.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        d = DiagnosisDQSnapshot.objects.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        r = RegimenDQSnapshot.objects.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        z = ZonalLaboratoryDQSnapshot.objects.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        s = (
+            ScreeningDQSnapshot.objects.filter(site=site).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        e = (
+            EnrollmentDQSnapshot.objects.filter(site=site).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        c = (
+            ClinicDQSnapshot.objects.filter(site=site).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        d = (
+            DiagnosisDQSnapshot.objects.filter(site=site).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        r = (
+            RegimenDQSnapshot.objects.filter(site=site).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
+        z = (
+            ZonalLaboratoryDQSnapshot.objects.filter(site=site).aggregate(
+                total=Sum("total_issues")
+            )["total"]
+            or 0
+        )
 
-        facility_table.append({
-            "site": site.name,
-            "screening": s,
-            "enrollment": e,
-            "clinic": c,
-            "diagnosis": d,
-            "regimen": r,
-            "zonal": z,
-            "total": s + e + c + d + r + z
-        })
+        facility_table.append(
+            {
+                "site": site.name,
+                "screening": s,
+                "enrollment": e,
+                "clinic": c,
+                "diagnosis": d,
+                "regimen": r,
+                "zonal": z,
+                "total": s + e + c + d + r + z,
+            }
+        )
 
     facility_total = {
         "screening": sum(x["screening"] for x in facility_table),
@@ -184,22 +278,20 @@ def specific_form_snapshot_view(request):
         "total": sum(x["total"] for x in facility_table),
     }
 
-
     # =====================
     # Top Sites Chart
     # =====================
 
-    top_sites_qs = ScreeningDQSnapshot.objects.values(
-        "site__name"
-    ).annotate(
-        total=Sum("total_issues")
-    ).order_by("-total")
+    top_sites_qs = (
+        ScreeningDQSnapshot.objects.values("site__name")
+        .annotate(total=Sum("total_issues"))
+        .order_by("-total")
+    )
 
     top_site_labels = [x["site__name"] for x in top_sites_qs]
     top_site_totals = [x["total"] or 0 for x in top_sites_qs]
 
     context = {
-
         "dates": json.dumps(dates),
 
         "screening": json.dumps(screening),
@@ -211,17 +303,19 @@ def specific_form_snapshot_view(request):
 
         "total_values": json.dumps(total_values),
 
+        # Charts
         "zone_trends": json.dumps(zone_trends),
+        "top_site_labels": json.dumps(top_site_labels),
+        "top_site_totals": json.dumps(top_site_totals),
 
+        # Tables
         "zone_performance": zone_performance,
         "zone_total": zone_total,
 
         "facility_table": facility_table,
         "facility_total": facility_total,
-        
-        "top_site_labels": json.dumps(top_site_labels),
-"       top_site_totals": json.dumps(top_site_totals),
 
+        # Cards
         "latest_counts": {
             "screening": screening[-1] if screening else 0,
             "enrollment": enrollment[-1] if enrollment else 0,
@@ -231,9 +325,10 @@ def specific_form_snapshot_view(request):
             "zonal": zonal[-1] if zonal else 0,
         },
 
+        # Filters
         "zones": Zone.objects.all(),
         "sites": Site.objects.all(),
         "filters": request.GET,
     }
-
+    
     return render(request, "snapshots/form_queries_snapshot.html", context)

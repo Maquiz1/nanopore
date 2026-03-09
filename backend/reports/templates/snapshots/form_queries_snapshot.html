@@ -419,7 +419,8 @@
 
     /* ZONE GROUPED TREND */
 
-    const zoneTrendData = JSON.parse('{{ zone_trends|escapejs }}');
+    // const zoneTrendData = JSON.parse('{{ zone_trends|escapejs }}');
+    const zoneTrendData = {{ zone_trends| safe }};
 
     let zoneDatasets = [];
 
@@ -439,32 +440,55 @@
 
     }
 
-    new Chart(document.getElementById('zoneTrendChart'), {
+    const zoneTrendCtx = document.getElementById('zoneTrendChart');
 
-        type: 'bar',
+    if (zoneTrendCtx) {
 
-        data: {
-            labels: dates,
-            datasets: zoneDatasets
-        },
+        let zoneDatasets = [];
 
-        options: {
-            responsive: true,
-            scales: {
-                x: { stacked: false },
-                y: { stacked: false }
-            }
+        const colors = ['red', 'blue', 'green', 'orange', 'purple', 'black', 'brown', 'cyan'];
+
+        let i = 0;
+
+        for (const zone in zoneTrendData) {
+
+            zoneDatasets.push({
+                label: zone,
+                data: zoneTrendData[zone],
+                backgroundColor: colors[i % colors.length]
+            });
+
+            i++;
+
         }
 
-    });
+        new Chart(zoneTrendCtx, {
 
+            type: 'bar',
+
+            data: {
+                labels: dates,
+                datasets: zoneDatasets
+            },
+
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: false },
+                    y: { stacked: false }
+                }
+            }
+
+        });
+
+    }
 
     /* =====================
     TOP SITES BAR CHART
     ===================== */
 
-    const siteLabels = JSON.parse('{{ top_site_labels|escapejs }}');
-    const siteTotals = JSON.parse('{{ top_site_totals|escapejs }}');
+    const siteLabels = {{ top_site_labels| safe }};
+    const siteTotals = {{ top_site_totals| safe }};
 
     const siteCtx = document.getElementById('siteRankChart');
 
@@ -485,7 +509,7 @@
 
             options: {
                 responsive: true,
-                indexAxis: 'y',   // horizontal bars
+                indexAxis: 'y',
                 scales: {
                     x: { beginAtZero: true }
                 }
@@ -494,7 +518,6 @@
         });
 
     }
-
 </script>
 
 {% endblock %}
