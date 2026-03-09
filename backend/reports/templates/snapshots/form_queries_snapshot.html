@@ -82,7 +82,22 @@
 
     </div>
 
+    <!-- ===================== -->
+    <!-- Top Forms -->
+    <!-- ===================== -->
+    <div class="row mb-4">
+        <div class="card shadow-sm mt-4">
 
+            <div class="card-header">
+                <h5>Forms Ranked by Data Quality Issues</h5>
+            </div>
+
+            <div class="card-body">
+                <canvas id="formRankChart"></canvas>
+            </div>
+
+        </div>
+    </div>
 
     <!-- ===================== -->
     <!-- Total Issues Trend -->
@@ -212,7 +227,22 @@
 
     </div>
 
+    <!-- ===================== -->
+    <!-- Top Zones -->
+    <!-- ===================== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mt-4">
 
+            <div class="card-header">
+                <h5>Zones Ranked by Data Quality Issues</h5>
+            </div>
+
+            <div class="card-body">
+                <canvas id="zoneRankChart"></canvas>
+            </div>
+
+        </div>
+    </div>
 
     <!-- ===================== -->
     <!-- Facility Performance -->
@@ -321,6 +351,44 @@
     const regimen = {{ regimen| safe }};
     const zonal = {{ zonal| safe }};
 
+
+   /* =====================
+   TOP FORMS CHART
+    ===================== */
+
+    const formRankCtx = document.getElementById('formRankChart');
+
+    if (formRankCtx) {
+
+        const formLabels = {{ top_form_labels|safe }};
+        const formTotals = {{ top_form_totals|safe }};
+
+        new Chart(formRankCtx, {
+
+            type: 'bar',
+
+            data: {
+                labels: formLabels,
+                datasets: [{
+                    label: 'Total Issues',
+                    data: formTotals,
+                    backgroundColor: 'rgba(255,159,64,0.7)'
+                }]
+            },
+
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+
+        });
+
+    }
 
     /* TOTAL TREND */
 
@@ -482,6 +550,43 @@
         });
 
     }
+
+    /* =====================
+    TOP ZONES CHART
+    ===================== */
+
+    // const zoneRankCtx = document.getElementById('zoneRankChart');
+
+    // if (zoneRankCtx) {
+
+    //     const zoneLabels = {{ top_zone_labels| safe
+    // }};
+    // const zoneTotals = {{ top_zone_totals| safe }};
+
+    // new Chart(zoneRankCtx, {
+
+    //     type: 'bar',
+
+    //     data: {
+    //         labels: zoneLabels,
+    //         datasets: [{
+    //             label: 'Total Issues',
+    //             data: zoneTotals,
+    //             backgroundColor: 'rgba(54,162,235,0.7)'
+    //         }]
+    //     },
+
+    //     options: {
+    //         responsive: true,
+    //         indexAxis: 'y',
+    //         scales: {
+    //             x: { beginAtZero: true }
+    //         }
+    //     }
+
+    // });
+
+    // }
 
     /* =====================
     TOP SITES BAR CHART
