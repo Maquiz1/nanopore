@@ -53,32 +53,53 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function toggleTbDiagnosisMade() {
-        if(!tbDiagnosisField || !tbDiagnosisMadeField) return;
-        if(tbDiagnosisField.value !== "1") {
-            hideDiagnosisMade();
-            return;
-        }
+
+        if (!tbDiagnosisField || !tbDiagnosisMadeField) return;
+
+        const diagnosis = tbDiagnosisField.value;
         const val = tbDiagnosisMadeField.value;
+
         hideDiagnosisMade();
-        if(val === "1" && clinicalDiagnosisSection) clinicalDiagnosisSection.style.display = "block";
-        else if(val === "2" && bacteriologicalDiagnosisSection) bacteriologicalDiagnosisSection.style.display = "block";
-        else if(val === "3" && tbDiagnosisMadeOtherSections) tbDiagnosisMadeOtherSections.style.display = "block";
+
+        // Only evaluate if TB diagnosis = YES
+        if (diagnosis !== "1") return;
+
+        if (val === "1" && clinicalDiagnosisSection) {
+            clinicalDiagnosisSection.style.display = "block";
+        }
+
+        else if (val === "2" && bacteriologicalDiagnosisSection) {
+            bacteriologicalDiagnosisSection.style.display = "block";
+        }
+
+        else if (val === "3" && tbDiagnosisMadeOtherSections) {
+            tbDiagnosisMadeOtherSections.style.display = "block";
+        }
     }
 
     function toggleTbSections() {
-        if(!tbDiagnosisField) return;
-        if(tbDiagnosisField.value === "1") {
-            if(tbDiagnosisDateSections) tbDiagnosisDateSections.style.display = "block";
-            if(tbDiagnosisMadeSections) tbDiagnosisMadeSections.style.display = "block";
-            if(tbSections) tbSections.style.display = "block";
-            if(nonTbSections) nonTbSections.style.display = "none";
-        } else {
-            if(tbDiagnosisDateSections) tbDiagnosisDateSections.style.display = "none";
-            if(tbDiagnosisMadeSections) tbDiagnosisMadeSections.style.display = "none";
-            if(tbSections) tbSections.style.display = "none";
-            if(nonTbSections) nonTbSections.style.display = "block";
+        if (!tbDiagnosisField) return;
+
+        const value = tbDiagnosisField.value;
+
+        if (value === "1") {   // TB Diagnosed
+            if (tbDiagnosisDateSections) tbDiagnosisDateSections.style.display = "block";
+            if (tbDiagnosisMadeSections) tbDiagnosisMadeSections.style.display = "block";
+            if (tbSections) tbSections.style.display = "block";
+            if (nonTbSections) nonTbSections.style.display = "none";
+
+            // Now evaluate how diagnosis was made
+            toggleTbDiagnosisMade();
+
+        } else {   // Not TB
+            if (tbDiagnosisDateSections) tbDiagnosisDateSections.style.display = "none";
+            if (tbDiagnosisMadeSections) tbDiagnosisMadeSections.style.display = "none";
+            if (tbSections) tbSections.style.display = "none";
+            if (nonTbSections) nonTbSections.style.display = "block";
+            
+            tbDiagnosisMadeField.value = "";
+            hideDiagnosisMade();
         }
-        toggleTbDiagnosisMade();
     }
 
     function toggleTbClinicallyOther() {
