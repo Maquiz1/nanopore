@@ -339,6 +339,7 @@ def specific_form_snapshot_view(request):
         # Filters
         "zones": Zone.objects.all(),
         "sites": Site.objects.all(),
+        "form": form,
         "filters": request.GET,
     }
     
