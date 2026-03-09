@@ -269,6 +269,6 @@ def missing_forms_trends(request):
 
     return render(
         request,
-        "reports/snapshots/missing_forms_trends.html",
+        "snapshots/missing_forms_trends.html",
         context
     )
