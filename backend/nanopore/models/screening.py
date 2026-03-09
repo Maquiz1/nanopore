@@ -47,6 +47,9 @@ class Screening(models.Model):
 
     class Meta:
         ordering = ["screening_date", "pid"]
+        indexes = [
+            models.Index(fields=["site", "pid"])
+        ]
 
     def __str__(self):
         return f"{self.pid} - {self.site}"
