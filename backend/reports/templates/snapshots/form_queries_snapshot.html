@@ -5,355 +5,302 @@
 
 <div class="container mt-4">
 
-<h2 class="mb-4">Data Quality Snapshot Dashboard</h2>
+    <h2 class="mb-4">Data Quality Snapshot Dashboard</h2>
 
 
-<!-- ===================== -->
-<!-- Filters -->
-<!-- ===================== -->
+    <!-- ===================== -->
+    <!-- Filters -->
+    <!-- ===================== -->
 
-<form method="get" class="row g-3 mb-4">
+    {% include "snapshots/form_filters.html" %}
 
-<div class="col-md-3">
-<label class="form-label">Zone</label>
 
-<select name="zone" class="form-select">
+    <!-- ===================== -->
+    <!-- Summary Cards -->
+    <!-- ===================== -->
 
-<option value="">All Zones</option>
+    <div class="row mb-4">
 
-{% for z in zones %}
-<option value="{{ z.id }}" {% if filters.zone == z.id|stringformat:"s" %}selected{% endif %}>
-{{ z.name }}
-</option>
-{% endfor %}
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h6>Screening</h6>
+                    <h3>{{ latest_counts.screening }}</h3>
+                </div>
+            </div>
+        </div>
 
-</select>
-</div>
 
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h6>Enrollment</h6>
+                    <h3>{{ latest_counts.enrollment }}</h3>
+                </div>
+            </div>
+        </div>
 
-<div class="col-md-3">
-<label class="form-label">Site</label>
 
-<select name="site" class="form-select">
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h6>Clinic</h6>
+                    <h3>{{ latest_counts.clinic }}</h3>
+                </div>
+            </div>
+        </div>
 
-<option value="">All Sites</option>
 
-{% for s in sites %}
-<option value="{{ s.id }}" {% if filters.site == s.id|stringformat:"s" %}selected{% endif %}>
-{{ s.name }}
-</option>
-{% endfor %}
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h6>Diagnosis</h6>
+                    <h3>{{ latest_counts.diagnosis }}</h3>
+                </div>
+            </div>
+        </div>
 
-</select>
-</div>
 
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h6>Regimen</h6>
+                    <h3>{{ latest_counts.regimen }}</h3>
+                </div>
+            </div>
+        </div>
 
-<div class="col-md-3">
-<label class="form-label">Start Date</label>
 
-<input type="date" name="start_date"
-class="form-control"
-value="{{ filters.start_date|default_if_none:'' }}">
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm bg-light">
+                <div class="card-body">
+                    <h6>Zonal Lab</h6>
+                    <h3>{{ latest_counts.zonal }}</h3>
+                </div>
+            </div>
+        </div>
 
-</div>
+    </div>
 
 
-<div class="col-md-3">
-<label class="form-label">End Date</label>
 
-<input type="date" name="end_date"
-class="form-control"
-value="{{ filters.end_date|default_if_none:'' }}">
+    <!-- ===================== -->
+    <!-- Total Issues Trend -->
+    <!-- ===================== -->
 
-</div>
+    <div class="card shadow-sm mb-4">
 
+        <div class="card-header">
+            <h5>Total Data Quality Issues Trend</h5>
+        </div>
 
-<div class="col-md-12">
+        <div class="card-body">
+            <canvas id="totalTrendChart"></canvas>
+        </div>
 
-<button type="submit" class="btn btn-primary">
-Apply Filters
-</button>
+    </div>
 
-<a href="" class="btn btn-secondary">
-Reset
-</a>
 
-</div>
 
-</form>
+    <!-- ===================== -->
+    <!-- Per Form Trends -->
+    <!-- ===================== -->
 
+    <div class="card shadow-sm mb-4">
 
+        <div class="card-header">
+            <h5>Issues Trend by Form</h5>
+        </div>
 
-<!-- ===================== -->
-<!-- Summary Cards -->
-<!-- ===================== -->
+        <div class="card-body">
+            <canvas id="trendChart"></canvas>
+        </div>
 
-<div class="row mb-4">
+    </div>
 
-<div class="col-md-2">
-<div class="card text-center shadow-sm">
-<div class="card-body">
-<h6>Screening</h6>
-<h3>{{ latest_counts.screening }}</h3>
-</div>
-</div>
-</div>
 
 
-<div class="col-md-2">
-<div class="card text-center shadow-sm">
-<div class="card-body">
-<h6>Enrollment</h6>
-<h3>{{ latest_counts.enrollment }}</h3>
-</div>
-</div>
-</div>
+    <!-- ===================== -->
+    <!-- Zone Grouped Trend -->
+    <!-- ===================== -->
 
+    <div class="card shadow-sm mb-4">
 
-<div class="col-md-2">
-<div class="card text-center shadow-sm">
-<div class="card-body">
-<h6>Clinic</h6>
-<h3>{{ latest_counts.clinic }}</h3>
-</div>
-</div>
-</div>
+        <div class="card-header">
+            <h5>Zone Issues Trend</h5>
+        </div>
 
+        <div class="card-body">
+            <canvas id="zoneTrendChart"></canvas>
+        </div>
 
-<div class="col-md-2">
-<div class="card text-center shadow-sm">
-<div class="card-body">
-<h6>Diagnosis</h6>
-<h3>{{ latest_counts.diagnosis }}</h3>
-</div>
-</div>
-</div>
+    </div>
 
 
-<div class="col-md-2">
-<div class="card text-center shadow-sm">
-<div class="card-body">
-<h6>Regimen</h6>
-<h3>{{ latest_counts.regimen }}</h3>
-</div>
-</div>
-</div>
 
+    <!-- ===================== -->
+    <!-- Zone Performance Table -->
+    <!-- ===================== -->
 
-<div class="col-md-2">
-<div class="card text-center shadow-sm bg-light">
-<div class="card-body">
-<h6>Zonal Lab</h6>
-<h3>{{ latest_counts.zonal }}</h3>
-</div>
-</div>
-</div>
+    <div class="card shadow-sm mb-4">
 
-</div>
+        <div class="card-header">
+            <h5>Zone Performance</h5>
+        </div>
 
+        <div class="card-body table-responsive">
 
+            <table class="table table-bordered table-striped">
 
-<!-- ===================== -->
-<!-- Total Issues Trend -->
-<!-- ===================== -->
+                <thead>
 
-<div class="card shadow-sm mb-4">
+                    <tr>
+                        <th>Zone</th>
+                        <th>Screening</th>
+                        <th>Enrollment</th>
+                        <th>Clinic</th>
+                        <th>Diagnosis</th>
+                        <th>Regimen</th>
+                        <th>Zonal</th>
+                        <th>Total</th>
+                    </tr>
 
-<div class="card-header">
-<h5>Total Data Quality Issues Trend</h5>
-</div>
+                </thead>
 
-<div class="card-body">
-<canvas id="totalTrendChart"></canvas>
-</div>
+                <tbody>
 
-</div>
+                    {% for row in zone_performance %}
 
+                    <tr>
 
+                        <td>{{ row.zone }}</td>
 
-<!-- ===================== -->
-<!-- Per Form Trends -->
-<!-- ===================== -->
+                        <td>{{ row.screening }}</td>
+                        <td>{{ row.enrollment }}</td>
+                        <td>{{ row.clinic }}</td>
+                        <td>{{ row.diagnosis }}</td>
+                        <td>{{ row.regimen }}</td>
+                        <td>{{ row.zonal }}</td>
 
-<div class="card shadow-sm mb-4">
+                        <td><strong>{{ row.total }}</strong></td>
 
-<div class="card-header">
-<h5>Issues Trend by Form</h5>
-</div>
+                    </tr>
 
-<div class="card-body">
-<canvas id="trendChart"></canvas>
-</div>
+                    {% endfor %}
 
-</div>
+                    <tr class="table-dark">
 
+                        <td><strong>TOTAL</strong></td>
 
+                        <td>{{ zone_total.screening }}</td>
+                        <td>{{ zone_total.enrollment }}</td>
+                        <td>{{ zone_total.clinic }}</td>
+                        <td>{{ zone_total.diagnosis }}</td>
+                        <td>{{ zone_total.regimen }}</td>
+                        <td>{{ zone_total.zonal }}</td>
 
-<!-- ===================== -->
-<!-- Zone Grouped Trend -->
-<!-- ===================== -->
+                        <td><strong>{{ zone_total.total }}</strong></td>
 
-<div class="card shadow-sm mb-4">
+                    </tr>
 
-<div class="card-header">
-<h5>Zone Issues Trend</h5>
-</div>
+                </tbody>
 
-<div class="card-body">
-<canvas id="zoneTrendChart"></canvas>
-</div>
+            </table>
 
-</div>
+        </div>
 
+    </div>
 
 
-<!-- ===================== -->
-<!-- Zone Performance Table -->
-<!-- ===================== -->
 
-<div class="card shadow-sm mb-4">
+    <!-- ===================== -->
+    <!-- Facility Performance -->
+    <!-- ===================== -->
 
-<div class="card-header">
-<h5>Zone Performance</h5>
-</div>
+    <div class="card shadow-sm">
 
-<div class="card-body table-responsive">
+        <div class="card-header">
+            <h5>Facility Performance</h5>
+        </div>
 
-<table class="table table-bordered table-striped">
+        <div class="card-body table-responsive">
 
-<thead>
+            <table class="table table-bordered table-striped">
 
-<tr>
-<th>Zone</th>
-<th>Screening</th>
-<th>Enrollment</th>
-<th>Clinic</th>
-<th>Diagnosis</th>
-<th>Regimen</th>
-<th>Zonal</th>
-<th>Total</th>
-</tr>
+                <thead>
 
-</thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Screening</th>
+                        <th>Enrollment</th>
+                        <th>Clinic</th>
+                        <th>Diagnosis</th>
+                        <th>Regimen</th>
+                        <th>Zonal</th>
+                        <th>Total</th>
+                    </tr>
 
-<tbody>
+                </thead>
 
-{% for row in zone_performance %}
+                <tbody>
 
-<tr>
+                    {% for row in facility_table %}
 
-<td>{{ row.zone }}</td>
+                    <tr>
 
-<td>{{ row.screening }}</td>
-<td>{{ row.enrollment }}</td>
-<td>{{ row.clinic }}</td>
-<td>{{ row.diagnosis }}</td>
-<td>{{ row.regimen }}</td>
-<td>{{ row.zonal }}</td>
+                        <td>{{ row.site }}</td>
 
-<td><strong>{{ row.total }}</strong></td>
+                        <td>{{ row.screening }}</td>
+                        <td>{{ row.enrollment }}</td>
+                        <td>{{ row.clinic }}</td>
+                        <td>{{ row.diagnosis }}</td>
+                        <td>{{ row.regimen }}</td>
+                        <td>{{ row.zonal }}</td>
 
-</tr>
+                        <td><strong>{{ row.total }}</strong></td>
 
-{% endfor %}
+                    </tr>
 
-<tr class="table-dark">
+                    {% endfor %}
 
-<td><strong>TOTAL</strong></td>
+                    <tr class="table-dark">
 
-<td>{{ zone_total.screening }}</td>
-<td>{{ zone_total.enrollment }}</td>
-<td>{{ zone_total.clinic }}</td>
-<td>{{ zone_total.diagnosis }}</td>
-<td>{{ zone_total.regimen }}</td>
-<td>{{ zone_total.zonal }}</td>
+                        <td><strong>TOTAL</strong></td>
 
-<td><strong>{{ zone_total.total }}</strong></td>
+                        <td>{{ facility_total.screening }}</td>
+                        <td>{{ facility_total.enrollment }}</td>
+                        <td>{{ facility_total.clinic }}</td>
+                        <td>{{ facility_total.diagnosis }}</td>
+                        <td>{{ facility_total.regimen }}</td>
+                        <td>{{ facility_total.zonal }}</td>
 
-</tr>
+                        <td><strong>{{ facility_total.total }}</strong></td>
 
-</tbody>
+                    </tr>
 
-</table>
+                </tbody>
 
-</div>
+            </table>
 
-</div>
+        </div>
 
+    </div>
 
+    <!-- ===================== -->
+    <!-- Top Sites Issues -->
+    <!-- ===================== -->
 
-<!-- ===================== -->
-<!-- Facility Performance -->
-<!-- ===================== -->
+    <div class="card shadow-sm mt-4">
 
-<div class="card shadow-sm">
+        <div class="card-header">
+            <h5>Sites Ranked by Data Quality Issues</h5>
+        </div>
 
-<div class="card-header">
-<h5>Facility Performance</h5>
-</div>
+        <div class="card-body">
+            <canvas id="siteRankChart"></canvas>
+        </div>
 
-<div class="card-body table-responsive">
-
-<table class="table table-bordered table-striped">
-
-<thead>
-
-<tr>
-<th>Site</th>
-<th>Screening</th>
-<th>Enrollment</th>
-<th>Clinic</th>
-<th>Diagnosis</th>
-<th>Regimen</th>
-<th>Zonal</th>
-<th>Total</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for row in facility_table %}
-
-<tr>
-
-<td>{{ row.site }}</td>
-
-<td>{{ row.screening }}</td>
-<td>{{ row.enrollment }}</td>
-<td>{{ row.clinic }}</td>
-<td>{{ row.diagnosis }}</td>
-<td>{{ row.regimen }}</td>
-<td>{{ row.zonal }}</td>
-
-<td><strong>{{ row.total }}</strong></td>
-
-</tr>
-
-{% endfor %}
-
-<tr class="table-dark">
-
-<td><strong>TOTAL</strong></td>
-
-<td>{{ facility_total.screening }}</td>
-<td>{{ facility_total.enrollment }}</td>
-<td>{{ facility_total.clinic }}</td>
-<td>{{ facility_total.diagnosis }}</td>
-<td>{{ facility_total.regimen }}</td>
-<td>{{ facility_total.zonal }}</td>
-
-<td><strong>{{ facility_total.total }}</strong></td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
+    </div>
 
 </div>
 
@@ -363,103 +310,140 @@ Reset
 
 <script>
 
-const dates = {{ dates|safe }};
-const totals = {{ total_values|safe }};
+    const dates = {{ dates| safe }};
+    const totals = {{ total_values| safe }};
 
-const screening = {{ screening|safe }};
-const enrollment = {{ enrollment|safe }};
-const clinic = {{ clinic|safe }};
-const diagnosis = {{ diagnosis|safe }};
-const regimen = {{ regimen|safe }};
-const zonal = {{ zonal|safe }};
-
-
-/* TOTAL TREND */
-
-new Chart(document.getElementById('totalTrendChart'),{
-
-type:'line',
-
-data:{
-labels: dates,
-datasets:[{
-label:'Total Issues',
-data: totals,
-borderColor:'red',
-backgroundColor:'rgba(255,99,132,0.2)',
-fill:true,
-tension:0.3
-}]
-}
-
-});
+    const screening = {{ screening| safe }};
+    const enrollment = {{ enrollment| safe }};
+    const clinic = {{ clinic| safe }};
+    const diagnosis = {{ diagnosis| safe }};
+    const regimen = {{ regimen| safe }};
+    const zonal = {{ zonal| safe }};
 
 
-/* FORM TRENDS */
+    /* TOTAL TREND */
 
-new Chart(document.getElementById('trendChart'),{
+    new Chart(document.getElementById('totalTrendChart'), {
 
-type:'line',
+        type: 'line',
 
-data:{
-labels: dates,
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Total Issues',
+                data: totals,
+                borderColor: 'red',
+                backgroundColor: 'rgba(255,99,132,0.2)',
+                fill: true,
+                tension: 0.3
+            }]
+        }
 
-datasets:[
-
-{label:'Screening',data:screening,borderColor:'red'},
-{label:'Enrollment',data:enrollment,borderColor:'blue'},
-{label:'Clinic',data:clinic,borderColor:'green'},
-{label:'Diagnosis',data:diagnosis,borderColor:'orange'},
-{label:'Regimen',data:regimen,borderColor:'purple'},
-{label:'Zonal',data:zonal,borderColor:'black'}
-
-]
-
-}
-
-});
+    });
 
 
-/* ZONE GROUPED TREND */
+    /* FORM TRENDS */
 
-const zoneTrendData = JSON.parse('{{ zone_trends|escapejs }}');
+    new Chart(document.getElementById('trendChart'), {
 
-let zoneDatasets = [];
+        type: 'line',
 
-const colors = ['red','blue','green','orange','purple','black','brown','cyan'];
+        data: {
+            labels: dates,
 
-let i = 0;
+            datasets: [
 
-for (const zone in zoneTrendData){
+                { label: 'Screening', data: screening, borderColor: 'red' },
+                { label: 'Enrollment', data: enrollment, borderColor: 'blue' },
+                { label: 'Clinic', data: clinic, borderColor: 'green' },
+                { label: 'Diagnosis', data: diagnosis, borderColor: 'orange' },
+                { label: 'Regimen', data: regimen, borderColor: 'purple' },
+                { label: 'Zonal', data: zonal, borderColor: 'black' }
 
-zoneDatasets.push({
-label: zone,
-data: zoneTrendData[zone],
-backgroundColor: colors[i % colors.length]
-});
+            ]
 
-i++;
+        }
 
-}
+    });
 
-new Chart(document.getElementById('zoneTrendChart'),{
 
-type:'bar',
+    /* ZONE GROUPED TREND */
 
-data:{
-labels: dates,
-datasets: zoneDatasets
-},
+    const zoneTrendData = JSON.parse('{{ zone_trends|escapejs }}');
 
-options:{
-responsive:true,
-scales:{
-x:{stacked:false},
-y:{stacked:false}
-}
-}
+    let zoneDatasets = [];
 
-});
+    const colors = ['red', 'blue', 'green', 'orange', 'purple', 'black', 'brown', 'cyan'];
+
+    let i = 0;
+
+    for (const zone in zoneTrendData) {
+
+        zoneDatasets.push({
+            label: zone,
+            data: zoneTrendData[zone],
+            backgroundColor: colors[i % colors.length]
+        });
+
+        i++;
+
+    }
+
+    new Chart(document.getElementById('zoneTrendChart'), {
+
+        type: 'bar',
+
+        data: {
+            labels: dates,
+            datasets: zoneDatasets
+        },
+
+        options: {
+            responsive: true,
+            scales: {
+                x: { stacked: false },
+                y: { stacked: false }
+            }
+        }
+
+    });
+
+
+    /* =====================
+    TOP SITES BAR CHART
+    ===================== */
+
+    const siteLabels = JSON.parse('{{ top_site_labels|escapejs }}');
+    const siteTotals = JSON.parse('{{ top_site_totals|escapejs }}');
+
+    const siteCtx = document.getElementById('siteRankChart');
+
+    if (siteCtx) {
+
+        new Chart(siteCtx, {
+
+            type: 'bar',
+
+            data: {
+                labels: siteLabels,
+                datasets: [{
+                    label: 'Total Data Quality Issues',
+                    data: siteTotals,
+                    backgroundColor: 'rgba(255,99,132,0.7)'
+                }]
+            },
+
+            options: {
+                responsive: true,
+                indexAxis: 'y',   // horizontal bars
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+
+        });
+
+    }
 
 </script>
 
