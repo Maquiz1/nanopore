@@ -49,22 +49,34 @@
 
 
 <div class="col-md-3">
+<label class="form-label">Form</label>
+
+<select name="form" class="form-select">
+
+<option value="">All Forms</option>
+
+<option value="screening" {% if filters.form == "screening" %}selected{% endif %}>Screening</option>
+<option value="enrollment" {% if filters.form == "enrollment" %}selected{% endif %}>Enrollment</option>
+<option value="clinic" {% if filters.form == "clinic" %}selected{% endif %}>Clinic</option>
+<option value="diagnosis" {% if filters.form == "diagnosis" %}selected{% endif %}>Diagnosis</option>
+<option value="regimen" {% if filters.form == "regimen" %}selected{% endif %}>Regimen</option>
+<option value="zonal" {% if filters.form == "zonal" %}selected{% endif %}>Zonal Lab</option>
+
+</select>
+</div>
+
+
+<div class="col-md-3">
 <label class="form-label">Start Date</label>
-
-<input type="date" name="start_date"
-class="form-control"
+<input type="date" name="start_date" class="form-control"
 value="{{ filters.start_date|default_if_none:'' }}">
-
 </div>
 
 
 <div class="col-md-3">
 <label class="form-label">End Date</label>
-
-<input type="date" name="end_date"
-class="form-control"
+<input type="date" name="end_date" class="form-control"
 value="{{ filters.end_date|default_if_none:'' }}">
-
 </div>
 
 
@@ -99,7 +111,6 @@ Reset
 </div>
 </div>
 
-
 <div class="col-md-2">
 <div class="card text-center shadow-sm">
 <div class="card-body">
@@ -108,7 +119,6 @@ Reset
 </div>
 </div>
 </div>
-
 
 <div class="col-md-2">
 <div class="card text-center shadow-sm">
@@ -119,7 +129,6 @@ Reset
 </div>
 </div>
 
-
 <div class="col-md-2">
 <div class="card text-center shadow-sm">
 <div class="card-body">
@@ -129,7 +138,6 @@ Reset
 </div>
 </div>
 
-
 <div class="col-md-2">
 <div class="card text-center shadow-sm">
 <div class="card-body">
@@ -138,7 +146,6 @@ Reset
 </div>
 </div>
 </div>
-
 
 <div class="col-md-2">
 <div class="card text-center shadow-sm bg-light">
@@ -154,7 +161,7 @@ Reset
 
 
 <!-- ===================== -->
-<!-- Total Issues Trend -->
+<!-- Total Trend -->
 <!-- ===================== -->
 
 <div class="card shadow-sm mb-4">
@@ -183,24 +190,6 @@ Reset
 
 <div class="card-body">
 <canvas id="trendChart"></canvas>
-</div>
-
-</div>
-
-
-
-<!-- ===================== -->
-<!-- Zone Grouped Trend -->
-<!-- ===================== -->
-
-<div class="card shadow-sm mb-4">
-
-<div class="card-header">
-<h5>Zone Issues Trend</h5>
-</div>
-
-<div class="card-body">
-<canvas id="zoneTrendChart"></canvas>
 </div>
 
 </div>
@@ -355,7 +344,9 @@ Reset
 
 </div>
 
+
 </div>
+
 
 
 
@@ -376,8 +367,11 @@ const zonal = {{ zonal|safe }};
 
 /* TOTAL TREND */
 
-new Chart(document.getElementById('totalTrendChart'),{
+const totalCtx = document.getElementById('totalTrendChart');
 
+if (totalCtx) {
+
+new Chart(totalCtx,{
 type:'line',
 
 data:{
@@ -387,18 +381,28 @@ label:'Total Issues',
 data: totals,
 borderColor:'red',
 backgroundColor:'rgba(255,99,132,0.2)',
-fill:true,
-tension:0.3
+tension:0.3,
+fill:true
 }]
+},
+
+options:{
+responsive:true,
+maintainAspectRatio:false
 }
 
 });
 
+}
+
 
 /* FORM TRENDS */
 
-new Chart(document.getElementById('trendChart'),{
+const trendCtx = document.getElementById('trendChart');
 
+if (trendCtx) {
+
+new Chart(trendCtx,{
 type:'line',
 
 data:{
@@ -406,60 +410,54 @@ labels: dates,
 
 datasets:[
 
-{label:'Screening',data:screening,borderColor:'red'},
-{label:'Enrollment',data:enrollment,borderColor:'blue'},
-{label:'Clinic',data:clinic,borderColor:'green'},
-{label:'Diagnosis',data:diagnosis,borderColor:'orange'},
-{label:'Regimen',data:regimen,borderColor:'purple'},
-{label:'Zonal',data:zonal,borderColor:'black'}
+{
+label:'Screening',
+data: screening,
+borderColor:'red'
+},
+
+{
+label:'Enrollment',
+data: enrollment,
+borderColor:'blue'
+},
+
+{
+label:'Clinic',
+data: clinic,
+borderColor:'green'
+},
+
+{
+label:'Diagnosis',
+data: diagnosis,
+borderColor:'orange'
+},
+
+{
+label:'Regimen',
+data: regimen,
+borderColor:'purple'
+},
+
+{
+label:'Zonal Lab',
+data: zonal,
+borderColor:'black'
+}
 
 ]
 
-}
-
-});
-
-
-/* ZONE GROUPED TREND */
-
-const zoneTrendData = JSON.parse('{{ zone_trends|escapejs }}');
-
-let zoneDatasets = [];
-
-const colors = ['red','blue','green','orange','purple','black','brown','cyan'];
-
-let i = 0;
-
-for (const zone in zoneTrendData){
-
-zoneDatasets.push({
-label: zone,
-data: zoneTrendData[zone],
-backgroundColor: colors[i % colors.length]
-});
-
-i++;
-
-}
-
-new Chart(document.getElementById('zoneTrendChart'),{
-
-type:'bar',
-
-data:{
-labels: dates,
-datasets: zoneDatasets
 },
 
 options:{
 responsive:true,
-scales:{
-x:{stacked:false},
-y:{stacked:false}
-}
+maintainAspectRatio:false
 }
 
 });
+
+}
 
 </script>
 
