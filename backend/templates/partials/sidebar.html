@@ -42,7 +42,7 @@
         <i class="fas fa-globe-africa"></i><span> snapshots-dashboard</span>
     </a>
 
-    <a href="{% url 'reports:missing_forms_trends' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+    <a href="{% url 'reports:missing-forms-trends' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> snapshots-trends</span>
     </a>
     {% endif %}
