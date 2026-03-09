@@ -552,41 +552,42 @@
     }
 
     /* =====================
-    TOP ZONES CHART
+   TOP ZONES CHART
     ===================== */
 
-    // const zoneRankCtx = document.getElementById('zoneRankChart');
+    const zoneRankCtx = document.getElementById('zoneRankChart');
 
-    // if (zoneRankCtx) {
+    if (zoneRankCtx) {
 
-    //     const zoneLabels = {{ top_zone_labels| safe
-    // }};
-    // const zoneTotals = {{ top_zone_totals| safe }};
+        const zoneLabels = {{ top_zone_labels|safe }};
+        const zoneTotals = {{ top_zone_totals|safe }};
 
-    // new Chart(zoneRankCtx, {
+        new Chart(zoneRankCtx, {
 
-    //     type: 'bar',
+            type: 'bar',
 
-    //     data: {
-    //         labels: zoneLabels,
-    //         datasets: [{
-    //             label: 'Total Issues',
-    //             data: zoneTotals,
-    //             backgroundColor: 'rgba(54,162,235,0.7)'
-    //         }]
-    //     },
+            data: {
+                labels: zoneLabels,
+                datasets: [{
+                    label: 'Total Issues',
+                    data: zoneTotals,
+                    backgroundColor: 'rgba(54,162,235,0.7)'
+                }]
+            },
 
-    //     options: {
-    //         responsive: true,
-    //         indexAxis: 'y',
-    //         scales: {
-    //             x: { beginAtZero: true }
-    //         }
-    //     }
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
 
-    // });
+        });
 
-    // }
+    }
 
     /* =====================
     TOP SITES BAR CHART

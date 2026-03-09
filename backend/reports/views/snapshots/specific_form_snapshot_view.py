@@ -204,16 +204,16 @@ def specific_form_snapshot_view(request):
     }
 
 
-    # # TOP ZONES
+    # TOP ZONES
 
-    # top_zones = sorted(
-    #     zone_performance,
-    #     key=lambda x: x["total"],
-    #     reverse=True
-    # )
+    top_zones = sorted(
+        zone_performance,
+        key=lambda x: x["total"],
+        reverse=True
+    )
 
-    # top_zone_labels = [x["zone"] for x in top_zones]
-    # top_zone_totals = [x["total"] for x in top_zones]
+    top_zone_labels = [x["zone"] for x in top_zones]
+    top_zone_totals = [x["total"] for x in top_zones]
     
     # =====================
     # Facility Performance Table
