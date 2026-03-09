@@ -91,6 +91,23 @@ def specific_form_snapshot_view(request):
 
         total_values.append(s_val + e_val + c_val + d_val + r_val + z_val)
 
+    # TOP FORMS
+    top_forms = {
+        "Screening": sum(screening),
+        "Enrollment": sum(enrollment),
+        "Clinic": sum(clinic),
+        "Diagnosis": sum(diagnosis),
+        "Regimen": sum(regimen),
+        "Zonal Lab": sum(zonal),
+    }
+
+    top_forms_sorted = sorted(top_forms.items(), key=lambda x: x[1], reverse=True)
+
+    top_form_labels = [x[0] for x in top_forms_sorted]
+    top_form_totals = [x[1] for x in top_forms_sorted]
+
+    
+
     # =====================
     # Zone Trends
     # =====================
@@ -186,6 +203,18 @@ def specific_form_snapshot_view(request):
         "total": sum(x["total"] for x in zone_performance),
     }
 
+
+    # # TOP ZONES
+
+    # top_zones = sorted(
+    #     zone_performance,
+    #     key=lambda x: x["total"],
+    #     reverse=True
+    # )
+
+    # top_zone_labels = [x["zone"] for x in top_zones]
+    # top_zone_totals = [x["total"] for x in top_zones]
+    
     # =====================
     # Facility Performance Table
     # =====================
@@ -283,6 +312,12 @@ def specific_form_snapshot_view(request):
         "zone_trends": json.dumps(zone_trends),
         "top_site_labels": json.dumps(top_site_labels),
         "top_site_totals": json.dumps(top_site_totals),
+        
+        # "top_zone_labels": json.dumps(top_zone_labels),
+        # "top_zone_totals": json.dumps(top_zone_totals),
+
+        "top_form_labels": json.dumps(top_form_labels),
+        "top_form_totals": json.dumps(top_form_totals),
 
         # Tables
         "zone_performance": zone_performance,
