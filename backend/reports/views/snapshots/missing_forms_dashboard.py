@@ -27,7 +27,7 @@ def missing_forms_dashboard(request):
             total_issues=Sum("total_issues"),
         )
 
-    return render(request, "reports/snapshots/missing_forms_dashboard.html", {
+    return render(request, "snapshots/missing_forms_dashboard.html", {
         "snapshot": latest_snapshot,
         "rows": rows,
         "totals": totals,
