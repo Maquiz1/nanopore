@@ -17,11 +17,11 @@ def get_screening_queryset(user, zone_id=None, site_id=None):
         qs = qs.filter(site_id=site_id)
 
     # Sort by Zone → Site → PID
-    # qs = qs.order_by(
-    #     "screening__site__district__region__zone__name",
-    #     "screening__site__name",
-    #     "pid"
-    # )
+    qs = qs.order_by(
+        "site__district__region__zone__name",
+        "site__name",
+        "pid"
+    )
     
     return qs
 
