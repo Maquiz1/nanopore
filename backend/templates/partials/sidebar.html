@@ -38,6 +38,9 @@
 
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
+    <a href="{% url 'reports:form-specific-snapshots' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+        <i class="fas fa-globe-africa"></i><span> snapshots-forms</span>
+    </a>
     <a href="{% url 'reports:missing_forms_dashboard' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
         <i class="fas fa-globe-africa"></i><span> snapshots-dashboard</span>
     </a>
