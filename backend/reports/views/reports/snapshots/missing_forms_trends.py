@@ -4,7 +4,7 @@ from django.utils.dateparse import parse_date
 
 from reports.models import MissingFormsDQSnapshot, DataQualitySnapshot
 from locations.models import Zone, Site
-
+from django.db.models import Sum, F
 
 def missing_forms_trends(request):
 
@@ -69,6 +69,7 @@ def missing_forms_trends(request):
         .annotate(total=Sum("total_issues"))
         .order_by("snapshot__snapshot_date")
     )
+    
 
     total_dates = [
         x["snapshot__snapshot_date"].strftime("%Y-%m-%d")
@@ -108,6 +109,7 @@ def missing_forms_trends(request):
         .annotate(total=Sum("total_issues"))
         .order_by("-total")
     )
+    
 
     zone_labels = [x["zone__name"] for x in zone_data]
     zone_totals = [x["total"] or 0 for x in zone_data]
