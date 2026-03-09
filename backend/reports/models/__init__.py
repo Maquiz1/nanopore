@@ -1,10 +1,10 @@
-from . general_base import DataQualitySnapshot
-from . screening import ScreeningDQSnapshot
-from . enrollment import EnrollmentDQSnapshot
-from . clinic import ClinicDQSnapshot
-from . diagnosis import DiagnosisDQSnapshot
-from . regimen_snapshot import RegimenDQSnapshot
-from . zonal import ZonalLaboratoryDQSnapshot
-from . missing_forms_snap_shot_model import MissingFormsDQSnapshot
+from . general_base_snapshot_model import DataQualitySnapshot
+from .screening_snapshot_model import ScreeningDQSnapshot
+from .enrollment_snapshot_model import EnrollmentDQSnapshot
+from .clinic_snapshot_model import ClinicDQSnapshot
+from .diagnosis_snapshot_model import DiagnosisDQSnapshot
+from .regimen_snapshot_model import RegimenDQSnapshot
+from .zonal_snapshot_model import ZonalLaboratoryDQSnapshot
+from .missing_forms_snapshot_model import MissingFormsDQSnapshot
 
 

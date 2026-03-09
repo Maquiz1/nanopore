@@ -4,3 +4,4 @@ from .list_models import *  # Ensure this line is present to import list_models_
 from .queries import *  # Ensure this line is present to import DataQualityReportView
 from .alerts import *
 from .notifications import *
+from .snapshots import *

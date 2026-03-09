@@ -1,6 +1,6 @@
 # reports/models/screening.py
 from django.db import models
-from . general_base import DataQualitySnapshot
+from .general_base_snapshot_model import DataQualitySnapshot
 
 class ScreeningDQSnapshot(models.Model):
     snapshot = models.ForeignKey(

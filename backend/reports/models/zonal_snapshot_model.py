@@ -1,5 +1,5 @@
 from django.db import models
-from reports.models.general_base import DataQualitySnapshot
+from .general_base_snapshot_model import DataQualitySnapshot
 
 
 class ZonalLaboratoryDQSnapshot(models.Model):
