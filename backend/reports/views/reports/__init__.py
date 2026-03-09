@@ -21,6 +21,7 @@ from .reports import RecordsBySiteView
 from .snapshots import missing_forms_dashboard
 # from .zonal_lab_dq_dashboard import zonal_lab_dq_dashboard
 from .snapshots import missing_forms_trends
+from .snapshots.specific_form_snapshot import specific_form_snapshot_view
 
 __all__ = [
     "BaseRecordsListView",
@@ -47,4 +48,5 @@ __all__ = [
     "missing_forms_dashboard",
     # "zonal_lab_dq_dashboard",
     "missing_forms_trends",
+    "specific_form_snapshot_view",
 ]

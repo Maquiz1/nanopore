@@ -71,6 +71,7 @@ from reports.views import (
     
     missing_forms_dashboard,
     missing_forms_trends,
+    specific_form_snapshot_view
     )
 
 app_name = "reports"
@@ -175,5 +176,11 @@ urlpatterns = [
     "dq/missing-forms-trends/",
     missing_forms_trends,
     name="missing-forms-trends"
+    ),
+    
+    path(
+    "dq/specific-form-snapshots/<str:form>/",
+    specific_form_snapshot_view,
+    name="form-specific-snapshots"
     ),
 ]

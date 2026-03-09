@@ -70,7 +70,6 @@ def missing_forms_trends(request):
         .order_by("snapshot__snapshot_date")
     )
     
-
     total_dates = [
         x["snapshot__snapshot_date"].strftime("%Y-%m-%d")
         for x in total_trend

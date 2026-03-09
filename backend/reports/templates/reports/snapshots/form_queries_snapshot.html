@@ -1,0 +1,17 @@
+<table class="table table-bordered">
+
+<tr>
+<th>Issue</th>
+<th>Total</th>
+</tr>
+
+{% for key, value in breakdown.items %}
+
+<tr>
+<td>{{ key|title|replace:"_":" " }}</td>
+<td>{{ value }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
