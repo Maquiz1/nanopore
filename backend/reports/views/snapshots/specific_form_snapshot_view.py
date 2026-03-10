@@ -39,6 +39,37 @@ def specific_form_snapshot_view(request):
     else:
         snapshots = list(snapshots)
 
+    # ------------------------------------------------
+    # BASE FILTERED QUERYSETS
+    # ------------------------------------------------
+
+    screening_qs = ScreeningDQSnapshot.objects.filter(snapshot__in=snapshots)
+    enrollment_qs = EnrollmentDQSnapshot.objects.filter(snapshot__in=snapshots)
+    clinic_qs = ClinicDQSnapshot.objects.filter(snapshot__in=snapshots)
+    diagnosis_qs = DiagnosisDQSnapshot.objects.filter(snapshot__in=snapshots)
+    regimen_qs = RegimenDQSnapshot.objects.filter(snapshot__in=snapshots)
+    zonal_qs = ZonalLaboratoryDQSnapshot.objects.filter(snapshot__in=snapshots)
+
+    if zone_id:
+        screening_qs = screening_qs.filter(zone_id=zone_id)
+        enrollment_qs = enrollment_qs.filter(zone_id=zone_id)
+        clinic_qs = clinic_qs.filter(zone_id=zone_id)
+        diagnosis_qs = diagnosis_qs.filter(zone_id=zone_id)
+        regimen_qs = regimen_qs.filter(zone_id=zone_id)
+        zonal_qs = zonal_qs.filter(zone_id=zone_id)
+
+    if site_id:
+        screening_qs = screening_qs.filter(site_id=site_id)
+        enrollment_qs = enrollment_qs.filter(site_id=site_id)
+        clinic_qs = clinic_qs.filter(site_id=site_id)
+        diagnosis_qs = diagnosis_qs.filter(site_id=site_id)
+        regimen_qs = regimen_qs.filter(site_id=site_id)
+        zonal_qs = zonal_qs.filter(site_id=site_id)
+
+    # ------------------------------------------------
+    # TRENDS
+    # ------------------------------------------------
+
     dates = []
     screening = []
     enrollment = []
@@ -52,35 +83,26 @@ def specific_form_snapshot_view(request):
 
         dates.append(snap.snapshot_date.strftime("%Y-%m-%d"))
 
-        s = ScreeningDQSnapshot.objects.filter(snapshot=snap)
-        e = EnrollmentDQSnapshot.objects.filter(snapshot=snap)
-        c = ClinicDQSnapshot.objects.filter(snapshot=snap)
-        d = DiagnosisDQSnapshot.objects.filter(snapshot=snap)
-        r = RegimenDQSnapshot.objects.filter(snapshot=snap)
-        z = ZonalLaboratoryDQSnapshot.objects.filter(snapshot=snap)
+        s_val = screening_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
+        e_val = enrollment_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
+        c_val = clinic_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
+        d_val = diagnosis_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
+        r_val = regimen_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
+        z_val = zonal_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
 
-        if zone_id:
-            s = s.filter(zone_id=zone_id)
-            e = e.filter(zone_id=zone_id)
-            c = c.filter(zone_id=zone_id)
-            d = d.filter(zone_id=zone_id)
-            r = r.filter(zone_id=zone_id)
-            z = z.filter(zone_id=zone_id)
-
-        if site_id:
-            s = s.filter(site_id=site_id)
-            e = e.filter(site_id=site_id)
-            c = c.filter(site_id=site_id)
-            d = d.filter(site_id=site_id)
-            r = r.filter(site_id=site_id)
-            z = z.filter(site_id=site_id)
-
-        s_val = s.aggregate(total=Sum("total_issues"))["total"] or 0
-        e_val = e.aggregate(total=Sum("total_issues"))["total"] or 0
-        c_val = c.aggregate(total=Sum("total_issues"))["total"] or 0
-        d_val = d.aggregate(total=Sum("total_issues"))["total"] or 0
-        r_val = r.aggregate(total=Sum("total_issues"))["total"] or 0
-        z_val = z.aggregate(total=Sum("total_issues"))["total"] or 0
+        # Apply form filter
+        if form == "screening":
+            e_val = c_val = d_val = r_val = z_val = 0
+        elif form == "enrollment":
+            s_val = c_val = d_val = r_val = z_val = 0
+        elif form == "clinic":
+            s_val = e_val = d_val = r_val = z_val = 0
+        elif form == "diagnosis":
+            s_val = e_val = c_val = r_val = z_val = 0
+        elif form == "regimen":
+            s_val = e_val = c_val = d_val = z_val = 0
+        elif form == "zonal":
+            s_val = e_val = c_val = d_val = r_val = 0
 
         screening.append(s_val)
         enrollment.append(e_val)
@@ -91,7 +113,123 @@ def specific_form_snapshot_view(request):
 
         total_values.append(s_val + e_val + c_val + d_val + r_val + z_val)
 
+    # ------------------------------------------------
+    # ZONE TRENDS
+    # ------------------------------------------------
+
+    zone_trends = {}
+
+    for zone in Zone.objects.all():
+
+        zone_data = []
+
+        for snap in snapshots:
+
+            s = screening_qs.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            e = enrollment_qs.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            c = clinic_qs.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            d = diagnosis_qs.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            r = regimen_qs.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+            z = zonal_qs.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+
+            zone_data.append(s + e + c + d + r + z)
+
+        zone_trends[zone.name] = zone_data
+
+    # ------------------------------------------------
+    # ZONE TABLE
+    # ------------------------------------------------
+
+    zone_performance = []
+
+    for zone in Zone.objects.all():
+
+        s = screening_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        e = enrollment_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        c = clinic_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        d = diagnosis_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        r = regimen_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        z = zonal_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+
+        zone_performance.append({
+            "zone": zone.name,
+            "screening": s,
+            "enrollment": e,
+            "clinic": c,
+            "diagnosis": d,
+            "regimen": r,
+            "zonal": z,
+            "total": s + e + c + d + r + z
+        })
+
+    zone_total = {
+        "screening": sum(x["screening"] for x in zone_performance),
+        "enrollment": sum(x["enrollment"] for x in zone_performance),
+        "clinic": sum(x["clinic"] for x in zone_performance),
+        "diagnosis": sum(x["diagnosis"] for x in zone_performance),
+        "regimen": sum(x["regimen"] for x in zone_performance),
+        "zonal": sum(x["zonal"] for x in zone_performance),
+        "total": sum(x["total"] for x in zone_performance),
+    }
+
+    # ------------------------------------------------
+    # FACILITY TABLE
+    # ------------------------------------------------
+
+    facility_table = []
+
+    for site in Site.objects.all():
+
+        s = screening_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        e = enrollment_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        c = clinic_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        d = diagnosis_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        r = regimen_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        z = zonal_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+
+        facility_table.append({
+            "site": site.name,
+            "screening": s,
+            "enrollment": e,
+            "clinic": c,
+            "diagnosis": d,
+            "regimen": r,
+            "zonal": z,
+            "total": s + e + c + d + r + z
+        })
+
+    facility_total = {
+        "screening": sum(x["screening"] for x in facility_table),
+        "enrollment": sum(x["enrollment"] for x in facility_table),
+        "clinic": sum(x["clinic"] for x in facility_table),
+        "diagnosis": sum(x["diagnosis"] for x in facility_table),
+        "regimen": sum(x["regimen"] for x in facility_table),
+        "zonal": sum(x["zonal"] for x in facility_table),
+        "total": sum(x["total"] for x in facility_table),
+    }
+
+    # ------------------------------------------------
+    # TOP SITES
+    # ------------------------------------------------
+
+    top_sites_qs = screening_qs.values("site__name").annotate(total=Sum("total_issues")).order_by("-total")
+
+    top_site_labels = [x["site__name"] for x in top_sites_qs]
+    top_site_totals = [x["total"] or 0 for x in top_sites_qs]
+
+    # ------------------------------------------------
+    # TOP ZONES
+    # ------------------------------------------------
+
+    top_zones = sorted(zone_performance, key=lambda x: x["total"], reverse=True)
+
+    top_zone_labels = [x["zone"] for x in top_zones]
+    top_zone_totals = [x["total"] for x in top_zones]
+
+    # ------------------------------------------------
     # TOP FORMS
+    # ------------------------------------------------
+
     top_forms = {
         "Screening": sum(screening),
         "Enrollment": sum(enrollment),
@@ -106,196 +244,6 @@ def specific_form_snapshot_view(request):
     top_form_labels = [x[0] for x in top_forms_sorted]
     top_form_totals = [x[1] for x in top_forms_sorted]
 
-    
-
-    # =====================
-    # Zone Trends
-    # =====================
-
-    zone_trends = {}
-
-    zones = Zone.objects.all()
-
-    for zone in zones:
-
-        zone_data = []
-
-        for snap in snapshots:
-
-            s = ScreeningDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            e = EnrollmentDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            c = ClinicDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            d = DiagnosisDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            r = RegimenDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-            z = ZonalLaboratoryDQSnapshot.objects.filter(snapshot=snap, zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-
-            zone_total = s + e + c + d + r + z
-
-            zone_data.append(zone_total)
-
-        zone_trends[zone.name] = zone_data
-        
-    # =====================
-    # Zone Performance Table
-    # =====================
-
-    zone_performance = []
-
-    for zone in zones:
-
-        s = (
-            ScreeningDQSnapshot.objects.filter(zone=zone).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        e = (
-            EnrollmentDQSnapshot.objects.filter(zone=zone).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        c = (
-            ClinicDQSnapshot.objects.filter(zone=zone).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        d = (
-            DiagnosisDQSnapshot.objects.filter(zone=zone).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        r = (
-            RegimenDQSnapshot.objects.filter(zone=zone).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        z = (
-            ZonalLaboratoryDQSnapshot.objects.filter(zone=zone).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-
-        zone_performance.append(
-            {
-                "zone": zone.name,
-                "screening": s,
-                "enrollment": e,
-                "clinic": c,
-                "diagnosis": d,
-                "regimen": r,
-                "zonal": z,
-                "total": s + e + c + d + r + z,
-            }
-        )
-
-    zone_total = {
-        "screening": sum(x["screening"] for x in zone_performance),
-        "enrollment": sum(x["enrollment"] for x in zone_performance),
-        "clinic": sum(x["clinic"] for x in zone_performance),
-        "diagnosis": sum(x["diagnosis"] for x in zone_performance),
-        "regimen": sum(x["regimen"] for x in zone_performance),
-        "zonal": sum(x["zonal"] for x in zone_performance),
-        "total": sum(x["total"] for x in zone_performance),
-    }
-
-
-    # TOP ZONES
-
-    top_zones = sorted(
-        zone_performance,
-        key=lambda x: x["total"],
-        reverse=True
-    )
-
-    top_zone_labels = [x["zone"] for x in top_zones]
-    top_zone_totals = [x["total"] for x in top_zones]
-    
-    # =====================
-    # Facility Performance Table
-    # =====================
-
-    facility_table = []
-
-    for site in Site.objects.all():
-
-        s = (
-            ScreeningDQSnapshot.objects.filter(site=site).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        e = (
-            EnrollmentDQSnapshot.objects.filter(site=site).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        c = (
-            ClinicDQSnapshot.objects.filter(site=site).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        d = (
-            DiagnosisDQSnapshot.objects.filter(site=site).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        r = (
-            RegimenDQSnapshot.objects.filter(site=site).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-        z = (
-            ZonalLaboratoryDQSnapshot.objects.filter(site=site).aggregate(
-                total=Sum("total_issues")
-            )["total"]
-            or 0
-        )
-
-        facility_table.append(
-            {
-                "site": site.name,
-                "screening": s,
-                "enrollment": e,
-                "clinic": c,
-                "diagnosis": d,
-                "regimen": r,
-                "zonal": z,
-                "total": s + e + c + d + r + z,
-            }
-        )
-
-    facility_total = {
-        "screening": sum(x["screening"] for x in facility_table),
-        "enrollment": sum(x["enrollment"] for x in facility_table),
-        "clinic": sum(x["clinic"] for x in facility_table),
-        "diagnosis": sum(x["diagnosis"] for x in facility_table),
-        "regimen": sum(x["regimen"] for x in facility_table),
-        "zonal": sum(x["zonal"] for x in facility_table),
-        "total": sum(x["total"] for x in facility_table),
-    }
-
-    # =====================
-    # Top Sites Chart
-    # =====================
-
-    top_sites_qs = (
-        ScreeningDQSnapshot.objects.values("site__name")
-        .annotate(total=Sum("total_issues"))
-        .order_by("-total")
-    )
-
-    top_site_labels = [x["site__name"] for x in top_sites_qs]
-    top_site_totals = [x["total"] or 0 for x in top_sites_qs]
-
     context = {
         "dates": json.dumps(dates),
 
@@ -308,25 +256,23 @@ def specific_form_snapshot_view(request):
 
         "total_values": json.dumps(total_values),
 
-        # Charts
         "zone_trends": json.dumps(zone_trends),
+
         "top_site_labels": json.dumps(top_site_labels),
         "top_site_totals": json.dumps(top_site_totals),
-        
+
         "top_zone_labels": json.dumps(top_zone_labels),
         "top_zone_totals": json.dumps(top_zone_totals),
 
         "top_form_labels": json.dumps(top_form_labels),
         "top_form_totals": json.dumps(top_form_totals),
 
-        # Tables
         "zone_performance": zone_performance,
         "zone_total": zone_total,
 
         "facility_table": facility_table,
         "facility_total": facility_total,
 
-        # Cards
         "latest_counts": {
             "screening": screening[-1] if screening else 0,
             "enrollment": enrollment[-1] if enrollment else 0,
@@ -336,11 +282,10 @@ def specific_form_snapshot_view(request):
             "zonal": zonal[-1] if zonal else 0,
         },
 
-        # Filters
         "zones": Zone.objects.all(),
-        "sites": Site.objects.all(),
+        "sites": Site.objects.filter(zone_id=zone_id) if zone_id else Site.objects.all(),
         "form": form,
         "filters": request.GET,
     }
-    
+
     return render(request, "snapshots/form_queries_snapshot.html", context)
