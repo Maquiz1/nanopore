@@ -434,6 +434,43 @@
         }
 
     });
+
+    // Site Forms Chart
+    const siteFormData3 = {{ context_site_forms|safe }};
+
+    const siteLabels3 = Object.keys(siteFormData3);
+    const formNames3 = ["Enrollment","Clinic","Diagnosis","Regimen","Zonal Lab"];
+
+    let siteDatasets3 = [];
+
+    formNames3.forEach((form,i)=>{
+
+        siteDatasets3.push({
+            label: form,
+            data: siteLabels3.map(s => siteFormData3[s][form]),
+            backgroundColor: colors[i]
+        });
+
+    });
+
+    new Chart(document.getElementById('siteFormChart'),{
+
+        type:'bar',
+
+        data:{
+            labels:siteLabels3,
+            datasets:siteDatasets3
+        },
+
+        options:{
+            responsive:true,
+            indexAxis:'y',
+            scales:{
+                x:{beginAtZero:true}
+            }
+        }
+
+    });
 </script>
 
 {% endblock %}
