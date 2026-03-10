@@ -257,6 +257,52 @@ def missing_forms_trends(request):
     }
 
     # ------------------------------------------------
+    # ZONE FORM BREAKDOWN
+    # ------------------------------------------------
+
+    zone_form_breakdown = {}
+
+    for zone in Zone.objects.all():
+
+        e = qs.filter(zone=zone).aggregate(Sum("missing_enrollment"))["missing_enrollment__sum"] or 0
+        c = qs.filter(zone=zone).aggregate(Sum("missing_clinic"))["missing_clinic__sum"] or 0
+        d = qs.filter(zone=zone).aggregate(Sum("missing_diagnosis"))["missing_diagnosis__sum"] or 0
+        r = qs.filter(zone=zone).aggregate(Sum("missing_regimen"))["missing_regimen__sum"] or 0
+        z = qs.filter(zone=zone).aggregate(Sum("missing_zonal"))["missing_zonal__sum"] or 0
+
+        zone_form_breakdown[zone.name] = {
+            "Enrollment": e,
+            "Clinic": c,
+            "Diagnosis": d,
+            "Regimen": r,
+            "Zonal Lab": z
+        }
+        
+        
+    # ------------------------------------------------
+    # SITE FORM BREAKDOWN
+    # ------------------------------------------------
+
+    site_form_breakdown = {}
+
+    for site in Site.objects.all():
+
+        e = qs.filter(site=site).aggregate(Sum("missing_enrollment"))["missing_enrollment__sum"] or 0
+        c = qs.filter(site=site).aggregate(Sum("missing_clinic"))["missing_clinic__sum"] or 0
+        d = qs.filter(site=site).aggregate(Sum("missing_diagnosis"))["missing_diagnosis__sum"] or 0
+        r = qs.filter(site=site).aggregate(Sum("missing_regimen"))["missing_regimen__sum"] or 0
+        z = qs.filter(site=site).aggregate(Sum("missing_zonal"))["missing_zonal__sum"] or 0
+
+        site_form_breakdown[site.name] = {
+            "Enrollment": e,
+            "Clinic": c,
+            "Diagnosis": d,
+            "Regimen": r,
+            "Zonal Lab": z
+        }
+    
+    
+    # ------------------------------------------------
     # TOP SITES
     # ------------------------------------------------
 
@@ -316,6 +362,9 @@ def missing_forms_trends(request):
 
         "facility_table": facility_table,
         "facility_total": facility_total,
+
+        "context_zone_forms": json.dumps(zone_form_breakdown),
+        "context_site_forms": json.dumps(site_form_breakdown),
 
         "latest_counts": latest_counts,
 
