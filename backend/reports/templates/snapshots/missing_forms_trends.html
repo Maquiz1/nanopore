@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
 
@@ -19,7 +20,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6>Enrollment</h6>
-                    <h3>{{ latest_counts.enrollment|default:0 }}</h3>
+                    <h3>{{ latest_counts.enrollment|default:0  | intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -28,7 +29,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6>Clinic</h6>
-                    <h3>{{ latest_counts.clinic|default:0 }}</h3>
+                    <h3>{{ latest_counts.clinic|default:0  | intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -37,7 +38,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6>Diagnosis</h6>
-                    <h3>{{ latest_counts.diagnosis|default:0 }}</h3>
+                    <h3>{{ latest_counts.diagnosis|default:0  | intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -46,7 +47,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6>Regimen</h6>
-                    <h3>{{ latest_counts.regimen|default:0 }}</h3>
+                    <h3>{{ latest_counts.regimen|default:0  | intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -55,7 +56,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6>Zonal Lab</h6>
-                    <h3>{{ latest_counts.zonal|default:0 }}</h3>
+                    <h3>{{ latest_counts.zonal|default:0  | intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -64,7 +65,7 @@
             <div class="card shadow-sm text-center bg-light">
                 <div class="card-body">
                     <h6>Total</h6>
-                    <h3>{{ latest_counts.total|default:0 }}</h3>
+                    <h3>{{ latest_counts.total|default:0  | intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -148,25 +149,25 @@
                     {% for row in zone_performance %}
 
                     <tr>
-                        <td>{{ row.zone }}</td>
-                        <td>{{ row.enrollment }}</td>
-                        <td>{{ row.clinic }}</td>
-                        <td>{{ row.diagnosis }}</td>
-                        <td>{{ row.regimen }}</td>
-                        <td>{{ row.zonal }}</td>
-                        <td><strong>{{ row.total }}</strong></td>
+                        <td>{{ row.zone|default:"0"  | intcomma }}</td>
+                        <td>{{ row.enrollment|default:"0"  | intcomma }}</td>
+                        <td>{{ row.clinic|default:"0"  | intcomma }}</td>
+                        <td>{{ row.diagnosis|default:"0"  | intcomma }}</td>
+                        <td>{{ row.regimen|default:"0"  | intcomma }}</td>
+                        <td>{{ row.zonal|default:"0"  | intcomma }}</td>
+                        <td><strong>{{ row.total|default:"0"  | intcomma }}</strong></td>
                     </tr>
 
                     {% endfor %}
 
                     <tr class="table-dark">
                         <td><strong>TOTAL</strong></td>
-                        <td>{{ zone_total.enrollment }}</td>
-                        <td>{{ zone_total.clinic }}</td>
-                        <td>{{ zone_total.diagnosis }}</td>
-                        <td>{{ zone_total.regimen }}</td>
-                        <td>{{ zone_total.zonal }}</td>
-                        <td><strong>{{ zone_total.total }}</strong></td>
+                        <td>{{ zone_total.enrollment|default:"0"  | intcomma }}</td>
+                        <td>{{ zone_total.clinic|default:"0"  | intcomma }}</td>
+                        <td>{{ zone_total.diagnosis|default:"0"  | intcomma }}</td>
+                        <td>{{ zone_total.regimen|default:"0"  | intcomma }}</td>
+                        <td>{{ zone_total.zonal|default:"0"  | intcomma }}</td>
+                        <td><strong>{{ zone_total.total|default:"0"  | intcomma }}</strong></td>
                     </tr>
 
                 </tbody>
@@ -230,25 +231,25 @@
                     {% for row in facility_table %}
 
                     <tr>
-                        <td>{{ row.site }}</td>
-                        <td>{{ row.enrollment }}</td>
-                        <td>{{ row.clinic }}</td>
-                        <td>{{ row.diagnosis }}</td>
-                        <td>{{ row.regimen }}</td>
-                        <td>{{ row.zonal }}</td>
-                        <td><strong>{{ row.total }}</strong></td>
+                        <td>{{ row.site|default:"0"  | intcomma }}</td>
+                        <td>{{ row.enrollment|default:"0"  | intcomma }}</td>
+                        <td>{{ row.clinic|default:"0"  | intcomma }}</td>
+                        <td>{{ row.diagnosis|default:"0"  | intcomma }}</td>
+                        <td>{{ row.regimen|default:"0"  | intcomma }}</td>
+                        <td>{{ row.zonal|default:"0"  | intcomma }}</td>
+                        <td><strong>{{ row.total|default:"0"  | intcomma }}</strong></td>
                     </tr>
 
                     {% endfor %}
 
                     <tr class="table-dark">
                         <td><strong>TOTAL</strong></td>
-                        <td>{{ facility_total.enrollment }}</td>
-                        <td>{{ facility_total.clinic }}</td>
-                        <td>{{ facility_total.diagnosis }}</td>
-                        <td>{{ facility_total.regimen }}</td>
-                        <td>{{ facility_total.zonal }}</td>
-                        <td><strong>{{ facility_total.total }}</strong></td>
+                        <td>{{ facility_total.enrollment|default:"0"  | intcomma }}</td>
+                        <td>{{ facility_total.clinic|default:"0"  | intcomma }}</td>
+                        <td>{{ facility_total.diagnosis|default:"0"  | intcomma }}</td>
+                        <td>{{ facility_total.regimen|default:"0"  | intcomma }}</td>
+                        <td>{{ facility_total.zonal|default:"0"  | intcomma }}</td>
+                        <td><strong>{{ facility_total.total|default:"0"  | intcomma }}</strong></td>
                     </tr>
 
                 </tbody>
