@@ -38,16 +38,35 @@
 
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
-    <a href="{% url 'reports:form-specific-snapshots' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
-        <i class="fas fa-globe-africa"></i><span> snapshots-forms</span>
-    </a>
-    <a href="{% url 'reports:missing_forms_dashboard' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
-        <i class="fas fa-globe-africa"></i><span> snapshots-dashboard</span>
+
+    <!-- Snapshots -->
+    <div class="menu-group">
+
+    <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+    <span><i class="fas fa-database"></i> Snapshots</span>
+    <i class="fas fa-chevron-down"></i>
     </a>
 
-    <a href="{% url 'reports:missing-forms-trends' %}" class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
-        <i class="fas fa-globe-africa"></i><span> snapshots-trends</span>
+    <div class="submenu">
+
+    <a href="{% url 'reports:form-specific-snapshots' %}"
+    class="{% if request.resolver_match.url_name == 'form-specific-snapshots' %}active{% endif %}">
+    <i class="fas fa-file-alt"></i> Specific Forms
     </a>
+
+    <a href="{% url 'reports:missing_forms_dashboard' %}"
+    class="{% if request.resolver_match.url_name == 'missing_forms_dashboard' %}active{% endif %}">
+    <i class="fas fa-chart-pie"></i> Missing Forms Dashboard
+    </a>
+
+    <a href="{% url 'reports:missing-forms-trends' %}"
+    class="{% if request.resolver_match.url_name == 'missing-forms-trends' %}active{% endif %}">
+    <i class="fas fa-chart-line"></i> Missing Forms Trends
+    </a>
+
+    </div>
+    </div>
+
     {% endif %}
     {% endwith %}
 
