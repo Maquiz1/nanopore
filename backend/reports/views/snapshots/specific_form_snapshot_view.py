@@ -90,19 +90,26 @@ def specific_form_snapshot_view(request):
         r_val = regimen_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
         z_val = zonal_qs.filter(snapshot=snap).aggregate(total=Sum("total_issues"))["total"] or 0
 
-        # Apply form filter
-        if form == "screening":
-            e_val = c_val = d_val = r_val = z_val = 0
-        elif form == "enrollment":
-            s_val = c_val = d_val = r_val = z_val = 0
-        elif form == "clinic":
-            s_val = e_val = d_val = r_val = z_val = 0
-        elif form == "diagnosis":
-            s_val = e_val = c_val = r_val = z_val = 0
-        elif form == "regimen":
-            s_val = e_val = c_val = d_val = z_val = 0
-        elif form == "zonal":
-            s_val = e_val = c_val = d_val = r_val = 0
+        # Apply form filter only if selected
+        if form:
+
+            if form == "screening":
+                e_val = c_val = d_val = r_val = z_val = 0
+
+            elif form == "enrollment":
+                s_val = c_val = d_val = r_val = z_val = 0
+
+            elif form == "clinic":
+                s_val = e_val = d_val = r_val = z_val = 0
+
+            elif form == "diagnosis":
+                s_val = e_val = c_val = r_val = z_val = 0
+
+            elif form == "regimen":
+                s_val = e_val = c_val = d_val = z_val = 0
+
+            elif form == "zonal":
+                s_val = e_val = c_val = d_val = r_val = 0
 
         screening.append(s_val)
         enrollment.append(e_val)
