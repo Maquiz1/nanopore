@@ -6,6 +6,9 @@
 <div class="container mt-4">
 
     <h2 class="mb-4">Missing Forms Data Quality Dashboard</h2>
+    <!-- ===================== -->
+    <!-- Filters -->
+    <!-- ===================== -->
 
     {% include "snapshots/form_filters.html" %}
 
@@ -86,34 +89,62 @@
         </div>
     </div>
 
-
     <!-- ===================== -->
     <!-- Detailed Trends -->
     <!-- ===================== -->
 
     <div class="card shadow-sm mb-4">
+
         <div class="card-header">
             <h5>Missing Forms Trends by Type</h5>
         </div>
 
         <div class="card-body">
+
             <canvas id="trendChart"></canvas>
+
         </div>
+
     </div>
 
 
+
     <!-- ===================== -->
-    <!-- Zone Grouped Trend -->
+    <!-- Zone Chart -->
     <!-- ===================== -->
 
     <div class="card shadow-sm mb-4">
+
         <div class="card-header">
-            <h5>Zone Missing Forms Trend</h5>
+            <h5>Missing Forms by Zone</h5>
         </div>
 
         <div class="card-body">
-            <canvas id="zoneTrendChart"></canvas>
+
+            <canvas id="zoneChart"></canvas>
+
         </div>
+
+    </div>
+
+
+
+    <!-- ===================== -->
+    <!-- Site Chart -->
+    <!-- ===================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <h5>Top 10 Sites with Missing Forms</h5>
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="siteChart"></canvas>
+
+        </div>
+
     </div>
 
 
@@ -161,11 +192,11 @@
 
                     <tr class="table-dark">
                         <td><strong>TOTAL</strong></td>
-                        <td>{{ zone_total.enrollment }}</td>
-                        <td>{{ zone_total.clinic }}</td>
-                        <td>{{ zone_total.diagnosis }}</td>
-                        <td>{{ zone_total.regimen }}</td>
-                        <td>{{ zone_total.zonal }}</td>
+                        <td><strong>{{ zone_total.enrollment }}</strong></td>
+                        <td><strong>{{ zone_total.clinic }}</strong></td>
+                        <td><strong>{{ zone_total.diagnosis }}</strong></td>
+                        <td><strong>{{ zone_total.regimen }}</strong></td>
+                        <td><strong>{{ zone_total.zonal }}</strong></td>
                         <td><strong>{{ zone_total.total }}</strong></td>
                     </tr>
 
@@ -174,24 +205,13 @@
             </table>
 
         </div>
+
     </div>
 
-    <!-- ===================== -->
-    <!-- Zone Ranking -->
-    <!-- ===================== -->
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5>Top Zones with Missing Forms</h5>
-        </div>
-
-        <div class="card-body">
-            <canvas id="zoneChart"></canvas>
-        </div>
-    </div>
 
     <!-- ===================== -->
-    <!-- Facility Performance -->
+    <!-- Facility Performance Table -->
     <!-- ===================== -->
 
     <div class="card shadow-sm">
@@ -234,11 +254,11 @@
 
                     <tr class="table-dark">
                         <td><strong>TOTAL</strong></td>
-                        <td>{{ facility_total.enrollment }}</td>
-                        <td>{{ facility_total.clinic }}</td>
-                        <td>{{ facility_total.diagnosis }}</td>
-                        <td>{{ facility_total.regimen }}</td>
-                        <td>{{ facility_total.zonal }}</td>
+                        <td><strong>{{ facility_total.enrollment }}</strong></td>
+                        <td><strong>{{ facility_total.clinic }}</strong></td>
+                        <td><strong>{{ facility_total.diagnosis }}</strong></td>
+                        <td><strong>{{ facility_total.regimen }}</strong></td>
+                        <td><strong>{{ facility_total.zonal }}</strong></td>
                         <td><strong>{{ facility_total.total }}</strong></td>
                     </tr>
 
@@ -247,21 +267,7 @@
             </table>
 
         </div>
-    </div>
 
-
-    <!-- ===================== -->
-    <!-- Site Ranking -->
-    <!-- ===================== -->
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5>Top Sites with Missing Forms</h5>
-        </div>
-
-        <div class="card-body">
-            <canvas id="siteChart"></canvas>
-        </div>
     </div>
 
 </div>
@@ -269,107 +275,139 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
 <script>
 
-    const dates = {{ dates| safe }};
-    const totals = {{ total_values| safe }};
-    const enrollment = {{ enrollment| safe }};
-    const clinic = {{ clinic| safe }};
-    const diagnosis = {{ diagnosis| safe }};
-    const regimen = {{ regimen| safe }};
-    const zonal = {{ zonal| safe }};
+    /* ================= Total Trend ================= */
 
-    /* TOTAL TREND */
+    const totalTrendCtx = document.getElementById('totalTrendChart');
 
-    new Chart(document.getElementById('totalTrendChart'), {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: [{
-                label: 'Total Missing Forms',
-                data: totals,
-                borderColor: 'red',
-                backgroundColor: 'rgba(255,99,132,0.2)',
-                tension: 0.3,
-                fill: true
+    if (totalTrendCtx) {
+        new Chart(totalTrendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ total_dates| safe }},
+    datasets: [{
+        label: 'Total Missing Forms',
+        data: {{ total_values| safe }},
+        borderColor: 'rgb(255,99,132)',
+        backgroundColor: 'rgba(255,99,132,0.2)',
+        borderWidth: 3,
+        tension: 0.3,
+        fill: true
             }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: { display: true }
         }
-    });
-
-
-    /* FORM TRENDS */
-
-    new Chart(document.getElementById('trendChart'), {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: [
-                { label: 'Enrollment', data: enrollment, borderColor: 'red' },
-                { label: 'Clinic', data: clinic, borderColor: 'blue' },
-                { label: 'Diagnosis', data: diagnosis, borderColor: 'orange' },
-                { label: 'Regimen', data: regimen, borderColor: 'green' },
-                { label: 'Zonal', data: zonal, borderColor: 'purple' }
-            ]
-        }
-    });
-
-
-    /* ZONE GROUPED TREND */
-
-    const zoneTrendData = {{ zone_trends| safe }};
-    let datasets = [];
-    let colors = ['red', 'blue', 'green', 'orange', 'purple', 'black'];
-
-    let i = 0;
-    for (const zone in zoneTrendData) {
-
-        datasets.push({
-            label: zone,
-            data: zoneTrendData[zone],
-            backgroundColor: colors[i % colors.length]
-        })
-
-        i++
     }
-
-    new Chart(document.getElementById('zoneTrendChart'), {
-        type: 'bar',
-        data: {
-            labels: dates,
-            datasets: datasets
-        }
     });
-
-
-    /* ZONE RANK */
-
-    new Chart(document.getElementById('zoneChart'), {
-        type: 'bar',
-        data: {
-            labels: {{ zone_labels| safe }},
-        datasets: [{
-            label: 'Missing Forms',
-            data: {{ zone_totals| safe }},
-        backgroundColor: 'rgba(255,99,132,0.6)'
-}]
 }
-});
 
 
-    /* SITE RANK */
+    /* ================= Detailed Trends ================= */
 
-    new Chart(document.getElementById('siteChart'), {
-        type: 'bar',
-        data: {
-            labels: {{ site_labels| safe }},
-        datasets: [{
-            label: 'Missing Forms',
-            data: {{ site_totals| safe }},
+    const trendCtx = document.getElementById('trendChart');
+
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ dates| safe }},
+    datasets: [
+        {
+            label: 'Enrollment',
+            data: {{ enrollment| safe }},
+        borderColor: 'rgb(255,99,132)',
+        tension: 0.3
+                },
+        {
+            label: 'Clinic',
+            data: {{ clinic| safe }},
+        borderColor: 'rgb(54,162,235)',
+        tension: 0.3
+                },
+        {
+            label: 'Diagnosis',
+            data: {{ diagnosis| safe }},
+        borderColor: 'rgb(255,206,86)',
+        tension: 0.3
+                },
+        {
+            label: 'Regimen',
+            data: {{ regimen| safe }},
+        borderColor: 'rgb(75,192,192)',
+        tension: 0.3
+                },
+        {
+            label: 'Zonal',
+            data: {{ zonal| safe }},
+        borderColor: 'rgb(153,102,255)',
+        tension: 0.3
+                }
+    ]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: { position: 'top' }
+        }
+    }
+    });
+}
+
+
+    /* ================= Zone Chart ================= */
+
+    const zoneCtx = document.getElementById('zoneChart');
+
+    if (zoneCtx) {
+        new Chart(zoneCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ zone_labels| safe }},
+    datasets: [{
+        label: 'Missing Forms',
+        data: {{ zone_totals| safe }},
+        backgroundColor: 'rgba(255,99,132,0.6)'
+            }]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: { display: true }
+        }
+    }
+    });
+}
+
+
+    /* ================= Site Chart ================= */
+
+    const siteCtx = document.getElementById('siteChart');
+
+    if (siteCtx) {
+        new Chart(siteCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ site_labels| safe }},
+    datasets: [{
+        label: 'Missing Forms',
+        data: {{ site_totals| safe }},
         backgroundColor: 'rgba(54,162,235,0.7)'
-}]
-},
-        options: { indexAxis: 'y' }
-});
+            }]
+        },
+    options: {
+        indexAxis: 'y',
+            responsive: true,
+                plugins: {
+            legend: { display: true }
+        }
+    }
+    });
+}
 
 </script>
 
