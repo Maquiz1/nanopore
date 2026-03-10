@@ -158,7 +158,7 @@
     <!-- Zone Performance Table -->
     <!-- ===================== -->
 
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4 mt-4">
 
         <div class="card-header">
             <h5>Zone Performance</h5>
@@ -242,13 +242,22 @@
             </div>
 
         </div>
+        </div>
+
+        <div class="card shadow-sm mt-4">
+        <div class="card-header">
+            <h5>Zone Ranking by Form Issues</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="zoneFormChart"></canvas>
+        </div>
     </div>
 
     <!-- ===================== -->
     <!-- Facility Performance -->
     <!-- ===================== -->
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm mb-4 mt-4">
 
         <div class="card-header">
             <h5>Facility Performance</h5>
@@ -333,6 +342,15 @@
 
     </div>
 
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header">
+            <h5>Site Ranking by Form Issues</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="siteFormChart"></canvas>
+        </div>
+    </div>
 </div>
 
 
@@ -625,6 +643,90 @@
 
     }
 
+
+    // Zone Forms Chart
+    const zoneFormData2 = {{ context_zone_forms|safe }};
+
+    const zoneLabels2 = Object.keys(zoneFormData2);
+
+    const formNames2 = ["Screening","Enrollment","Clinic","Diagnosis","Regimen","Zonal Lab"];
+
+    let zoneDatasets2 = [];
+
+    const colors2 = [
+    'rgba(255,99,132,0.7)',
+    'rgba(54,162,235,0.7)',
+    'rgba(75,192,192,0.7)',
+    'rgba(255,206,86,0.7)',
+    'rgba(153,102,255,0.7)',
+    'rgba(201,203,207,0.7)'
+    ];
+    
+    formNames2.forEach((form,i)=>{
+
+        zoneDatasets2.push({
+            label: form,
+            data: zoneLabels2.map(z => zoneFormData2[z][form]),
+            backgroundColor: colors2[i]
+        });
+
+    });
+
+    new Chart(document.getElementById('zoneFormChart'),{
+
+        type:'bar',
+
+        data:{
+            labels:zoneLabels2,
+            datasets:zoneDatasets2
+        },
+
+        options:{
+            responsive:true,
+            scales:{
+                x:{stacked:false},
+                y:{beginAtZero:true}
+            }
+        }
+
+    });
+
+    // Site Forms Chart
+    const siteFormData3 = {{ context_site_forms|safe }};
+
+    const siteLabels3 = Object.keys(siteFormData3);
+    const formNames3 = ["Screening","Enrollment","Clinic","Diagnosis","Regimen","Zonal Lab"];
+
+    let siteDatasets3 = [];
+
+    formNames3.forEach((form,i)=>{
+
+        siteDatasets3.push({
+            label: form,
+            data: siteLabels3.map(s => siteFormData3[s][form]),
+            backgroundColor: colors2[i]
+        });
+
+    });
+
+    new Chart(document.getElementById('siteFormChart'),{
+
+        type:'bar',
+
+        data:{
+            labels:siteLabels3,
+            datasets:siteDatasets3
+        },
+
+        options:{
+            responsive:true,
+            indexAxis:'y',
+            scales:{
+                x:{beginAtZero:true}
+            }
+        }
+
+    });
 </script>
 
 {% endblock %}

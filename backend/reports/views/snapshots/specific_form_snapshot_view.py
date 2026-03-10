@@ -215,6 +215,56 @@ def specific_form_snapshot_view(request):
         "total": sum(x["total"] for x in facility_table),
     }
 
+
+    # ------------------------------------------------
+    # ZONE FORM BREAKDOWN (for chart)
+    # ------------------------------------------------
+
+    zone_form_breakdown = {}
+
+    for zone in Zone.objects.all():
+
+        s = screening_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        e = enrollment_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        c = clinic_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        d = diagnosis_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        r = regimen_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        z = zonal_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+
+        zone_form_breakdown[zone.name] = {
+            "Screening": s,
+            "Enrollment": e,
+            "Clinic": c,
+            "Diagnosis": d,
+            "Regimen": r,
+            "Zonal Lab": z
+        }
+        
+        
+    # ------------------------------------------------
+    # SITE FORM BREAKDOWN (for chart)
+    # ------------------------------------------------
+
+    site_form_breakdown = {}
+
+    for site in Site.objects.all():
+
+        s = screening_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        e = enrollment_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        c = clinic_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        d = diagnosis_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        r = regimen_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        z = zonal_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+
+        site_form_breakdown[site.name] = {
+            "Screening": s,
+            "Enrollment": e,
+            "Clinic": c,
+            "Diagnosis": d,
+            "Regimen": r,
+            "Zonal Lab": z
+        }
+    
     # ------------------------------------------------
     # TOP SITES
     # ------------------------------------------------
@@ -273,6 +323,9 @@ def specific_form_snapshot_view(request):
 
         "top_form_labels": json.dumps(top_form_labels),
         "top_form_totals": json.dumps(top_form_totals),
+
+        "context_zone_forms": json.dumps(zone_form_breakdown),
+        "context_site_forms": json.dumps(site_form_breakdown),
 
         "zone_performance": zone_performance,
         "zone_total": zone_total,
