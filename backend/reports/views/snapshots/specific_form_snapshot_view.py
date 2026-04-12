@@ -121,6 +121,11 @@ def specific_form_snapshot_view(request):
         total_values.append(s_val + e_val + c_val + d_val + r_val + z_val)
 
     # ------------------------------------------------
+    # LATEST SNAPSHOT DATA (For Tables and Ranked Charts)
+    # ------------------------------------------------
+    latest_snapshot = snapshots[-1] if snapshots else None
+
+    # ------------------------------------------------
     # ZONE TRENDS
     # ------------------------------------------------
 
@@ -144,19 +149,26 @@ def specific_form_snapshot_view(request):
         zone_trends[zone.name] = zone_data
 
     # ------------------------------------------------
-    # ZONE TABLE
+    # ZONE TABLE (Latest Snapshot only)
     # ------------------------------------------------
 
     zone_performance = []
 
     for zone in Zone.objects.all():
+        
+        if not latest_snapshot:
+            zone_performance.append({
+                "zone": zone.name, "screening": 0, "enrollment": 0, "clinic": 0, 
+                "diagnosis": 0, "regimen": 0, "zonal": 0, "total": 0
+            })
+            continue
 
-        s = screening_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        e = enrollment_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        c = clinic_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        d = diagnosis_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        r = regimen_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        z = zonal_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        s = screening_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        e = enrollment_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        c = clinic_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        d = diagnosis_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        r = regimen_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        z = zonal_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
 
         zone_performance.append({
             "zone": zone.name,
@@ -180,19 +192,26 @@ def specific_form_snapshot_view(request):
     }
 
     # ------------------------------------------------
-    # FACILITY TABLE
+    # FACILITY TABLE (Latest Snapshot only)
     # ------------------------------------------------
 
     facility_table = []
 
     for site in Site.objects.all():
+        
+        if not latest_snapshot:
+            facility_table.append({
+                "site": site.name, "screening": 0, "enrollment": 0, "clinic": 0, 
+                "diagnosis": 0, "regimen": 0, "zonal": 0, "total": 0
+            })
+            continue
 
-        s = screening_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        e = enrollment_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        c = clinic_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        d = diagnosis_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        r = regimen_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        z = zonal_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        s = screening_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        e = enrollment_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        c = clinic_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        d = diagnosis_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        r = regimen_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
+        z = zonal_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0
 
         facility_table.append({
             "site": site.name,
@@ -217,19 +236,19 @@ def specific_form_snapshot_view(request):
 
 
     # ------------------------------------------------
-    # ZONE FORM BREAKDOWN (for chart)
+    # ZONE FORM BREAKDOWN (for chart - Latest Snapshot)
     # ------------------------------------------------
 
     zone_form_breakdown = {}
 
     for zone in Zone.objects.all():
 
-        s = screening_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        e = enrollment_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        c = clinic_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        d = diagnosis_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        r = regimen_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
-        z = zonal_qs.filter(zone=zone).aggregate(total=Sum("total_issues"))["total"] or 0
+        s = screening_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        e = enrollment_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        c = clinic_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        d = diagnosis_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        r = regimen_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        z = zonal_qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
 
         zone_form_breakdown[zone.name] = {
             "Screening": s,
@@ -242,19 +261,19 @@ def specific_form_snapshot_view(request):
         
         
     # ------------------------------------------------
-    # SITE FORM BREAKDOWN (for chart)
+    # SITE FORM BREAKDOWN (for chart - Latest Snapshot)
     # ------------------------------------------------
 
     site_form_breakdown = {}
 
     for site in Site.objects.all():
 
-        s = screening_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        e = enrollment_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        c = clinic_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        d = diagnosis_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        r = regimen_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
-        z = zonal_qs.filter(site=site).aggregate(total=Sum("total_issues"))["total"] or 0
+        s = screening_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        e = enrollment_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        c = clinic_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        d = diagnosis_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        r = regimen_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
+        z = zonal_qs.filter(site=site, snapshot=latest_snapshot).aggregate(total=Sum("total_issues"))["total"] or 0 if latest_snapshot else 0
 
         site_form_breakdown[site.name] = {
             "Screening": s,
@@ -266,16 +285,22 @@ def specific_form_snapshot_view(request):
         }
     
     # ------------------------------------------------
-    # TOP SITES
+    # TOP SITES (Latest Snapshot)
     # ------------------------------------------------
 
-    top_sites_qs = screening_qs.values("site__name").annotate(total=Sum("total_issues")).order_by("-total")
+    top_sites_qs = (
+        screening_qs.filter(snapshot=latest_snapshot)
+        .values("site__name")
+        .annotate(total=Sum("total_issues"))
+        .order_by("-total")
+        if latest_snapshot else []
+    )
 
     top_site_labels = [x["site__name"] for x in top_sites_qs]
     top_site_totals = [x["total"] or 0 for x in top_sites_qs]
 
     # ------------------------------------------------
-    # TOP ZONES
+    # TOP ZONES (Latest Snapshot)
     # ------------------------------------------------
 
     top_zones = sorted(zone_performance, key=lambda x: x["total"], reverse=True)
@@ -284,16 +309,28 @@ def specific_form_snapshot_view(request):
     top_zone_totals = [x["total"] for x in top_zones]
 
     # ------------------------------------------------
-    # TOP FORMS
+    # LATEST COUNTS
+    # ------------------------------------------------
+    latest_counts = {
+        "screening": screening[-1] if screening else 0,
+        "enrollment": enrollment[-1] if enrollment else 0,
+        "clinic": clinic[-1] if clinic else 0,
+        "diagnosis": diagnosis[-1] if diagnosis else 0,
+        "regimen": regimen[-1] if regimen else 0,
+        "zonal": zonal[-1] if zonal else 0,
+    }
+
+    # ------------------------------------------------
+    # TOP FORMS (Latest Snapshot)
     # ------------------------------------------------
 
     top_forms = {
-        "Screening": sum(screening),
-        "Enrollment": sum(enrollment),
-        "Clinic": sum(clinic),
-        "Diagnosis": sum(diagnosis),
-        "Regimen": sum(regimen),
-        "Zonal Lab": sum(zonal),
+        "Screening": latest_counts["screening"],
+        "Enrollment": latest_counts["enrollment"],
+        "Clinic": latest_counts["clinic"],
+        "Diagnosis": latest_counts["diagnosis"],
+        "Regimen": latest_counts["regimen"],
+        "Zonal Lab": latest_counts["zonal"],
     }
 
     top_forms_sorted = sorted(top_forms.items(), key=lambda x: x[1], reverse=True)
@@ -333,14 +370,7 @@ def specific_form_snapshot_view(request):
         "facility_table": facility_table,
         "facility_total": facility_total,
 
-        "latest_counts": {
-            "screening": screening[-1] if screening else 0,
-            "enrollment": enrollment[-1] if enrollment else 0,
-            "clinic": clinic[-1] if clinic else 0,
-            "diagnosis": diagnosis[-1] if diagnosis else 0,
-            "regimen": regimen[-1] if regimen else 0,
-            "zonal": zonal[-1] if zonal else 0,
-        },
+        "latest_counts": latest_counts,
 
         "zones": Zone.objects.all(),
         "sites": Site.objects.filter(zone_id=zone_id) if zone_id else Site.objects.all(),
