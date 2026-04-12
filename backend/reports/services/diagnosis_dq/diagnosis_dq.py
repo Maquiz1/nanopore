@@ -343,7 +343,13 @@ def get_diagnosis_dq(qs):
     # Totals
     # ──────────────────────────────
     totals = {f"count_{k}": v.count() for k, v in problem_lists.items()}
-    totals["diagnosis_report_total"] = sum(totals.values())
+    
+    # Exclude non-issue querysets from the total count
+    exclude_from_total = ["long_treatment_qs"]
+    totals["diagnosis_report_total"] = sum(
+        count for k, count in totals.items() 
+        if k.replace("count_", "") not in exclude_from_total
+    )
     
     # totals = {}
     # for k, v in problem_lists.items():
