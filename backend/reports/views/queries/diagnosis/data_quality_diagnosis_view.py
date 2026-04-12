@@ -64,6 +64,7 @@ class DiagnosisDataQualityView(View):
             "stats": stats,
             **stats,               # gives count_missing_...
             "total_issues": total_issues,
+            "context_diagnosis_report_total": total_issues,
             **problem_lists,       # gives missing_tb_diagnosis etc (querysets)
         }
 
