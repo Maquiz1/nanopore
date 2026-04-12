@@ -104,6 +104,11 @@ def missing_forms_trends(request):
         total_values.append(e_val + c_val + d_val + r_val + z_val)
 
     # ------------------------------------------------
+    # LATEST SNAPSHOT DATA (For Tables and Rankings)
+    # ------------------------------------------------
+    latest_snapshot = snapshots[-1] if snapshots else None
+
+    # ------------------------------------------------
     # ZONE GROUPED TRENDS
     # ------------------------------------------------
 
@@ -157,30 +162,37 @@ def missing_forms_trends(request):
         zone_trends[zone.name] = zone_data
 
     # ------------------------------------------------
-    # ZONE PERFORMANCE TABLE
+    # ZONE PERFORMANCE TABLE (Latest Snapshot only)
     # ------------------------------------------------
 
     zone_performance = []
 
     for zone in Zone.objects.all():
+        
+        if not latest_snapshot:
+            zone_performance.append({
+                "zone": zone.name, "enrollment": 0, "clinic": 0, "diagnosis": 0, 
+                "regimen": 0, "zonal": 0, "total": 0
+            })
+            continue
 
-        e = qs.filter(zone=zone).aggregate(Sum("missing_enrollment"))[
+        e = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_enrollment"))[
             "missing_enrollment__sum"
         ] or 0
 
-        c = qs.filter(zone=zone).aggregate(Sum("missing_clinic"))[
+        c = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_clinic"))[
             "missing_clinic__sum"
         ] or 0
 
-        d = qs.filter(zone=zone).aggregate(Sum("missing_diagnosis"))[
+        d = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_diagnosis"))[
             "missing_diagnosis__sum"
         ] or 0
 
-        r = qs.filter(zone=zone).aggregate(Sum("missing_regimen"))[
+        r = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_regimen"))[
             "missing_regimen__sum"
         ] or 0
 
-        z = qs.filter(zone=zone).aggregate(Sum("missing_zonal"))[
+        z = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_zonal"))[
             "missing_zonal__sum"
         ] or 0
 
@@ -204,30 +216,37 @@ def missing_forms_trends(request):
     }
 
     # ------------------------------------------------
-    # FACILITY TABLE
+    # FACILITY TABLE (Latest Snapshot only)
     # ------------------------------------------------
 
     facility_table = []
 
     for site in Site.objects.all():
+        
+        if not latest_snapshot:
+            facility_table.append({
+                "site": site.name, "enrollment": 0, "clinic": 0, "diagnosis": 0, 
+                "regimen": 0, "zonal": 0, "total": 0
+            })
+            continue
 
-        e = qs.filter(site=site).aggregate(Sum("missing_enrollment"))[
+        e = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_enrollment"))[
             "missing_enrollment__sum"
         ] or 0
 
-        c = qs.filter(site=site).aggregate(Sum("missing_clinic"))[
+        c = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_clinic"))[
             "missing_clinic__sum"
         ] or 0
 
-        d = qs.filter(site=site).aggregate(Sum("missing_diagnosis"))[
+        d = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_diagnosis"))[
             "missing_diagnosis__sum"
         ] or 0
 
-        r = qs.filter(site=site).aggregate(Sum("missing_regimen"))[
+        r = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_regimen"))[
             "missing_regimen__sum"
         ] or 0
 
-        z = qs.filter(site=site).aggregate(Sum("missing_zonal"))[
+        z = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_zonal"))[
             "missing_zonal__sum"
         ] or 0
 
@@ -257,18 +276,18 @@ def missing_forms_trends(request):
     }
 
     # ------------------------------------------------
-    # ZONE FORM BREAKDOWN
+    # ZONE FORM BREAKDOWN (Latest Snapshot only)
     # ------------------------------------------------
 
     zone_form_breakdown = {}
 
     for zone in Zone.objects.all():
 
-        e = qs.filter(zone=zone).aggregate(Sum("missing_enrollment"))["missing_enrollment__sum"] or 0
-        c = qs.filter(zone=zone).aggregate(Sum("missing_clinic"))["missing_clinic__sum"] or 0
-        d = qs.filter(zone=zone).aggregate(Sum("missing_diagnosis"))["missing_diagnosis__sum"] or 0
-        r = qs.filter(zone=zone).aggregate(Sum("missing_regimen"))["missing_regimen__sum"] or 0
-        z = qs.filter(zone=zone).aggregate(Sum("missing_zonal"))["missing_zonal__sum"] or 0
+        e = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_enrollment"))["missing_enrollment__sum"] or 0 if latest_snapshot else 0
+        c = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_clinic"))["missing_clinic__sum"] or 0 if latest_snapshot else 0
+        d = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_diagnosis"))["missing_diagnosis__sum"] or 0 if latest_snapshot else 0
+        r = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_regimen"))["missing_regimen__sum"] or 0 if latest_snapshot else 0
+        z = qs.filter(zone=zone, snapshot=latest_snapshot).aggregate(Sum("missing_zonal"))["missing_zonal__sum"] or 0 if latest_snapshot else 0
 
         zone_form_breakdown[zone.name] = {
             "Enrollment": e,
@@ -280,18 +299,18 @@ def missing_forms_trends(request):
         
         
     # ------------------------------------------------
-    # SITE FORM BREAKDOWN
+    # SITE FORM BREAKDOWN (Latest Snapshot only)
     # ------------------------------------------------
 
     site_form_breakdown = {}
 
     for site in Site.objects.all():
 
-        e = qs.filter(site=site).aggregate(Sum("missing_enrollment"))["missing_enrollment__sum"] or 0
-        c = qs.filter(site=site).aggregate(Sum("missing_clinic"))["missing_clinic__sum"] or 0
-        d = qs.filter(site=site).aggregate(Sum("missing_diagnosis"))["missing_diagnosis__sum"] or 0
-        r = qs.filter(site=site).aggregate(Sum("missing_regimen"))["missing_regimen__sum"] or 0
-        z = qs.filter(site=site).aggregate(Sum("missing_zonal"))["missing_zonal__sum"] or 0
+        e = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_enrollment"))["missing_enrollment__sum"] or 0 if latest_snapshot else 0
+        c = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_clinic"))["missing_clinic__sum"] or 0 if latest_snapshot else 0
+        d = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_diagnosis"))["missing_diagnosis__sum"] or 0 if latest_snapshot else 0
+        r = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_regimen"))["missing_regimen__sum"] or 0 if latest_snapshot else 0
+        z = qs.filter(site=site, snapshot=latest_snapshot).aggregate(Sum("missing_zonal"))["missing_zonal__sum"] or 0 if latest_snapshot else 0
 
         site_form_breakdown[site.name] = {
             "Enrollment": e,
@@ -303,7 +322,7 @@ def missing_forms_trends(request):
     
     
     # ------------------------------------------------
-    # TOP SITES
+    # TOP SITES (Top 10 from latest facility_table)
     # ------------------------------------------------
 
     top_sites = facility_table[:10]
@@ -312,7 +331,7 @@ def missing_forms_trends(request):
     site_totals = [x["total"] for x in top_sites]
 
     # ------------------------------------------------
-    # TOP ZONES
+    # TOP ZONES (From latest zone_performance)
     # ------------------------------------------------
 
     top_zones = sorted(zone_performance, key=lambda x: x["total"], reverse=True)
