@@ -7,8 +7,13 @@
     </h2>
 
     <!-- Dashboard -->
-    <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+    <a href="{% url 'dashboard:dashboard' %}"
+        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
+    </a>
+    <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
+        class="{% if request.resolver_match.url_name == 'enrolled-list' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt"></i><span> Enrolled</span>
     </a>
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
@@ -24,17 +29,17 @@
         <div class="submenu">
 
             <a href="{% url 'locations:country-list' %}"
-            class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
+                class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
                 <i class="fas fa-globe-africa"></i> Countries
             </a>
 
             <a href="{% url 'locations:all-sites' %}"
-            class="{% if request.resolver_match.url_name == 'all-sites' %}active{% endif %}">
+                class="{% if request.resolver_match.url_name == 'all-sites' %}active{% endif %}">
                 <i class="fas fa-hospital"></i> Sites
             </a>
 
             <a href="{% url 'dashboard:site-targets' %}"
-            class="{% if request.resolver_match.url_name == 'site-targets' %}active{% endif %}">
+                class="{% if request.resolver_match.url_name == 'site-targets' %}active{% endif %}">
                 <i class="fas fa-bullseye"></i> Targets
             </a>
 
@@ -44,7 +49,7 @@
 
     {% endif %}
     {% endwith %}
-    
+
     {% with user_group=request.user.groups.first.name|upper %}
 
     <div class="menu-group">
@@ -58,7 +63,7 @@
 
             <!-- Graphs -->
             <a href="{% url 'dashboard:graphs' %}"
-            class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
+                class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
                 <i class="fas fa-chart-line"></i> Graphs
             </a>
 
@@ -66,7 +71,7 @@
 
             <!-- EDCS / TBLIS -->
             <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"
-            class="{% if request.resolver_match.url_name == 'edcs-tblis-laboratory-list' %}active{% endif %}">
+                class="{% if request.resolver_match.url_name == 'edcs-tblis-laboratory-list' %}active{% endif %}">
                 <i class="fas fa-database"></i> EDCS / TBLIS Data
             </a>
 
@@ -84,29 +89,29 @@
     <!-- Snapshots -->
     <div class="menu-group">
 
-    <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-    <span><i class="fas fa-database"></i> Snapshots</span>
-    <i class="fas fa-chevron-down"></i>
-    </a>
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-database"></i> Snapshots</span>
+            <i class="fas fa-chevron-down"></i>
+        </a>
 
-    <div class="submenu">
+        <div class="submenu">
 
-    <a href="{% url 'reports:form-specific-snapshots' %}"
-    class="{% if request.resolver_match.url_name == 'form-specific-snapshots' %}active{% endif %}">
-    <i class="fas fa-file-alt"></i> Specific Forms
-    </a>
+            <a href="{% url 'reports:form-specific-snapshots' %}"
+                class="{% if request.resolver_match.url_name == 'form-specific-snapshots' %}active{% endif %}">
+                <i class="fas fa-file-alt"></i> Specific Forms
+            </a>
 
-    <a href="{% url 'reports:missing_forms_dashboard' %}"
-    class="{% if request.resolver_match.url_name == 'missing_forms_dashboard' %}active{% endif %}">
-    <i class="fas fa-chart-pie"></i> Missing Forms Dashboard
-    </a>
+            <a href="{% url 'reports:missing_forms_dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'missing_forms_dashboard' %}active{% endif %}">
+                <i class="fas fa-chart-pie"></i> Missing Forms Dashboard
+            </a>
 
-    <a href="{% url 'reports:missing-forms-trends' %}"
-    class="{% if request.resolver_match.url_name == 'missing-forms-trends' %}active{% endif %}">
-    <i class="fas fa-chart-line"></i> Missing Forms Trends
-    </a>
+            <a href="{% url 'reports:missing-forms-trends' %}"
+                class="{% if request.resolver_match.url_name == 'missing-forms-trends' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i> Missing Forms Trends
+            </a>
 
-    </div>
+        </div>
     </div>
 
     {% endif %}
@@ -198,7 +203,8 @@
                 <span><i class="fas fa-clipboard-list me-2"></i> Missing Forms</span>
                 <span class="d-flex align-items-center">
                     {% if context_total_issues_components.missing_forms %}
-                    <span class="badge bg-danger rounded-pill">{{ context_total_issues_components.missing_forms|intcomma }}</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_total_issues_components.missing_forms|intcomma
+                        }}</span>
                     {% endif %}
                     <i class="fas fa-chevron-down"></i>
                 </span>
@@ -206,38 +212,48 @@
             <div class="submenu">
                 {% with user_group=request.user.groups.first.name|upper %}
                 {% if user.is_superuser or user_group in "ADMIN REVIEWER NURSE CLINICIAN" %}
-                    {% if context_forms_report_total.context_missing_enrollment_count %}
-                    <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}" class="d-flex justify-content-between">
-                        <span>Enrollment</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_enrollment_count|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_forms_report_total.context_missing_clinic_count %}
-                    <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}" class="d-flex justify-content-between">
-                        <span>Clinic</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_clinic_count|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_forms_report_total.context_missing_diagnosis_count %}
-                    <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}" class="d-flex justify-content-between">
-                        <span>Diagnosis</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_diagnosis_count|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_forms_report_total.context_missing_regimen_count %}
-                    <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}" class="d-flex justify-content-between">
-                        <span>Regimen</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_regimen_count|intcomma }}</span>
-                    </a>
-                    {% endif %}
+                {% if context_forms_report_total.context_missing_enrollment_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}"
+                    class="d-flex justify-content-between">
+                    <span>Enrollment</span>
+                    <span class="badge bg-danger rounded-pill">{{
+                        context_forms_report_total.context_missing_enrollment_count|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_forms_report_total.context_missing_clinic_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}"
+                    class="d-flex justify-content-between">
+                    <span>Clinic</span>
+                    <span class="badge bg-danger rounded-pill">{{
+                        context_forms_report_total.context_missing_clinic_count|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_forms_report_total.context_missing_diagnosis_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}"
+                    class="d-flex justify-content-between">
+                    <span>Diagnosis</span>
+                    <span class="badge bg-danger rounded-pill">{{
+                        context_forms_report_total.context_missing_diagnosis_count|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_forms_report_total.context_missing_regimen_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}"
+                    class="d-flex justify-content-between">
+                    <span>Regimen</span>
+                    <span class="badge bg-danger rounded-pill">{{
+                        context_forms_report_total.context_missing_regimen_count|intcomma }}</span>
+                </a>
+                {% endif %}
                 {% endif %}
                 {% if user.is_superuser or user_group in "ADMIN REVIEWER LABORATORY_TECHNICIAN" %}
-                    {% if context_forms_report_total.context_missing_zonal_count %}
-                    <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}" class="d-flex justify-content-between">
-                        <span>Zonal</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_forms_report_total.context_missing_zonal_count|intcomma }}</span>
-                    </a>
-                    {% endif %}
+                {% if context_forms_report_total.context_missing_zonal_count %}
+                <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}"
+                    class="d-flex justify-content-between">
+                    <span>Zonal</span>
+                    <span class="badge bg-danger rounded-pill">{{
+                        context_forms_report_total.context_missing_zonal_count|intcomma }}</span>
+                </a>
+                {% endif %}
                 {% endif %}
                 {% endwith %}
             </div>
@@ -257,50 +273,50 @@
             <div class="submenu">
                 {% with user_group=request.user.groups.first.name|upper %}
                 {% if user.is_superuser or user_group in "ADMIN REVIEWER NURSE CLINICIAN" %}
-                    {% if context_screening_report_total %}
-                    <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
-                        <span>Screening</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_screening_report_total|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_enrollment_report_total %}
-                    <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
-                        <span>Enrollment</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_enrollment_report_total|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_clinic_report_total %}
-                    <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
-                        <span>Clinic</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_clinic_report_total|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_diagnosis_report_total %}
-                    <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
-                        <span>Diagnosis</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_diagnosis_report_total|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_regimen_report_total %}
-                    <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
-                        <span>Regimen</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_regimen_report_total|intcomma }}</span>
-                    </a>
-                    {% endif %}
+                {% if context_screening_report_total %}
+                <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
+                    <span>Screening</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_screening_report_total|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_enrollment_report_total %}
+                <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
+                    <span>Enrollment</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_enrollment_report_total|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_clinic_report_total %}
+                <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
+                    <span>Clinic</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_clinic_report_total|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_diagnosis_report_total %}
+                <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
+                    <span>Diagnosis</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_diagnosis_report_total|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_regimen_report_total %}
+                <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
+                    <span>Regimen</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_regimen_report_total|intcomma }}</span>
+                </a>
+                {% endif %}
                 {% endif %}
                 {% if user.is_superuser or user_group in "ADMIN REVIEWER LABORATORY_TECHNICIAN" %}
-                    {% if context_zonal_report_total %}
-                    <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
-                        <span>Zonal</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
-                    </a>
-                    {% endif %}
-                    {% if context_edcs_tblis_report_total %}
-                    <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="d-flex justify-content-between">
-                        <span>Edcs/TBLIS</span>
-                        <span class="badge bg-danger rounded-pill">{{ context_edcs_tblis_report_total|intcomma }}</span>
-                    </a>
-                    {% endif %}
+                {% if context_zonal_report_total %}
+                <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
+                    <span>Zonal</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
+                </a>
+                {% endif %}
+                {% if context_edcs_tblis_report_total %}
+                <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="d-flex justify-content-between">
+                    <span>Edcs/TBLIS</span>
+                    <span class="badge bg-danger rounded-pill">{{ context_edcs_tblis_report_total|intcomma }}</span>
+                </a>
+                {% endif %}
                 {% endif %}
                 {% endwith %}
             </div>
@@ -323,7 +339,8 @@
             <a href="{% url 'nanopore:clinic-upload-csv' %}"><i class="fas fa-vial"></i> Clinic Lab</a>
             <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
             <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
-            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
+            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen
+                Changes</a>
             <a href="{% url 'nanopore:edcs-tblis-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Edcs-Tblis</a>
         </div>
     </div>
@@ -331,7 +348,7 @@
 
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group == "ADMIN" %}
-        <a href="{% url 'admin:index' %}">
+    <a href="{% url 'admin:index' %}">
         <i class="fas fa-user-shield"></i><span> Admin Dashboard</span>
     </a>
     {% endif %}
@@ -340,94 +357,94 @@
 
 <!-- Sidebar toggle script -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".menu-toggle").forEach(toggle => {
-        toggle.addEventListener("click", function () {
-            const submenu = this.nextElementSibling;
-            if (!submenu) return; 
-            submenu.classList.toggle("open");
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".menu-toggle").forEach(toggle => {
+            toggle.addEventListener("click", function () {
+                const submenu = this.nextElementSibling;
+                if (!submenu) return;
+                submenu.classList.toggle("open");
 
-            const chevron = this.querySelector(".fa-chevron-down");
-            if (chevron) chevron.classList.toggle("rotate");
+                const chevron = this.querySelector(".fa-chevron-down");
+                if (chevron) chevron.classList.toggle("rotate");
+            });
         });
     });
-});
 </script>
 
 <style>
-.sidebar {
-    background-color: #1e1e2d;
-    color: #fff;
-    width: 250px;
-    min-height: 100vh;
-    padding: 15px;
-}
+    .sidebar {
+        background-color: #1e1e2d;
+        color: #fff;
+        width: 250px;
+        min-height: 100vh;
+        padding: 15px;
+    }
 
-.sidebar h2 {
-    font-size: 1.1rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    color: #f0f0f0;
-}
+    .sidebar h2 {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        color: #f0f0f0;
+    }
 
-.sidebar a {
-    display: flex;
-    align-items: center;
-    padding: 10px 12px;
-    color: #ccc;
-    text-decoration: none;
-    border-radius: 6px;
-    transition: background 0.2s;
-}
+    .sidebar a {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        color: #ccc;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
 
-.sidebar a.active,
-.sidebar a:hover {
-    background: #2b2b3d;
-    color: #fff;
-}
+    .sidebar a.active,
+    .sidebar a:hover {
+        background: #2b2b3d;
+        color: #fff;
+    }
 
-.sidebar a i {
-    margin-right: 10px;
-    font-size: 1rem;
-}
+    .sidebar a i {
+        margin-right: 10px;
+        font-size: 1rem;
+    }
 
-.menu-group {
-    margin-top: 10px;
-}
+    .menu-group {
+        margin-top: 10px;
+    }
 
-.menu-toggle {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
+    .menu-toggle {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 
-.submenu {
-    display: none;
-    flex-direction: column;
-    padding-left: 15px;
-    transition: max-height 0.3s ease-in-out;
-}
+    .submenu {
+        display: none;
+        flex-direction: column;
+        padding-left: 15px;
+        transition: max-height 0.3s ease-in-out;
+    }
 
-.submenu.open {
-    display: flex;
-}
+    .submenu.open {
+        display: flex;
+    }
 
-.submenu a {
-    padding: 8px 0;
-    color: #bbb;
-}
+    .submenu a {
+        padding: 8px 0;
+        color: #bbb;
+    }
 
-.submenu a:hover {
-    color: #fff;
-}
+    .submenu a:hover {
+        color: #fff;
+    }
 
-.fa-chevron-down {
-    margin-left: auto;
-    transition: transform 0.3s ease;
-}
+    .fa-chevron-down {
+        margin-left: auto;
+        transition: transform 0.3s ease;
+    }
 
-.fa-chevron-down.rotate {
-    transform: rotate(180deg);
-}
+    .fa-chevron-down.rotate {
+        transform: rotate(180deg);
+    }
 </style>
