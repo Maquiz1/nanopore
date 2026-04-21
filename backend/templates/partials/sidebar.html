@@ -11,10 +11,14 @@
         class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
     </a>
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if user.is_superuser or user_group in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
     <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
-        class="{% if request.resolver_match.url_name == 'enrolled-list' %}active{% endif %}">
-        <i class="fas fa-tachometer-alt"></i><span> Enrolled</span>
+        class="{% if request.resolver_match.url_name == 'enrolled-list' or request.resolver_match.url_name == 'enrollment-update' %}active{% endif %}">
+        <i class="fas fa-user-check"></i><span> Enrolled</span>
     </a>
+    {% endif %}
+    {% endwith %}
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
 
@@ -311,11 +315,13 @@
                     <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
+                {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
                 {% if context_edcs_tblis_report_total %}
                 <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="d-flex justify-content-between">
                     <span>Edcs/TBLIS</span>
                     <span class="badge bg-danger rounded-pill">{{ context_edcs_tblis_report_total|intcomma }}</span>
                 </a>
+                {% endif %}
                 {% endif %}
                 {% endif %}
                 {% endwith %}
