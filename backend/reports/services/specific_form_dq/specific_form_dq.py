@@ -12,64 +12,54 @@ def get_specific_form_dq(user, zone_id=None, site_id=None, role=None):
     Fully centralized: screening DQ counts handle role-based logic for not_eligible/duplicates.
     """
 
-    # ── Screening ──
-    screening_qs = get_screening_queryset(user, zone_id, site_id)
-    screening_problems, screening_totals = get_screening_dq(screening_qs, user)
+    # Default payloads to zeros to prevent leakage and handle dynamic roles cleanly
+    s_probs, e_probs, r_probs, d_probs, c_probs, z_probs = {}, {}, {}, {}, {}, {}
+    s_tot, e_tot, r_tot, d_tot, c_tot, z_tot = 0, 0, 0, 0, 0, 0
 
-    # ── Enrollment ──
-    enrollment_qs = get_enrollment_queryset(user, zone_id, site_id)
-    enrollment_problems, enrollment_totals = get_enrollment_dq(enrollment_qs)
+    # ── Execute Queries based strictly on Role Access ──
+    # Privileged & Normal users get the standard forms
+    if role in ["privileged", "default"]:
+        screening_qs = get_screening_queryset(user, zone_id, site_id)
+        s_probs, s_totals = get_screening_dq(screening_qs, user)
+        s_tot = s_totals.get("screening_report_total", 0)
 
-    # ── Regimen ──
-    regimen_qs = get_regimen_queryset(user, zone_id, site_id)
-    regimen_problems, regimen_totals = get_regimen_dq(regimen_qs)
+        enrollment_qs = get_enrollment_queryset(user, zone_id, site_id)
+        e_probs, e_totals = get_enrollment_dq(enrollment_qs)
+        e_tot = e_totals.get("enrollment_report_total", 0)
 
-    # ── Diagnosis ──
-    diagnosis_qs = get_diagnosis_queryset(user, zone_id, site_id)
-    diagnosis_problems, diagnosis_totals = get_diagnosis_dq(diagnosis_qs)
+        regimen_qs = get_regimen_queryset(user, zone_id, site_id)
+        r_probs, r_totals = get_regimen_dq(regimen_qs)
+        r_tot = r_totals.get("regimen_report_total", 0)
 
-    # ── Clinic ──
-    clinic_qs = get_clinic_queryset(user, zone_id, site_id)
-    clinic_problems, clinic_totals = get_clinic_dq(clinic_qs)
+        diagnosis_qs = get_diagnosis_queryset(user, zone_id, site_id)
+        d_probs, d_totals = get_diagnosis_dq(diagnosis_qs)
+        d_tot = d_totals.get("diagnosis_report_total", 0)
 
-    # ── Zonal ──
-    qs, zonal_stats, zonal_total, zonal_problems = get_zonal_dq(user, ZonalLaboratory, zone_id, site_id)
+        clinic_qs = get_clinic_queryset(user, zone_id, site_id)
+        c_probs, c_totals = get_clinic_dq(clinic_qs)
+        c_tot = c_totals.get("clinic_report_total", 0)
 
-    # ── Role-based total calculation ──
-    if role == "privileged":
-        total_issues = (
-            screening_totals["screening_report_total"]
-            + enrollment_totals["enrollment_report_total"]
-            + regimen_totals["regimen_report_total"]
-            + diagnosis_totals.get("diagnosis_report_total", 0)
-            + clinic_totals.get("clinic_report_total", 0)
-            + zonal_total
-        )
-    elif role == "zonal_lab":
-        total_issues = zonal_total
-    else:  # default for normal users
-        total_issues = (
-            screening_totals["screening_report_total"]
-            + enrollment_totals["enrollment_report_total"]
-            + regimen_totals["regimen_report_total"]
-            + diagnosis_totals.get("diagnosis_report_total", 0)
-            + clinic_totals.get("clinic_report_total", 0)
-        )
+    # Privileged & Zonal Lab users get the Zonal forms
+    if role in ["privileged", "zonal_lab"]:
+        qs, zonal_stats, z_tot, z_probs = get_zonal_dq(user, ZonalLaboratory, zone_id, site_id)
+
+    # ── Sum the requested issues ──
+    total_issues = s_tot + e_tot + r_tot + d_tot + c_tot + z_tot
 
     return {
         "problem_lists": {
-            "screening": screening_problems,
-            "enrollment": enrollment_problems,
-            "regimen": regimen_problems,
-            "diagnosis": diagnosis_problems,
-            "clinic": clinic_problems,
-            "zonal": zonal_problems,
+            "screening": s_probs,
+            "enrollment": e_probs,
+            "regimen": r_probs,
+            "diagnosis": d_probs,
+            "clinic": c_probs,
+            "zonal": z_probs,
         },
-        "screening_report_total": screening_totals["screening_report_total"],
-        "enrollment_report_total": enrollment_totals["enrollment_report_total"],
-        "regimen_report_total": regimen_totals["regimen_report_total"],
-        "diagnosis_report_total": diagnosis_totals.get("diagnosis_report_total", 0),
-        "clinic_report_total": clinic_totals.get("clinic_report_total", 0),
-        "zonal_report_total": zonal_total,
+        "screening_report_total": s_tot,
+        "enrollment_report_total": e_tot,
+        "regimen_report_total": r_tot,
+        "diagnosis_report_total": d_tot,
+        "clinic_report_total": c_tot,
+        "zonal_report_total": z_tot,
         "total_issues": total_issues,
     }
