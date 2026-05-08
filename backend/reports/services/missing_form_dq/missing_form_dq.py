@@ -33,9 +33,9 @@ def get_missing_forms_dq(user, zone_id=None, site_id=None, role=None):
         qs = qs.filter(site_id=site_id)
         
     qs = qs.order_by(
-        "screening__site__district__region__zone__name",
-        "screening__site__name",
-        "screening__pid"
+        "site__district__region__zone__name",
+        "site__name",
+        "pid"
     )
 
     # ───────────────────────────────────────────────────────────────
