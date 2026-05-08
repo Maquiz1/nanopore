@@ -58,6 +58,21 @@ Dashboard — {{ user.get_full_name|default:user.username }}
     }
 </style>
 
+{% with user_group=request.user.groups.first.name|upper %}
+{% if not request.user.is_superuser and user_group != "ADMIN" and user_group != "REVIEWER" and not request.user.profile.site %}
+    <style>
+        #sidebar, .sidebar, .topbar, .navbar, footer, .footer { display: none !important; }
+        body { background-color: #f8f9fa !important; }
+        .main { margin-left: 0 !important; width: 100% !important; padding: 50px !important; min-height: 100vh; }
+    </style>
+    <div class="alert alert-warning mt-5 mx-auto rounded-3 shadow-sm text-center" style="max-width: 500px;">
+        <h4><i class="fas fa-exclamation-triangle text-warning mb-3"></i></h4>
+        ⚠️ Your profile does not have a site assigned. please Login again <br>
+        <hr>
+        <a href="{% url 'users:login' %}" class="btn btn-warning fw-bold">Click here to login</a>
+    </div>
+{% else %}
+
 <div class="card shadow-sm border-0 mb-4 rounded-4">
     <div class="card-body bg-light">
         <h2 class="mb-3 text-primary fw-bold d-flex align-items-center flex-wrap">
@@ -70,7 +85,6 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                 {{ user.get_full_name|default:user.username }}!
             </span>
         </h2>
-        {% with user_group=request.user.groups.first.name|upper %}
         {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
         <div
             class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
@@ -91,11 +105,9 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             {% endif %}
         </div>
         {% else %}
-        {% if request.user.profile.site %}
         <div
             class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
             <div>
-                <!-- <p class="mb-1"><i class="fas fa-user-tag text-success me-2"></i><strong>Prefix:</strong> {{ request.user.profile.prefix }}</p> -->
                 <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i>
                     <strong>Zone:</strong>
                     {{ request.user.profile.site.district.region.zone.name }}
@@ -118,15 +130,7 @@ Dashboard — {{ user.get_full_name|default:user.username }}
             </div>
             {% endif %}
         </div>
-        {% else %}
-        <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
-            ⚠️ Your profile does not have a site assigned. please Login again <br>
-            <hr>
-            <a href="{% url 'users:login' %}">Click here to login</a>
-        </div>
         {% endif %}
-        {% endif %}
-        {% endwith %}
     </div>
 </div>
 
@@ -686,4 +690,6 @@ Dashboard — {{ user.get_full_name|default:user.username }}
     </div>
 </div>
 {% endif %}
+{% endif %}
+{% endwith %}
 {% endblock %}
