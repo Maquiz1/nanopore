@@ -1,7 +1,9 @@
 # reports/context_processors/enrollment_context.py
 from reports.services.enrollment_dq import get_enrollment_queryset,get_enrollment_dq
 from django.apps import apps
+from reports.context_processors.cache_helpers import cached_context
 
+@cached_context(ttl=300)
 def enrollment_report_total(request):
     if not request.user.is_authenticated:
         return {"context_enrollment_report_total": 0}

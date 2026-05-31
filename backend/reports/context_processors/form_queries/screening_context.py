@@ -4,8 +4,10 @@ from reports.services.screening_dq import (
     get_screening_queryset,
     get_screening_dq,
 )
+from reports.context_processors.cache_helpers import cached_context
 
 
+@cached_context(ttl=300)
 def screening_report_total(request):
     """
     Navbar screening data quality counter.

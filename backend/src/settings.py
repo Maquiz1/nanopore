@@ -234,6 +234,20 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 INSTALLED_APPS += ["django_celery_results"]
 
+# ─────────────────────────────────────────────────────────────────────
+# Cache — uses the same Redis instance already running for Celery.
+# Context processors cache per-user for 5 minutes (300s).
+# Use DB 1 to keep cache separate from Celery (DB 0).
+# ─────────────────────────────────────────────────────────────────────
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://localhost:6379/1",
+        "KEY_PREFIX": "dq",
+        "TIMEOUT": 300,  # 5 minutes default TTL
+    }
+}
+
 # Redis broker
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
