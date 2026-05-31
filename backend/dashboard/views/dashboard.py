@@ -21,6 +21,265 @@ class DashboardHomeView(ListView):
     # Base queryset (role + filters)
     # ==================================================
     def get_queryset(self):
+        # Cache on self so get_context_data doesn't re-build it
+        if not hasattr(self, "_qs"):
+            qs = Screening.objects.select_related(
+                "site", "site__district__region__zone", "sex", "enrolled"
+            )
+
+            # Apply role-based filtering
+            qs = filter_queryset_by_user_role(self.request.user, qs, site_field="site")
+
+            # Apply GET filters
+            zone_id = self.request.GET.get("zone")
+            site_id = self.request.GET.get("site")
+            start_date = self.request.GET.get("start_date")
+            end_date = self.request.GET.get("end_date")
+            order_by = self.request.GET.get("order_by", "-screening_date")
+
+            if zone_id:
+                qs = qs.filter(site__district__region__zone_id=zone_id)
+
+            if site_id:
+                qs = qs.filter(site_id=site_id)
+
+            if start_date and end_date:
+                qs = qs.filter(screening_date__range=[start_date, end_date])
+
+            self._qs = qs.order_by(order_by)
+
+        return self._qs
+
+    # ==================================================
+    # Context
+    # ==================================================
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        qs = self.get_queryset()
+
+        # Role context
+        role_context = get_role_context(self.request.user)
+        context.update({
+            "is_admin": role_context["is_admin"],
+            "is_zonal_lab": role_context["is_zonal_lab"],
+            "is_national_lab": role_context["is_national_lab"],
+            "is_site_only": role_context["is_site_only"],
+            "zones": {z.id: z.name for z in role_context["zones"]},
+            "sites": {s.id: s.name for s in role_context["sites"]},
+        })
+        
+        user_site = getattr(getattr(self.request.user, "profile", None), "site", None)
+        user_zone = None
+
+        if user_site and user_site.district and user_site.district.region:
+            user_zone = user_site.district.region.zone
+
+        context.update({
+            "user_site": user_site,
+            "user_zone": user_zone,
+            "dar_es_salaam_zone": Zone.objects.filter(name__iexact="Dar es Salaam").first(),
+            "zone_group_1": [1],
+            "zone_group_2_5": [2, 3, 4, 5],
+        })
+
+        # ==================================================
+        # GLOBAL COUNTS — single aggregate() round-trip
+        # ==================================================
+        global_counts = qs.aggregate(
+            screened_count=Count("id"),
+            eligible_count=Count("id", filter=Q(eligible=True)),
+        )
+        screened_count = global_counts["screened_count"]
+        eligible_count = global_counts["eligible_count"]
+
+        # ==================================================
+        # ENROLLMENT + SUBSTUDY COUNTS — single aggregate()
+        # ==================================================
+        enrolled_qs = Enrollment.objects.filter(screening__in=qs)
+
+        enrolled_counts = enrolled_qs.aggregate(
+            enrolled_count=Count("id"),
+            substudy2_count=Count(
+                "id",
+                filter=Q(screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]),
+            ),
+            substudy4_count=Count(
+                "id",
+                filter=Q(screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]),
+            ),
+        )
+        enrolled_count       = enrolled_counts["enrolled_count"]
+        substudy2_enrolled_count = enrolled_counts["substudy2_count"]
+        substudy4_enrolled_count = enrolled_counts["substudy4_count"]
+
+        # ==================================================
+        # MODEL-BASED TARGETS (SITE SUM) — single aggregate()
+        # ==================================================
+        site_ids = qs.values_list("site_id", flat=True).distinct()
+        targets = Site.objects.filter(id__in=site_ids).aggregate(
+            total_target=Sum("target"),
+            substudy2_target=Sum("substudy2Target"),
+            substudy4_target=Sum("substudy4Target"),
+        )
+
+        enrolled_required_count  = targets["total_target"] or 0
+        substudy2_required_count = targets["substudy2_target"] or 0
+        substudy4_required_count = targets["substudy4_target"] or 0
+
+        # Progress calculations
+        enrolled_progress = round(
+            enrolled_count / enrolled_required_count * 100, 1
+        ) if enrolled_required_count else 0
+
+        substudy2_enrolled_progress = round(
+            substudy2_enrolled_count / substudy2_required_count * 100, 1
+        ) if substudy2_required_count else 0
+
+        substudy4_enrolled_progress = round(
+            substudy4_enrolled_count / substudy4_required_count * 100, 1
+        ) if substudy4_required_count else 0
+
+        # ==================================================
+        # DIAGNOSIS OUTCOME — single filter + count
+        # ==================================================
+        diagnosis_outcome_count = Diagnosis.objects.filter(
+            screening__in=qs,
+            screening__diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5],
+        ).count()
+
+        diagnosis_outcome_progress = round(
+            diagnosis_outcome_count / substudy2_enrolled_count * 100, 1
+        ) if substudy2_enrolled_count else 0
+
+        # ==================================================
+        # SITE TARGETS TABLE
+        # ==================================================
+        site_targets = (
+            qs.values("site__id", "site__name", "site__target")
+            .annotate(
+                enrolled=Count("enrollment", distinct=True),
+                remaining=ExpressionWrapper(
+                    F("site__target") - Count("enrollment", distinct=True),
+                    output_field=IntegerField(),
+                ),
+            )
+            .order_by("site__name")
+        )
+        context["site_targets"] = site_targets
+
+        # ==================================================
+        # ZONAL LAB — single aggregate() round-trip
+        # ==================================================
+        total_substudy_counts = substudy2_enrolled_count
+        zonal_qs = ZonalLaboratory.objects.filter(screening__in=qs)
+
+        zonal_counts = zonal_qs.aggregate(
+            zonal_completed=Count("id"),
+            culture_completed=Count("id", filter=Q(culture_performed=1)),
+            isolate_completed=Count("id", filter=Q(culture_isolate=1)),
+            dst_completed=Count("id", filter=Q(phenotypic_performed=1)),
+            first_line_dst_completed=Count("id", filter=Q(first_line_dst_performed=1)),
+            second_line_dst_completed=Count("id", filter=Q(second_line_dst_performed=1)),
+            second_line_dst_required=Count(
+                "id",
+                filter=Q(rifampicin=1) | Q(isoniazid=1) | Q(ethambutol=1),
+            ),
+            xpert_xdr_completed=Count("id", filter=Q(xpert_xdr_performed=1)),
+            lpa_completed=Count(
+                "id",
+                filter=Q(first_line_lpa=1) | Q(second_line_lpa=1),
+                distinct=True,
+            ),
+            nanopore_completed=Count("id", filter=Q(nanopore_done=1)),
+        )
+
+        zonal_completed_count            = zonal_counts["zonal_completed"]
+        culture_completed_count          = zonal_counts["culture_completed"]
+        isolate_completed_count          = zonal_counts["isolate_completed"]
+        dst_completed_count              = zonal_counts["dst_completed"]
+        first_line_dst_completed_count   = zonal_counts["first_line_dst_completed"]
+        second_line_dst_completed_count  = zonal_counts["second_line_dst_completed"]
+        second_line_dst_completed_required = zonal_counts["second_line_dst_required"]
+        xpert_xdr_completed_count        = zonal_counts["xpert_xdr_completed"]
+        lpa_completed_count              = zonal_counts["lpa_completed"]
+        nanopore_completed_count         = zonal_counts["nanopore_completed"]
+
+        zonal_progress = round(zonal_completed_count / total_substudy_counts * 100, 1) if total_substudy_counts else 0
+        culture_progress = round(culture_completed_count / zonal_completed_count * 100, 1) if zonal_completed_count else 0
+        isolate_progress = round(isolate_completed_count / culture_completed_count * 100, 1) if culture_completed_count else 0
+        dst_progress = round(dst_completed_count / isolate_completed_count * 100, 1) if isolate_completed_count else 0
+        first_line_dst_progress = round(first_line_dst_completed_count / dst_completed_count * 100, 1) if dst_completed_count else 0
+        second_line_dst_progress = round(second_line_dst_completed_count / second_line_dst_completed_required * 100, 1) if second_line_dst_completed_required else 0
+        xpert_xdr_progress = round(xpert_xdr_completed_count / total_substudy_counts * 100, 1) if total_substudy_counts else 0
+        lpa_progress = round(lpa_completed_count / total_substudy_counts * 100, 1) if total_substudy_counts else 0
+        nanopore_progress = round(nanopore_completed_count / total_substudy_counts * 100, 1) if total_substudy_counts else 0
+
+        # ==================================================
+        # CONTEXT PUSH
+        # ==================================================
+        context.update({
+            # GLOBAL
+            "screened_count": screened_count,
+            "eligible_count": eligible_count,
+            "enrolled_count": enrolled_count,
+            "enrolled_required_count": enrolled_required_count,
+            "enrolled_progress": enrolled_progress,
+            "total_substudy_counts": total_substudy_counts,
+
+            # SUBSTUDY 2
+            "substudy2_enrolled_count": substudy2_enrolled_count,
+            "substudy2_required_count": substudy2_required_count,
+            "substudy2_enrolled_progress": substudy2_enrolled_progress,
+
+            # SUBSTUDY 4
+            "substudy4_enrolled_count": substudy4_enrolled_count,
+            "substudy4_required_count": substudy4_required_count,
+            "substudy4_enrolled_progress": substudy4_enrolled_progress,
+            
+            # DIAGNOSIS OUTCOME
+            "diagnosis_outcome_count": diagnosis_outcome_count,
+            "diagnosis_outcome_progress": diagnosis_outcome_progress,
+
+            # ZONAL LAB
+            "zonal_completed_count": zonal_completed_count,
+            "zonal_progress": zonal_progress,
+            "isolate_completed_count": isolate_completed_count,
+            "isolate_progress": isolate_progress,
+            "culture_completed_count": culture_completed_count,
+            "culture_progress": culture_progress,
+            
+            "dst_completed_count": dst_completed_count,
+            "dst_progress": dst_progress,
+            
+            "first_line_dst_completed_count": first_line_dst_completed_count,
+            "first_line_dst_progress": first_line_dst_progress,
+            
+            "second_line_dst_completed_count": second_line_dst_completed_count,
+            "second_line_dst_progress": second_line_dst_progress,
+            "second_line_dst_completed_required": second_line_dst_completed_required,
+            
+            "xpert_xdr_completed_count": xpert_xdr_completed_count,
+            "xpert_xdr_progress": xpert_xdr_progress,
+            "lpa_completed_count": lpa_completed_count,
+            "lpa_progress": lpa_progress,
+            "nanopore_completed_count": nanopore_completed_count,
+            "nanopore_progress": nanopore_progress,
+        })
+
+        return context
+
+
+
+class DashboardHomeView(ListView):
+    model = Screening
+    template_name = "dashboard/dashboard.html"
+    context_object_name = "object_list"
+    paginate_by = 50
+
+    # ==================================================
+    # Base queryset (role + filters)
+    # ==================================================
+    def get_queryset(self):
         qs = Screening.objects.select_related(
             "site", "site__district__region__zone", "sex", "enrolled"
         )

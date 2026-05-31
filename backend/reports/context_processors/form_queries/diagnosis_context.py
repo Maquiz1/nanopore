@@ -4,8 +4,10 @@ from reports.services.diagnosis_dq import (
     get_diagnosis_queryset,
     get_diagnosis_dq,
 )
+from reports.context_processors.cache_helpers import cached_context
 
 
+@cached_context(ttl=300)
 def diagnosis_report_total(request):
     """
     Navbar diagnosis data quality counter.

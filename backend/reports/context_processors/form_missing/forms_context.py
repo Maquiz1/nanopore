@@ -4,8 +4,10 @@ from django.apps import apps
 from django.db.models import Exists, OuterRef
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
+from reports.context_processors.cache_helpers import cached_context
 
 
+@cached_context(ttl=300)
 def forms_report_total(request):
     """
     Computes counts of eligible screenings missing each major downstream form/stage.

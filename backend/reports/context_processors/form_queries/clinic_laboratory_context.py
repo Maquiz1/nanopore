@@ -4,8 +4,10 @@ from reports.services.clinic_dq import (
     get_clinic_queryset,
     get_clinic_dq,
 )
+from reports.context_processors.cache_helpers import cached_context
 
 
+@cached_context(ttl=300)
 def clinic_report_total(request):
     """
     Navbar clinic data quality counter.
