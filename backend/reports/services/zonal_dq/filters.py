@@ -16,10 +16,11 @@ def get_zonal_dq_filters(model):
 
         # Build missing fields logic
         for f in fields:
-            if f == "unique_lab_no":
+            try:
+                field_obj = model._meta.get_field(f)
+            except Exception:
                 continue
 
-            field_obj = model._meta.get_field(f)
             field_type = field_obj.get_internal_type()
 
             if field_type in ("CharField", "TextField"):
