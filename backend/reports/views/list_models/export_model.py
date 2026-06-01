@@ -1,8 +1,12 @@
+import logging
+
 from django.views import View
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
 import csv
 import io
 from django.apps import apps
+
+logger = logging.getLogger(__name__)
 
 REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 
@@ -28,6 +32,13 @@ class ExportModelDataView(View):
     def _model_has_field(self, model, field_name):
         return any(f.name == field_name for f in model._meta.fields)
 
+    def _build_select_related(self, model):
+        """Return a list of FK field names for select_related to avoid N+1 queries."""
+        return [
+            f.name for f in model._meta.fields
+            if f.is_relation and not f.many_to_many and f.name not in self.exclude_fields
+        ]
+
     def get(self, request):
         mode = request.GET.get("mode", "full")
         model_name = request.GET.get("model")
@@ -37,70 +48,85 @@ class ExportModelDataView(View):
         # Determine which priority fields actually exist on this model
         active_priority = [f for f in PRIORITY_FIELDS if self._model_has_field(model, f)]
 
+        # Pre-build select_related list (avoids N+1 FK lookups on every row)
+        related_fields = self._build_select_related(model)
+
         def csv_generator():
             buffer = io.StringIO()
             writer = csv.writer(buffer)
 
-            # ── Header ─────────────────────────────────────────────────────
-            # Priority fields come first, then the rest (skipping duplicates)
-            headers = list(active_priority)
-            for f in model._meta.fields:
-                if f.name not in self.exclude_fields and f.name not in active_priority:
-                    headers.append(f.name)
-            if model._meta.model_name == "screening":
-                for f in REGIMEN_FIELDS:
-                    headers.append(f"regimen_{f}")
-            writer.writerow(headers)
-            yield buffer.getvalue()
-            buffer.seek(0)
-            buffer.truncate(0)
-
-            # ── Rows ────────────────────────────────────────────────────────
-            qs = model.objects.all().iterator()
-
-            for obj in qs:
-                row = []
-
-                # 1. Priority fields first — use __dict__ fallback to bypass
-                #    ORM descriptors that can suppress editable=False values.
-                for field_name in active_priority:
-                    val = getattr(obj, field_name, None)
-                    if val is None or val == "":
-                        val = obj.__dict__.get(field_name, "")
-                    row.append(val or "")
-
-                # 2. Remaining model fields
+            try:
+                # ── Header ─────────────────────────────────────────────────
+                headers = list(active_priority)
                 for f in model._meta.fields:
-                    if f.name in self.exclude_fields or f.name in active_priority:
-                        continue
-                    val = getattr(obj, f.name, "")
-                    if f.is_relation:
-                        if f.many_to_many:
-                            val = ";".join(str(v) for v in getattr(obj, f.name).all())
-                        else:
-                            related = getattr(obj, f.name, None)
-                            if mode == "values_only":
-                                val = related.pk if related else ""
-                            elif mode == "labels_only":
-                                val = str(related) if related else ""
-                    row.append(val)
-
-                # 3. Regimen columns (screening only)
+                    if f.name not in self.exclude_fields and f.name not in active_priority:
+                        headers.append(f.name)
                 if model._meta.model_name == "screening":
-                    regimens = list(obj.regimen_changes.all().order_by("date")) or [None]
-                    for regimen in regimens:
-                        for f in REGIMEN_FIELDS:
-                            row.append(getattr(regimen, f, "") or "")
-
-                writer.writerow(row)
+                    for f in REGIMEN_FIELDS:
+                        headers.append(f"regimen_{f}")
+                writer.writerow(headers)
                 yield buffer.getvalue()
                 buffer.seek(0)
                 buffer.truncate(0)
+
+                # ── Rows ────────────────────────────────────────────────────
+                # select_related prevents N+1: ZonalLab has 30+ FK fields —
+                # without this, each row fires 30+ extra DB queries → timeout.
+                qs = model.objects.select_related(*related_fields).iterator(chunk_size=200)
+
+                for obj in qs:
+                    row = []
+
+                    # 1. Priority fields — __dict__ fallback bypasses ORM
+                    #    descriptors that can suppress editable=False values.
+                    for field_name in active_priority:
+                        val = obj.__dict__.get(field_name) or getattr(obj, field_name, "") or ""
+                        row.append(val)
+
+                    # 2. Remaining model fields
+                    for f in model._meta.fields:
+                        if f.name in self.exclude_fields or f.name in active_priority:
+                            continue
+
+                        if f.is_relation and not f.many_to_many:
+                            # Use raw FK id from __dict__ (no extra query, already selected)
+                            raw_id = obj.__dict__.get(f.attname)  # e.g. culture_performed_id
+                            if mode == "values_only":
+                                row.append(raw_id if raw_id is not None else "")
+                            else:
+                                # labels_only or full: use cached related object
+                                related = getattr(obj, f.name, None)
+                                row.append(str(related) if related else "")
+                        else:
+                            row.append(getattr(obj, f.name, "") or "")
+
+                    # 3. Regimen columns (screening only)
+                    if model._meta.model_name == "screening":
+                        regimens = list(obj.regimen_changes.all().order_by("date")) or [None]
+                        for regimen in regimens:
+                            for f in REGIMEN_FIELDS:
+                                row.append(getattr(regimen, f, "") or "")
+
+                    writer.writerow(row)
+                    yield buffer.getvalue()
+                    buffer.seek(0)
+                    buffer.truncate(0)
+
+            except Exception as exc:
+                logger.exception(
+                    "Export failed for model=%s mode=%s: %s",
+                    model_name, mode, exc
+                )
+                # Yield a clearly marked error row so the CSV is not silently truncated
+                writer.writerow([f"EXPORT ERROR: {exc}"])
+                yield buffer.getvalue()
 
         filename = f"{model_name or 'model_data'}.csv"
         response = StreamingHttpResponse(csv_generator(), content_type="text/csv")
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
 
 
 class ExportAllModelsCombinedView(View):
