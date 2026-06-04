@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Min, Max
 from django.utils import timezone
 from locations.models import Zone, Site
-from nanopore.models import EdcsTblisZonal, ZonalLaboratory
+from nanopore.models import EdcsTblisZonal, ZonalLaboratory, EdcsTblisMergeSummary
 from utils.permissions import filter_queryset_by_user_role
 
 
@@ -62,5 +62,8 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         )
         context["tblis_date_from"] = date_agg["date_from"]
         context["tblis_date_to"]   = date_agg["date_to"]
+
+        # Latest merge summary from management command
+        context["merge_summary"] = EdcsTblisMergeSummary.objects.first()
 
         return context

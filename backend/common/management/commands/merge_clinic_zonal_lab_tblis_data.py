@@ -1,6 +1,7 @@
 import re
 import pandas as pd
 from django.core.management.base import BaseCommand
+from nanopore.models import EdcsTblisMergeSummary
 
 class Command(BaseCommand):
     help = (
@@ -949,5 +950,30 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"\n📈 Total Mismatched Columns: {total_mismatch_columns}"))
             self.stdout.write(self.style.WARNING(f"📈 Total Mismatched Records: {total_mismatch_records}"))
             self.stdout.write(f"\n⚠️ Missing records: {missing_records}")
-        
+        # --- Save summary to DB ---
+        mismatch_by_field_dict = {}
+        total_mismatch_columns = 0
+        total_mismatch_records = 0
+        if not all_mismatches.empty:
+            mismatch_counts = all_mismatches["field"].value_counts()
+            mismatch_by_field_dict = {k: int(v) for k, v in mismatch_counts.items()}
+            total_mismatch_columns = len(mismatch_counts)
+            total_mismatch_records = all_mismatches["pid"].nunique()
+
+        EdcsTblisMergeSummary.objects.create(
+            total_columns=total_columns,
+            total_edcs_records=total_records,
+            total_tblis_rows=len(tblis_df),
+            matched_records=matched_records,
+            missing_records=missing_records,
+            edcs_not_in_tblis=edcs_only_count,
+            tblis_not_in_edcs=tblis_only_count,
+            tblis_date_from=tblis_date_from or "",
+            tblis_date_to=tblis_date_to or "",
+            total_mismatch_columns=total_mismatch_columns,
+            total_mismatch_records=int(total_mismatch_records),
+            mismatch_by_field=mismatch_by_field_dict,
+        )
+        self.stdout.write(self.style.SUCCESS("✅ Merge summary saved to database."))
+
         self.stdout.write("\n")
