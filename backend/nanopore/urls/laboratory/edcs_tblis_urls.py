@@ -7,6 +7,8 @@ from nanopore.views import (
     RevokeEdcsTblisTaskView,
     TaskStatusView,
     EdcsTblisDownloadCsvView,
+    TriggerCsvExportView,
+    ServeCsvExportView,
 )
 
 urlpatterns = [
@@ -17,4 +19,6 @@ urlpatterns = [
     path('edcs-tblis/revoke/<str:task_id>/', RevokeEdcsTblisTaskView.as_view(), name='task-revoke'),
     path("task-status/<str:task_id>/", TaskStatusView.as_view(), name="task-status"),
     path("edcs-tblis/download/", EdcsTblisDownloadCsvView.as_view(), name="edcs-tblis-download-csv"),
+    path("edcs-tblis/export/trigger/", TriggerCsvExportView.as_view(), name="edcs-tblis-export-trigger"),
+    path("edcs-tblis/export/serve/<str:filename>/", ServeCsvExportView.as_view(), name="edcs-tblis-export-serve"),
 ]

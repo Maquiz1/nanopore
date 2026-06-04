@@ -20,6 +20,7 @@ from .edcs_tblis import EdcsTBLISLaboratoryListView
 from .edcs_tblis import EdcsTBLISCsvUploadView, RevokeEdcsTblisTaskView, TaskStatusView
 from .edcs_tblis import EdcsTblisFormView
 from .edcs_tblis import EdcsTblisDownloadCsvView
+from .edcs_tblis import TriggerCsvExportView, ServeCsvExportView
 from .clinic import audit_history_ajax
 from .clinic import raise_query
 
@@ -46,6 +47,8 @@ __all__ = [
     "RevokeEdcsTblisTaskView",
     "TaskStatusView",
     "EdcsTblisDownloadCsvView",
+    "TriggerCsvExportView",
+    "ServeCsvExportView",
     
     "ClinicLaboratoryAuditView",
     "audit_history_ajax",

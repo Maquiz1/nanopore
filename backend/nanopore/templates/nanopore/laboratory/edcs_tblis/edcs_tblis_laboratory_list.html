@@ -23,9 +23,20 @@
         <div class="card shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="fw-bold">📊 EDCS / TBLIS Integration Summary</span>
-                <a href="{% url 'nanopore:edcs-tblis-download-csv' %}" class="btn btn-sm btn-outline-success">
+                <button id="exportBtn" class="btn btn-sm btn-outline-success" onclick="startExport()">
                     ⬇️ Download All Data (CSV)
-                </a>
+                </button>
+            </div>
+            <!-- Export progress (hidden by default) -->
+            <div id="exportProgressWrapper" class="px-3 pt-2" style="display:none">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span id="exportProgressLabel">Preparing export…</span>
+                    <span id="exportProgressPct">0%</span>
+                </div>
+                <div class="progress" style="height:10px">
+                    <div id="exportProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                         style="width:0%"></div>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row text-center g-3 mb-3">
@@ -200,4 +211,79 @@
         </nav>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const TRIGGER_URL  = "{% url 'nanopore:edcs-tblis-export-trigger' %}";
+const STATUS_BASE  = "{% url 'nanopore:task-status' 'TASKID' %}";
+const SERVE_BASE   = "{% url 'nanopore:edcs-tblis-export-serve' 'FILENAME' %}";
+
+const exportBtn            = document.getElementById("exportBtn");
+const exportProgressWrapper= document.getElementById("exportProgressWrapper");
+const exportProgressBar    = document.getElementById("exportProgressBar");
+const exportProgressLabel  = document.getElementById("exportProgressLabel");
+const exportProgressPct    = document.getElementById("exportProgressPct");
+
+function startExport() {
+    exportBtn.disabled = true;
+    exportBtn.innerText = "⏳ Preparing…";
+    exportProgressWrapper.style.display = "block";
+    exportProgressBar.style.width = "0%";
+    exportProgressLabel.innerText = "Queuing export task…";
+    exportProgressPct.innerText = "0%";
+
+    fetch(TRIGGER_URL, {method: "POST", headers: {"X-CSRFToken": getCsrf()}})
+        .then(r => r.json())
+        .then(data => {
+            if (!data.task_id) { resetExportBtn("❌ Failed to start"); return; }
+            pollExport(data.task_id);
+        })
+        .catch(() => resetExportBtn("❌ Error"));
+}
+
+function pollExport(taskId) {
+    const url = STATUS_BASE.replace("TASKID", taskId);
+    const interval = setInterval(() => {
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.state === "PROGRESS") {
+                    const pct = data.total ? Math.round((data.current / data.total) * 100) : 0;
+                    exportProgressBar.style.width = pct + "%";
+                    exportProgressLabel.innerText = `Exporting… ${data.current} / ${data.total} rows`;
+                    exportProgressPct.innerText = pct + "%";
+                } else if (data.state === "SUCCESS") {
+                    clearInterval(interval);
+                    exportProgressBar.style.width = "100%";
+                    exportProgressLabel.innerText = "✅ Ready! Downloading…";
+                    exportProgressPct.innerText = "100%";
+                    // Auto-trigger download
+                    const filename = data.file || "edcs_tblis_zonal_export.csv";
+                    const dlUrl = SERVE_BASE.replace("FILENAME", filename);
+                    const a = document.createElement("a");
+                    a.href = dlUrl; a.download = filename; a.click();
+                    setTimeout(() => {
+                        resetExportBtn("⬇️ Download All Data (CSV)");
+                        exportProgressWrapper.style.display = "none";
+                    }, 2000);
+                } else if (data.state === "FAILURE") {
+                    clearInterval(interval);
+                    resetExportBtn("❌ Export failed — Retry");
+                    exportProgressLabel.innerText = "Export failed: " + (data.error || "unknown error");
+                }
+            })
+            .catch(() => { clearInterval(interval); resetExportBtn("❌ Error"); });
+    }, 1500);
+}
+
+function resetExportBtn(label) {
+    exportBtn.disabled = false;
+    exportBtn.innerText = label;
+}
+
+function getCsrf() {
+    return document.cookie.split(";").find(c => c.trim().startsWith("csrftoken="))?.split("=")[1] || "";
+}
+</script>
 {% endblock %}

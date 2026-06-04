@@ -5,6 +5,8 @@ from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.db.models import Min, Max
 
+from .tasks_csv_export import export_edcs_tblis_csv
+
 from celery import shared_task, Task
 import csv
 from django.apps import apps
