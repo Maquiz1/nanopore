@@ -2,26 +2,19 @@
 from django.urls import path
 from nanopore.views import (
     EdcsTBLISLaboratoryListView,
-    # ZonalLaboratoryDetailView,
-    # ZonalLaboratoryDeleteView,
-    # ZonalLabFormView,
     EdcsTBLISCsvUploadView,
     EdcsTblisFormView,
     RevokeEdcsTblisTaskView,
-    # task_status
     TaskStatusView,
+    EdcsTblisDownloadCsvView,
 )
 
 urlpatterns = [
     path("edcs-tblis-list/", EdcsTBLISLaboratoryListView.as_view(), name="edcs-tblis-laboratory-list"),
-    # path("zonal-lab/<int:pk>/", ZonalLaboratoryDetailView.as_view(), name="zonal-laboratory-detail"),
-    # path("zonal-lab/form/", ZonalLabFormView.as_view(), name="zonal-laboratory-create"),
     path("edcs-tblis/form/<int:pk>/update", EdcsTblisFormView.as_view(), name="edcs-tblis-laboratory-update"),
     path("edcs-tblis/form/<int:pk>/view", EdcsTblisFormView.as_view(), name="edcs-tblis-laboratory-view"),
-    # path("zonal-lab/<int:pk>/delete/", ZonalLaboratoryDeleteView.as_view(), name="zonal-laboratory-delete"),
-    
     path('upload-edcs-tblis/', EdcsTBLISCsvUploadView.as_view(), name="edcs-tblis-upload-csv"),
     path('edcs-tblis/revoke/<str:task_id>/', RevokeEdcsTblisTaskView.as_view(), name='task-revoke'),
-    # path("task-status/<str:task_id>/", task_status, name="task-status"),
     path("task-status/<str:task_id>/", TaskStatusView.as_view(), name="task-status"),
+    path("edcs-tblis/download/", EdcsTblisDownloadCsvView.as_view(), name="edcs-tblis-download-csv"),
 ]

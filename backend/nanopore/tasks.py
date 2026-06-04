@@ -3,6 +3,7 @@ from celery import shared_task
 import csv
 from django.apps import apps
 from django.core.exceptions import ValidationError
+from django.db.models import Min, Max
 
 from celery import shared_task, Task
 import csv
@@ -216,6 +217,13 @@ def import_edcs_tblis(self, filepath):
     if total_edcs_records:
         percentage = round((total_tblis_records / total_edcs_records) * 100, 2)
 
+    # Compute TBLIS date range from DB
+    date_agg = EdcsTblisZonal.objects.aggregate(
+        date_from=Min("date_sputum_received"),
+        date_to=Max("date_sputum_received"),
+    )
+    tblis_date_from = str(date_agg["date_from"]) if date_agg["date_from"] else None
+    tblis_date_to   = str(date_agg["date_to"])   if date_agg["date_to"]   else None
 
     return {
         "current": processed,
@@ -226,5 +234,14 @@ def import_edcs_tblis(self, filepath):
         "state": "SUCCESS",
         "total_edcs_records": total_edcs_records,
         "total_tblis_records": total_tblis_records,
-        "percentage_uploaded": percentage
+        "percentage_uploaded": percentage,
+        "tblis_date_from": tblis_date_from,
+        "tblis_date_to": tblis_date_to,
+        "merge_summary": {
+            "total_zonal_records": total,
+            "matched_records": total - len([e for e in row_errors if "No Screening" in e]),
+            "created": created,
+            "updated": updated,
+            "errors": len(row_errors),
+        }
     }

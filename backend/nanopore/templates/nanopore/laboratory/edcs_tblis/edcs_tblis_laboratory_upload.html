@@ -2,7 +2,14 @@
 {% block content %}
 
 <div class="container mt-4">
-    <h3>Upload EDCS-TBLIS Zonal Lab CSV</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Upload EDCS-TBLIS Zonal Lab CSV</h3>
+        <a href="{% url 'nanopore:edcs-tblis-download-csv' %}"
+           class="btn btn-outline-success"
+           id="downloadBtn">
+            ⬇️ Download All Data (CSV)
+        </a>
+    </div>
 
     {% if messages %}
         {% for message in messages %}
@@ -38,6 +45,15 @@
         <!-- UPLOAD STATISTICS -->
         <div id="uploadStats" class="mt-3"></div>
     </div>
+
+    <!-- MERGE SUMMARY CARD (hidden until upload completes) -->
+    <div id="mergeSummaryCard" class="card shadow mt-4" style="display:none">
+        <div class="card-header bg-primary text-white fw-bold">📊 Upload Summary</div>
+        <div class="card-body">
+            <div class="row text-center g-3" id="mergeSummaryStats"></div>
+            <div class="mt-3" id="mergeSummaryExtra"></div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -49,9 +65,54 @@ const cancelBtn = document.getElementById("cancelBtn");
 const errorTableWrapper = document.getElementById("errorTableWrapper");
 const lastUploadInfo = document.getElementById("lastUploadInfo");
 const uploadStats = document.getElementById("uploadStats");
+const mergeSummaryCard = document.getElementById("mergeSummaryCard");
+const mergeSummaryStats = document.getElementById("mergeSummaryStats");
+const mergeSummaryExtra = document.getElementById("mergeSummaryExtra");
 
 let intervalId = null;
 let currentTaskId = null;
+let pendingCount = 0;         // counts consecutive PENDING polls
+const MAX_PENDING_POLLS = 8; // 8 × 2s = 16s timeout
+
+function statCard(label, value, color) {
+    return `
+        <div class="col-6 col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="fs-2 fw-bold text-${color}">${value}</div>
+                <div class="text-muted small">${label}</div>
+            </div>
+        </div>`;
+}
+
+function showMergeSummary(data) {
+    mergeSummaryCard.style.display = "block";
+
+    const s = data.merge_summary || {};
+    const edcs = data.total_edcs_records || 0;
+    const tblis = data.total_tblis_records || 0;
+    const pct = data.percentage_uploaded || 0;
+    const dateFrom = data.tblis_date_from || "—";
+    const dateTo   = data.tblis_date_to   || "—";
+
+    mergeSummaryStats.innerHTML =
+        statCard("Total Rows in File", s.total_zonal_records ?? data.total ?? "—", "primary") +
+        statCard("✅ Created", s.created ?? data.created ?? "—", "success") +
+        statCard("🔄 Updated", s.updated ?? data.updated ?? "—", "info") +
+        statCard("❌ Errors", s.errors ?? (data.errors ? data.errors.length : 0), "danger");
+
+    mergeSummaryExtra.innerHTML = `
+        <table class="table table-sm table-bordered mb-0">
+            <tbody>
+                <tr><th class="w-50">Total EDCS Records (DB)</th><td>${edcs.toLocaleString()}</td></tr>
+                <tr><th>Total TBLIS Records (DB)</th><td>${tblis.toLocaleString()}</td></tr>
+                <tr><th>Coverage</th><td><strong>${pct}%</strong></td></tr>
+                <tr>
+                    <th>📅 TBLIS Data Range</th>
+                    <td><strong>${dateFrom}</strong> → <strong>${dateTo}</strong></td>
+                </tr>
+            </tbody>
+        </table>`;
+}
 
 uploadForm.addEventListener("submit", function(e){
     e.preventDefault();
@@ -60,6 +121,7 @@ uploadForm.addEventListener("submit", function(e){
     uploadBtn.innerText = "Uploading...";
     cancelBtn.style.display = "inline-block";
     errorTableWrapper.innerHTML = "";
+    mergeSummaryCard.style.display = "none";
 
     const xhr = new XMLHttpRequest();
     const formData = new FormData(this);
@@ -78,8 +140,27 @@ uploadForm.addEventListener("submit", function(e){
     xhr.open("POST", "", true);
 
     xhr.onload = function(){
-        const data = JSON.parse(xhr.responseText);
+        let data;
+        try {
+            data = JSON.parse(xhr.responseText);
+        } catch(e) {
+            errorTableWrapper.innerHTML = `<div class="alert alert-danger">Server error: ${xhr.responseText}</div>`;
+            uploadBtn.disabled = false;
+            uploadBtn.innerText = "Upload CSV";
+            cancelBtn.style.display = "none";
+            return;
+        }
+
+        if (!data.task_id) {
+            errorTableWrapper.innerHTML = `<div class="alert alert-danger">Upload failed — no task ID returned.<br>${JSON.stringify(data)}</div>`;
+            uploadBtn.disabled = false;
+            uploadBtn.innerText = "Upload CSV";
+            cancelBtn.style.display = "none";
+            return;
+        }
+
         currentTaskId = data.task_id;
+        pendingCount = 0;
         const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", currentTaskId);
 
         // --- Poll for server-side processing ---
@@ -87,12 +168,47 @@ uploadForm.addEventListener("submit", function(e){
             fetch(TASK_URL)
                 .then(r => r.json())
                 .then(data => {
+                    if(data.state === "PENDING"){
+                        pendingCount++;
+                        if(pendingCount >= MAX_PENDING_POLLS){
+                            clearInterval(intervalId);
+                            uploadBtn.disabled = false;
+                            uploadBtn.innerText = "Upload CSV";
+                            cancelBtn.style.display = "none";
+                            uploadProgressWrapper.style.display = "none";
+                            errorTableWrapper.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <strong>⚠ Celery worker is not running.</strong><br>
+                                    The file was uploaded but the background import task is not being processed.
+                                    Please start the Celery worker and try again:<br>
+                                    <code>celery -A src worker -l info</code>
+                                </div>`;
+                        }
+                        return; // still waiting
+                    }
+
+                    pendingCount = 0; // reset once task starts
+
                     if(data.current && data.total){
                         let pct = Math.round((data.current / data.total) * 100);
+                        uploadProgressWrapper.style.display = "block";
                         uploadProgress.style.width = pct + "%";
                         uploadProgress.innerText = pct + "%";
                         uploadProgress.classList.remove("uploading");
                         uploadProgress.classList.add("processing");
+                    }
+
+                    if(data.state === "FAILURE"){
+                        clearInterval(intervalId);
+                        uploadBtn.disabled = false;
+                        uploadBtn.innerText = "Upload CSV";
+                        cancelBtn.style.display = "none";
+                        uploadProgressWrapper.style.display = "none";
+                        errorTableWrapper.innerHTML = `
+                            <div class="alert alert-danger">
+                                <strong>Import task failed:</strong><br>${data.error || 'Unknown error'}
+                            </div>`;
+                        return;
                     }
 
                     if(data.state === "SUCCESS" || data.state === "REVOKED"){
@@ -114,22 +230,6 @@ uploadForm.addEventListener("submit", function(e){
                             <strong>Last Upload:</strong> ${now.toLocaleString()}
                         `;
 
-                        // // Show upload stats
-                        // if(data.total_records_in_model){
-                        //     let pct_total = Math.round((data.created / data.total_records_in_model) * 100);
-                        //     uploadStats.innerHTML = `
-                        //         <strong>Uploaded:</strong> ${data.created} / ${data.total_records_in_model} (${pct_total}%)
-                        //     `;
-                        // }
-                        // Show upload stats
-                        if(data.total_edcs_records !== undefined && data.total_tblis_records !== undefined){
-                            uploadStats.innerHTML = `
-                                <strong>EDCS Records:</strong> ${data.total_edcs_records} <br>
-                                <strong>TBLIS Records:</strong> ${data.total_tblis_records} <br>
-                                <strong>Uploaded %:</strong> ${data.percentage_uploaded}%
-                            `;
-                        }
-
                         if(data.state === "REVOKED"){
                             errorTableWrapper.innerHTML = `
                                 <div class="alert alert-warning">Upload cancelled by user.</div>
@@ -137,11 +237,14 @@ uploadForm.addEventListener("submit", function(e){
                             return;
                         }
 
-                        // Show errors
+                        // Show merge summary card
+                        showMergeSummary(data);
+
+                        // Show row errors
                         if(data.errors && data.errors.length){
                             let html = `
-                                <div class="alert alert-danger">
-                                    <h5>Errors (${data.errors.length})</h5>
+                                <div class="alert alert-danger mt-3">
+                                    <h5>Row Errors (${data.errors.length})</h5>
                                     <table class="table table-sm table-bordered">
                                         <thead><tr><th>#</th><th>Error</th></tr></thead>
                                         <tbody>
@@ -153,8 +256,8 @@ uploadForm.addEventListener("submit", function(e){
                             errorTableWrapper.innerHTML = html;
                         } else {
                             errorTableWrapper.innerHTML = `
-                                <div class="alert alert-success">
-                                    Imported ${data.created} created / ${data.updated} updated
+                                <div class="alert alert-success mt-2">
+                                    ✅ Import complete — ${data.created} created / ${data.updated} updated
                                 </div>
                             `;
                         }
@@ -187,6 +290,7 @@ cancelBtn.addEventListener("click", function(){
 <style>
 #uploadProgress.uploading { background-color: #0d6efd; } /* blue upload */
 #uploadProgress.processing { background-color: #198754; } /* green processing */
+#mergeSummaryCard { border-top: 3px solid #0d6efd; }
 </style>
 
 {% endblock %}
