@@ -174,11 +174,7 @@
         </a>
         <div class="submenu">
             <a href="{% url 'reports:list_models' %}"><i class="fas fa-file-csv"></i> Download</a>
-            {% with user_group=request.user.groups.first.name|upper %}
-            {% if user.is_superuser or user_group in "ADMIN" %}
             <a href="{% url 'reports:list_models_view' %}"><i class="fas fa-file-csv"></i> Export</a>
-            {% endif %}
-            {% endwith %}
         </div>
     </div>
     {% endif %}

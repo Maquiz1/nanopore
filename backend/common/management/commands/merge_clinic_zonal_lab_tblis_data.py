@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 from django.core.management.base import BaseCommand
 
@@ -33,6 +34,17 @@ class Command(BaseCommand):
         output_csv = options['output']
 
         self.stdout.write(f"\n🔄 Merging Datasets:\n  EDCS: {edcs_csv}\n  TBLIS: {tblis_csv}\n")
+
+        # --- Parse TBLIS date range from filename ---
+        tblis_date_from = tblis_date_to = None
+        tblis_filename = tblis_csv.replace("\\", "/").split("/")[-1]
+        date_match = re.search(
+            r'(\d{2}-\d{2}-\d{4})-to-(\d{2}-\d{2}-\d{4})',
+            tblis_filename
+        )
+        if date_match:
+            tblis_date_from = date_match.group(1)  # e.g. 01-01-2025
+            tblis_date_to   = date_match.group(2)  # e.g. 02-06-2026
 
         # Load CSVs
         edcs_df = pd.read_csv(edcs_csv, sep=None, engine='python')
@@ -73,12 +85,25 @@ class Command(BaseCommand):
             suffixes=('_edcs', '_tblis')
         )
         
+        mismatched_dates = pd.DataFrame()
         # --- Replace EDCS date with TBLIS rctdate if available ---
         if "rctdate" in merged_df.columns:
-            # merged_df["date_sputum_received"] = merged_df["rctdate"].combine_first(
-            #     merged_df["date_sputum_received"]
-            # )
-            merged_df["date_sputum_received"] = merged_df["rctdate"]
+            # Replace empty strings with NA so fillna works correctly
+            rctdate_clean = merged_df["rctdate"].replace(r'^\s*$', pd.NA, regex=True)
+            
+            # --- Logging Discrepancies ---
+            both_present_date = rctdate_clean.notna() & merged_df["date_sputum_received"].notna()
+            date_mismatch = both_present_date & (
+                rctdate_clean.astype(str).str.strip() != merged_df["date_sputum_received"].astype(str).str.strip()
+            )
+            
+            if date_mismatch.any():
+                mismatched_dates = merged_df.loc[date_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_dates["field"] = "date_sputum_received"
+                mismatched_dates["edcs_value"] = merged_df.loc[date_mismatch, "date_sputum_received"]
+                mismatched_dates["tblis_value"] = rctdate_clean.loc[date_mismatch]
+
+            merged_df["date_sputum_received"] = rctdate_clean.fillna(merged_df["date_sputum_received"])
             
         merged_df.drop(columns=["rctdate"], inplace=True, errors="ignore")
         
@@ -100,7 +125,7 @@ class Command(BaseCommand):
             **dict.fromkeys(["Purulent","Turbid"], 3),
             "Mucopurulent": 4,
             **dict.fromkeys(["Bloody","Mucopurulent / Bloody"], 5),
-            **dict.fromkeys(["Not Applicable", "Not Indicated","See Comment","Brown"], 0),
+            **dict.fromkeys(["Not Applicable", "Not Indicated","See Comment","Brown"], 6),
         }
 
         # Map TBLIS appearance to numeric codes
@@ -108,12 +133,27 @@ class Command(BaseCommand):
             merged_df["appearance_tblis"] = merged_df["appearance_tblis"].map(appearance_map)
             # merged_df["appearance_tblis"] = merged_df["appearance_tblis"].map(appearance_map).fillna(0)
 
+        mismatched_app = pd.DataFrame()
         # --- Replace EDCS appearance with TBLIS values if available ---
         if "appearance_tblis" in merged_df.columns:
-            # merged_df["appearance_edcs"] = merged_df["appearance_tblis"].combine_first(
-            #     merged_df.get("appearance_edcs")
-            # )
-            merged_df["appearance_edcs"] = merged_df["appearance_tblis"]
+            appearance_clean = merged_df["appearance_tblis"].replace(r'^\s*$', pd.NA, regex=True)
+            if "appearance_edcs" in merged_df.columns:
+                # --- Logging Discrepancies ---
+                both_present_app = appearance_clean.notna() & merged_df["appearance_edcs"].notna()
+                app_mismatch = both_present_app & (
+                    appearance_clean.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                    merged_df["appearance_edcs"].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+                )
+
+                if app_mismatch.any():
+                    mismatched_app = merged_df.loc[app_mismatch, ["pid", "unique_lab_no"]].copy()
+                    mismatched_app["field"] = "appearance"
+                    mismatched_app["edcs_value"] = merged_df.loc[app_mismatch, "appearance_edcs"]
+                    mismatched_app["tblis_value"] = appearance_clean.loc[app_mismatch]
+
+                merged_df["appearance_edcs"] = appearance_clean.fillna(merged_df["appearance_edcs"])
+            else:
+                merged_df["appearance_edcs"] = appearance_clean
 
         # --- Rename final appearance column ---
         merged_df.rename(columns={"appearance_edcs": "appearance"}, inplace=True)
@@ -122,30 +162,29 @@ class Command(BaseCommand):
         merged_df.drop(columns=["appearance_tblis"], inplace=True, errors="ignore")
 
 
-        # --- Replace EDCS dsample_volume with TBLIS volume if available ---
-        # if "volume" in merged_df.columns:
-        #     merged_df["sample_volume"] = merged_df["volume"]
-            
-        # merged_df.drop(columns=["volume"], inplace=True, errors="ignore")
+        mismatched_vol = pd.DataFrame()
+        # --- Replace EDCS sample_volume with TBLIS volume if available ---
+        if "volume" in merged_df.columns:
+            volume_clean = merged_df["volume"].replace(r'^\s*$', pd.NA, regex=True)
+            if "sample_volume" in merged_df.columns:
+                # --- Logging Discrepancies ---
+                both_present_vol = volume_clean.notna() & merged_df["sample_volume"].notna()
+                vol_mismatch = both_present_vol & (
+                    volume_clean.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                    merged_df["sample_volume"].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+                )
 
+                if vol_mismatch.any():
+                    mismatched_vol = merged_df.loc[vol_mismatch, ["pid", "unique_lab_no"]].copy()
+                    mismatched_vol["field"] = "sample_volume"
+                    mismatched_vol["edcs_value"] = merged_df.loc[vol_mismatch, "sample_volume"]
+                    mismatched_vol["tblis_value"] = volume_clean.loc[vol_mismatch]
 
-        # --- Handle microscopy_type ---
-        merged_df["microscopy_type"] = (
-            merged_df["microscopy_type"]
-            .replace("", None)          # convert empty string to NaN
-            .fillna(1)                  # replace NaN with 1
-        )
-        
-        
-        # Standardize empty strings to NaN
-        merged_df["fm_date"] = merged_df["fm_date"].replace("", None)
-        merged_df["zn_date"] = merged_df["zn_date"].replace("", None)
-
-        # Create final microscopy_date using fm_date first, then zn_date
-        merged_df["microscopy_date"] = merged_df["fm_date"].combine_first(merged_df["zn_date"])
-
-        # Drop original columns
-        merged_df.drop(columns=["fm_date", "zn_date"], inplace=True, errors="ignore")
+                merged_df["sample_volume"] = volume_clean.fillna(merged_df["sample_volume"])
+            else:
+                merged_df["sample_volume"] = volume_clean
+                
+        merged_df.drop(columns=["volume"], inplace=True, errors="ignore")
 
 
         # --- Map microscopy_results to numeric codes ---
@@ -165,68 +204,170 @@ class Command(BaseCommand):
                 "POSITIVE - 6 AFBs/100 fields seen","POSITIVE - 7 AFBs/100 fields seen","POSITIVE - 8 AFBs/100 fields seen","POSITIVE - 9 AFBs/100 fields seen",
                 "POSITIVE   20 AFBs / Length Seen","POSITIVE   21 AFBs / Length Seen","POSITIVE   22 AFBs / Length Seen","POSITIVE   23 AFBs / Length Seen","POSITIVE   24 AFBs / Length Seen","POSITIVE   25 AFBs / Length Seen",
                 "POSITIVE   26 AFBs / Length Seen","POSITIVE   27 AFBs / Length Seen","POSITIVE   28 AFBs / Length Seen","POSITIVE   29 AFBs / Length Seen","POSITIVE   30 AFBs / Length Seen",
-                ], 0),
+                ], 6),
             }
-        
-        # Map TBLIS microscopy_results to numeric codes
-        # Standardize empty strings to NaN
-        merged_df["fm_res"] = merged_df["fm_res"].replace("", None)
-        merged_df["zn_res"] = merged_df["zn_res"].replace("", None)
 
-        # Create final microscopy_results using fm_res first, then zn_res
-        merged_df["microscopy_results"] = merged_df["fm_res"].combine_first(merged_df["zn_res"])
+        mismatched_mic_type = pd.DataFrame()
+        mismatched_mic_date = pd.DataFrame()
+        mismatched_mic_res = pd.DataFrame()
 
-        # --- Apply mapping ---
-        merged_df["microscopy_results"] = merged_df["microscopy_results"].map(microscopy_results_map)
+        # Clean TBLIS microscopy dates and results
+        if "fm_date" in merged_df.columns:
+            merged_df["fm_date"] = merged_df["fm_date"].replace(r'^\s*$', pd.NA, regex=True)
+        if "zn_date" in merged_df.columns:
+            merged_df["zn_date"] = merged_df["zn_date"].replace(r'^\s*$', pd.NA, regex=True)
+        tblis_microscopy_date = merged_df.get("fm_date", pd.Series(pd.NA, index=merged_df.index)).combine_first(merged_df.get("zn_date", pd.Series(pd.NA, index=merged_df.index)))
+
+        if "fm_res" in merged_df.columns:
+            merged_df["fm_res"] = merged_df["fm_res"].replace(r'^\s*$', pd.NA, regex=True)
+        if "zn_res" in merged_df.columns:
+            merged_df["zn_res"] = merged_df["zn_res"].replace(r'^\s*$', pd.NA, regex=True)
+        tblis_microscopy_res_raw = merged_df.get("fm_res", pd.Series(pd.NA, index=merged_df.index)).combine_first(merged_df.get("zn_res", pd.Series(pd.NA, index=merged_df.index)))
+        tblis_microscopy_res = tblis_microscopy_res_raw.map(microscopy_results_map)
+
+        # Infer TBLIS microscopy type (1 for ZN, 2 for FM)
+        tblis_microscopy_type = pd.Series(pd.NA, index=merged_df.index)
+        if "zn_date" in merged_df.columns or "zn_res" in merged_df.columns:
+            tblis_microscopy_type.loc[merged_df.get("zn_date", pd.Series(pd.NA, index=merged_df.index)).notna() | merged_df.get("zn_res", pd.Series(pd.NA, index=merged_df.index)).notna()] = 1
+        if "fm_date" in merged_df.columns or "fm_res" in merged_df.columns:
+            tblis_microscopy_type.loc[merged_df.get("fm_date", pd.Series(pd.NA, index=merged_df.index)).notna() | merged_df.get("fm_res", pd.Series(pd.NA, index=merged_df.index)).notna()] = 2
+
+        # 1. microscopy_type
+        if "microscopy_type" in merged_df.columns:
+            edcs_mic_type = merged_df["microscopy_type"].replace(r'^\s*$', pd.NA, regex=True)
+            both_present_type = tblis_microscopy_type.notna() & edcs_mic_type.notna()
+            type_mismatch = both_present_type & (
+                tblis_microscopy_type.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                edcs_mic_type.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+            )
+            if type_mismatch.any():
+                mismatched_mic_type = merged_df.loc[type_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_mic_type["field"] = "microscopy_type"
+                mismatched_mic_type["edcs_value"] = edcs_mic_type.loc[type_mismatch]
+                mismatched_mic_type["tblis_value"] = tblis_microscopy_type.loc[type_mismatch]
+            
+            merged_df["microscopy_type"] = tblis_microscopy_type.fillna(edcs_mic_type).fillna(1).infer_objects(copy=False)
+        else:
+            merged_df["microscopy_type"] = tblis_microscopy_type.fillna(1).infer_objects(copy=False)
+
+        # 2. microscopy_date
+        if "microscopy_date" in merged_df.columns:
+            edcs_mic_date = merged_df["microscopy_date"].replace(r'^\s*$', pd.NA, regex=True)
+            both_present_date = tblis_microscopy_date.notna() & edcs_mic_date.notna()
+            date_mismatch = both_present_date & (
+                tblis_microscopy_date.astype(str).str.strip() != edcs_mic_date.astype(str).str.strip()
+            )
+            if date_mismatch.any():
+                mismatched_mic_date = merged_df.loc[date_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_mic_date["field"] = "microscopy_date"
+                mismatched_mic_date["edcs_value"] = edcs_mic_date.loc[date_mismatch]
+                mismatched_mic_date["tblis_value"] = tblis_microscopy_date.loc[date_mismatch]
+
+            merged_df["microscopy_date"] = tblis_microscopy_date.fillna(edcs_mic_date)
+        else:
+            merged_df["microscopy_date"] = tblis_microscopy_date
+
+        # 3. microscopy_results
+        if "microscopy_results" in merged_df.columns:
+            edcs_mic_res = merged_df["microscopy_results"].replace(r'^\s*$', pd.NA, regex=True)
+            both_present_res = tblis_microscopy_res.notna() & edcs_mic_res.notna()
+            res_mismatch = both_present_res & (
+                tblis_microscopy_res.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                edcs_mic_res.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+            )
+            if res_mismatch.any():
+                mismatched_mic_res = merged_df.loc[res_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_mic_res["field"] = "microscopy_results"
+                mismatched_mic_res["edcs_value"] = edcs_mic_res.loc[res_mismatch]
+                mismatched_mic_res["tblis_value"] = tblis_microscopy_res.loc[res_mismatch]
+
+            merged_df["microscopy_results"] = tblis_microscopy_res.fillna(edcs_mic_res)
+        else:
+            merged_df["microscopy_results"] = tblis_microscopy_res
 
         # Drop original columns
-        merged_df.drop(columns=["fm_res", "zn_res"], inplace=True, errors="ignore")
+        merged_df.drop(columns=["fm_date", "zn_date", "fm_res", "zn_res"], inplace=True, errors="ignore")
 
 
 
         # --- Culture Method Logic ---
         # # Standardize blanks
-        def get_culture_method(row):
-            lj = row.get("lj_innocdate")
-            mgit = row.get("mgit_entrydate")
-
-            # Standardize empty strings to NaN
-            if lj == "" or pd.isna(lj):
-                lj = None
-            if mgit == "" or pd.isna(mgit):
-                mgit = None
-
-            # Both empty → blank value
-            if lj is None and mgit is None:
-                return ""
-
-            # Both present → "1,2"
-            if lj is not None and mgit is not None:
-                return "1,2"
-
-            # Only LJ present → "1"
-            if lj is not None:
-                return "1"
-
-            # Only MGIT present → "2"
-            if mgit is not None:
-                return "2"
-
-        merged_df["culture_method"] = merged_df.apply(get_culture_method, axis=1)
-
-
-
-        # --- Replace EDCS date with TBLIS rctdate if available ---
+        mismatched_culture_method = pd.DataFrame()
         if "lj_innocdate" in merged_df.columns:
-            merged_df["lj_inoculation_date"] = merged_df["lj_innocdate"]
+            merged_df["lj_innocdate"] = merged_df["lj_innocdate"].replace(r'^\s*$', pd.NA, regex=True)
+        if "mgit_entrydate" in merged_df.columns:
+            merged_df["mgit_entrydate"] = merged_df["mgit_entrydate"].replace(r'^\s*$', pd.NA, regex=True)
             
+        has_lj = merged_df.get("lj_innocdate", pd.Series(pd.NA, index=merged_df.index)).notna()
+        has_mgit = merged_df.get("mgit_entrydate", pd.Series(pd.NA, index=merged_df.index)).notna()
+        
+        tblis_culture_method = pd.Series(pd.NA, index=merged_df.index)
+        tblis_culture_method.loc[has_mgit] = "2"
+        tblis_culture_method.loc[has_lj] = "1" # Prioritize LJ if both are present
+        
+        if "culture_method" in merged_df.columns:
+            edcs_culture_method = merged_df["culture_method"].replace(r'^\s*$', pd.NA, regex=True)
+            
+            both_present_cm = tblis_culture_method.notna() & edcs_culture_method.notna()
+            cm_mismatch = both_present_cm & (
+                tblis_culture_method.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                edcs_culture_method.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+            )
+            
+            if cm_mismatch.any():
+                mismatched_culture_method = merged_df.loc[cm_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_culture_method["field"] = "culture_method"
+                mismatched_culture_method["edcs_value"] = edcs_culture_method.loc[cm_mismatch]
+                mismatched_culture_method["tblis_value"] = tblis_culture_method.loc[cm_mismatch]
+                
+            merged_df["culture_method"] = tblis_culture_method.fillna(edcs_culture_method)
+        else:
+            merged_df["culture_method"] = tblis_culture_method
+
+
+
+        mismatched_lj_innoc_date = pd.DataFrame()
+        # --- Replace EDCS date with TBLIS lj_innocdate if available ---
+        if "lj_innocdate" in merged_df.columns:
+            lj_innoc_clean = merged_df["lj_innocdate"].replace(r'^\s*$', pd.NA, regex=True)
+            if "lj_inoculation_date" in merged_df.columns:
+                both_present_innoc = lj_innoc_clean.notna() & merged_df["lj_inoculation_date"].notna()
+                innoc_mismatch = both_present_innoc & (
+                    lj_innoc_clean.astype(str).str.strip() != merged_df["lj_inoculation_date"].astype(str).str.strip()
+                )
+                
+                if innoc_mismatch.any():
+                    mismatched_lj_innoc_date = merged_df.loc[innoc_mismatch, ["pid", "unique_lab_no"]].copy()
+                    mismatched_lj_innoc_date["field"] = "lj_inoculation_date"
+                    mismatched_lj_innoc_date["edcs_value"] = merged_df.loc[innoc_mismatch, "lj_inoculation_date"]
+                    mismatched_lj_innoc_date["tblis_value"] = lj_innoc_clean.loc[innoc_mismatch]
+                    
+                merged_df["lj_inoculation_date"] = lj_innoc_clean.fillna(merged_df["lj_inoculation_date"])
+            else:
+                merged_df["lj_inoculation_date"] = lj_innoc_clean
+                
         merged_df.drop(columns=["lj_innocdate"], inplace=True, errors="ignore")
         
-        
-        # --- Replace EDCS date with TBLIS rctdate if available ---
+        mismatched_lj_res_date = pd.DataFrame()
+        # --- Replace EDCS date with TBLIS lj_date if available ---
         if "lj_date" in merged_df.columns:
-            merged_df["lj_results_date"] = merged_df["lj_date"]
-            
+            lj_date_clean = merged_df["lj_date"].replace(r'^\s*$', pd.NA, regex=True)
+            if "lj_results_date" in merged_df.columns:
+                both_present_lj_res = lj_date_clean.notna() & merged_df["lj_results_date"].notna()
+                lj_res_mismatch = both_present_lj_res & (
+                    lj_date_clean.astype(str).str.strip() != merged_df["lj_results_date"].astype(str).str.strip()
+                )
+                
+                if lj_res_mismatch.any():
+                    mismatched_lj_res_date = merged_df.loc[lj_res_mismatch, ["pid", "unique_lab_no"]].copy()
+                    mismatched_lj_res_date["field"] = "lj_results_date"
+                    mismatched_lj_res_date["edcs_value"] = merged_df.loc[lj_res_mismatch, "lj_results_date"]
+                    mismatched_lj_res_date["tblis_value"] = lj_date_clean.loc[lj_res_mismatch]
+                    
+                merged_df["lj_results_date"] = lj_date_clean.fillna(merged_df["lj_results_date"])
+            else:
+                merged_df["lj_results_date"] = lj_date_clean
+                
         merged_df.drop(columns=["lj_date"], inplace=True, errors="ignore")
         
         
@@ -249,7 +390,7 @@ class Command(BaseCommand):
             **dict.fromkeys(["POSITIVE - 3+ Colonies","POSITIVE","POSITIVE - Confluent Growth","POSITIVE - Innumerable Colonies"], 4),
             **dict.fromkeys(["NEGATIVE"], 5),
             **dict.fromkeys(["CONTAMINATED"], 6),
-            **dict.fromkeys(["POSITIVE   4+ AFBs Seen"], 0),
+            **dict.fromkeys(["POSITIVE   4+ AFBs Seen"], 8),
         }
 
         id_results_map = {
@@ -257,7 +398,7 @@ class Command(BaseCommand):
             **dict.fromkeys([
                 "Mycobacteria tuberculosis complex","Not Applicable","Not done",
                 "Positive","Presumptive M.tuberculosis complex","See comment"
-            ], 0),
+            ], 8),
         }
 
         # --- Map id_results ---
@@ -265,18 +406,34 @@ class Command(BaseCommand):
             merged_df["id_res"] = merged_df["id_res"].map(id_results_map)
 
         # --- Map LJ results ---
+        tblis_lj_results = pd.Series(pd.NA, index=merged_df.index)
         if "lj_res" in merged_df.columns:
-            merged_df["lj_res"] = merged_df["lj_res"].map(lj_results_map)
-
-        # --- Set final lj_results from TBLIS initially ---
-        merged_df["lj_results"] = merged_df["lj_res"]
+            tblis_lj_results = merged_df["lj_res"].map(lj_results_map)
 
         # --- Override rule: if id_res == 7, replace lj_results with 7 ---
-        merged_df.loc[merged_df["id_res"] == 7, "lj_results"] = 7
+        if "id_res" in merged_df.columns:
+            tblis_lj_results.loc[merged_df["id_res"] == 7] = 7
+            
+        mismatched_lj_res = pd.DataFrame()
+        if "lj_results" in merged_df.columns:
+            edcs_lj_res = merged_df["lj_results"].replace(r'^\s*$', pd.NA, regex=True)
+            both_present_lj_res = tblis_lj_results.notna() & edcs_lj_res.notna()
+            lj_res_mismatch = both_present_lj_res & (
+                tblis_lj_results.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                edcs_lj_res.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+            )
+            if lj_res_mismatch.any():
+                mismatched_lj_res = merged_df.loc[lj_res_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_lj_res["field"] = "lj_results"
+                mismatched_lj_res["edcs_value"] = edcs_lj_res.loc[lj_res_mismatch]
+                mismatched_lj_res["tblis_value"] = tblis_lj_results.loc[lj_res_mismatch]
+                
+            merged_df["lj_results"] = tblis_lj_results.fillna(edcs_lj_res)
+        else:
+            merged_df["lj_results"] = tblis_lj_results
 
         # --- Drop intermediate column ---
-        merged_df.drop(columns=["lj_res"], inplace=True, errors="ignore")
-        merged_df.drop(columns=["id_res"], inplace=True, errors="ignore")
+        merged_df.drop(columns=["lj_res", "id_res"], inplace=True, errors="ignore")
 
         
         
@@ -294,29 +451,62 @@ class Command(BaseCommand):
             **dict.fromkeys(["POSITIVE FOR NTM"], 4),
             }
         
-        # Map TBLIS mgit_results to numeric codes
+        tblis_mgit_res = pd.Series(pd.NA, index=merged_df.index)
         if "mgit_res" in merged_df.columns:
-            merged_df["mgit_res"] = merged_df["mgit_res"].map(mgit_results_map)
+            tblis_mgit_res = merged_df["mgit_res"].map(mgit_results_map)
 
-        # --- Replace EDCS mgit_results with TBLIS values if available ---
-        if "mgit_res" in merged_df.columns:
-            merged_df["mgit_results"] = merged_df["mgit_res"]
+        mismatched_mgit_res = pd.DataFrame()
+        if "mgit_results" in merged_df.columns:
+            edcs_mgit_res = merged_df["mgit_results"].replace(r'^\s*$', pd.NA, regex=True)
+            both_present_mgit_res = tblis_mgit_res.notna() & edcs_mgit_res.notna()
+            mgit_res_mismatch = both_present_mgit_res & (
+                tblis_mgit_res.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                edcs_mgit_res.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+            )
+            if mgit_res_mismatch.any():
+                mismatched_mgit_res = merged_df.loc[mgit_res_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_mgit_res["field"] = "mgit_results"
+                mismatched_mgit_res["edcs_value"] = edcs_mgit_res.loc[mgit_res_mismatch]
+                mismatched_mgit_res["tblis_value"] = tblis_mgit_res.loc[mgit_res_mismatch]
+                
+            merged_df["mgit_results"] = tblis_mgit_res.fillna(edcs_mgit_res)
+        else:
+            merged_df["mgit_results"] = tblis_mgit_res
 
-        # --- Rename final mgit_results column ---
-        # merged_df.rename(columns={"mgit_results_edcs": "mgit_results"}, inplace=True)
+        merged_df.drop(columns=["mgit_res"], inplace=True, errors="ignore")
 
         # --- Drop TBLIS mgit_res column ---
         merged_df.drop(columns=["mgit_res"], inplace=True, errors="ignore")
         
 
-        # Standardize empty strings to NaN
-        merged_df["mgitdst1_date"] = merged_df["mgitdst1_date"].replace("", None)
-        merged_df["mgitdst2_date"] = merged_df["mgitdst2_date"].replace("", None)
+        mismatched_phenotypic_date = pd.DataFrame()
+        # Clean TBLIS phenotypic dates
+        if "mgitdst1_date" in merged_df.columns:
+            merged_df["mgitdst1_date"] = merged_df["mgitdst1_date"].replace(r'^\s*$', pd.NA, regex=True)
+        if "mgitdst2_date" in merged_df.columns:
+            merged_df["mgitdst2_date"] = merged_df["mgitdst2_date"].replace(r'^\s*$', pd.NA, regex=True)
+        
+        tblis_phenotypic_date = merged_df.get("mgitdst1_date", pd.Series(pd.NA, index=merged_df.index)).combine_first(
+            merged_df.get("mgitdst2_date", pd.Series(pd.NA, index=merged_df.index))
+        )
+        
+        if "phenotypic_date_results" in merged_df.columns:
+            edcs_phenotypic_date = merged_df["phenotypic_date_results"].replace(r'^\s*$', pd.NA, regex=True)
+            both_present_pheno_date = tblis_phenotypic_date.notna() & edcs_phenotypic_date.notna()
+            pheno_date_mismatch = both_present_pheno_date & (
+                tblis_phenotypic_date.astype(str).str.strip() != edcs_phenotypic_date.astype(str).str.strip()
+            )
+            
+            if pheno_date_mismatch.any():
+                mismatched_phenotypic_date = merged_df.loc[pheno_date_mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_phenotypic_date["field"] = "phenotypic_date_results"
+                mismatched_phenotypic_date["edcs_value"] = edcs_phenotypic_date.loc[pheno_date_mismatch]
+                mismatched_phenotypic_date["tblis_value"] = tblis_phenotypic_date.loc[pheno_date_mismatch]
+                
+            merged_df["phenotypic_date_results"] = tblis_phenotypic_date.fillna(edcs_phenotypic_date)
+        else:
+            merged_df["phenotypic_date_results"] = tblis_phenotypic_date
 
-        # Create final phenotypic_date_results using fm_date first, then zn_date
-        merged_df["phenotypic_date_results"] = merged_df["mgitdst1_date"].combine_first(merged_df["mgitdst2_date"])
-
-        # Drop original columns
         merged_df.drop(columns=["mgitdst1_date", "mgitdst2_date"], inplace=True, errors="ignore")
         
         #Phenotypic DST RESULTS
@@ -328,164 +518,103 @@ class Command(BaseCommand):
             **dict.fromkeys(["MTB Not Detected"], 5),
         }
         
-        #13(a). Rifampicin
-        # --- Step 1:  ---
-        if "ljdst1_rifampicin" in merged_df.columns:
-            merged_df["rifampicin"] = merged_df["ljdst1_rifampicin"].map(phenotypic_results_map)
-        else:
-            merged_df["rifampicin"] = None
-        
-        # --- Step 2: Override using MGIT DST if needed ---
-        if "mgitdst1_rifampicin" in merged_df.columns:
-        # Map mgit dst results first
-            merged_df["mgit_rifampicin_tmp"] = merged_df["mgitdst1_rifampicin"].map(phenotypic_results_map)
+        dst_mismatches = []
 
-            # Override if phenotypic_results is 5 OR NaN/empty
-            merged_df.loc[
-                (merged_df["rifampicin"].isna()) | 
-                (merged_df["rifampicin"] == 5),
-                "rifampicin"
-            ] = merged_df["mgit_rifampicin_tmp"]
+        def apply_dst_logic(merged_df, tblis_col, edcs_col, override_col=None):
+            tblis_val = pd.Series(pd.NA, index=merged_df.index)
+            if tblis_col in merged_df.columns:
+                tblis_val = merged_df[tblis_col].map(phenotypic_results_map)
+                
+            if override_col and override_col in merged_df.columns:
+                override_val = merged_df[override_col].map(phenotypic_results_map)
+                override_mask = (tblis_val.isna() | (tblis_val == 5)) & override_val.notna()
+                tblis_val.loc[override_mask] = override_val.loc[override_mask]
 
-            # Clean temporary column
-            merged_df.drop(columns=["mgit_rifampicin_tmp"], inplace=True, errors="ignore")
-            
-        merged_df.drop(columns=["ljdst1_rifampicin"], inplace=True, errors="ignore")
-        merged_df.drop(columns=["mgitdst1_rifampicin"], inplace=True, errors="ignore")
-            
-        #13(b). Isoniazid:
-        # --- Step 1:  ---
-        if "ljdst1_isoniazid" in merged_df.columns:
-            merged_df["isoniazid"] = merged_df["ljdst1_isoniazid"].map(phenotypic_results_map)
-        else:
-            merged_df["isoniazid"] = None
-        
-        # --- Step 2: Override using MGIT DST if needed ---
-        if "mgitdst1_isoniazid" in merged_df.columns:
-        # Map mgit dst results first
-            merged_df["mgit_isoniazid_tmp"] = merged_df["mgitdst1_isoniazid"].map(phenotypic_results_map)
+            mismatched = pd.DataFrame()
+            if edcs_col in merged_df.columns:
+                edcs_val = merged_df[edcs_col].replace(r'^\s*$', pd.NA, regex=True)
+                both_present = tblis_val.notna() & edcs_val.notna()
+                mismatch = both_present & (
+                    tblis_val.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                    edcs_val.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+                )
+                if mismatch.any():
+                    mismatched = merged_df.loc[mismatch, ["pid", "unique_lab_no"]].copy()
+                    mismatched["field"] = edcs_col
+                    mismatched["edcs_value"] = edcs_val.loc[mismatch]
+                    mismatched["tblis_value"] = tblis_val.loc[mismatch]
+                    
+                merged_df[edcs_col] = tblis_val.fillna(edcs_val)
+            else:
+                merged_df[edcs_col] = tblis_val
+                
+            if not mismatched.empty:
+                dst_mismatches.append(mismatched)
+                
+            cols_to_drop = [c for c in [tblis_col, override_col] if c]
+            merged_df.drop(columns=cols_to_drop, inplace=True, errors="ignore")
 
-            # Override if phenotypic_results is 5 OR NaN/empty
-            merged_df.loc[
-                (merged_df["isoniazid"].isna()) | 
-                (merged_df["isoniazid"] == 5),
-                "isoniazid"
-            ] = merged_df["mgit_isoniazid_tmp"]
-
-            # Clean temporary column
-            merged_df.drop(columns=["mgit_isoniazid_tmp"], inplace=True, errors="ignore")
-            
-        merged_df.drop(columns=["ljdst1_isoniazid"], inplace=True, errors="ignore")
-        merged_df.drop(columns=["mgitdst1_isoniazid"], inplace=True, errors="ignore")
-            
-        #13(c). Levofloxacin
-        # --- Step 1:  ---
-        if "mgitdst2_levofloxacin" in merged_df.columns:
-            merged_df["levofloxacin"] = merged_df["mgitdst2_levofloxacin"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_levofloxacin"], inplace=True, errors="ignore")
-        
-        
-        #13(e). Bedaquiline
-        # --- Step 1:  ---
-        if "mgitdst2_bedaquiline" in merged_df.columns:
-            merged_df["bedaquiline"] = merged_df["mgitdst2_bedaquiline"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_bedaquiline"], inplace=True, errors="ignore")
-
-        #13(f). Linezolid
-        # --- Step 1:  ---
-        if "mgitdst2_linezolid" in merged_df.columns:
-            merged_df["linezolid"] = merged_df["mgitdst2_linezolid"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_linezolid"], inplace=True, errors="ignore")
-        
-        
-        #13(g). Clofazimine
-        # --- Step 1:  ---
-        if "mgitdst2_clofazimine" in merged_df.columns:
-            merged_df["clofazimine"] = merged_df["mgitdst2_clofazimine"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_clofazimine"], inplace=True, errors="ignore")
-     
-        #13(h). Cycloserine
-        # --- Step 1:  ---
-        if "mgitdst2_cycloserine" in merged_df.columns:
-            merged_df["cycloserine"] = merged_df["mgitdst2_cycloserine"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_cycloserine"], inplace=True, errors="ignore")   
-        
-        #13(j). Ethambutol
-        # --- Step 1:  ---
-        if "ljdst1_ethambutol" in merged_df.columns:
-            merged_df["ethambutol"] = merged_df["ljdst1_ethambutol"].map(phenotypic_results_map)
-        else:
-            merged_df["ethambutol"] = None
-        
-        # --- Step 2: Override using MGIT DST if needed ---
-        if "mgitdst1_ethambutol" in merged_df.columns:
-        # Map mgit dst results first
-            merged_df["mgit_ethambutol_tmp"] = merged_df["mgitdst1_ethambutol"].map(phenotypic_results_map)
-
-            # Override if phenotypic_results is 5 OR NaN/empty
-            merged_df.loc[
-                (merged_df["ethambutol"].isna()) | 
-                (merged_df["ethambutol"] == 5),
-                "ethambutol"
-            ] = merged_df["mgit_ethambutol_tmp"]
-
-            # Clean temporary column
-            merged_df.drop(columns=["mgit_ethambutol_tmp"], inplace=True, errors="ignore")
-            
-        merged_df.drop(columns=["ljdst1_ethambutol"], inplace=True, errors="ignore")
-        merged_df.drop(columns=["mgitdst1_ethambutol"], inplace=True, errors="ignore") 
-        
-        
-        #13(k). Delamanid
-        # --- Step 1:  ---
-        if "mgitdst2_delamanid" in merged_df.columns:
-            merged_df["delamanid"] = merged_df["mgitdst2_delamanid"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_delamanid"], inplace=True, errors="ignore") 
-        
-        
-        #13(r). Ethionamide
-        # --- Step 1:  ---
-        if "mgitdst2_ethionamide" in merged_df.columns:
-            merged_df["ethionamide"] = merged_df["mgitdst2_ethionamide"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_ethionamide"], inplace=True, errors="ignore")
-        
-        
-        #13(s). Prothionamide
-        # --- Step 1:  ---
-        if "mgitdst2_prothionamide" in merged_df.columns:
-            merged_df["prothionamide"] = merged_df["mgitdst2_prothionamide"].map(phenotypic_results_map)
-            
-        merged_df.drop(columns=["mgitdst2_prothionamide"], inplace=True, errors="ignore")
-        
-        
-        #13(t). Para-aminosalicylic acid
-        # --- Step 1:  ---
-        if "mgitdst2_pas" in merged_df.columns:
-            merged_df["para_aminosalicylic_acid"] = merged_df["mgitdst2_pas"].map(phenotypic_results_map)
-
-        merged_df.drop(columns=["mgitdst2_pas"], inplace=True, errors="ignore")
+        apply_dst_logic(merged_df, "ljdst1_rifampicin", "rifampicin", "mgitdst1_rifampicin")
+        apply_dst_logic(merged_df, "ljdst1_isoniazid", "isoniazid", "mgitdst1_isoniazid")
+        apply_dst_logic(merged_df, "mgitdst2_levofloxacin", "levofloxacin")
+        apply_dst_logic(merged_df, "mgitdst2_bedaquiline", "bedaquiline")
+        apply_dst_logic(merged_df, "mgitdst2_linezolid", "linezolid")
+        apply_dst_logic(merged_df, "mgitdst2_clofazimine", "clofazimine")
+        apply_dst_logic(merged_df, "mgitdst2_cycloserine", "cycloserine")
+        apply_dst_logic(merged_df, "ljdst1_ethambutol", "ethambutol", "mgitdst1_ethambutol")
+        apply_dst_logic(merged_df, "mgitdst2_delamanid", "delamanid")
+        apply_dst_logic(merged_df, "mgitdst2_ethionamide", "ethionamide")
+        apply_dst_logic(merged_df, "mgitdst2_prothionamide", "prothionamide")
+        apply_dst_logic(merged_df, "mgitdst2_pas", "para_aminosalicylic_acid")
         
         #Xpert XDR
-        # Standardize blanks
-        # 14(a). Was Xpert XDR performed?
-        merged_df["gxxdr_date"] = merged_df["gxxdr_date"].replace("", pd.NA)
-
-        # Map xpert_xdr_performed
-        merged_df["xpert_xdr_performed"] = merged_df["gxxdr_date"].notna().map({True: 1, False: 2})
+        mismatched_xpert_performed = pd.DataFrame()
+        tblis_xpert_performed = pd.Series(pd.NA, index=merged_df.index)
+        if "gxxdr_date" in merged_df.columns:
+            merged_df["gxxdr_date"] = merged_df["gxxdr_date"].where(
+                merged_df["gxxdr_date"].astype(str).str.strip() != "", other=pd.NA
+            ).infer_objects(copy=False)
+            tblis_xpert_performed = merged_df["gxxdr_date"].notna().map({True: 1, False: 2})
+            
+        if "xpert_xdr_performed" in merged_df.columns:
+            edcs_xpert_performed = merged_df["xpert_xdr_performed"].replace(r'^\s*$', pd.NA, regex=True)
+            both_present = tblis_xpert_performed.notna() & edcs_xpert_performed.notna()
+            mismatch = both_present & (
+                tblis_xpert_performed.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                edcs_xpert_performed.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+            )
+            
+            if mismatch.any():
+                mismatched_xpert_performed = merged_df.loc[mismatch, ["pid", "unique_lab_no"]].copy()
+                mismatched_xpert_performed["field"] = "xpert_xdr_performed"
+                mismatched_xpert_performed["edcs_value"] = edcs_xpert_performed.loc[mismatch]
+                mismatched_xpert_performed["tblis_value"] = tblis_xpert_performed.loc[mismatch]
+                
+            merged_df["xpert_xdr_performed"] = tblis_xpert_performed.fillna(edcs_xpert_performed)
+        else:
+            merged_df["xpert_xdr_performed"] = tblis_xpert_performed
 
         # --- Replace EDCS xpert_xdr_performed with TBLIS gxxdr_date if available ---
         # 14(b). Date of performing Xpert XDR testing?
-        
+        mismatched_xpert_date = pd.DataFrame()
         if "gxxdr_date" in merged_df.columns:
-            merged_df["xpert_xdr_date_performed"] = merged_df["gxxdr_date"]
-            
+            tblis_xpert_date = merged_df["gxxdr_date"]
+            if "xpert_xdr_date_performed" in merged_df.columns:
+                edcs_xpert_date = merged_df["xpert_xdr_date_performed"].replace(r'^\s*$', pd.NA, regex=True)
+                both_present_date = tblis_xpert_date.notna() & edcs_xpert_date.notna()
+                mismatch_date = both_present_date & (
+                    tblis_xpert_date.astype(str).str.strip() != edcs_xpert_date.astype(str).str.strip()
+                )
+                if mismatch_date.any():
+                    mismatched_xpert_date = merged_df.loc[mismatch_date, ["pid", "unique_lab_no"]].copy()
+                    mismatched_xpert_date["field"] = "xpert_xdr_date_performed"
+                    mismatched_xpert_date["edcs_value"] = edcs_xpert_date.loc[mismatch_date]
+                    mismatched_xpert_date["tblis_value"] = tblis_xpert_date.loc[mismatch_date]
+                
+                merged_df["xpert_xdr_date_performed"] = tblis_xpert_date.fillna(edcs_xpert_date)
+            else:
+                merged_df["xpert_xdr_date_performed"] = tblis_xpert_date
+                
         merged_df.drop(columns=["gxxdr_date"], inplace=True, errors="ignore")
         
         
@@ -494,68 +623,85 @@ class Command(BaseCommand):
             **dict.fromkeys(["Resistance Detected","Resistance Inferred","Resistant"], 1),
             **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
             **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
-            **dict.fromkeys(["MTB Not Detected"], 0),
+            **dict.fromkeys(["MTB Not Detected"], 4),
         }
         
-        #15(a). Isoniazid
-        # --- Step 1:  ---
-        if "gxxdr_isoniazid" in merged_df.columns:
-            merged_df["xpert_xdr_isoniazid"] = merged_df["gxxdr_isoniazid"].map(xpert_xdr_results_map)
-            
-        merged_df.drop(columns=["gxxdr_isoniazid"], inplace=True, errors="ignore")
-        
-        #15(b). Fluoroquinolones
-        # --- Step 1:  ---
-        if "gxxdr_flq" in merged_df.columns:
-            merged_df["xpert_xdr_fluoroquinolones"] = merged_df["gxxdr_flq"].map(xpert_xdr_results_map)
-            
-        merged_df.drop(columns=["gxxdr_flq"], inplace=True, errors="ignore")
-        
-        #15(c). Amikacin
-        # --- Step 1:  ---
-        if "gxxdr_amikacin" in merged_df.columns:
-            merged_df["xpert_xdr_amikacin"] = merged_df["gxxdr_amikacin"].map(xpert_xdr_results_map)
-            
-        merged_df.drop(columns=["gxxdr_amikacin"], inplace=True, errors="ignore")
-        
-        #15(d). Kanamycin
-        # --- Step 1:  ---
-        if "gxxdr_kanamycin" in merged_df.columns:
-            merged_df["xpert_xdr_kanamycin"] = merged_df["gxxdr_kanamycin"].map(xpert_xdr_results_map)
-            
-        merged_df.drop(columns=["gxxdr_kanamycin"], inplace=True, errors="ignore")
-        
-        
-        #15(e). Capreomycin
-        # --- Step 1:  ---
-        if "gxxdr_capreomycin" in merged_df.columns:
-            merged_df["xpert_xdr_capreomycin"] = merged_df["gxxdr_capreomycin"].map(xpert_xdr_results_map)
-            
-        merged_df.drop(columns=["gxxdr_capreomycin"], inplace=True, errors="ignore")
-        
-        #15(f). Ethionamide
-        # --- Step 1:  ---
-        if "gxxdr_ethionamide" in merged_df.columns:
-            merged_df["xpert_xdr_ethionamide"] = merged_df["gxxdr_ethionamide"].map(xpert_xdr_results_map)
-            
-        merged_df.drop(columns=["gxxdr_ethionamide"], inplace=True, errors="ignore")
+        xdr_mismatches = []
+
+        def apply_xdr_logic(merged_df, tblis_col, edcs_col):
+            tblis_val = pd.Series(pd.NA, index=merged_df.index)
+            if tblis_col in merged_df.columns:
+                tblis_val = merged_df[tblis_col].map(xpert_xdr_results_map)
+                
+            mismatched = pd.DataFrame()
+            if edcs_col in merged_df.columns:
+                edcs_val = merged_df[edcs_col].replace(r'^\s*$', pd.NA, regex=True)
+                both_present = tblis_val.notna() & edcs_val.notna()
+                mismatch = both_present & (
+                    tblis_val.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                    edcs_val.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+                )
+                if mismatch.any():
+                    mismatched = merged_df.loc[mismatch, ["pid", "unique_lab_no"]].copy()
+                    mismatched["field"] = edcs_col
+                    mismatched["edcs_value"] = edcs_val.loc[mismatch]
+                    mismatched["tblis_value"] = tblis_val.loc[mismatch]
+                    
+                merged_df[edcs_col] = tblis_val.fillna(edcs_val)
+            else:
+                merged_df[edcs_col] = tblis_val
+                
+            if not mismatched.empty:
+                xdr_mismatches.append(mismatched)
+                
+            merged_df.drop(columns=[tblis_col], inplace=True, errors="ignore")
+
+        apply_xdr_logic(merged_df, "gxxdr_isoniazid", "xpert_xdr_isoniazid")
+        apply_xdr_logic(merged_df, "gxxdr_flq", "xpert_xdr_fluoroquinolones")
+        apply_xdr_logic(merged_df, "gxxdr_amikacin", "xpert_xdr_amikacin")
+        apply_xdr_logic(merged_df, "gxxdr_kanamycin", "xpert_xdr_kanamycin")
+        apply_xdr_logic(merged_df, "gxxdr_capreomycin", "xpert_xdr_capreomycin")
+        apply_xdr_logic(merged_df, "gxxdr_ethionamide", "xpert_xdr_ethionamide")
         
         
         #First-Line LPA
+        lpa_mismatches = []
+
+        def apply_lpa_logic(merged_df, tblis_col, edcs_col, mapping_dict):
+            tblis_val = pd.Series(pd.NA, index=merged_df.index)
+            if tblis_col in merged_df.columns:
+                tblis_val = merged_df[tblis_col].map(mapping_dict)
+                
+            mismatched = pd.DataFrame()
+            if edcs_col in merged_df.columns:
+                edcs_val = merged_df[edcs_col].replace(r'^\s*$', pd.NA, regex=True)
+                both_present = tblis_val.notna() & edcs_val.notna()
+                mismatch = both_present & (
+                    tblis_val.astype(str).str.strip().str.replace(r'\.0$', '', regex=True) != 
+                    edcs_val.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+                )
+                if mismatch.any():
+                    mismatched = merged_df.loc[mismatch, ["pid", "unique_lab_no"]].copy()
+                    mismatched["field"] = edcs_col
+                    mismatched["edcs_value"] = edcs_val.loc[mismatch]
+                    mismatched["tblis_value"] = tblis_val.loc[mismatch]
+                    
+                merged_df[edcs_col] = tblis_val.fillna(edcs_val)
+            else:
+                merged_df[edcs_col] = tblis_val
+                
+            if not mismatched.empty:
+                lpa_mismatches.append(mismatched)
+                
+            merged_df.drop(columns=[tblis_col], inplace=True, errors="ignore")
+
         # Map TBLIS 17(c). MTB result on LPA1: to numeric codes       
         lpa1_mtb_results_map = {
             **dict.fromkeys(["MTBC Detected"], 1),
             **dict.fromkeys(["MTBC Not Detected"], 2),
             **dict.fromkeys(["Invalid"], 3),
         }
-        
-        #17(c). MTB result on LPA1:
-        # --- Step 1:  ---
-        if "lpa1_mtbc" in merged_df.columns:
-            merged_df["lpa1_mtb"] = merged_df["lpa1_mtbc"].map(lpa1_mtb_results_map)
-            
-        merged_df.drop(columns=["lpa1_mtbc"], inplace=True, errors="ignore")
-        
+        apply_lpa_logic(merged_df, "lpa1_mtbc", "lpa1_mtb", lpa1_mtb_results_map)
         
         # Map TBLIS 17(d). RIF result: to numeric codes       
         lpa1_rif_results_map = {
@@ -563,16 +709,9 @@ class Command(BaseCommand):
             **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
             **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
             **dict.fromkeys(["Resistance Inferred"], 4),
-            **dict.fromkeys(["MTB Not Detected"], 0),
+            **dict.fromkeys(["MTB Not Detected"], 5),
         }
-        
-        #17(d). RIF result:
-        # --- Step 1:  ---
-        if "lpa1_rifampicin" in merged_df.columns:
-            merged_df["lpa1_rif"] = merged_df["lpa1_rifampicin"].map(lpa1_rif_results_map)
-            
-        merged_df.drop(columns=["lpa1_rifampicin"], inplace=True, errors="ignore")
-        
+        apply_lpa_logic(merged_df, "lpa1_rifampicin", "lpa1_rif", lpa1_rif_results_map)
         
         # Map TBLIS 17(e). INH result: to numeric codes       
         lpa1_inh_results_map = {
@@ -580,16 +719,9 @@ class Command(BaseCommand):
             **dict.fromkeys(["Resistance not Detected","Sensitive"], 3),
             **dict.fromkeys(["Resistance Indeterminate","Indeterminate"], 4),
             **dict.fromkeys(["Resistance Inferred"], 5),
-            **dict.fromkeys(["MTB Not Detected"], 99),
+            **dict.fromkeys(["MTB Not Detected"], 95),
         }
-        
-        #17(e). INH result:
-        # --- Step 1:  ---
-        if "lpa1_isoniazid" in merged_df.columns:
-            merged_df["lpa1_inh"] = merged_df["lpa1_isoniazid"].map(lpa1_inh_results_map)
-            
-        merged_df.drop(columns=["lpa1_isoniazid"], inplace=True, errors="ignore")
-        
+        apply_lpa_logic(merged_df, "lpa1_isoniazid", "lpa1_inh", lpa1_inh_results_map)
         
         #Second-Line LPA
         # Map TBLIS 19(c). MTB result on LPA2 to numeric codes       
@@ -598,14 +730,7 @@ class Command(BaseCommand):
             **dict.fromkeys(["MTBC Not Detected"], 2),
             **dict.fromkeys(["Invalid"], 3),
         }
-        
-        #19(c). MTB result on LPA2
-        # --- Step 1:  ---
-        if "lpa2_mtbc" in merged_df.columns:
-            merged_df["lpa2_mtb"] = merged_df["lpa2_mtbc"].map(lpa2_mtb_results_map)
-            
-        merged_df.drop(columns=["lpa2_mtbc"], inplace=True, errors="ignore")
-        
+        apply_lpa_logic(merged_df, "lpa2_mtbc", "lpa2_mtb", lpa2_mtb_results_map)
         
         # Map TBLIS 19(d). RFluoroquinolones on LPA2 to numeric codes       
         lpa2_results_map = {
@@ -613,30 +738,11 @@ class Command(BaseCommand):
             **dict.fromkeys(["Resistance not Detected","Sensitive"], 2),
             **dict.fromkeys(["Indeterminate","Resistance Indeterminate"], 3),
             **dict.fromkeys(["Resistance Inferred"], 4),
-            **dict.fromkeys(["MTB Not Detected"], 0),
+            **dict.fromkeys(["MTB Not Detected"], 5),
         }
-        
-        #19(d). RFluoroquinolones on LPA2
-        # --- Step 1:  ---
-        if "lpa2_flq" in merged_df.columns:
-            merged_df["lpa2_rfluoroquinolones"] = merged_df["lpa2_flq"].map(lpa2_results_map)
-            
-        merged_df.drop(columns=["lpa2_flq"], inplace=True, errors="ignore")
-        
-        
-        #19(e). Aminoglycosides on LPA2
-        # --- Step 1:  ---
-        if "lpa2_ag_cp" in merged_df.columns:
-            merged_df["lpa2_aminoglycosides"] = merged_df["lpa2_ag_cp"].map(lpa2_results_map)
-            
-        merged_df.drop(columns=["lpa2_ag_cp"], inplace=True, errors="ignore")
-        
-        #19(f). Kanamycin on LPA2
-        # --- Step 1:  ---
-        if "lpa2_low_kan" in merged_df.columns:
-            merged_df["lpa2_kanamycin"] = merged_df["lpa2_low_kan"].map(lpa2_results_map)
-            
-        merged_df.drop(columns=["lpa2_low_kan"], inplace=True, errors="ignore")
+        apply_lpa_logic(merged_df, "lpa2_flq", "lpa2_rfluoroquinolones", lpa2_results_map)
+        apply_lpa_logic(merged_df, "lpa2_ag_cp", "lpa2_aminoglycosides", lpa2_results_map)
+        apply_lpa_logic(merged_df, "lpa2_low_kan", "lpa2_kanamycin", lpa2_results_map)
         
             
         # --- Keep only specific EDCS columns + all TBLIS columns ---
@@ -648,7 +754,8 @@ class Command(BaseCommand):
 
         # --- Summary Stats ---
         total_records = len(merged_df)
-        matched_records = merged_df["labno"].notna().sum() if "labno" in merged_df.columns else 0
+        matched_mask = merged_df["labno"].notna() if "labno" in merged_df.columns else pd.Series(True, index=merged_df.index)
+        matched_records = matched_mask.sum()
         missing_records = total_records - matched_records
 
         # --- Missing summary (optional) ---
@@ -769,6 +876,18 @@ class Command(BaseCommand):
             "nano_rifampicin",
             "nano_streptomycin",
         ]]
+        # --- Save Unmatched Records to separate files ---
+        edcs_only = edcs_zonal[~edcs_zonal["unique_lab_no"].isin(tblis_df["labno"])]
+        tblis_only = tblis_df[~tblis_df["labno"].isin(edcs_zonal["unique_lab_no"])]
+        
+        edcs_only_file = output_csv.replace(".csv", "_edcs_not_in_tblis.csv")
+        tblis_only_file = output_csv.replace(".csv", "_tblis_not_in_edcs.csv")
+        
+        edcs_only.to_csv(edcs_only_file, index=False)
+        tblis_only.to_csv(tblis_only_file, index=False)
+
+        # Filter merged_df to ONLY include those that merged (labno is present)
+        merged_df = merged_df[matched_mask]
 
         # Combine transformed zonal with untouched non-zonal
         final_df = pd.concat([merged_df, edcs_non_zonal], ignore_index=True)
@@ -782,9 +901,53 @@ class Command(BaseCommand):
         # print("Total number of columns:", len(selected_columns))
 
         # --- Output summary ---
+        tblis_total_rows = len(tblis_df)
+        edcs_only_count  = len(edcs_only)
+        tblis_only_count = len(tblis_only)
+
         self.stdout.write(self.style.SUCCESS("\n✅ Merge Completed Successfully!"))
         self.stdout.write(f"📊 Total Columns: {total_columns}")
-        self.stdout.write(f"📊 Total records: {total_records}")
-        self.stdout.write(f"✅ Matched records: {matched_records}")
-        self.stdout.write(f"⚠️ Missing records: {missing_records}")
-        self.stdout.write(f"💾 Output saved to: {output_csv}\n")
+        self.stdout.write(f"📊 Total zonal records (EDCS): {total_records}")
+        self.stdout.write(f"📊 Total TBLIS rows in file: {tblis_total_rows}")
+        if tblis_date_from and tblis_date_to:
+            self.stdout.write(f"📅 TBLIS Data Range: {tblis_date_from}  →  {tblis_date_to}")
+        self.stdout.write(f"✅ Matched zonal records: {matched_records}")
+        self.stdout.write(self.style.WARNING(f"⚠️  EDCS records NOT in TBLIS: {edcs_only_count}"))
+        self.stdout.write(self.style.WARNING(f"⚠️  TBLIS records NOT in EDCS: {tblis_only_count}"))
+        self.stdout.write(f"⚠️  Missing zonal records: {missing_records}")
+        self.stdout.write(f"💾 Output saved to: {output_csv}")
+        self.stdout.write(f"💾 Unmerged EDCS records saved to: {edcs_only_file}")
+        self.stdout.write(f"💾 Unmerged TBLIS records saved to: {tblis_only_file}")
+        # --- Save discrepancies ---
+        all_mismatch_dfs = [
+            mismatched_dates, mismatched_app, mismatched_vol,
+            mismatched_mic_type, mismatched_mic_date, mismatched_mic_res,
+            mismatched_culture_method, mismatched_lj_innoc_date, mismatched_lj_res_date,
+            mismatched_lj_res, mismatched_mgit_res, mismatched_phenotypic_date,
+            mismatched_xpert_performed, mismatched_xpert_date
+        ] + dst_mismatches + xdr_mismatches + lpa_mismatches
+
+        all_mismatches = pd.concat(
+            [df for df in all_mismatch_dfs if not df.empty], 
+            ignore_index=True
+        ) if any(not df.empty for df in all_mismatch_dfs) else pd.DataFrame()
+        
+        if not all_mismatches.empty:
+            mismatch_file = output_csv.replace(".csv", "_mismatches.csv")
+            all_mismatches.to_csv(mismatch_file, index=False)
+            self.stdout.write(self.style.WARNING(f"\n⚠️ Mismatched values found! Saved to: {mismatch_file}"))
+            
+            # Print mismatch summary
+            self.stdout.write(self.style.WARNING("\n📊 Mismatch Summary by Field:"))
+            mismatch_counts = all_mismatches["field"].value_counts()
+            for field, count in mismatch_counts.items():
+                self.stdout.write(f"   - {field}: {count} mismatches")
+                
+            total_mismatch_columns = len(mismatch_counts)
+            total_mismatch_records = all_mismatches["pid"].nunique()
+            
+            self.stdout.write(self.style.WARNING(f"\n📈 Total Mismatched Columns: {total_mismatch_columns}"))
+            self.stdout.write(self.style.WARNING(f"📈 Total Mismatched Records: {total_mismatch_records}"))
+            self.stdout.write(f"\n⚠️ Missing records: {missing_records}")
+        
+        self.stdout.write("\n")

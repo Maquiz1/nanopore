@@ -1,5 +1,6 @@
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Min, Max
 from django.utils import timezone
 from locations.models import Zone, Site
 from nanopore.models import EdcsTblisZonal, ZonalLaboratory
@@ -53,4 +54,13 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             "last_upload": last_upload.updated_at if last_upload else None,
             "last_upload_by": last_upload.updated_by if last_upload else None,
         })
+
+        # TBLIS date range from DB
+        date_agg = EdcsTblisZonal.objects.aggregate(
+            date_from=Min("date_sputum_received"),
+            date_to=Max("date_sputum_received"),
+        )
+        context["tblis_date_from"] = date_agg["date_from"]
+        context["tblis_date_to"]   = date_agg["date_to"]
+
         return context
