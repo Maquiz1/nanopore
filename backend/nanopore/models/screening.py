@@ -45,6 +45,7 @@ class Screening(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="screenings_updated")
     test2 = models.CharField(blank=True, null=True)
+    test3 = models.CharField(blank=True, null=True)
 
     class Meta:
         ordering = ["screening_date", "pid"]
