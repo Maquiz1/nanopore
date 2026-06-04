@@ -78,12 +78,23 @@
                     {{ total_tblis_records }} of {{ total_edcs_records }} EDCS records merged
                 </div>
 
-                {% if tblis_date_from and tblis_date_to %}
+                {% if merge_summary.tblis_date_from and merge_summary.tblis_date_to %}
                 <div class="mt-2 p-2 bg-light rounded border small">
                     📅 <strong>TBLIS Data Range:</strong>
-                    {{ tblis_date_from|date:"M d, Y" }} → {{ tblis_date_to|date:"M d, Y" }}
+                    {{ merge_summary.tblis_date_from }}  →  {{ merge_summary.tblis_date_to }}
                     &nbsp;|&nbsp;
-                    <strong>{{ total_tblis_records }}</strong> TBLIS records integrated
+                    <strong>{{ merge_summary.total_tblis_rows }}</strong> records in TBLIS file
+                </div>
+                {% endif %}
+
+                {% if merge_summary %}
+                <div class="mt-2 d-flex gap-3 flex-wrap small">
+                    <span class="badge bg-warning text-dark p-2">
+                        ⚠️ EDCS records NOT in TBLIS: <strong>{{ merge_summary.edcs_not_in_tblis }}</strong>
+                    </span>
+                    <span class="badge bg-warning text-dark p-2">
+                        ⚠️ TBLIS records NOT in EDCS: <strong>{{ merge_summary.tblis_not_in_edcs }}</strong>
+                    </span>
                 </div>
                 {% endif %}
             </div>
