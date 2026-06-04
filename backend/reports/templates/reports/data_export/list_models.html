@@ -13,14 +13,14 @@
         <button class="btn btn-warning download-all-btn me-2"
                 data-url="{% url 'reports:export_all_combined' %}?with=zonal">
             <i class="fas fa-download"></i>
-            <span> Download ALL (with Zonal Lab)</span>
+            <span> Download Raw Data (with Zonal Lab)</span>
         </button>
 
         <!-- Button for ALL models + EDCS -->
         <button class="btn btn-info download-all-btn text-white"
                 data-url="{% url 'reports:export_all_combined' %}?with=edcs">
             <i class="fas fa-download"></i>
-            <span> Download ALL (with EDCS TBLIS)</span>
+            <span> Download Raw Data (with EDCS TBLIS)</span>
         </button>
     </div>
     {% endif %}
