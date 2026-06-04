@@ -720,7 +720,7 @@ class Command(BaseCommand):
             **dict.fromkeys(["Resistance not Detected","Sensitive"], 3),
             **dict.fromkeys(["Resistance Indeterminate","Indeterminate"], 4),
             **dict.fromkeys(["Resistance Inferred"], 5),
-            **dict.fromkeys(["MTB Not Detected"], 95),
+            **dict.fromkeys(["MTB Not Detected"], 6),
         }
         apply_lpa_logic(merged_df, "lpa1_isoniazid", "lpa1_inh", lpa1_inh_results_map)
         
