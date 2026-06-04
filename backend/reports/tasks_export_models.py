@@ -77,13 +77,23 @@ def export_model_raw_data_task(self, model_name, filename=None):
                 try:
                     if f.many_to_many:
                         value = getattr(obj, f.name).all()
-                        row.append(';'.join(str(v.pk) for v in value))
+                        def get_m2m_val(v):
+                            v_val = getattr(v, "value", None)
+                            return v_val if v_val is not None else v.pk
+                        row.append(';'.join(str(get_m2m_val(v)) for v in value))
                     elif f.one_to_one and f.related_model and f.related_model.__name__ == 'Screening':
                         value = getattr(obj, f.name, None)
                         row.append(value.pid if value else '')
                     elif f.many_to_one or f.one_to_one:
                         value = getattr(obj, f.name, None)
-                        row.append(value.pk if value else '')
+                        if value:
+                            if f.name == "site" and hasattr(value, "name"):
+                                row.append(value.name)
+                            else:
+                                v_val = getattr(value, "value", None)
+                                row.append(v_val if v_val is not None else value.pk)
+                        else:
+                            row.append('')
                     else:
                         value = getattr(obj, f.name)
                         row.append(value)
@@ -141,14 +151,19 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
         val = getattr(obj, f.name, "")
         if f.is_relation:
             if f.many_to_many:
-                return ";".join(str(v.pk) for v in getattr(obj, f.name).all())
+                def get_m2m_val(v):
+                    v_val = getattr(v, "value", None)
+                    return v_val if v_val is not None else v.pk
+                return ";".join(str(get_m2m_val(v)) for v in getattr(obj, f.name).all())
             else:
                 related = getattr(obj, f.name, None)
                 if not related:
                     return ""
                 if f.name == "site" and hasattr(related, "name"):
                     return related.name
-                return related.pk
+                
+                v_val = getattr(related, "value", None)
+                return v_val if v_val is not None else related.pk
         return val
 
     # Headers
