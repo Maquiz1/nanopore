@@ -69,28 +69,6 @@ class EdcsTblisDownloadCsvView(LoginRequiredMixin, View):
             "epi_to_me",
             "sequencing_results",
             "sequencing_delayed",
-        ).only(
-            "screening__pid",
-            "unique_lab_no",
-            "date_sputum_received",
-            "sample_volume",
-            "microscopy_date",
-            "microscopy_results__id",
-            "lj_inoculation_date",
-            "lj_results_date",
-            "mgit_inoculation_date",
-            "mgit_results_date",
-            "isolate_date",
-            "phenotypic_date_performed",
-            "phenotypic_date_results",
-            "xpert_xdr_date_performed",
-            "first_line_lpa_date",
-            "second_line_lpa_date",
-            "nanopore_sequencing_date",
-            "epi_to_me_version",
-            "epi_to_me_date",
-            "sequencing_delayed_days",
-            "sequencing_delayed_others",
         ).iterator(chunk_size=500)
 
         def fk_val(obj):
@@ -127,10 +105,10 @@ class EdcsTblisDownloadCsvView(LoginRequiredMixin, View):
             for obj in queryset:
                 # M2M fields need separate queries — batch resolved
                 try:
-                    culture_methods = "|".join(str(m.id) for m in obj.culture_method.all())
-                    first_line_drugs = "|".join(str(d.id) for d in obj.first_line_drugs.all())
-                    second_line_drugs = "|".join(str(d.id) for d in obj.second_line_drugs.all())
-                    lpa1_inh = "|".join(str(d.id) for d in obj.lpa1_inh.all())
+                    culture_methods = ";".join(str(m.id) for m in obj.culture_method.all())
+                    first_line_drugs = ";".join(str(d.id) for d in obj.first_line_drugs.all())
+                    second_line_drugs = ";".join(str(d.id) for d in obj.second_line_drugs.all())
+                    lpa1_inh = ";".join(str(d.id) for d in obj.lpa1_inh.all())
                 except Exception:
                     culture_methods = first_line_drugs = second_line_drugs = lpa1_inh = ""
 
