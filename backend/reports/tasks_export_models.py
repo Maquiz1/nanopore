@@ -144,15 +144,22 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
                 return ";".join(str(v.pk) for v in getattr(obj, f.name).all())
             else:
                 related = getattr(obj, f.name, None)
-                return str(related) if related else ""
+                if not related:
+                    return ""
+                if f.name == "site" and hasattr(related, "name"):
+                    return related.name
+                return related.pk
         return val
 
     # Headers
-    headers = ["pid", "pid1", "pid2"]
+    headers = ["pid"]
     for key, model in models.items():
         for f in model._meta.fields:
             if f.name not in exclude_fields:
-                headers.append(f"{key}_{f.name}")
+                if f.name in ["remarks", "comments"]:
+                    headers.append(f"{key}_{f.name}")
+                else:
+                    headers.append(f.name)
     for f in REGIMEN_FIELDS:
         headers.append(f"regimen_{f}")
 
@@ -195,7 +202,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
                 row = []
 
                 # 1. pid columns
-                for field_name in ["pid", "pid1", "pid2"]:
+                for field_name in ["pid"]:
                     val = getattr(screening, field_name, None)
                     if val is None or val == "":
                         val = screening.__dict__.get(field_name, "")
