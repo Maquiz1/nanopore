@@ -21,7 +21,8 @@ def export_model_raw_data_task(self, model_name, filename=None):
 
     exclude_fields = [
         'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks',
-        'enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes'
+        'enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes',
+        'tblis_laboratory', 'missingformsdqsnapshot',
     ]
 
     # Determine fields
