@@ -16,10 +16,11 @@ from nanopore.models.edcs_tblis_zonal import EdcsTblisZonal
 
 # @staff_member_required
 def list_models_view(request):
+    total_screenings = Screening.objects.count()
     models_list = [
         {
             "name": "Screening",
-            "count": Screening.objects.count(),
+            "count": total_screenings,
             "description": "All Screening records",
             "download_url": reverse("reports:download_model_data", args=["Screening"]),
             "labels_url": reverse("reports:download_model_labels", args=["Screening"]),
@@ -75,5 +76,8 @@ def list_models_view(request):
         },
     ]
     return render(
-        request, "reports/data_export/list_models.html", {"models_list": models_list}
+        request, "reports/data_export/list_models.html", {
+            "models_list": models_list,
+            "total_screenings": total_screenings
+        }
     )
