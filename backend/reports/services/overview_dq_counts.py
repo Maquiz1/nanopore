@@ -76,7 +76,17 @@ def get_data_quality_overview(user, zone_id=None, site_id=None):
 
     zonal_counts = get_zonal_dq_counts(qs)
 
-
+    # Fetch Edcs/TBLIS counts for allowed roles
+    user_group = user.groups.first().name.upper() if user.groups.exists() else ""
+    is_super = user.is_superuser
+    show_edcs = is_super or user_group in ["ADMIN", "REVIEWER"]
+    
+    edcs_tblis_total = 0
+    if show_edcs:
+        from django.apps import apps
+        from reports.services.zonal_dq import get_zonal_dq
+        EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
+        _, _, edcs_tblis_total, _ = get_zonal_dq(user, EdcsTblisZonal, zone_id, site_id)
 
     total_issues = (
         screening_counts.get("total_issues", 0) +
@@ -84,7 +94,7 @@ def get_data_quality_overview(user, zone_id=None, site_id=None):
         regimen_counts.get("total_issues", 0) +
         diagnosis_counts.get("total_issues", 0) +
         clinic_counts.get("total_issues", 0) +
-        zonal_counts.get("total_issues", 0)
+        edcs_tblis_total
     )
     total_form_missing = forms_counts.get("total_form_missing", 0)
     specific_queries_total = total_issues

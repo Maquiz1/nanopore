@@ -43,8 +43,16 @@ def get_specific_form_dq(user, zone_id=None, site_id=None, role=None):
     if role in ["privileged", "zonal_lab"]:
         qs, zonal_stats, z_tot, z_probs = get_zonal_dq(user, ZonalLaboratory, zone_id, site_id)
 
-    # ── Sum the requested issues ──
-    total_issues = s_tot + e_tot + r_tot + d_tot + c_tot + z_tot
+    # Privileged users get the Edcs/TBLIS forms
+    edcs_tot = 0
+    edcs_probs = {}
+    if role == "privileged":
+        from django.apps import apps
+        EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
+        _, _, edcs_tot, edcs_probs = get_zonal_dq(user, EdcsTblisZonal, zone_id, site_id)
+
+    # ── Sum the requested issues (exclude Zonal, include Edcs/TBLIS) ──
+    total_issues = s_tot + e_tot + r_tot + d_tot + c_tot + edcs_tot
 
     return {
         "problem_lists": {
@@ -54,6 +62,7 @@ def get_specific_form_dq(user, zone_id=None, site_id=None, role=None):
             "diagnosis": d_probs,
             "clinic": c_probs,
             "zonal": z_probs,
+            "edcs_tblis": edcs_probs,
         },
         "screening_report_total": s_tot,
         "enrollment_report_total": e_tot,
@@ -61,5 +70,6 @@ def get_specific_form_dq(user, zone_id=None, site_id=None, role=None):
         "diagnosis_report_total": d_tot,
         "clinic_report_total": c_tot,
         "zonal_report_total": z_tot,
+        "edcs_tblis_report_total": edcs_tot,
         "total_issues": total_issues,
     }

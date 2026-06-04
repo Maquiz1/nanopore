@@ -136,6 +136,27 @@
         </div>
         {% endif %}
 
+        <!-- Edcs/TBLIS Laboratory – only for privileged users -->
+        {% if is_privileged %}
+        <div class="col-md-4 col-lg-4">
+            <a href="{% url 'reports:edcs_tblis_quality_report' %}" 
+               class="card text-decoration-none shadow-lg h-100 border-dark hover-lift">
+                <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                    <h4 class="card-title mb-4 text-dark">Edcs/TBLIS</h4>
+                    <p class="display-4 fw-bold text-dark mb-2">
+                        {{ edcs_tblis_report_total|default:0  | intcomma }}
+                    </p>
+                    <p class="lead text-muted mb-3">
+                        Missing receipt, culture, sequencing fields
+                    </p>
+                    <small class="text-muted">
+                        Click to view incomplete records
+                    </small>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+
     </div>
 
     <!-- Combined total summary -->
@@ -145,7 +166,7 @@
             {{ total_issues|default:0 | intcomma }}
         </span>
         <p class="text-muted mt-3 small">
-            Sum of issues across Screening + Enrollment + Regimen + Diagnosis + Clinic + Zonal
+            Sum of issues across Screening + Enrollment + Regimen + Diagnosis + Clinic + Edcs/TBLIS
         </p>
     </div>
 
@@ -189,6 +210,7 @@
     .border-info     { border-left: 6px solid #0dcaf0 !important; }
     .border-warning  { border-left: 6px solid #ffc107 !important; }
     .border-secondary{ border-left: 6px solid #6c757d !important; }
+    .border-dark     { border-left: 6px solid #212529 !important; }
 </style>
 
 {% endblock %}
