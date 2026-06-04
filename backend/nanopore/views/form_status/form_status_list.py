@@ -138,6 +138,16 @@ class FormStatusListView(ListView):
         # Add zones and sites for filter dropdowns
         role_context = get_role_context(self.request.user)
         context.update(role_context)
+        
+        # Explicit group flags to fix template multi-role visibility
+        user_groups = [g.upper() for g in self.request.user.groups.values_list('name', flat=True)]
+        is_data_specialist = hasattr(self.request.user, "profile") and self.request.user.profile.position and self.request.user.profile.position.name.lower() == "data specialist"
+        
+        context['is_admin_or_reviewer'] = self.request.user.is_superuser or "ADMIN" in user_groups or "REVIEWER" in user_groups or is_data_specialist
+        context['is_admin_only'] = self.request.user.is_superuser or "ADMIN" in user_groups or is_data_specialist
+        context['is_reviewer_only'] = "REVIEWER" in user_groups and not context['is_admin_only']
+        context['is_lab_tech'] = "LABORATORY_TECHNICIAN" in user_groups
+        context['is_nurse_clinician'] = "NURSE" in user_groups or "CLINICIAN" in user_groups
 
         # Keep GET params for form persistence
         context['selected_zone'] = self.request.GET.get("zone", "")

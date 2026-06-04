@@ -46,11 +46,17 @@ class ScreeningFormView(LoginRequiredMixin, View):
         and the Dar es Salaam zone reference.
         """
         context = kwargs
-        user_site = getattr(getattr(self.request.user, "profile", None), "site", None)
-        user_zone = None
+        # Determine the relevant site for this form
+        obj = context.get('object')
+        relevant_site = None
+        if obj and obj.site:
+            relevant_site = obj.site
+        elif hasattr(self.request.user, "profile") and self.request.user.profile.sites.exists():
+            relevant_site = self.request.user.profile.sites.first()
 
-        if user_site and user_site.district and user_site.district.region:
-            user_zone = user_site.district.region.zone
+        user_zone = None
+        if relevant_site and relevant_site.district and relevant_site.district.region:
+            user_zone = relevant_site.district.region.zone
 
         context["user_zone"] = user_zone
         context["dar_es_salaam_zone"] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
@@ -80,12 +86,12 @@ class ScreeningFormView(LoginRequiredMixin, View):
         if form.is_valid():
             obj = form.save(commit=False)
 
-            # Assign site from user profile if not already set
-            site = getattr(getattr(request.user, "profile", None), "site", None)
-            if site:
-                obj.site = site
-            elif not obj.site:
-                obj.site = Site.objects.first()
+            # Ensure site is set: keep existing if present, otherwise default to user's first assigned site
+            if not obj.site:
+                if hasattr(request.user, "profile") and request.user.profile.sites.exists():
+                    obj.site = request.user.profile.sites.first()
+                else:
+                    obj.site = Site.objects.first()
 
             if not obj.site:
                 form.add_error(None, "No site found. Please create a site first.")
@@ -135,11 +141,10 @@ class ScreeningFormView(LoginRequiredMixin, View):
         Pre-fill the site in the form if user has a profile with a site.
         """
         initial = {}
-        site = getattr(getattr(request.user, "profile", None), "site", None)
-        if site:
-            initial["site"] = site
-        elif obj and obj.site:
+        if obj and obj.site:
             initial["site"] = obj.site
+        elif hasattr(request.user, "profile") and request.user.profile.sites.exists():
+            initial["site"] = request.user.profile.sites.first()
         return initial
 
     def calculate_eligibility(self, obj):

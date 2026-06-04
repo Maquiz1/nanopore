@@ -26,8 +26,8 @@ class StaffDetailView(DetailView):
             User.objects.select_related(
                 'profile',
                 'profile__position',
-                'profile__site__district__region__zone'
+            ).prefetch_related(
+                'groups',
+                'profile__sites__district__region__zone'
             )
-            .prefetch_related('groups')
         )
-

@@ -2,7 +2,7 @@
 {% load screening_tags %}
 
 {% block content %}
-{% with user_group=request.user.groups.first.name|upper %}
+{% with user_group=request.user|upper %}
 {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
     <div class="alert alert-info d-flex justify-content-between align-items-center">
         <div>
@@ -11,11 +11,11 @@
         <i class="fas fa-user-shield"></i>
     </div>
 {% else %}
-    {% if request.user.profile.site %}
+    {% if request.user.profile.sites.exists %}
         <div class="alert alert-info d-flex justify-content-between align-items-center">
             <div>
-                <strong>Zone:</strong> {{ request.user.profile.site.district.region.zone.name }} &nbsp; | &nbsp;
-                <strong>Site:</strong> {{ request.user.profile.site.name }} &nbsp; | &nbsp;
+                <strong>Zone:</strong> {{ request.user.profile.sites.first.district.region.zone.name }} &nbsp; | &nbsp;
+                <strong>Site(s):</strong> {% for s in request.user.profile.sites.all %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
                 <strong>Position:</strong> {{ request.user.profile.position }}
             </div>
             <i class="fas fa-map-marker-alt"></i>
@@ -33,7 +33,7 @@
 
     <!-- Top Buttons -->
     <div class="d-flex justify-content-between mb-3">
-        {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+        {% if request.user.is_superuser or is_nurse_clinician %}
             <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">➕ New Screening</a>
         {% endif %}
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">⬅ Back to Dashboard</a>
@@ -41,7 +41,7 @@
 
     <!-- Filter Bar -->
     <form method="get" class="row g-3 mb-4">
-        {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+        {% if is_admin_or_reviewer or is_lab_tech %}
         <div class="col-md-3">
             <label for="zone" class="form-label">Zone</label>
             <select name="zone" id="zone" class="form-select">
@@ -114,16 +114,16 @@
                 <tr>
                     <th>PID</th>
                     <th>Screening Date</th>
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}<th>Facility</th>{% endif %}
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER" %}<th>Zone</th>{% endif %}
+                    {% if is_admin_or_reviewer or is_lab_tech %}<th>Facility</th>{% endif %}
+                    {% if is_admin_or_reviewer %}<th>Zone</th>{% endif %}
                     <th>Substudy</th>
                     <th>Eligibility</th>
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
+                    {% if is_admin_or_reviewer or is_nurse_clinician %}
                         <th>Enrollment</th>
                         <th>Clinic Lab</th>
                         <th>Diagnosis</th>
                     {% endif %}
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                    {% if is_admin_or_reviewer or is_lab_tech %}
                         <th>Zonal Lab</th>
                     {% endif %}
                 </tr>
@@ -132,17 +132,17 @@
                 {% for screening in object_list %}
                 <tr>
                     <td>
-                        {% if request.user.groups.all.0.name in "NURSE,CLINICIAN" or request.user.is_superuser %}
+                        {% if request.user.is_superuser or is_nurse_clinician %}
                             <a href="{% url 'nanopore:screening-update' screening.pk %}">{{ screening.pid }}</a>
                         {% else %}
                             {{ screening.pid }}
                         {% endif %}
                     </td>
                     <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                    {% if is_admin_or_reviewer or is_lab_tech %}
                         <td>{{ screening.site.name|default:"-" }}</td>
                     {% endif %}
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER" %}
+                    {% if is_admin_or_reviewer %}
                         <td>{{ screening.site.district.region.zone.name|default:"-" }}</td>
                     {% endif %}
                     <td>{{ screening.substudy_case|default:"-" }}</td>
@@ -150,14 +150,14 @@
                         {% if screening.eligible %}✅ Eligible{% else %}❌ Not Eligible{% endif %}
                     </td>
 
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,NURSE,CLINICIAN" %}
-                        <td>{% eligible_link screening "enrollment" request.user.groups.first.name %}</td>
-                        <td>{% eligible_link screening "clinic_laboratory" request.user.groups.first.name %}</td>
-                        <td>{% eligible_link screening "diagnosis" request.user.groups.first.name %}</td>
+                    {% if is_admin_or_reviewer or is_nurse_clinician %}
+                        <td>{% eligible_link screening "enrollment" request.user %}</td>
+                        <td>{% eligible_link screening "clinic_laboratory" request.user %}</td>
+                        <td>{% eligible_link screening "diagnosis" request.user %}</td>
                     {% endif %}
 
-                    {% if request.user.is_superuser or request.user.groups.all.0.name in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
-                        <td>{% eligible_link screening "zonal_laboratory" request.user.groups.first.name %}</td>
+                    {% if is_admin_or_reviewer or is_lab_tech %}
+                        <td>{% eligible_link screening "zonal_laboratory" request.user %}</td>
                     {% endif %}
                 </tr>
                 {% empty %}
