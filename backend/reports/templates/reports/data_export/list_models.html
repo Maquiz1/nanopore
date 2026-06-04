@@ -8,14 +8,21 @@
     <h2>Available Models for Export</h2>
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group in "ADMIN" %}
-    <!-- Single button for ALL models -->
-    <button id="downloadAll"
-            class="btn btn-warning mb-3"
-            data-url="{% url 'reports:export_all_combined' %}">
+    <div class="mb-3">
+        <!-- Button for ALL models + Zonal -->
+        <button class="btn btn-warning download-all-btn me-2"
+                data-url="{% url 'reports:export_all_combined' %}?with=zonal">
+            <i class="fas fa-download"></i>
+            <span> Download ALL (with Zonal Lab)</span>
+        </button>
 
-        <i class="fas fa-download"></i>
-        <span> Download CSV</span>
-    </button>
+        <!-- Button for ALL models + EDCS -->
+        <button class="btn btn-info download-all-btn text-white"
+                data-url="{% url 'reports:export_all_combined' %}?with=edcs">
+            <i class="fas fa-download"></i>
+            <span> Download ALL (with EDCS TBLIS)</span>
+        </button>
+    </div>
     {% endif %}
     {% endwith %}
     <!-- Table of individual models -->
@@ -56,38 +63,75 @@
 </div>
 
 <script>
-async function realDownload(url, btnIcon, btnText, btn=null) {
+const STATUS_BASE = "{% url 'nanopore:task-status' 'TASKID' %}";
+const SERVE_BASE = "{% url 'reports:serve_model_data' 'FILENAME' %}";
 
+async function realDownload(url, btnIcon, btnText, btn=null) {
     if(btn) btn.disabled = true;
 
     btnIcon.className = "fas fa-spinner fa-spin";
-    btnText.innerText = " Generating...";
+    btnText.innerText = " Queuing...";
 
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error();
 
-        const blob = await response.blob();
+        const data = await response.json();
+        if (!data.task_id) throw new Error();
 
-        const filename =
-            response.headers.get("Content-Disposition")
-            ?.split("filename=")[1]
-            ?.replace(/"/g,"") || "export.csv";
-
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-
+        pollExport(data.task_id, btnIcon, btnText, btn);
     } catch {
-        alert("Export failed");
+        alert("Failed to start export");
+        btnIcon.className = "fas fa-download";
+        btnText.innerText = btnText.dataset.default;
+        if(btn) btn.disabled = false;
     }
+}
 
-    btnIcon.className = "fas fa-download";
-    btnText.innerText = btnText.dataset.default;
-    if(btn) btn.disabled = false;
+function pollExport(taskId, btnIcon, btnText, btn) {
+    const url = STATUS_BASE.replace("TASKID", taskId);
+    const interval = setInterval(() => {
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.state === "PROGRESS") {
+                    const pct = data.total ? Math.round((data.current / data.total) * 100) : 0;
+                    btnText.innerText = ` Exporting... ${pct}%`;
+                } else if (data.state === "SUCCESS") {
+                    clearInterval(interval);
+                    btnIcon.className = "fas fa-check";
+                    btnText.innerText = " Ready!";
+                    
+                    const filename = data.file || "export.csv";
+                    const dlUrl = SERVE_BASE.replace("FILENAME", filename);
+                    const link = document.createElement("a");
+                    link.href = dlUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+
+                    setTimeout(() => {
+                        btnIcon.className = "fas fa-download";
+                        btnText.innerText = btnText.dataset.default;
+                        if(btn) btn.disabled = false;
+                    }, 2000);
+                } else if (data.state === "FAILURE") {
+                    clearInterval(interval);
+                    alert("Export failed: " + (data.error || "unknown error"));
+                    btnIcon.className = "fas fa-download";
+                    btnText.innerText = btnText.dataset.default;
+                    if(btn) btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                clearInterval(interval);
+                alert("Error checking export status");
+                btnIcon.className = "fas fa-download";
+                btnText.innerText = btnText.dataset.default;
+                if(btn) btn.disabled = false;
+            });
+    }, 1500);
 }
 
 /* Per model download */
@@ -107,23 +151,21 @@ document.querySelectorAll(".download-btn").forEach(btn => {
     });
 });
 
-/* Download ALL */
+/* Download ALL buttons */
 
-const downloadAll = document.getElementById("downloadAll");
-
-if(downloadAll){
-    const text = downloadAll.querySelector("span");
+document.querySelectorAll(".download-all-btn").forEach(btn => {
+    const text = btn.querySelector("span");
     text.dataset.default = text.innerText;
 
-    downloadAll.addEventListener("click", () => {
+    btn.addEventListener("click", () => {
         realDownload(
-            downloadAll.dataset.url,
-            downloadAll.querySelector("i"),
+            btn.dataset.url,
+            btn.querySelector("i"),
             text,
-            downloadAll
+            btn
         );
     });
-}
+});
 </script>
 
 {% endblock %}

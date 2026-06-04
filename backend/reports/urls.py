@@ -20,14 +20,14 @@ from reports.views import (
     
     # Models export views
     list_models_view,
-    ExportModelRawDataView,
     DownloadModelLabelsView,
     DownloadModelFieldsView,
     
     list_all_models_view,
     ExportModelDataView,
     ExportAllModelsCombinedView,
-    ExportModelRawDataView,
+    TriggerModelExportView,
+    ServeModelExportView,
 
     # AllOverviewQueriesDashboardView,
     TotalDataQualityDashboardView,
@@ -111,8 +111,11 @@ urlpatterns = [
     # Export all models combined into one CSV
     path('export-all-combined/', ExportAllModelsCombinedView.as_view(), name='export_all_combined'),
 
-    # Direct raw export per model
-    path('download/<str:model_name>/', ExportModelRawDataView.as_view(), name='download_model_data'),
+    # Direct raw export per model (Trigger Celery task)
+    path('download/<str:model_name>/', TriggerModelExportView.as_view(), name='download_model_data'),
+    
+    # Serve the completed CSV
+    path('download/serve/<str:filename>/', ServeModelExportView.as_view(), name='serve_model_data'),
 
     # New endpoints for labels and field names
     path('download/<str:model_name>/labels/', DownloadModelLabelsView.as_view(), name='download_model_labels'),
