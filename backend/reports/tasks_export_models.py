@@ -146,26 +146,48 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
         
     Screening = models["screening"]
 
+    # Build lookup cache dynamically to prevent N+1 queries on foreign key dropdown options
+    related_models = set()
+    for model in models.values():
+        for f in model._meta.fields:
+            if f.is_relation and not f.many_to_many and f.name not in exclude_fields:
+                related_models.add(f.related_model)
+                
+    lookup_cache = {}
+    for rm in related_models:
+        val_map = {}
+        for r in rm.objects.all():
+            if hasattr(r, 'value'):
+                val_map[r.pk] = r.value
+            elif hasattr(r, 'name'):
+                val_map[r.pk] = r.name
+            else:
+                val_map[r.pk] = str(r)
+        lookup_cache[rm] = val_map
+
     def get_value(obj, f):
         if not obj:
             return ""
-        val = getattr(obj, f.name, "")
-        if f.is_relation:
-            if f.many_to_many:
-                def get_m2m_val(v):
-                    v_val = getattr(v, "value", None)
-                    return v_val if v_val is not None else v.pk
-                return ";".join(str(get_m2m_val(v)) for v in getattr(obj, f.name).all())
-            else:
-                related = getattr(obj, f.name, None)
-                if not related:
-                    return ""
-                if f.name == "site" and hasattr(related, "name"):
-                    return related.name
-                
-                v_val = getattr(related, "value", None)
-                return v_val if v_val is not None else related.pk
-        return val
+        if not f.is_relation:
+            val = getattr(obj, f.name, "")
+            return val if val is not None else ""
+        if f.many_to_many:
+            def get_m2m_val(v):
+                v_val = getattr(v, "value", None)
+                return v_val if v_val is not None else v.pk
+            return ";".join(str(get_m2m_val(v)) for v in getattr(obj, f.name).all())
+        
+        # Standard FK/OneToOne
+        fk_id = obj.__dict__.get(f.attname)
+        if fk_id is None or fk_id == "":
+            return ""
+            
+        rm_cache = lookup_cache.get(f.related_model)
+        if rm_cache and fk_id in rm_cache:
+            val = rm_cache[fk_id]
+            return val if val is not None else ""
+            
+        return fk_id
 
     # Headers
     headers = ["pid"]

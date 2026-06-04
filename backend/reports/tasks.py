@@ -1,6 +1,6 @@
 from celery import shared_task
 from django.core.management import call_command
-from .tasks_export_models import export_model_raw_data_task
+from .tasks_export_models import export_model_raw_data_task, export_all_models_combined_task
 
 
 @shared_task
