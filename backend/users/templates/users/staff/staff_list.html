@@ -90,8 +90,22 @@
       <td>{{ user.email }}</td>
       <td>{% if user.profile and user.profile.prefix %}{{ user.profile.prefix.name }}{% else %}-{% endif %}</td>
       <td>{% if user.profile and user.profile.position %}{{ user.profile.position.name }}{% else %}-{% endif %}</td>
-      <td>{% if user.profile and user.profile.site %}{{ user.profile.site.name }}{% else %}-{% endif %}</td>
-      <td>{% if user.profile and user.profile.site and user.profile.site.district and user.profile.site.district.region and user.profile.site.district.region.zone %}{{ user.profile.site.district.region.zone.name }}{% else %}-{% endif %}</td>
+      <td>
+        {% if user.profile and user.profile.sites.all %}
+          {% for site in user.profile.sites.all %}
+            {{ site.name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        {% else %}-{% endif %}
+      </td>
+      <td>
+        {% if user.profile and user.profile.sites.all %}
+          {% for site in user.profile.sites.all %}
+            {% if site.district and site.district.region and site.district.region.zone %}
+              {{ site.district.region.zone.name }}{% if not forloop.last %}, {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% else %}-{% endif %}
+      </td>
       <td>{% if user.groups.all %}{{ user.groups.all|join:", " }}{% else %}-{% endif %}</td>
       <td>{% if staff_member.last_login %}{{ staff_member.last_login|date:"F j, Y, g:i a" }}{% else %}-{% endif %}</td>
       <td>

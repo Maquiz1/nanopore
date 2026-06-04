@@ -22,7 +22,8 @@ class Position(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    site = models.ForeignKey(Site, on_delete=models.SET_NULL, null=True, blank=True)
+
+    sites = models.ManyToManyField(Site, blank=True, related_name="profiles")
     phone_number = PhoneNumberField(null=True, blank=True, unique=True)
     prefix = models.ForeignKey(Prefix, on_delete=models.SET_NULL, null=True, blank=True)
     position = models.ForeignKey(Position, on_delete=models.SET_NULL, null=True, blank=True)

@@ -22,9 +22,13 @@ class PositionAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "site", "prefix", "position", "phone_number")
+    list_display = ("user", "get_sites", "prefix", "position", "phone_number")
     search_fields = ("user__username", "phone_number")
-    list_filter = ("site", "prefix", "position")
+    list_filter = ("sites", "prefix", "position")
+
+    def get_sites(self, obj):
+        return ", ".join([s.name for s in obj.sites.all()])
+    get_sites.short_description = "Sites"
 
 
 # -------------------------
@@ -48,18 +52,20 @@ class UserAdmin(BaseUserAdmin):
         "last_name",
         "email",
         "get_zone",
-        "get_site",
+        "get_sites",
         "get_position",
         "get_phone_number",
         "is_active",
         "is_staff",
     )
 
-    # ✅ FIXED: corrected relations for select_related
     list_select_related = (
-        "profile__site__district__region__zone",
         "profile__position",
     )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related("profile__sites__district__region__zone")
 
     search_fields = (
         "username",
@@ -71,7 +77,7 @@ class UserAdmin(BaseUserAdmin):
     list_filter = (
         "is_staff",
         "is_active",
-        "profile__site__district__region__zone",
+        "profile__sites__district__region__zone",
         "profile__position",
     )
 
@@ -79,15 +85,22 @@ class UserAdmin(BaseUserAdmin):
     # Custom display functions
     # -------------------------
 
-    def get_site(self, obj):
-        return obj.profile.site.name if hasattr(obj, "profile") and obj.profile.site else "-"
-    get_site.short_description = "Site"
+    def get_sites(self, obj):
+        if hasattr(obj, "profile") and obj.profile:
+            return ", ".join([s.name for s in obj.profile.sites.all()])
+        return "-"
+    get_sites.short_description = "Sites"
 
     def get_zone(self, obj):
-        try:
-            return obj.profile.site.district.region.zone.name
-        except AttributeError:
-            return "-"
+        if hasattr(obj, "profile") and obj.profile:
+            zones = set()
+            for site in obj.profile.sites.all():
+                try:
+                    zones.add(site.district.region.zone.name)
+                except AttributeError:
+                    pass
+            return ", ".join(zones) if zones else "-"
+        return "-"
     get_zone.short_description = "Zone"
 
     def get_position(self, obj):

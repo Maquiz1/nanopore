@@ -10,8 +10,22 @@
     <p><strong>Email:</strong> {{ staff_member.email }}</p>
     <p><strong>Prefix:</strong> {% if staff_member.profile and staff_member.profile.prefix %}{{ staff_member.profile.prefix.name }}{% else %}-{% endif %}</p>
     <p><strong>Position:</strong> {% if staff_member.profile and staff_member.profile.position %}{{ staff_member.profile.position.name }}{% else %}-{% endif %}</p>
-    <p><strong>Site:</strong> {% if staff_member.profile and staff_member.profile.site %}{{ staff_member.profile.site.name }}{% else %}-{% endif %}</p>
-    <p><strong>Zone:</strong> {% if staff_member.profile and staff_member.profile.site and staff_member.profile.site.district and staff_member.profile.site.district.region and staff_member.profile.site.district.region.zone %}{{ staff_member.profile.site.district.region.zone.name }}{% else %}-{% endif %}</p>
+    <p><strong>Sites:</strong>
+      {% if staff_member.profile and staff_member.profile.sites.all %}
+        {% for site in staff_member.profile.sites.all %}
+          <span class="badge bg-secondary me-1">{{ site.name }}</span>
+        {% endfor %}
+      {% else %}-{% endif %}
+    </p>
+    <p><strong>Zone(s):</strong>
+      {% if staff_member.profile and staff_member.profile.sites.all %}
+        {% for site in staff_member.profile.sites.all %}
+          {% if site.district and site.district.region and site.district.region.zone %}
+            <span class="badge bg-info text-dark me-1">{{ site.district.region.zone.name }}</span>
+          {% endif %}
+        {% endfor %}
+      {% else %}-{% endif %}
+    </p>
     <p><strong>Group:</strong> {% if staff_member.groups.all %}{{ staff_member.groups.all|join:", " }}{% else %}-{% endif %}</p>
     <p><strong>Middle Name:</strong> {% if staff_member.profile %}{{ staff_member.profile.middle_name|default:"-" }}{% else %}-{% endif %}</p>
     <p><strong>Description:</strong> {% if staff_member.profile %}{{ staff_member.profile.description|default:"-" }}{% else %}-{% endif %}</p>

@@ -19,8 +19,8 @@ class ScreeningUpdateView(LoginRequiredMixin, UpdateView):
 
         # Assign user's site if not set (only if you want to override)
         if not obj.site:
-            if hasattr(self.request.user, "profile") and self.request.user.profile.site:
-                obj.site = self.request.user.profile.site
+            if hasattr(self.request.user, "profile") and self.request.user.profile.sites.exists():
+                obj.site = self.request.user.profile.sites.first()
             elif hasattr(self.request.user, "site") and self.request.user.site:
                 obj.site = self.request.user.site
             else:

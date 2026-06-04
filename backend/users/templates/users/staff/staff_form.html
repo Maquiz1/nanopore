@@ -94,8 +94,20 @@
           {{ form.position }}
         </div>
         <div class="col-md-3">
-          <label class="form-label">Site</label>
-          {{ form.site }}
+          <label class="form-label">Sites</label>
+          <div class="border rounded p-2" style="max-height:180px; overflow-y:auto;">
+            {% for checkbox in form.sites %}
+              <div class="form-check">
+                {{ checkbox.tag }}
+                <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                  {{ checkbox.choice_label }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+          {% for error in form.sites.errors %}
+            <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
         </div>
         <div class="col-md-3">
           <label class="form-label">Group(s)</label>

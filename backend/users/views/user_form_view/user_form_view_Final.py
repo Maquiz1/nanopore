@@ -46,7 +46,7 @@ class StaffCreateUpdateView(FormView):
                     "description": getattr(profile, "description", ""),
                     "prefix": profile.prefix,
                     "position": profile.position,
-                    "site": profile.site,
+                    "sites": profile.sites.all(),
                     "phone_number": profile.phone_number,
                 })
         return initial
@@ -61,7 +61,7 @@ class StaffCreateUpdateView(FormView):
         last_name = data.get("last_name")
         prefix = data.get("prefix")
         position = data.get("position")
-        site = data.get("site")
+        sites = data.get("sites")
         phone_number = data.get("phone_number")
         description = data.get("description")
         is_active = data.get("is_active", True)
@@ -86,9 +86,13 @@ class StaffCreateUpdateView(FormView):
             profile.description = description or ""
             profile.prefix = prefix
             profile.position = position
-            profile.site = site
-            profile.phone_number = phone_number or None
+            profile.phone_number = phone_number
             profile.save()
+
+            if sites is not None:
+                profile.sites.set(sites)
+            else:
+                profile.sites.clear()
             
             # Update groups
             if groups is not None:
@@ -116,16 +120,16 @@ class StaffCreateUpdateView(FormView):
                 is_active=is_active
             )
 
-            Profile.objects.create(
+            profile = Profile.objects.create(
                 user=user,
                 middle_name=middle_name,
                 description=description or "",
                 prefix=prefix,
                 position=position,
-                site=site,
-                phone_number=phone_number or None,
+                phone_number=phone_number,
             )
-            
+            if sites is not None:
+                profile.sites.set(sites)
             # Assign groups
             if groups:
                 user.groups.set(groups)

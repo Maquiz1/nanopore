@@ -26,9 +26,9 @@ User = get_user_model()
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['site', 'phone_number', 'prefix', 'position']
+        fields = ['sites', 'phone_number', 'prefix', 'position']
         widgets = {
-            'site': forms.Select(attrs={'class': 'form-select'}),
+            'sites': forms.SelectMultiple(attrs={'class': 'form-select'}),
             'prefix': forms.Select(attrs={'class': 'form-select'}),
             'position': forms.Select(attrs={'class': 'form-select'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
@@ -192,11 +192,11 @@ class StaffForm(forms.Form):
         label="Position",
         widget=forms.Select(attrs={"class": "form-control"})
     )
-    site = forms.ModelChoiceField(
+    sites = forms.ModelMultipleChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        label="Site",
-        widget=forms.Select(attrs={"class": "form-control"})
+        label="Sites",
+        widget=forms.CheckboxSelectMultiple()
     )
     phone_number = forms.CharField(
         required=False,

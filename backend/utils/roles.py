@@ -19,8 +19,9 @@ def get_role_context(user):
         "sites": Site.objects.none(),
     }
 
-    # Admin & Reviewer → full access
-    if user.is_superuser or user.groups.filter(name__in=["ADMIN", "REVIEWER"]).exists():
+    # Admin, Reviewer, & Data Specialist → full access
+    is_data_specialist = hasattr(user, "profile") and user.profile.position and user.profile.position.name.lower() == "data specialist"
+    if user.is_superuser or user.groups.filter(name__in=["ADMIN", "REVIEWER"]).exists() or is_data_specialist:
         context.update({
             "is_admin": True,
             "zones": Zone.objects.all(),
@@ -28,43 +29,72 @@ def get_role_context(user):
         })
         return context
 
-    # Must have profile + site
-    if not hasattr(user, "profile") or not user.profile.site:
+    # Must have profile + at least one site
+    if not hasattr(user, "profile") or not user.profile.sites.exists():
         return context
 
-    site = user.profile.site
-    site_level = site.site_level.code.lower() if site.site_level else ""
+    user_sites = list(user.profile.sites.all())
 
-    # Laboratory Technician
+    # Laboratory Technician — union of zones/sites from all assigned sites
     if user.groups.filter(name="LABORATORY_TECHNICIAN").exists():
-        if site_level == "zonal":
-            zone = site.district.region.zone
-            context.update({
-                "is_zonal_lab": True,
-                "zones": Zone.objects.filter(id=zone.id),
-                "sites": Site.objects.filter(district__region__zone=zone),
-            })
-        elif site_level == "national":
-            country = site.district.region.zone.country
+        zone_ids = set()
+        country_ids = set()
+        site_ids = set()
+        is_zonal = False
+        is_national = False
+
+        for site in user_sites:
+            site_level = site.site_level.code.lower() if site.site_level else ""
+            try:
+                if site_level == "zonal":
+                    is_zonal = True
+                    zone_ids.add(site.district.region.zone.id)
+                elif site_level == "national":
+                    is_national = True
+                    country_ids.add(site.district.region.zone.country.id)
+                else:
+                    site_ids.add(site.id)
+                    zone_ids.add(site.district.region.zone.id)
+            except AttributeError:
+                site_ids.add(site.id)
+
+        if is_national:
+            accessible_zones = Zone.objects.filter(country__id__in=country_ids)
+            accessible_sites = Site.objects.filter(district__region__zone__country__id__in=country_ids)
             context.update({
                 "is_national_lab": True,
-                "zones": Zone.objects.filter(country=country),
-                "sites": Site.objects.filter(district__region__zone__country=country),
+                "zones": accessible_zones,
+                "sites": accessible_sites,
+            })
+        elif is_zonal:
+            accessible_zones = Zone.objects.filter(id__in=zone_ids)
+            accessible_sites = Site.objects.filter(district__region__zone__id__in=zone_ids)
+            context.update({
+                "is_zonal_lab": True,
+                "zones": accessible_zones,
+                "sites": accessible_sites,
             })
         else:
+            accessible_zones = Zone.objects.filter(id__in=zone_ids)
             context.update({
                 "is_site_only": True,
-                "zones": Zone.objects.filter(id=site.district.region.zone.id),
-                "sites": Site.objects.filter(id=site.id),
+                "zones": accessible_zones,
+                "sites": Site.objects.filter(id__in=site_ids),
             })
         return context
 
-    # Nurse & Clinician (own site only)
+    # Nurse & Clinician — all their assigned sites
     if user.groups.filter(name__in=["NURSE", "CLINICIAN"]).exists():
+        zone_ids = set()
+        for site in user_sites:
+            try:
+                zone_ids.add(site.district.region.zone.id)
+            except AttributeError:
+                pass
         context.update({
             "is_site_only": True,
-            "zones": Zone.objects.filter(id=site.district.region.zone.id),
-            "sites": Site.objects.filter(id=site.id),
+            "zones": Zone.objects.filter(id__in=zone_ids),
+            "sites": Site.objects.filter(id__in=[s.id for s in user_sites]),
         })
         return context
 

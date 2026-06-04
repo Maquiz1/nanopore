@@ -14,11 +14,11 @@ class StaffListView(ListView):
     paginate_by = 15  # Adjust per page
 
     def get_queryset(self):
-        qs = User.objects.filter(is_active=True).select_related(
-            'profile',
-            'profile__position',
-            'profile__site__district__region__zone'
-        ).prefetch_related('groups').order_by('username')
+        # Ensure we fetch related profile, site, position, zone, and groups
+        qs = User.objects.filter(is_active=True).select_related('profile__position').prefetch_related(
+            'groups',
+            'profile__sites__district__region__zone'
+        ).order_by('username')
 
         # FILTERS
         username = self.request.GET.get('username')
@@ -41,9 +41,9 @@ class StaffListView(ListView):
         if position:
             qs = qs.filter(profile__position_id=position)
         if site:
-            qs = qs.filter(profile__site_id=site)
+            qs = qs.filter(profile__sites__id=site)
         if zone:
-            qs = qs.filter(profile__site__district__region__zone_id=zone)
+            qs = qs.filter(profile__sites__district__region__zone_id=zone)
         if group:
             qs = qs.filter(groups__id=group)
 
