@@ -22,9 +22,13 @@ class PositionAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "get_sites", "prefix", "position", "phone_number")
+    list_display = ("user", "get_zones", "get_sites", "prefix", "position", "phone_number")
     search_fields = ("user__username", "phone_number")
-    list_filter = ("sites", "prefix", "position")
+    list_filter = ("zones", "sites", "prefix", "position")
+
+    def get_zones(self, obj):
+        return ", ".join([z.name for z in obj.zones.all()])
+    get_zones.short_description = "Explicit Zones"
 
     def get_sites(self, obj):
         return ", ".join([s.name for s in obj.sites.all()])
@@ -65,7 +69,7 @@ class UserAdmin(BaseUserAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.prefetch_related("profile__sites__district__region__zone")
+        return qs.prefetch_related("profile__sites__district__region__zone", "profile__zones")
 
     search_fields = (
         "username",
@@ -94,6 +98,8 @@ class UserAdmin(BaseUserAdmin):
     def get_zone(self, obj):
         if hasattr(obj, "profile") and obj.profile:
             zones = set()
+            for zone in obj.profile.zones.all():
+                zones.add(f"{zone.name} (Explicit)")
             for site in obj.profile.sites.all():
                 try:
                     zones.add(site.district.region.zone.name)
@@ -101,7 +107,7 @@ class UserAdmin(BaseUserAdmin):
                     pass
             return ", ".join(zones) if zones else "-"
         return "-"
-    get_zone.short_description = "Zone"
+    get_zone.short_description = "Zone Access"
 
     def get_position(self, obj):
         return obj.profile.position.name if hasattr(obj, "profile") and obj.profile.position else "-"

@@ -7,7 +7,7 @@ from django.utils.html import format_html
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from phonenumber_field.formfields import PhoneNumberField
-from users.models import Profile, Prefix, Position, Site
+from users.models import Profile, Prefix, Position, Site, Zone
 from django.contrib.auth.models import Group
 from phonenumbers import parse, is_valid_number, NumberParseException
 from django.core.exceptions import ValidationError
@@ -196,6 +196,12 @@ class StaffForm(forms.Form):
         queryset=Site.objects.all(),
         required=False,
         label="Sites",
+        widget=forms.CheckboxSelectMultiple()
+    )
+    zones = forms.ModelMultipleChoiceField(
+        queryset=Zone.objects.all(),
+        required=False,
+        label="Zones",
         widget=forms.CheckboxSelectMultiple()
     )
     phone_number = forms.CharField(

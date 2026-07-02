@@ -117,6 +117,11 @@ pg_dump -U username -h localhost -p 5432 -Fc nanopore > ~/Documents/WORKS/NIMR/D
     
 -->
 
+<!-- 
+
+python manage.py report_queries
+
+-->
 
 
 <!-- WORKING FINES -->

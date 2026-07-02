@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Upload Raw TBLIS Data</h3>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- LAST UPLOAD INFO -->
+    <div id="lastUploadInfo" class="mb-3"></div>
+
+    <!-- ASYNC ERRORS WILL APPEAR HERE -->
+    <div id="errorTableWrapper"></div>
+
+    <div class="card p-3 shadow">
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.file.label_tag }}
+            {{ form.file }}
+            <div class="mt-2 d-flex gap-2">
+                <button type="submit" class="btn btn-success" id="uploadBtn">Upload CSV</button>
+                <button type="button" class="btn btn-danger" id="cancelBtn" style="display:none">Cancel Upload</button>
+            </div>
+        </form>
+
+        <div class="progress mt-3" style="display:none" id="uploadProgressWrapper">
+            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                 id="uploadProgress"
+                 style="width:0%">
+                0%
+            </div>
+        </div>
+
+        <!-- UPLOAD STATISTICS -->
+        <div id="uploadStats" class="mt-3"></div>
+    </div>
+
+    <!-- MERGE SUMMARY CARD (hidden until upload completes) -->
+    <div id="mergeSummaryCard" class="card shadow mt-4" style="display:none">
+        <div class="card-header bg-primary text-white fw-bold">📊 Upload & Merge Summary</div>
+        <div class="card-body">
+            <div class="row text-center g-3" id="mergeSummaryStats"></div>
+            <div class="mt-3" id="mergeSummaryExtra"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const uploadForm = document.getElementById("uploadForm");
+const uploadProgressWrapper = document.getElementById("uploadProgressWrapper");
+const uploadProgress = document.getElementById("uploadProgress");
+const uploadBtn = document.getElementById("uploadBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const errorTableWrapper = document.getElementById("errorTableWrapper");
+const lastUploadInfo = document.getElementById("lastUploadInfo");
+const mergeSummaryCard = document.getElementById("mergeSummaryCard");
+const mergeSummaryStats = document.getElementById("mergeSummaryStats");
+
+let intervalId = null;
+let currentTaskId = null;
+let pendingCount = 0;         
+const MAX_PENDING_POLLS = 8; 
+
+function statCard(label, value, color) {
+    return `
+        <div class="col-6 col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="fs-2 fw-bold text-${color}">${value}</div>
+                <div class="text-muted small">${label}</div>
+            </div>
+        </div>`;
+}
+
+function showMergeSummary(data) {
+    mergeSummaryCard.style.display = "block";
+
+    mergeSummaryStats.innerHTML =
+        statCard("Total TBLIS Rows", data.total ?? "—", "primary") +
+        statCard("🔄 Merged into EDCS", data.updated ?? "—", "info") +
+        statCard("❌ Errors", data.errors ? data.errors.length : 0, "danger");
+
+    const extra = document.getElementById("mergeSummaryExtra");
+    let extraHtml = "";
+    
+    if (data.edcs_not_in_tblis_count > 0 || data.tblis_not_in_edcs_count > 0 || data.mismatches_count > 0) {
+        extraHtml += `<div class="mt-3 p-3 bg-light border rounded">
+            <h5 class="text-danger"><i class="fas fa-exclamation-triangle"></i> Discrepancies Found</h5>
+            <ul class="list-unstyled mb-0">`;
+            
+        if (data.edcs_not_in_tblis_count > 0) {
+            extraHtml += `<li class="mb-2"><a href="{% url 'nanopore:tblis-raw-discrepancies' 'edcs_not_in_tblis' %}" class="text-danger text-decoration-none hover-underline">
+                ⚠️ EDCS records NOT in TBLIS: <strong>${data.edcs_not_in_tblis_count}</strong> (Click to Download)
+            </a></li>`;
+        }
+        if (data.tblis_not_in_edcs_count > 0) {
+            extraHtml += `<li class="mb-2"><a href="{% url 'nanopore:tblis-raw-discrepancies' 'tblis_not_in_edcs' %}" class="text-danger text-decoration-none hover-underline">
+                ⚠️ TBLIS records NOT in EDCS: <strong>${data.tblis_not_in_edcs_count}</strong> (Click to Download)
+            </a></li>`;
+        }
+        if (data.mismatches_count > 0) {
+            extraHtml += `<li><a href="{% url 'nanopore:tblis-raw-discrepancies' 'mismatches' %}" class="text-warning text-decoration-none hover-underline">
+                ⚠️ Mismatched values: <strong>${data.mismatches_count}</strong> (Click to Download)
+            </a></li>`;
+        }
+        extraHtml += `</ul></div>`;
+    }
+    extra.innerHTML = extraHtml;
+}
+
+uploadForm.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    uploadBtn.disabled = true;
+    uploadBtn.innerText = "Uploading...";
+    cancelBtn.style.display = "inline-block";
+    errorTableWrapper.innerHTML = "";
+    mergeSummaryCard.style.display = "none";
+
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData(this);
+
+    xhr.upload.addEventListener("progress", function(event){
+        if(event.lengthComputable){
+            let percent = Math.round((event.loaded / event.total) * 100);
+            uploadProgressWrapper.style.display = "block";
+            uploadProgress.style.width = percent + "%";
+            uploadProgress.innerText = percent + "%";
+            uploadProgress.classList.add("uploading");
+            uploadProgress.classList.remove("processing");
+        }
+    });
+
+    xhr.open("POST", "", true);
+
+    xhr.onload = function(){
+        let data;
+        try {
+            data = JSON.parse(xhr.responseText);
+        } catch(e) {
+            errorTableWrapper.innerHTML = `<div class="alert alert-danger">Server error: ${xhr.responseText}</div>`;
+            uploadBtn.disabled = false;
+            uploadBtn.innerText = "Upload CSV";
+            cancelBtn.style.display = "none";
+            return;
+        }
+
+        if (!data.task_id) {
+            errorTableWrapper.innerHTML = `<div class="alert alert-danger">Upload failed — no task ID returned.</div>`;
+            uploadBtn.disabled = false;
+            uploadBtn.innerText = "Upload CSV";
+            cancelBtn.style.display = "none";
+            return;
+        }
+
+        currentTaskId = data.task_id;
+        pendingCount = 0;
+        const TASK_URL = "{% url 'nanopore:task-status' 'TASKID' %}".replace("TASKID", currentTaskId);
+
+        intervalId = setInterval(()=>{
+            fetch(TASK_URL)
+                .then(r => r.json())
+                .then(data => {
+                    if(data.state === "PENDING"){
+                        pendingCount++;
+                        if(pendingCount >= MAX_PENDING_POLLS){
+                            clearInterval(intervalId);
+                            uploadBtn.disabled = false;
+                            uploadBtn.innerText = "Upload CSV";
+                            cancelBtn.style.display = "none";
+                            uploadProgressWrapper.style.display = "none";
+                            errorTableWrapper.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <strong>⚠ Celery worker is not running.</strong>
+                                </div>`;
+                        }
+                        return;
+                    }
+
+                    pendingCount = 0;
+
+                    if(data.current && data.total){
+                        let pct = Math.round((data.current / data.total) * 100);
+                        uploadProgressWrapper.style.display = "block";
+                        uploadProgress.style.width = pct + "%";
+                        uploadProgress.innerText = pct + "%";
+                        uploadProgress.classList.remove("uploading");
+                        uploadProgress.classList.add("processing");
+                    }
+
+                    if(data.state === "FAILURE"){
+                        clearInterval(intervalId);
+                        uploadBtn.disabled = false;
+                        uploadBtn.innerText = "Upload CSV";
+                        cancelBtn.style.display = "none";
+                        uploadProgressWrapper.style.display = "none";
+                        errorTableWrapper.innerHTML = `<div class="alert alert-danger"><strong>Task failed:</strong><br>${data.error || 'Unknown'}</div>`;
+                        return;
+                    }
+
+                    if(data.state === "SUCCESS" || data.state === "REVOKED"){
+                        clearInterval(intervalId);
+                        uploadBtn.disabled = false;
+                        cancelBtn.style.display = "none";
+                        uploadProgressWrapper.style.display = "none";
+
+                        if(data.errors && data.errors.length){
+                            uploadBtn.innerText = "Re-upload CSV";
+                        } else {
+                            uploadBtn.innerText = "Upload CSV";
+                        }
+
+                        let now = new Date();
+                        lastUploadInfo.innerHTML = `<strong>Last Upload:</strong> ${now.toLocaleString()}`;
+
+                        if(data.state === "REVOKED"){
+                            errorTableWrapper.innerHTML = `<div class="alert alert-warning">Upload cancelled by user.</div>`;
+                            return;
+                        }
+
+                        showMergeSummary(data);
+
+                        if(data.errors && data.errors.length){
+                            let html = `
+                                <div class="alert alert-danger mt-3">
+                                    <h5>Row Errors (${data.errors.length})</h5>
+                                    <table class="table table-sm table-bordered">
+                                        <thead><tr><th>#</th><th>Error</th></tr></thead>
+                                        <tbody>
+                            `;
+                            data.errors.forEach((e,i)=>{
+                                html += `<tr><td>${i+1}</td><td>${e}</td></tr>`;
+                            });
+                            html += "</tbody></table></div>";
+                            errorTableWrapper.innerHTML = html;
+                        } else {
+                            errorTableWrapper.innerHTML = `
+                                <div class="alert alert-success mt-2">
+                                    ✅ Import complete — ${data.updated} rows merged.
+                                </div>
+                            `;
+                        }
+                    }
+                })
+        }, 2000);
+    };
+
+    xhr.send(formData);
+});
+
+cancelBtn.addEventListener("click", function(){
+    if(currentTaskId){
+        fetch("{% url 'nanopore:task-revoke' 'TASKID' %}".replace("TASKID", currentTaskId), {method:"POST"})
+            .then(()=> {
+                clearInterval(intervalId);
+                uploadBtn.disabled = false;
+                uploadBtn.innerText = "Upload CSV";
+                cancelBtn.style.display = "none";
+                uploadProgressWrapper.style.display = "none";
+                errorTableWrapper.innerHTML = `<div class="alert alert-warning">Upload cancelled by user.</div>`;
+            });
+    }
+});
+</script>
+
+<style>
+#uploadProgress.uploading { background-color: #0d6efd; } 
+#uploadProgress.processing { background-color: #198754; } 
+#mergeSummaryCard { border-top: 3px solid #0d6efd; }
+</style>
+
+{% endblock %}

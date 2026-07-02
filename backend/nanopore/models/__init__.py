@@ -5,4 +5,6 @@ from .zonal_lab import ZonalLaboratory
 from .diagnosis import Diagnosis
 from .regimen_changes import RegimenChanges
 from .edcs_tblis_zonal import EdcsTblisZonal
+from .tblis_raw_data import TblisRawData
+from .discrepancies import TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
 from .edcs_tblis_merge_summary import EdcsTblisMergeSummary

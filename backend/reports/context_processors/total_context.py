@@ -1,5 +1,7 @@
 from .form_missing.forms_context import forms_report_total
 from .specific_queries_total import specific_queries_total   # ← import function directly
+from nanopore.models import Screening
+from django.db.models import Q
 from utils.roles import get_role_context
 from utils.permissions import filter_queryset_by_user_role
 
@@ -39,10 +41,25 @@ def global_total_issues(request):
 
     grand_total = missing_forms_total + form_queries_total
 
+    # Calculate substudy counts
+    base_qs = Screening.objects.filter(
+        eligible=True,
+        clinic_laboratory__isnull=False,
+        tblis_laboratory__isnull=False
+    ).filter(
+        Q(tblis_laboratory__culture_performed__isnull=True) | 
+        Q(tblis_laboratory__culture_performed__name__icontains='No') |
+        Q(tblis_laboratory__culture_performed__name__exact='')
+    )
+    substudy2_count = base_qs.filter(clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6]).count()
+    substudy4_count = base_qs.exclude(clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6]).count()
+
     return {
         'context_total_issues': grand_total,
         'context_total_issues_components': {
             'missing_forms': missing_forms_total,
             'form_queries':  form_queries_total,
-        }
+        },
+        'context_substudy2_count': substudy2_count,
+        'context_substudy4_count': substudy4_count,
     }

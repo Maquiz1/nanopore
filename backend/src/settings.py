@@ -296,5 +296,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "reports.tasks.create_missing_forms_dq_snapshot",
         "schedule": crontab(hour=3, minute=0),
     },
+    "daily_zonal_laboratory_sync": {
+        "task": "nanopore.tasks_tblis_raw.sync_zonal_laboratory_daily",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
 

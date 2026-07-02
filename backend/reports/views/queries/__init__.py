@@ -19,6 +19,7 @@ from .forms.missing_form_queries_dashboard_view import MissingFormQueriesDashboa
 from .forms.missing_form_data_quality_dashboard_view import MissingFormDataQualityDashboardView
 from .forms.specific_form_queries_dashboard_view import SpecificFormQueriesDashboardView
 from .forms.specific_form_data_quality_dashboard_view import SpecificFormDataQualityDashboardView
+from .substudy_downloads import SubstudyDownloadView
 
 __all__ = [
     "AllOverviewQueriesDashboardView",
@@ -53,4 +54,5 @@ __all__ = [
     "ZonalDataQualityReportView",
     "ZonalDataQualityView",
     "EdcsTBLISDataQualityView",
+    "SubstudyDownloadView",
 ]

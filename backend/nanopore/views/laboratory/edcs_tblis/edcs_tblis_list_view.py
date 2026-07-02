@@ -39,20 +39,37 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         context["request"] = self.request
 
         # Upload stats
-        total_tblis_records = EdcsTblisZonal.objects.count()
+        merge_summary = EdcsTblisMergeSummary.objects.order_by("-created_at").first()
+        
         total_edcs_records = ZonalLaboratory.objects.count()
+        
+        # Calculate coverage based on ONLY the Zonal records (since Non-Zonal aren't merged)
+        from django.db.models import Q
+        allowed_prefixes = [
+            "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
+            "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
+        ]
+        prefix_query = Q()
+        for prefix in allowed_prefixes:
+            prefix_query |= Q(screening__pid__startswith=prefix)
+        total_zonal_edcs = ZonalLaboratory.objects.filter(prefix_query).count()
+        
+        total_tblis_records = merge_summary.matched_records if merge_summary else 0
         percentage_uploaded = (
-            round((total_tblis_records / total_edcs_records) * 100, 2)
-            if total_edcs_records else 0
+            round((total_tblis_records / total_zonal_edcs) * 100, 2)
+            if total_zonal_edcs else 0
         )
+        
         last_upload = EdcsTblisZonal.objects.order_by("-updated_at").first()
 
         context.update({
             "total_edcs_records": total_edcs_records,
+            "total_zonal_edcs": total_zonal_edcs,
             "total_tblis_records": total_tblis_records,
             "percentage_uploaded": percentage_uploaded,
-            "last_upload": last_upload.updated_at if last_upload else None,
-            "last_upload_by": last_upload.updated_by if last_upload else None,
+            "last_upload": merge_summary.created_at if merge_summary else (last_upload.updated_at if last_upload else None),
+            "last_upload_by": merge_summary.uploaded_by if merge_summary else None,
+            "merge_summary": merge_summary,
         })
 
         # TBLIS date range from DB

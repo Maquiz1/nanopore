@@ -2,7 +2,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from phonenumber_field.modelfields import PhoneNumberField
-from locations.models import Site
+from locations.models import Site, Zone
 
 User = get_user_model()
 
@@ -24,6 +24,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
 
     sites = models.ManyToManyField(Site, blank=True, related_name="profiles")
+    zones = models.ManyToManyField(Zone, blank=True, related_name="profiles")
     phone_number = PhoneNumberField(null=True, blank=True, unique=True)
     prefix = models.ForeignKey(Prefix, on_delete=models.SET_NULL, null=True, blank=True)
     position = models.ForeignKey(Position, on_delete=models.SET_NULL, null=True, blank=True)
