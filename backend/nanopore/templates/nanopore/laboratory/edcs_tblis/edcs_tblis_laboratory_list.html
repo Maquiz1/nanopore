@@ -34,8 +34,9 @@
                     <span id="exportProgressPct">0%</span>
                 </div>
                 <div class="progress" style="height:10px">
-                    <div id="exportProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                         style="width:0%"></div>
+                    <div id="exportProgressBar"
+                        class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:0%">
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -61,13 +62,14 @@
                     <div class="col-6 col-md-3">
                         <div class="border rounded p-3">
                             {% if last_upload %}
-                                <div class="fs-6 fw-bold text-secondary">{{ last_upload|date:"M d, Y" }}</div>
-                                <div class="text-muted small">
-                                    {{ last_upload|date:"H:i" }}
-                                    {% if last_upload_by %}· {{ last_upload_by.get_full_name|default:last_upload_by.username }}{% endif %}
-                                </div>
+                            <div class="fs-6 fw-bold text-secondary">{{ last_upload|date:"M d, Y" }}</div>
+                            <div class="text-muted small">
+                                {{ last_upload|date:"H:i" }}
+                                {% if last_upload_by %}· {{ last_upload_by.get_full_name|default:last_upload_by.username
+                                }}{% endif %}
+                            </div>
                             {% else %}
-                                <div class="fs-6 text-muted">No uploads yet</div>
+                            <div class="fs-6 text-muted">No uploads yet</div>
                             {% endif %}
                             <div class="text-muted small mt-1">Last Upload</div>
                         </div>
@@ -76,23 +78,20 @@
 
                 <!-- Progress bar -->
                 <div class="progress" style="height: 14px;" title="{{ percentage_uploaded }}% merged">
-                    <div class="progress-bar bg-success progress-bar-striped"
-                         role="progressbar"
-                         style="width: {{ percentage_uploaded }}%"
-                         aria-valuenow="{{ percentage_uploaded }}"
-                         aria-valuemin="0"
-                         aria-valuemax="100">
+                    <div class="progress-bar bg-success progress-bar-striped" role="progressbar"
+                        style="width: {{ percentage_uploaded }}%" aria-valuenow="{{ percentage_uploaded }}"
+                        aria-valuemin="0" aria-valuemax="100">
                         {{ percentage_uploaded }}%
                     </div>
                 </div>
                 <div class="text-muted small mt-1">
-                    {{ total_tblis_records }} of {{ total_edcs_records }} EDCS records merged
+                    {{ total_tblis_records }} of {{ total_zonal_edcs }} Zonal EDCS records successfully merged
                 </div>
 
                 {% if merge_summary.tblis_date_from and merge_summary.tblis_date_to %}
                 <div class="mt-2 p-2 bg-light rounded border small">
                     📅 <strong>TBLIS Data Range:</strong>
-                    {{ merge_summary.tblis_date_from }}  →  {{ merge_summary.tblis_date_to }}
+                    {{ merge_summary.tblis_date_from }} → {{ merge_summary.tblis_date_to }}
                     &nbsp;|&nbsp;
                     <strong>{{ merge_summary.total_tblis_rows }}</strong> records in TBLIS file
                 </div>
@@ -100,12 +99,15 @@
 
                 {% if merge_summary %}
                 <div class="mt-2 d-flex gap-3 flex-wrap small">
-                    <span class="badge bg-warning text-dark p-2">
+                    <a href="{% url 'nanopore:tblis-raw-discrepancies' 'edcs_not_in_tblis' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
                         ⚠️ EDCS records NOT in TBLIS: <strong>{{ merge_summary.edcs_not_in_tblis }}</strong>
-                    </span>
-                    <span class="badge bg-warning text-dark p-2">
+                    </a>
+                    <a href="{% url 'nanopore:tblis-raw-discrepancies' 'tblis_not_in_edcs' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
                         ⚠️ TBLIS records NOT in EDCS: <strong>{{ merge_summary.tblis_not_in_edcs }}</strong>
-                    </span>
+                    </a>
+                    <a href="{% url 'nanopore:tblis-raw-discrepancies' 'mismatches' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
+                        ⚠️ Mismatched values: <strong>{{ merge_summary.total_mismatch_records }}</strong>
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -124,6 +126,7 @@
                     <th>Site</th>
                     <th>PID</th>
                     <th>Date Sputum Received</th>
+                    <th>Appearence</th>
                     <th>Lab Number</th>
                     <!-- <th>Result</th> -->
                     <th>Actions</th>
@@ -137,10 +140,12 @@
                     <td>{{ lab.screening.site.name }}</td>
                     <td>{{ lab.screening.pid }}</td>
                     <td>{{ lab.date_sputum_received|date:"M d, Y" }}</td>
+                    <td>{{ lab.appearance }}</td>
                     <td>{{ lab.unique_lab_no }}</td>
                     <!-- <td>{{ lab.result|default:"Pending" }}</td> -->
                     <td>
-                        <a href="{% url 'nanopore:edcs-tblis-laboratory-view' lab.pk %}" class="btn btn-sm btn-primary">View</a>
+                        <a href="{% url 'nanopore:edcs-tblis-laboratory-view' lab.pk %}"
+                            class="btn btn-sm btn-primary">View</a>
                         <!-- <a href="{% url 'nanopore:zonal-laboratory-detail' lab.pk %}" class="btn btn-sm btn-primary">View</a> -->
                         <!-- <a href="{% url 'nanopore:zonal-laboratory-update' lab.pk %}" class="btn btn-sm btn-warning">Edit</a> -->
                         <!-- <a href="{% url 'nanopore:zonal-laboratory-delete' lab.pk %}" class="btn btn-sm btn-danger">Delete</a> -->
@@ -157,133 +162,132 @@
 
     <!-- {% include "partials/pagination.html" %} -->
     {% if is_paginated %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
 
-                {# Previous Page #}
-                {% if page_obj.has_previous %}
+            {# Previous Page #}
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ query_params }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {# First Page #}
+            {% if page_obj.number > 3 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&{{ query_params }}">1</a>
+            </li>
+            {% if page_obj.number > 4 %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+            {% endif %}
+
+            {# Pages around current page (two before and after) #}
+            {% for i in page_obj.paginator.page_range %}
+            {% if i >= page_obj.number|add:"-2" and i <= page_obj.number|add:"2" %} {% if i == page_obj.number %} <li
+                class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% else %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ query_params }}">Previous</a>
+                    <a class="page-link" href="?page={{ i }}&{{ query_params }}">{{ i }}</a>
                 </li>
                 {% endif %}
-
-                {# First Page #}
-                {% if page_obj.number > 3 %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1&{{ query_params }}">1</a>
-                </li>
-                {% if page_obj.number > 4 %}
-                <li class="page-item disabled"><span class="page-link">…</span></li>
                 {% endif %}
-                {% endif %}
-
-                {# Pages around current page (two before and after) #}
-                {% for i in page_obj.paginator.page_range %}
-                    {% if i >= page_obj.number|add:"-2" and i <= page_obj.number|add:"2" %}
-                        {% if i == page_obj.number %}
-                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                        {% else %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ i }}&{{ query_params }}">{{ i }}</a>
-                            </li>
-                        {% endif %}
-                    {% endif %}
                 {% endfor %}
 
                 {# Last Page #}
                 {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
                     {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
-                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
                     {% endif %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ query_params }}">{{ page_obj.paginator.num_pages }}</a>
                     </li>
                 {% endif %}
 
-                {# Next Page #}
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ query_params }}">Next</a>
-                </li>
-                {% endif %}
+                    {# Next Page #}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ query_params }}">Next</a>
+                    </li>
+                    {% endif %}
 
-            </ul>
-        </nav>
+        </ul>
+    </nav>
     {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-const TRIGGER_URL  = "{% url 'nanopore:edcs-tblis-export-trigger' %}";
-const STATUS_BASE  = "{% url 'nanopore:task-status' 'TASKID' %}";
-const SERVE_BASE   = "{% url 'nanopore:edcs-tblis-export-serve' 'FILENAME' %}";
+    const TRIGGER_URL = "{% url 'nanopore:edcs-tblis-export-trigger' %}";
+    const STATUS_BASE = "{% url 'nanopore:task-status' 'TASKID' %}";
+    const SERVE_BASE = "{% url 'nanopore:edcs-tblis-export-serve' 'FILENAME' %}";
 
-const exportBtn            = document.getElementById("exportBtn");
-const exportProgressWrapper= document.getElementById("exportProgressWrapper");
-const exportProgressBar    = document.getElementById("exportProgressBar");
-const exportProgressLabel  = document.getElementById("exportProgressLabel");
-const exportProgressPct    = document.getElementById("exportProgressPct");
+    const exportBtn = document.getElementById("exportBtn");
+    const exportProgressWrapper = document.getElementById("exportProgressWrapper");
+    const exportProgressBar = document.getElementById("exportProgressBar");
+    const exportProgressLabel = document.getElementById("exportProgressLabel");
+    const exportProgressPct = document.getElementById("exportProgressPct");
 
-function startExport() {
-    exportBtn.disabled = true;
-    exportBtn.innerText = "⏳ Preparing…";
-    exportProgressWrapper.style.display = "block";
-    exportProgressBar.style.width = "0%";
-    exportProgressLabel.innerText = "Queuing export task…";
-    exportProgressPct.innerText = "0%";
+    function startExport() {
+        exportBtn.disabled = true;
+        exportBtn.innerText = "⏳ Preparing…";
+        exportProgressWrapper.style.display = "block";
+        exportProgressBar.style.width = "0%";
+        exportProgressLabel.innerText = "Queuing export task…";
+        exportProgressPct.innerText = "0%";
 
-    fetch(TRIGGER_URL, {method: "POST", headers: {"X-CSRFToken": getCsrf()}})
-        .then(r => r.json())
-        .then(data => {
-            if (!data.task_id) { resetExportBtn("❌ Failed to start"); return; }
-            pollExport(data.task_id);
-        })
-        .catch(() => resetExportBtn("❌ Error"));
-}
-
-function pollExport(taskId) {
-    const url = STATUS_BASE.replace("TASKID", taskId);
-    const interval = setInterval(() => {
-        fetch(url)
+        fetch(TRIGGER_URL, { method: "POST", headers: { "X-CSRFToken": getCsrf() } })
             .then(r => r.json())
             .then(data => {
-                if (data.state === "PROGRESS") {
-                    const pct = data.total ? Math.round((data.current / data.total) * 100) : 0;
-                    exportProgressBar.style.width = pct + "%";
-                    exportProgressLabel.innerText = `Exporting… ${data.current} / ${data.total} rows`;
-                    exportProgressPct.innerText = pct + "%";
-                } else if (data.state === "SUCCESS") {
-                    clearInterval(interval);
-                    exportProgressBar.style.width = "100%";
-                    exportProgressLabel.innerText = "✅ Ready! Downloading…";
-                    exportProgressPct.innerText = "100%";
-                    // Auto-trigger download
-                    const filename = data.file || "edcs_tblis_zonal_export.csv";
-                    const dlUrl = SERVE_BASE.replace("FILENAME", filename);
-                    const a = document.createElement("a");
-                    a.href = dlUrl; a.download = filename; a.click();
-                    setTimeout(() => {
-                        resetExportBtn("⬇️ Download All Data (CSV)");
-                        exportProgressWrapper.style.display = "none";
-                    }, 2000);
-                } else if (data.state === "FAILURE") {
-                    clearInterval(interval);
-                    resetExportBtn("❌ Export failed — Retry");
-                    exportProgressLabel.innerText = "Export failed: " + (data.error || "unknown error");
-                }
+                if (!data.task_id) { resetExportBtn("❌ Failed to start"); return; }
+                pollExport(data.task_id);
             })
-            .catch(() => { clearInterval(interval); resetExportBtn("❌ Error"); });
-    }, 1500);
-}
+            .catch(() => resetExportBtn("❌ Error"));
+    }
 
-function resetExportBtn(label) {
-    exportBtn.disabled = false;
-    exportBtn.innerText = label;
-}
+    function pollExport(taskId) {
+        const url = STATUS_BASE.replace("TASKID", taskId);
+        const interval = setInterval(() => {
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.state === "PROGRESS") {
+                        const pct = data.total ? Math.round((data.current / data.total) * 100) : 0;
+                        exportProgressBar.style.width = pct + "%";
+                        exportProgressLabel.innerText = `Exporting… ${data.current} / ${data.total} rows`;
+                        exportProgressPct.innerText = pct + "%";
+                    } else if (data.state === "SUCCESS") {
+                        clearInterval(interval);
+                        exportProgressBar.style.width = "100%";
+                        exportProgressLabel.innerText = "✅ Ready! Downloading…";
+                        exportProgressPct.innerText = "100%";
+                        // Auto-trigger download
+                        const filename = data.file || "edcs_tblis_zonal_export.csv";
+                        const dlUrl = SERVE_BASE.replace("FILENAME", filename);
+                        const a = document.createElement("a");
+                        a.href = dlUrl; a.download = filename; a.click();
+                        setTimeout(() => {
+                            resetExportBtn("⬇️ Download All Data (CSV)");
+                            exportProgressWrapper.style.display = "none";
+                        }, 2000);
+                    } else if (data.state === "FAILURE") {
+                        clearInterval(interval);
+                        resetExportBtn("❌ Export failed — Retry");
+                        exportProgressLabel.innerText = "Export failed: " + (data.error || "unknown error");
+                    }
+                })
+                .catch(() => { clearInterval(interval); resetExportBtn("❌ Error"); });
+        }, 1500);
+    }
 
-function getCsrf() {
-    return document.cookie.split(";").find(c => c.trim().startsWith("csrftoken="))?.split("=")[1] || "";
-}
+    function resetExportBtn(label) {
+        exportBtn.disabled = false;
+        exportBtn.innerText = label;
+    }
+
+    function getCsrf() {
+        return document.cookie.split(";").find(c => c.trim().startsWith("csrftoken="))?.split("=")[1] || "";
+    }
 </script>
 {% endblock %}

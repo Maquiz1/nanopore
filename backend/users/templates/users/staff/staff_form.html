@@ -82,16 +82,31 @@
         </div>
       </div>
 
-      <!-- SECTION 3: Profile Details -->
       <h5 class="mb-3 border-bottom pb-2">Profile Details</h5>
       <div class="row mb-3">
-        <div class="col-md-3">
+        <div class="col-md-2">
           <label class="form-label">Prefix</label>
           {{ form.prefix }}
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <label class="form-label">Position</label>
           {{ form.position }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Zones</label>
+          <div class="border rounded p-2" style="max-height:180px; overflow-y:auto;">
+            {% for checkbox in form.zones %}
+              <div class="form-check">
+                {{ checkbox.tag }}
+                <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                  {{ checkbox.choice_label }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+          {% for error in form.zones.errors %}
+            <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
         </div>
         <div class="col-md-3">
           <label class="form-label">Sites</label>

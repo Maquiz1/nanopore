@@ -53,6 +53,8 @@ class ScreeningFormView(LoginRequiredMixin, View):
             relevant_site = obj.site
         elif hasattr(self.request.user, "profile") and self.request.user.profile.sites.exists():
             relevant_site = self.request.user.profile.sites.first()
+        elif hasattr(self.request.user, "profile") and self.request.user.profile.zones.exists():
+            relevant_site = Site.objects.filter(district__region__zone=self.request.user.profile.zones.first()).first()
 
         user_zone = None
         if relevant_site and relevant_site.district and relevant_site.district.region:
@@ -80,16 +82,24 @@ class ScreeningFormView(LoginRequiredMixin, View):
         # form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
 
         obj = self.get_object(pk)
+        original_site = obj.site if obj else None
+        
         form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
         context = self.get_context_data(form=form, object=obj)
         
         if form.is_valid():
             obj = form.save(commit=False)
+            
+            # If updating an existing record, STRICTLY preserve its original site
+            if pk and original_site:
+                obj.site = original_site
 
-            # Ensure site is set: keep existing if present, otherwise default to user's first assigned site
+            # Ensure site is set for NEW records: default to user's first assigned site
             if not obj.site:
                 if hasattr(request.user, "profile") and request.user.profile.sites.exists():
                     obj.site = request.user.profile.sites.first()
+                elif hasattr(request.user, "profile") and request.user.profile.zones.exists():
+                    obj.site = Site.objects.filter(district__region__zone=request.user.profile.zones.first()).first()
                 else:
                     obj.site = Site.objects.first()
 
@@ -145,6 +155,8 @@ class ScreeningFormView(LoginRequiredMixin, View):
             initial["site"] = obj.site
         elif hasattr(request.user, "profile") and request.user.profile.sites.exists():
             initial["site"] = request.user.profile.sites.first()
+        elif hasattr(request.user, "profile") and request.user.profile.zones.exists():
+            initial["site"] = Site.objects.filter(district__region__zone=request.user.profile.zones.first()).first()
         return initial
 
     def calculate_eligibility(self, obj):

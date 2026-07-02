@@ -21,6 +21,8 @@ class ScreeningUpdateView(LoginRequiredMixin, UpdateView):
         if not obj.site:
             if hasattr(self.request.user, "profile") and self.request.user.profile.sites.exists():
                 obj.site = self.request.user.profile.sites.first()
+            elif hasattr(self.request.user, "profile") and self.request.user.profile.zones.exists():
+                obj.site = Site.objects.filter(district__region__zone=self.request.user.profile.zones.first()).first()
             elif hasattr(self.request.user, "site") and self.request.user.site:
                 obj.site = self.request.user.site
             else:

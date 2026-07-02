@@ -10,18 +10,22 @@
         <i class="fas fa-user-shield"></i>
     </div>
 {% else %}
-    {% if request.user.profile.sites.exists %}
+    {% if request.user.profile.sites.exists or request.user.profile.zones.exists %}
         <div class="alert alert-info d-flex justify-content-between align-items-center">
             <div>
-                <strong>Zone:</strong> {{ request.user.profile.sites.first.district.region.zone.name }} &nbsp; | &nbsp;
+                {% if request.user.profile.zones.exists %}
+                <strong>Zone(s):</strong> {% for z in request.user.profile.zones.all %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
+                {% endif %}
+                {% if request.user.profile.sites.exists %}
                 <strong>Site(s):</strong> {% for s in request.user.profile.sites.all %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
+                {% endif %}
                 <strong>Position:</strong> {{ request.user.profile.position }}
             </div>
             <i class="fas fa-map-marker-alt"></i>
         </div>
     {% else %}
         <div class="alert alert-warning">
-            ⚠️ Your profile does not have a site assigned.
+            ⚠️ Your profile does not have a site or zone assigned.
         </div>
     {% endif %}
 {% endif %}
@@ -32,11 +36,13 @@
 
     <!-- 🔹 Top Buttons -->
     <div class="d-flex justify-content-between mb-3">
-        {% if request.user.is_superuser or is_nurse_clinician %}
+        {% with user_group=request.user.groups.first.name|upper %}
+        {% if request.user.is_superuser or user_group == "ADMIN" %}
             <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
                 ➕ New Screening
             </a>
         {% endif %}
+        {% endwith %}
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
             ⬅ Back to Dashboard
         </a>

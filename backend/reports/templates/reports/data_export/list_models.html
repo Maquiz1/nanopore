@@ -7,7 +7,7 @@
 
     <h2>Available Models for Export</h2>
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN" %}
+    {% if user.is_superuser or user_group in "ADMIN" or user.profile.position.name|lower == "data specialist" %}
     <div class="mb-3">
         <!-- Button for ALL models + Zonal -->
         <button class="btn btn-warning download-all-btn me-2"

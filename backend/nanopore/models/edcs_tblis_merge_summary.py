@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 
 class EdcsTblisMergeSummary(models.Model):
     """
@@ -8,6 +8,7 @@ class EdcsTblisMergeSummary(models.Model):
     The list page displays the latest record.
     """
     created_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     # ── File-level counts ─────────────────────────────────────────────────────
     total_columns          = models.IntegerField(default=0)

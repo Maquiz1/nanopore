@@ -19,9 +19,8 @@ def get_role_context(user):
         "sites": Site.objects.none(),
     }
 
-    # Admin, Reviewer, & Data Specialist → full access
-    is_data_specialist = hasattr(user, "profile") and user.profile.position and user.profile.position.name.lower() == "data specialist"
-    if user.is_superuser or user.groups.filter(name__in=["ADMIN", "REVIEWER"]).exists() or is_data_specialist:
+    # Admin & Reviewer → full access
+    if user.is_superuser or user.groups.filter(name__in=["ADMIN", "REVIEWER"]).exists():
         context.update({
             "is_admin": True,
             "zones": Zone.objects.all(),
@@ -29,11 +28,22 @@ def get_role_context(user):
         })
         return context
 
-    # Must have profile + at least one site
-    if not hasattr(user, "profile") or not user.profile.sites.exists():
+    # Must have profile + at least one site or zone
+    if not hasattr(user, "profile"):
+        return context
+        
+    has_sites = user.profile.sites.exists()
+    has_zones = user.profile.zones.exists()
+    
+    if not has_sites and not has_zones:
         return context
 
     user_sites = list(user.profile.sites.all())
+    user_zones = list(user.profile.zones.all())
+    
+    # Calculate explicit sets
+    explicit_zone_ids = set([z.id for z in user_zones])
+    explicit_site_ids = set([s.id for s in user_sites])
 
     # Laboratory Technician — union of zones/sites from all assigned sites
     if user.groups.filter(name="LABORATORY_TECHNICIAN").exists():
@@ -83,18 +93,27 @@ def get_role_context(user):
             })
         return context
 
-    # Nurse & Clinician — all their assigned sites
-    if user.groups.filter(name__in=["NURSE", "CLINICIAN"]).exists():
-        zone_ids = set()
+    # Nurse, Clinician, Data Specialist — all their assigned sites and sites within assigned zones
+    is_data_specialist = hasattr(user, "profile") and user.profile.position and user.profile.position.name.lower() == "data specialist"
+    if user.groups.filter(name__in=["NURSE", "CLINICIAN"]).exists() or is_data_specialist:
+        zone_ids = explicit_zone_ids.copy()
+        site_ids = explicit_site_ids.copy()
+        
         for site in user_sites:
             try:
                 zone_ids.add(site.district.region.zone.id)
             except AttributeError:
                 pass
+                
+        # Include all sites from explicitly assigned zones
+        if explicit_zone_ids:
+            zone_sites = Site.objects.filter(district__region__zone__id__in=explicit_zone_ids)
+            site_ids.update([s.id for s in zone_sites])
+
         context.update({
             "is_site_only": True,
             "zones": Zone.objects.filter(id__in=zone_ids),
-            "sites": Site.objects.filter(id__in=[s.id for s in user_sites]),
+            "sites": Site.objects.filter(id__in=site_ids),
         })
         return context
 

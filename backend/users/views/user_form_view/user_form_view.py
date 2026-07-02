@@ -47,6 +47,7 @@ class StaffCreateUpdateView(FormView):
                     "prefix": profile.prefix,
                     "position": profile.position,
                     "sites": profile.sites.all(),
+                    "zones": profile.zones.all(),
                     "phone_number": profile.phone_number,
                 })
         return initial
@@ -69,6 +70,7 @@ class StaffCreateUpdateView(FormView):
         prefix = data.get("prefix")
         position = data.get("position")
         sites = data.get("sites")
+        zones = data.get("zones")
         phone_number = data.get("phone_number")
         description = data.get("description")
         is_active = data.get("is_active", True)
@@ -100,6 +102,11 @@ class StaffCreateUpdateView(FormView):
                 profile.sites.set(sites)
             else:
                 profile.sites.clear()
+
+            if zones is not None:
+                profile.zones.set(zones)
+            else:
+                profile.zones.clear()
 
             # Update groups
             if groups is not None:
@@ -141,6 +148,9 @@ class StaffCreateUpdateView(FormView):
             )
             if sites is not None:
                 profile.sites.set(sites)
+                
+            if zones is not None:
+                profile.zones.set(zones)
             
             # Assign groups
             if groups:

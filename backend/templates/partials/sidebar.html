@@ -16,7 +16,7 @@
         <i class="fas fa-user-check"></i><span> Enrolled</span>
     </a>
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
+    {% if user.is_superuser or user_group == "ADMIN" %}
 
     <!-- Extras -->
     <div class="menu-group">
@@ -67,7 +67,7 @@
                 <i class="fas fa-chart-line"></i> Graphs
             </a>
 
-            {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
+            {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
 
             <!-- EDCS / TBLIS -->
             <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"
@@ -84,7 +84,7 @@
     {% endwith %}
 
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
+    {% if user.is_superuser or user_group == "ADMIN" %}
 
     <!-- Snapshots -->
     <div class="menu-group">
@@ -130,7 +130,7 @@
     {% endif %}
 
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
     <!-- Reports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -165,7 +165,7 @@
     </div>
 
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
     <!-- Exports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -174,7 +174,35 @@
         </a>
         <div class="submenu">
             <a href="{% url 'reports:list_models' %}"><i class="fas fa-file-csv"></i> Download</a>
+            {% if user.is_superuser or user_group == "ADMIN" %}
             <a href="{% url 'reports:list_models_view' %}"><i class="fas fa-file-csv"></i> Export</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
+    <!-- Queries Report -->
+    <div class="menu-group">
+        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-file-excel"></i> QUERIES Report</span>
+            <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="submenu">
+            <a href="{% url 'reports:substudy_download' 'substudy2' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-download"></i> Substudy 2</span>
+                {% if context_substudy2_count %}
+                <span class="badge bg-danger rounded-pill">{{ context_substudy2_count|intcomma }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'reports:substudy_download' 'substudy4' %}" class="d-flex justify-content-between">
+                <span><i class="fas fa-download"></i> Substudy 4</span>
+                {% if context_substudy4_count %}
+                <span class="badge bg-danger rounded-pill">{{ context_substudy4_count|intcomma }}</span>
+                {% endif %}
+            </a>
         </div>
     </div>
     {% endif %}
@@ -315,7 +343,7 @@
                     <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% if user.is_superuser or user_group in "ADMIN REVIEWER" %}
+                {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
                 {% if context_edcs_tblis_report_total %}
                 <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="d-flex justify-content-between">
                     <span>Edcs/TBLIS</span>
@@ -332,7 +360,8 @@
     </div>
     {% endif %}
 
-    {% if user.is_superuser %}
+    {% with user_group=request.user.groups.first.name|upper %}
+    {% if user.is_superuser or user.profile.position.name|lower == "data specialist" %}
     <!-- Uploads -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -340,17 +369,20 @@
             <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
+            {% if user.is_superuser %}
             <a href="{% url 'nanopore:screening-upload-values' %}"><i class="fas fa-user-check"></i> Screenings</a>
             <a href="{% url 'nanopore:enrollment-upload-csv' %}"><i class="fas fa-user-plus"></i> Enrollments</a>
             <a href="{% url 'nanopore:clinic-upload-csv' %}"><i class="fas fa-vial"></i> Clinic Lab</a>
             <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
             <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
-            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen
-                Changes</a>
+            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
             <a href="{% url 'nanopore:edcs-tblis-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Edcs-Tblis</a>
+            {% endif %}
+            <a href="{% url 'nanopore:tblis-raw-upload' %}"><i class="fas fa-upload"></i> TBLIS Raw</a>
         </div>
     </div>
     {% endif %}
+    {% endwith %}
 
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group == "ADMIN" %}
