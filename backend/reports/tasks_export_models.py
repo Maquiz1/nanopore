@@ -4,6 +4,11 @@ from celery import shared_task
 from django.conf import settings
 from django.apps import apps
 
+def sanitize_text(val):
+    if isinstance(val, str):
+        return val.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ').strip()
+    return val
+
 
 @shared_task(bind=True)
 def export_model_raw_data_task(self, model_name, filename=None):
@@ -81,28 +86,28 @@ def export_model_raw_data_task(self, model_name, filename=None):
                         def get_m2m_val(v):
                             v_val = getattr(v, "value", None)
                             return v_val if v_val is not None else v.pk
-                        row.append(';'.join(str(get_m2m_val(v)) for v in value))
+                        row.append(sanitize_text(';'.join(str(get_m2m_val(v)) for v in value)))
                     elif f.one_to_one and f.related_model and f.related_model.__name__ == 'Screening':
                         value = getattr(obj, f.name, None)
-                        row.append(value.pid if value else '')
+                        row.append(sanitize_text(value.pid if value else ''))
                     elif f.many_to_one or f.one_to_one:
                         value = getattr(obj, f.name, None)
                         if value:
                             if f.name == "site" and hasattr(value, "name"):
-                                row.append(value.name)
+                                row.append(sanitize_text(value.name))
                             else:
                                 v_val = getattr(value, "value", None)
-                                row.append(v_val if v_val is not None else value.pk)
+                                row.append(sanitize_text(v_val if v_val is not None else value.pk))
                         else:
                             row.append('')
                     else:
                         value = getattr(obj, f.name)
-                        row.append(value)
+                        row.append(sanitize_text(value))
                 except Exception:
                     row.append('')
 
             remarks_value = getattr(obj, 'remarks', '')
-            row.append(remarks_value if remarks_value else '')
+            row.append(sanitize_text(remarks_value if remarks_value else ''))
 
             writer.writerow(row)
 
@@ -170,12 +175,12 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
             return ""
         if not f.is_relation:
             val = getattr(obj, f.name, "")
-            return val if val is not None else ""
+            return sanitize_text(val if val is not None else "")
         if f.many_to_many:
             def get_m2m_val(v):
                 v_val = getattr(v, "value", None)
                 return v_val if v_val is not None else v.pk
-            return ";".join(str(get_m2m_val(v)) for v in getattr(obj, f.name).all())
+            return sanitize_text(";".join(str(get_m2m_val(v)) for v in getattr(obj, f.name).all()))
         
         # Standard FK/OneToOne
         fk_id = obj.__dict__.get(f.attname)
@@ -185,9 +190,9 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
         rm_cache = lookup_cache.get(f.related_model)
         if rm_cache and fk_id in rm_cache:
             val = rm_cache[fk_id]
-            return val if val is not None else ""
+            return sanitize_text(val if val is not None else "")
             
-        return fk_id
+        return sanitize_text(fk_id)
 
     # Headers
     headers = ["pid"]
@@ -244,7 +249,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
                     val = getattr(screening, field_name, None)
                     if val is None or val == "":
                         val = screening.__dict__.get(field_name, "")
-                    row.append(val or "")
+                    row.append(sanitize_text(val or ""))
 
                 # 2. Each model's fields
                 for key, obj_instance in [
@@ -263,7 +268,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
                 # 3. Regimen columns
                 if regimen:
                     for rf in REGIMEN_FIELDS:
-                        row.append(getattr(regimen, rf, "") or "")
+                        row.append(sanitize_text(getattr(regimen, rf, "") or ""))
                 else:
                     row.extend([""] * len(REGIMEN_FIELDS))
 
