@@ -37,6 +37,83 @@
         </div>
     </div>
 
+    <!-- Filters -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-2">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">PID / Lab No</label>
+                    <input type="text" name="pid_labno" class="form-control form-control-sm" placeholder="Search..." value="{{ request.GET.pid_labno }}">
+                </div>
+                
+                {% if assigned_zones %}
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Zone</label>
+                    <select name="zone" class="form-select form-select-sm">
+                        <option value="">All Zones</option>
+                        {% for z in assigned_zones %}
+                            <option value="{{ z.id }}" {% if request.GET.zone|stringformat:"s" == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                {% if assigned_sites %}
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Site / Facility</label>
+                    <select name="site" class="form-select form-select-sm">
+                        <option value="">All Sites</option>
+                        {% for s in assigned_sites %}
+                            <option value="{{ s.id }}" {% if request.GET.site|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Substudy</label>
+                    <select name="substudy" class="form-select form-select-sm">
+                        <option value="">All Substudies</option>
+                        <option value="Substudy 2" {% if request.GET.substudy == 'Substudy 2' %}selected{% endif %}>Substudy 2</option>
+                        <option value="Substudy 4" {% if request.GET.substudy == 'Substudy 4' %}selected{% endif %}>Substudy 4</option>
+                        <option value="Uncategorized" {% if request.GET.substudy == 'Uncategorized' %}selected{% endif %}>Uncategorized</option>
+                    </select>
+                </div>
+                
+                <!-- Advanced Form/Hint Filter -->
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Select Form</label>
+                    <select name="form" class="form-select form-select-sm">
+                        <option value="">None</option>
+                        <option value="enrollment" {% if request.GET.form == 'enrollment' %}selected{% endif %}>Enrollment</option>
+                        <option value="clinic" {% if request.GET.form == 'clinic' %}selected{% endif %}>Clinic Lab</option>
+                        <option value="zonal" {% if request.GET.form == 'zonal' %}selected{% endif %}>Zonal Lab</option>
+                        <option value="diagnosis" {% if request.GET.form == 'diagnosis' %}selected{% endif %}>Diagnosis</option>
+                        <option value="regimen" {% if request.GET.form == 'regimen' %}selected{% endif %}>Regimen</option>
+                        <option value="edcs_tblis" {% if request.GET.form == 'edcs_tblis' %}selected{% endif %}>EDCS TBLIS</option>
+                        <option value="tblis_raw" {% if request.GET.form == 'tblis_raw' %}selected{% endif %}>TBLIS Raw</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small mb-1">Hint</label>
+                    <select name="hint" class="form-select form-select-sm">
+                        <option value="">Any</option>
+                        <option value="Yes" {% if request.GET.hint == 'Yes' %}selected{% endif %}>Yes</option>
+                        <option value="No" {% if request.GET.hint == 'No' %}selected{% endif %}>No</option>
+                        <option value="N/A" {% if request.GET.hint == 'N/A' %}selected{% endif %}>N/A</option>
+                        <option value="N/R" {% if request.GET.hint == 'N/R' %}selected{% endif %}>N/R</option>
+                        <option value="N/F" {% if request.GET.hint == 'N/F' %}selected{% endif %}>N/F</option>
+                    </select>
+                </div>
+
+                <div class="col-md-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-filter"></i></button>
+                    <a href="{% url 'nanopore:master-data-list' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-undo"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Table -->
     <div class="table-responsive bg-white rounded shadow-sm">
         <table class="table table-striped table-hover table-bordered align-middle mb-0">
