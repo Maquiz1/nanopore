@@ -5,4 +5,5 @@ from .regimen import *
 from .laboratory import *
 from .enrollment import *
 from .exports import *
+from .system_controls_view import *
 

@@ -244,12 +244,14 @@ Dashboard — {{ user.get_full_name|default:user.username }}
                     <div class="mt-3">
                         <div class="row g-2">
                             {% if request.user.is_superuser or request.user.groups.all.0.name in "NURSE,CLINICIAN" %}
+                            {% if system_control.enable_new_screening %}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:screening-create' %}"
                                     class="btn btn-light w-100 btn-sm d-flex justify-content-center align-items-center gap-1">
                                     <i class="bi bi-plus-circle"></i> Add New Screening
                                 </a>
                             </div>
+                            {% endif %}
                             {% endif %}
                             <div class="col-md-12 col-12">
                                 <a href="{% url 'nanopore:screened-list' %}?list_type=screened"

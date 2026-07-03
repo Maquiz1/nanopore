@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-cogs"></i> System Controls</h4>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-4">Use these settings to globally enable or disable specific functionalities across the system.</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="list-group mb-4">
+                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <h5 class="mb-1">Enable Form Submissions</h5>
+                            <small class="text-muted">If turned off, users will not be able to submit or update records (Screening, Clinic, Enrollment, etc). The submit buttons will be disabled.</small>
+                        </div>
+                        <div class="form-check form-switch fs-4">
+                            <input class="form-check-input" type="checkbox" name="enable_form_submissions" id="enableFormSubmissions" {% if control.enable_form_submissions %}checked{% endif %}>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <h5 class="mb-1">Enable "New Screening" Button</h5>
+                            <small class="text-muted">If turned off, the "New Screening" button will be completely hidden from the Form Status dashboard.</small>
+                        </div>
+                        <div class="form-check form-switch fs-4">
+                            <input class="form-check-input" type="checkbox" name="enable_new_screening" id="enableNewScreening" {% if control.enable_new_screening %}checked{% endif %}>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

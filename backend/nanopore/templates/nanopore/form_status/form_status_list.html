@@ -38,9 +38,11 @@
     <div class="d-flex justify-content-between mb-3">
         {% with user_group=request.user.groups.first.name|upper %}
         {% if request.user.is_superuser or user_group == "ADMIN" %}
+            {% if system_control.enable_new_screening %}
             <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
                 ➕ New Screening
             </a>
+            {% endif %}
         {% endif %}
         {% endwith %}
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">

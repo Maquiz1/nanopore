@@ -17,6 +17,11 @@
     </a>
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group == "ADMIN" %}
+    <!-- System Controls -->
+    <a href="{% url 'nanopore:system-controls' %}"
+        class="{% if request.resolver_match.url_name == 'system-controls' %}active{% endif %}">
+        <i class="fas fa-cogs"></i><span> System Controls</span>
+    </a>
 
     <!-- Extras -->
     <div class="menu-group">
@@ -27,7 +32,6 @@
         </a>
 
         <div class="submenu">
-
             <a href="{% url 'locations:country-list' %}"
                 class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
                 <i class="fas fa-globe-africa"></i> Countries

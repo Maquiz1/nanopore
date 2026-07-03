@@ -283,7 +283,11 @@
                             </a>
                             {% with user_group=request.user.groups.first.name|upper %}
                             {% if not user_group == "REVIEWER" %}
-                            <button type="submit" class="btn btn-success">💾 Save Enrollment</button>
+                            {% if system_control.enable_form_submissions %}
+                                <button type="submit" class="btn btn-success">💾 Save Enrollment</button>
+                            {% else %}
+                                <button type="button" class="btn btn-secondary" disabled>🚫 Submissions Disabled</button>
+                            {% endif %}
                             {% endif %}
                             {% endwith %}
                         </div>
