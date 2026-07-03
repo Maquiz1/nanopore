@@ -139,6 +139,23 @@ class FormStatusListView(ListView):
         role_context = get_role_context(self.request.user)
         context.update(role_context)
         
+        # Explicit Profile Assignments for Header Display
+        assigned_zones = []
+        assigned_sites = []
+        if hasattr(self.request.user, "profile"):
+            assigned_zones = list(self.request.user.profile.zones.all())
+            explicit_sites = set(self.request.user.profile.sites.all())
+            
+            # Add sites derived from explicitly assigned zones
+            from locations.models import Site
+            derived_sites = set(Site.objects.filter(district__region__zone__in=assigned_zones))
+            assigned_sites = sorted(list(explicit_sites.union(derived_sites)), key=lambda s: s.name)
+
+        context.update({
+            "assigned_zones": assigned_zones,
+            "assigned_sites": assigned_sites,
+        })
+        
         # Explicit group flags to fix template multi-role visibility
         user_groups = [g.upper() for g in self.request.user.groups.values_list('name', flat=True)]
         is_data_specialist = hasattr(self.request.user, "profile") and self.request.user.profile.position and self.request.user.profile.position.name.lower() == "data specialist"
