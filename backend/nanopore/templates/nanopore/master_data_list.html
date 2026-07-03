@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-database text-primary"></i> Master Data Table</h2>
+    </div>
+
+    <!-- Assigned Sites Info (If Applicable) -->
+    {% if assigned_sites or assigned_zones %}
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <div>
+                {% if assigned_zones %}
+                <strong>Zone(s):</strong> {% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
+                {% endif %}
+                {% if assigned_sites %}
+                <strong>Site(s):</strong> {% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
+                {% endif %}
+                <strong>Position:</strong> {{ request.user.profile.position }}
+            </div>
+            <div>
+                <span class="badge bg-primary">Showing assigned data only</span>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <strong>Total records:</strong> {{ object_list|length }}
+        </div>
+        <div>
+            <strong class="text-muted small me-2">HINTS:</strong>
+            <span class="badge bg-secondary">N/A = Not applicable</span>
+            <span class="badge bg-secondary">N/F = Not found</span>
+            <span class="badge bg-secondary">N/R = Not required</span>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive bg-white rounded shadow-sm">
+        <table class="table table-striped table-hover table-bordered align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" class="text-nowrap">PID</th>
+                    <th scope="col" class="text-nowrap">Site / Facility</th>
+                    <th scope="col" class="text-nowrap">Zone</th>
+                    <th scope="col" class="text-center text-nowrap">Substudy</th>
+                    <th scope="col" class="text-center text-nowrap">Eligible</th>
+                    <th scope="col" class="text-center text-nowrap">Screening</th>
+                    <th scope="col" class="text-center text-nowrap">Enrollment</th>
+                    <th scope="col" class="text-center text-nowrap">Clinic Lab</th>
+                    <th scope="col" class="text-center text-nowrap">Zonal Lab</th>
+                    <th scope="col" class="text-center text-nowrap">Diagnosis</th>
+                    <th scope="col" class="text-center text-nowrap">Regimen</th>
+                    <th scope="col" class="text-center text-nowrap">EDCS TBLIS</th>
+                    <th scope="col" class="text-center text-nowrap">TBLIS (Raw CSV)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for screening in object_list %}
+                <tr>
+                    <!-- Demographics -->
+                    <td class="fw-bold text-nowrap">{{ screening.pid }}</td>
+                    <td class="text-nowrap">{{ screening.site.name|default:"-" }}</td>
+                    <td class="text-nowrap">{{ screening.site.district.region.zone.name|default:"-" }}</td>
+                    
+                    <!-- Substudy -->
+                    <td class="text-center text-nowrap">
+                        <span class="badge bg-secondary">{{ screening.substudy_case|default:"-" }}</span>
+                    </td>
+                    
+                    <!-- Eligibility -->
+                    <td class="text-center">
+                        {% if screening.eligible %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Screening -->
+                    <td class="text-center">
+                        <a href="{% url 'nanopore:screening-detail' screening.pk %}" class="badge bg-success text-decoration-none">Yes</a>
+                    </td>
+                    
+                    <!-- Enrollment -->
+                    <td class="text-center">
+                        {% if not screening.eligible %}
+                            {% if screening.enrollment %}
+                                <a href="{% url 'nanopore:enrollment-detail' screening.enrollment.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        {% else %}
+                            {% if screening.enrollment %}
+                                <a href="{% url 'nanopore:enrollment-detail' screening.enrollment.pk %}" class="badge bg-success text-decoration-none">Yes</a>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Clinic Lab -->
+                    <td class="text-center">
+                        {% if not screening.eligible %}
+                            {% if screening.clinic_laboratory %}
+                                <a href="{% url 'nanopore:clinic-laboratory-detail' screening.clinic_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        {% else %}
+                            {% if screening.clinic_laboratory %}
+                                <a href="{% url 'nanopore:clinic-laboratory-detail' screening.clinic_laboratory.pk %}" class="badge bg-success text-decoration-none">Yes</a>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+
+                    <!-- Zonal Lab -->
+                    <td class="text-center">
+                        {% if not screening.eligible %}
+                            {% if screening.zonal_laboratory %}
+                                <a href="{% url 'nanopore:zonal-laboratory-detail' screening.zonal_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        {% else %}
+                            {% if screening.substudy_case == 'Substudy 4' %}
+                                {% if screening.zonal_laboratory %}
+                                    <a href="{% url 'nanopore:zonal-laboratory-detail' screening.zonal_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                                {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            {% else %}
+                                {% if screening.zonal_laboratory %}
+                                    <a href="{% url 'nanopore:zonal-laboratory-detail' screening.zonal_laboratory.pk %}" class="badge bg-success text-decoration-none">Yes</a>
+                                {% else %}
+                                    <span class="badge bg-danger">No</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Diagnosis -->
+                    <td class="text-center">
+                        {% if not screening.eligible %}
+                            {% if screening.diagnosis %}
+                                <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        {% else %}
+                            {% if screening.diagnosis %}
+                                <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-success text-decoration-none">Yes</a>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+
+                    <!-- Regimen -->
+                    <td class="text-center">
+                        {% if not screening.eligible %}
+                            {% if screening.regimen_changes.exists %}
+                                <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        {% else %}
+                            {% if screening.diagnosis and screening.diagnosis.regimen_changed.name|lower == 'yes' %}
+                                {% if screening.regimen_changes.exists %}
+                                    <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-success text-decoration-none">Yes ({{ screening.regimen_changes.count }})</a>
+                                {% else %}
+                                    <span class="badge bg-danger">No</span>
+                                {% endif %}
+                            {% else %}
+                                {% if screening.regimen_changes.exists %}
+                                    <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                                {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+
+                    <!-- EDCS TBLIS -->
+                    <td class="text-center">
+                        {% if not screening.eligible %}
+                            {% if screening.tblis_laboratory %}
+                                <a href="{% url 'nanopore:edcs-tblis-laboratory-view' screening.tblis_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        {% else %}
+                            {% if screening.substudy_case == 'Substudy 4' %}
+                                {% if screening.tblis_laboratory %}
+                                    <a href="{% url 'nanopore:edcs-tblis-laboratory-view' screening.tblis_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
+                                {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            {% else %}
+                                {% if screening.tblis_laboratory %}
+                                    <a href="{% url 'nanopore:edcs-tblis-laboratory-view' screening.tblis_laboratory.pk %}" class="badge bg-success text-decoration-none">Yes</a>
+                                {% else %}
+                                    <span class="badge bg-danger">No</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+
+                    <!-- TBLIS (Raw CSV) -->
+                    <td class="text-center">
+                        {% if screening.zonal_laboratory %}
+                            {% if screening.has_tblis_raw %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary">N/F</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center py-4 text-muted">
+                        <i class="fas fa-folder-open mb-2 fs-3"></i><br>
+                        No data found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
