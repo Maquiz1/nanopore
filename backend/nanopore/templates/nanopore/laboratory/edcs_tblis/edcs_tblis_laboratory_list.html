@@ -65,8 +65,7 @@
                             <div class="fs-6 fw-bold text-secondary">{{ last_upload|date:"M d, Y" }}</div>
                             <div class="text-muted small">
                                 {{ last_upload|date:"H:i" }}
-                                {% if last_upload_by %}· {{ last_upload_by.get_full_name|default:last_upload_by.username
-                                }}{% endif %}
+                                {% if last_upload_by %}· {{ last_upload_by.get_full_name|default:last_upload_by.username }}{% endif %}
                             </div>
                             {% else %}
                             <div class="fs-6 text-muted">No uploads yet</div>
