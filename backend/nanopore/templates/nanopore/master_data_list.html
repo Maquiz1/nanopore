@@ -27,7 +27,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
-            <strong>Total records:</strong> {{ object_list|length }}
+            <strong>Total records:</strong> {{ page_obj.paginator.count|default:object_list|length }}
         </div>
         <div>
             <strong class="text-muted small me-2">HINTS:</strong>
@@ -70,13 +70,22 @@
                 </div>
                 {% endif %}
                 
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small mb-1">Substudy</label>
                     <select name="substudy" class="form-select form-select-sm">
-                        <option value="">All Substudies</option>
-                        <option value="Substudy 2" {% if request.GET.substudy == 'Substudy 2' %}selected{% endif %}>Substudy 2</option>
-                        <option value="Substudy 4" {% if request.GET.substudy == 'Substudy 4' %}selected{% endif %}>Substudy 4</option>
-                        <option value="Uncategorized" {% if request.GET.substudy == 'Uncategorized' %}selected{% endif %}>Uncategorized</option>
+                        <option value="">All</option>
+                        <option value="Substudy 2" {% if request.GET.substudy == 'Substudy 2' %}selected{% endif %}>Sub 2</option>
+                        <option value="Substudy 4" {% if request.GET.substudy == 'Substudy 4' %}selected{% endif %}>Sub 4</option>
+                        <option value="Uncategorized" {% if request.GET.substudy == 'Uncategorized' %}selected{% endif %}>Uncat</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-1">
+                    <label class="form-label small mb-1">Eligible</label>
+                    <select name="eligibility" class="form-select form-select-sm">
+                        <option value="">All</option>
+                        <option value="Yes" {% if request.GET.eligibility == 'Yes' %}selected{% endif %}>Yes</option>
+                        <option value="No" {% if request.GET.eligibility == 'No' %}selected{% endif %}>No</option>
                     </select>
                 </div>
                 
@@ -311,5 +320,24 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-4" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a></li>
+            {% endif %}
+            
+            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

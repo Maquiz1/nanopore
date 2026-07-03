@@ -7,6 +7,7 @@ class MasterDataListView(LoginRequiredMixin, ListView):
     model = Screening
     template_name = "nanopore/master_data_list.html"
     context_object_name = "screenings"
+    paginate_by = 10
 
     def get_queryset(self):
         # Base QuerySet with optimizations
@@ -75,6 +76,12 @@ class MasterDataListView(LoginRequiredMixin, ListView):
         substudy_query = self.request.GET.get("substudy", "").strip()
         if substudy_query:
             qs = qs.filter(substudy_case=substudy_query)
+            
+        eligibility_query = self.request.GET.get("eligibility", "").strip()
+        if eligibility_query == "Yes":
+            qs = qs.filter(eligible=True)
+        elif eligibility_query == "No":
+            qs = qs.filter(eligible=False)
             
         # Handle complex Form + Hint filtering
         form_query = self.request.GET.get("form", "").strip()
