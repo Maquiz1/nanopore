@@ -102,8 +102,9 @@ TEMPLATES = [
                 "reports.context_processors.form_queries.edcs_tblis_laboratory_context_processor.edcs_tblis_report_total",
                 # "reports.context_processors.form_queries.regimen_context.regimen_report_total",
                 "reports.context_processors.form_queries.regimen_context_processor.regimen_report_total",
-                "reports.context_processors.specific_queries_total.specific_queries_total",   # ← add this line
+                "reports.context_processors.specific_queries_total.specific_queries_total",
                 'reports.context_processors.total_context.global_total_issues',
+                'nanopore.context_processors.system_controls',
             ],
         },
     },

@@ -17,7 +17,11 @@
           {{ regimen_form.as_p }}
         </div>
         <div class="modal-footer">
-              <button type="submit" class="btn btn-primary" id="regimenModalSaveBtn">Save</button>
+              {% if system_control.enable_form_submissions %}
+                 <button type="submit" class="btn btn-primary" id="regimenModalSaveBtn">Save</button>
+             {% else %}
+                 <button type="button" class="btn btn-secondary" disabled>Disabled</button>
+             {% endif %}
         </div>
       </form>
     </div>
