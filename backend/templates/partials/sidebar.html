@@ -15,6 +15,10 @@
         class="{% if request.resolver_match.url_name == 'enrolled-list' or request.resolver_match.url_name == 'enrollment-update' %}active{% endif %}">
         <i class="fas fa-user-check"></i><span> Enrolled</span>
     </a>
+    <a href="{% url 'nanopore:master-data-list' %}"
+        class="{% if request.resolver_match.url_name == 'master-data-list' %}active{% endif %}">
+        <i class="fas fa-database"></i><span> Master Data Table</span>
+    </a>
     {% with user_group=request.user.groups.first.name|upper %}
     {% if user.is_superuser or user_group == "ADMIN" %}
     <!-- System Controls -->

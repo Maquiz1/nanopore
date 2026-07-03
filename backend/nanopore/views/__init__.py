@@ -6,4 +6,5 @@ from .laboratory import *
 from .enrollment import *
 from .exports import *
 from .system_controls_view import *
+from .master_data_list import *
 
