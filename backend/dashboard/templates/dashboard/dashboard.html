@@ -89,6 +89,18 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div
             class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
             <div>
+                {% if assigned_zones %}
+                <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i>
+                    <strong>Zone(s):</strong>
+                    {% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </p>
+                {% endif %}
+                {% if assigned_sites %}
+                <p class="mb-1"><i class="fas fa-hospital text-success me-2"></i>
+                    <strong>Site(s):</strong>
+                    {% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </p>
+                {% endif %}
                 <p class="mb-0 fs-5 text-dark">
                     <i class="fas fa-user-shield text-primary me-2"></i>
                     <strong>Position:</strong> {{ request.user.profile.position }}
@@ -108,16 +120,16 @@ Dashboard — {{ user.get_full_name|default:user.username }}
         <div
             class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">
             <div>
-                {% if request.user.profile.zones.exists %}
+                {% if assigned_zones %}
                 <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i>
                     <strong>Zone(s):</strong>
-                    {% for z in request.user.profile.zones.all %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
                 </p>
                 {% endif %}
-                {% if request.user.profile.sites.exists %}
+                {% if assigned_sites %}
                 <p class="mb-1"><i class="fas fa-hospital text-success me-2"></i>
                     <strong>Site(s):</strong>
-                    {% for s in request.user.profile.sites.all %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
                 </p>
                 {% endif %}
                 <p class="mb-0"><i class="fas fa-briefcase text-success me-2"></i>

@@ -13,11 +13,11 @@
     {% if request.user.profile.sites.exists or request.user.profile.zones.exists %}
         <div class="alert alert-info d-flex justify-content-between align-items-center">
             <div>
-                {% if request.user.profile.zones.exists %}
-                <strong>Zone(s):</strong> {% for z in request.user.profile.zones.all %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
+                {% if assigned_zones %}
+                <strong>Zone(s):</strong> {% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
                 {% endif %}
-                {% if request.user.profile.sites.exists %}
-                <strong>Site(s):</strong> {% for s in request.user.profile.sites.all %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
+                {% if assigned_sites %}
+                <strong>Site(s):</strong> {% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
                 {% endif %}
                 <strong>Position:</strong> {{ request.user.profile.position }}
             </div>
@@ -150,7 +150,7 @@
                 {% for screening in object_list %}
                 <tr>
                     <td>
-                        {% if request.user.is_superuser or is_nurse_clinician %}
+                        {% if request.user.is_superuser or is_nurse_clinician or request.user.profile.position.name|lower == "data specialist" %}
                             <a href="{% url 'nanopore:screening-update' screening.pk %}">{{ screening.pid }}</a>
                         {% else %}
                             {{ screening.pid }}

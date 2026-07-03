@@ -68,6 +68,20 @@ class DashboardHomeView(ListView):
             "sites": {s.id: s.name for s in role_context["sites"]},
         })
         
+        # Explicit Profile Assignments for Header Display
+        assigned_zones = []
+        assigned_sites = []
+        if hasattr(self.request.user, "profile"):
+            assigned_zones = list(self.request.user.profile.zones.all())
+            explicit_sites = set(self.request.user.profile.sites.all())
+            derived_sites = set(Site.objects.filter(district__region__zone__in=assigned_zones))
+            assigned_sites = sorted(list(explicit_sites.union(derived_sites)), key=lambda s: s.name)
+
+        context.update({
+            "assigned_zones": assigned_zones,
+            "assigned_sites": assigned_sites,
+        })
+        
         user_site = getattr(getattr(self.request.user, "profile", None), "site", None)
         user_zone = None
 
