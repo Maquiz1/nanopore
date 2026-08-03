@@ -3,7 +3,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Min, Max
 from django.utils import timezone
 from locations.models import Zone, Site
-from nanopore.models import EdcsTblisZonal, ZonalLaboratory, EdcsTblisMergeSummary
+from nanopore.models import (
+    EdcsTblisMergeSummary,
+    EdcsTblisZonal,
+    TblisRawData,
+    TblisUploadBatch,
+    ZonalLaboratory,
+)
 from utils.permissions import filter_queryset_by_user_role
 
 
@@ -39,20 +45,42 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         context["request"] = self.request
 
         # Upload stats
-        merge_summary = EdcsTblisMergeSummary.objects.order_by("-created_at").first()
-        
         total_edcs_records = ZonalLaboratory.objects.count()
         
-        # Calculate coverage based on ONLY the Zonal records (since Non-Zonal aren't merged)
+        # CTRL laboratory records are the Dar es Salaam records that receive TBLIS transformations.
         from django.db.models import Q
-        allowed_prefixes = [
+        ctrl_prefixes = [
             "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
             "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
         ]
         prefix_query = Q()
-        for prefix in allowed_prefixes:
+        for prefix in ctrl_prefixes:
             prefix_query |= Q(screening__pid__startswith=prefix)
-        total_zonal_edcs = ZonalLaboratory.objects.filter(prefix_query).count()
+        ctrl_laboratories = ZonalLaboratory.objects.filter(prefix_query)
+        zonal_lab_numbers = ZonalLaboratory.objects.values("unique_lab_no")
+        latest_upload_batch = TblisUploadBatch.objects.first()
+        merge_summary = (
+            EdcsTblisMergeSummary.objects.filter(upload_batch=latest_upload_batch).first()
+            if latest_upload_batch
+            else EdcsTblisMergeSummary.objects.first()
+        )
+        latest_tblis_rows = (
+            TblisRawData.objects.filter(upload_batch=latest_upload_batch)
+            if latest_upload_batch
+            else TblisRawData.objects.none()
+        )
+        tblis_lab_numbers = latest_tblis_rows.values("labno")
+
+        total_zonal_edcs = ctrl_laboratories.count()
+        total_ctrl_records = total_zonal_edcs
+        total_raw_tblis_records = latest_tblis_rows.count()
+        total_merged_records = latest_tblis_rows.filter(is_merged=True).count()
+        total_edcs_not_in_tblis = ctrl_laboratories.exclude(
+            unique_lab_no__in=tblis_lab_numbers
+        ).count()
+        total_tblis_not_in_edcs = latest_tblis_rows.exclude(
+            labno__in=zonal_lab_numbers
+        ).count()
         
         total_tblis_records = merge_summary.matched_records if merge_summary else 0
         percentage_uploaded = (
@@ -66,6 +94,12 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             "total_edcs_records": total_edcs_records,
             "total_zonal_edcs": total_zonal_edcs,
             "total_tblis_records": total_tblis_records,
+            "total_ctrl_records": total_ctrl_records,
+            "total_raw_tblis_records": total_raw_tblis_records,
+            "total_merged_records": total_merged_records,
+            "total_edcs_not_in_tblis": total_edcs_not_in_tblis,
+            "total_tblis_not_in_edcs": total_tblis_not_in_edcs,
+            "latest_upload_batch": latest_upload_batch,
             "percentage_uploaded": percentage_uploaded,
             "last_upload": merge_summary.created_at if merge_summary else (last_upload.updated_at if last_upload else None),
             "last_upload_by": merge_summary.uploaded_by if merge_summary else None,
@@ -79,8 +113,5 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         )
         context["tblis_date_from"] = date_agg["date_from"]
         context["tblis_date_to"]   = date_agg["date_to"]
-
-        # Latest merge summary from management command
-        context["merge_summary"] = EdcsTblisMergeSummary.objects.first()
 
         return context

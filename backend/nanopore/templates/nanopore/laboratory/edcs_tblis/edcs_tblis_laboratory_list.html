@@ -75,6 +75,47 @@
                     </div>
                 </div>
 
+                <div class="row text-center g-3 mb-3">
+                    <div class="col-6 col-md">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-primary">{{ total_ctrl_records|default:"0" }}</div>
+                            <div class="text-muted small">Total CTRL Records</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-secondary">{{ total_raw_tblis_records|default:"0" }}</div>
+                            <div class="text-muted small">Total TBLIS Records</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-success">{{ total_merged_records|default:"0" }}</div>
+                            <div class="text-muted small">Total Merged Records</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-warning">{{ total_edcs_not_in_tblis|default:"0" }}</div>
+                            <div class="text-muted small">EDCS Records Not in TBLIS</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-danger">{{ total_tblis_not_in_edcs|default:"0" }}</div>
+                            <div class="text-muted small">TBLIS Records Not in EDCS</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if latest_upload_batch %}
+                <div class="text-muted small mb-3">
+                    Counts above are from the latest TBLIS upload: <strong>{{ latest_upload_batch.source_file_name }}</strong>.
+                </div>
+                {% else %}
+                <div class="text-muted small mb-3">No batched TBLIS upload has been processed yet.</div>
+                {% endif %}
+
                 <!-- Progress bar -->
                 <div class="progress" style="height: 14px;" title="{{ percentage_uploaded }}% merged">
                     <div class="progress-bar bg-success progress-bar-striped" role="progressbar"

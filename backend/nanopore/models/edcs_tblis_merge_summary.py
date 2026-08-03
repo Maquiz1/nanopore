@@ -9,6 +9,13 @@ class EdcsTblisMergeSummary(models.Model):
     """
     created_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    upload_batch = models.ForeignKey(
+        "TblisUploadBatch",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="merge_summaries",
+    )
 
     # ── File-level counts ─────────────────────────────────────────────────────
     total_columns          = models.IntegerField(default=0)

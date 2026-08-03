@@ -1,12 +1,19 @@
 import csv
 import logging
+import os
 from celery import shared_task
 from django.apps import apps
 from django.db import transaction
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
-from nanopore.models import TblisRawData, EdcsTblisZonal, ZonalLaboratory, EdcsTblisMergeSummary
+from nanopore.models import (
+    EdcsTblisMergeSummary,
+    EdcsTblisZonal,
+    TblisRawData,
+    TblisUploadBatch,
+    ZonalLaboratory,
+)
 from nanopore.models.discrepancies import TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
 from options.models import (
     SampleAppearance, YesNo, CultureMethod, MicroscopyType, CultureMicroscopyResults,
@@ -100,14 +107,14 @@ lpa2_results_map = {
     "Resistance Inferred": 4, "MTB Not Detected": None
 }
 
-allowed_prefixes = [
+CTRL_PREFIXES = [
     "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
     "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
 ]
 
-def get_zonal_prefix_query():
+def get_ctrl_prefix_query():
     prefix_query = Q()
-    for prefix in allowed_prefixes:
+    for prefix in CTRL_PREFIXES:
         prefix_query |= Q(screening__pid__startswith=prefix)
     return prefix_query
 
@@ -358,7 +365,7 @@ def sync_zonal_laboratory_to_edcs(z_lab, clean_row=None):
 
 # --- CELERY TASKS ---
 @shared_task(bind=True)
-def process_raw_tblis_upload(self, filepath, user_id=None):
+def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None):
     """
     Reads a raw TBLIS CSV in memory-safe chunks, saves to TblisRawData,
     and merges matching records into EdcsTblisZonal.
@@ -368,6 +375,10 @@ def process_raw_tblis_upload(self, filepath, user_id=None):
     row_errors = []
     created = 0
     updated = 0
+    upload_batch = TblisUploadBatch.objects.create(
+        source_file_name=source_filename or os.path.basename(filepath),
+        uploaded_by_id=user_id,
+    )
     
     # Clear previous discrepancies for a fresh start per upload session
     TblisNotInEdcs.objects.all().delete()
@@ -395,7 +406,8 @@ def process_raw_tblis_upload(self, filepath, user_id=None):
                 raw_entry = TblisRawData.objects.create(
                     labno=labno,
                     raw_data=clean_row,
-                    uploaded_by_id=user_id
+                    uploaded_by_id=user_id,
+                    upload_batch=upload_batch,
                 )
 
                 # 2. Find matching ZonalLaboratory record
@@ -407,15 +419,15 @@ def process_raw_tblis_upload(self, filepath, user_id=None):
                     row_errors.append(f"Row {idx}: labno {labno} not found in ZonalLaboratory records.")
                     continue
 
-                # 3. Check if it has a Zonal prefix
-                is_zonal = False
-                for prefix in allowed_prefixes:
+                # 3. Apply TBLIS values only to CTRL laboratory records.
+                is_ctrl_lab = False
+                for prefix in CTRL_PREFIXES:
                     if z_lab.screening.pid.startswith(prefix):
-                        is_zonal = True
+                        is_ctrl_lab = True
                         break
 
-                if is_zonal:
-                    # Apply TBLIS transformations on top of ZonalLaboratory data
+                if is_ctrl_lab:
+                    # Apply TBLIS transformations on top of ZonalLaboratory data.
                     sync_zonal_laboratory_to_edcs(z_lab, clean_row)
                     raw_entry.is_merged = True
                     raw_entry.save(update_fields=['is_merged'])
@@ -431,19 +443,20 @@ def process_raw_tblis_upload(self, filepath, user_id=None):
             if processed % 100 == 0:
                 self.update_state(state="PROGRESS", meta={"current": processed, "total": total})
 
-    # 4. Sync ALL remaining non-zonal records from ZonalLaboratory
-    # This ensures any non-zonal record that wasn't even in the CSV is also kept perfectly in sync
-    non_zonal_labs = ZonalLaboratory.objects.exclude(get_zonal_prefix_query())
-    for z_lab in non_zonal_labs:
+    # 4. Sync all non-CTRL records from ZonalLaboratory without TBLIS transformations.
+    non_ctrl_labs = ZonalLaboratory.objects.exclude(get_ctrl_prefix_query())
+    for z_lab in non_ctrl_labs:
         try:
             sync_zonal_laboratory_to_edcs(z_lab, None)
         except Exception as e:
             logger.error(f"Error syncing non-zonal {z_lab.unique_lab_no}: {e}")
 
-    # 5. Find EDCS records not in the uploaded TBLIS file (only applies to Zonal prefixes)
-    uploaded_labnos = TblisRawData.objects.values_list('labno', flat=True)
-    zonal_edcs_qs = EdcsTblisZonal.objects.filter(get_zonal_prefix_query())
-    missing_edcs = zonal_edcs_qs.exclude(unique_lab_no__in=uploaded_labnos)
+    # 5. Find CTRL EDCS records not in the uploaded TBLIS file.
+    uploaded_labnos = TblisRawData.objects.filter(
+        upload_batch=upload_batch
+    ).values_list('labno', flat=True)
+    ctrl_edcs_qs = EdcsTblisZonal.objects.filter(get_ctrl_prefix_query())
+    missing_edcs = ctrl_edcs_qs.exclude(unique_lab_no__in=uploaded_labnos)
     
     edcs_missing_objs = []
     for edcs_rec in missing_edcs:
@@ -462,8 +475,8 @@ def process_raw_tblis_upload(self, filepath, user_id=None):
     total_edcs = EdcsTblisZonal.objects.count()
 
     # Extract date range from filename (e.g. CTRL-TBLIS-DFN-AllData-SAMPLES_01-01-2025-to-31-03-2026.csv)
-    import os, re
-    filename = os.path.basename(filepath)
+    import re
+    filename = source_filename or os.path.basename(filepath)
     date_from, date_to = "", ""
     match = re.search(r'(\d{2}-\d{2}-\d{4})-to-(\d{2}-\d{2}-\d{4})', filename)
     if match:
@@ -484,6 +497,7 @@ def process_raw_tblis_upload(self, filepath, user_id=None):
         total_mismatch_records=mismatches_count,
         mismatch_by_field={},
         uploaded_by_id=user_id,
+        upload_batch=upload_batch,
     )
 
     return {
@@ -493,6 +507,7 @@ def process_raw_tblis_upload(self, filepath, user_id=None):
         "updated": updated,
         "errors": row_errors,
         "state": "SUCCESS",
+        "upload_batch_id": upload_batch.id,
         "edcs_not_in_tblis_count": EdcsNotInTblis.objects.count(),
         "tblis_not_in_edcs_count": TblisNotInEdcs.objects.count(),
         "mismatches_count": EdcsTblisMismatch.objects.count(),
@@ -511,15 +526,15 @@ def sync_zonal_laboratory_daily():
     updated_count = 0
     for z_lab in zonal_labs:
         try:
-            # Check if it has a Zonal prefix
-            is_zonal = False
-            for prefix in allowed_prefixes:
+            # Apply the latest raw TBLIS transformation only to CTRL laboratory records.
+            is_ctrl_lab = False
+            for prefix in CTRL_PREFIXES:
                 if z_lab.screening.pid.startswith(prefix):
-                    is_zonal = True
+                    is_ctrl_lab = True
                     break
                     
             clean_row = None
-            if is_zonal:
+            if is_ctrl_lab:
                 # Find the latest TBLIS raw data for this labno
                 raw_entry = TblisRawData.objects.filter(labno=z_lab.unique_lab_no).order_by('-uploaded_at').first()
                 if raw_entry:
