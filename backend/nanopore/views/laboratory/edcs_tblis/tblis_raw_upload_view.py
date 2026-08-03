@@ -1,4 +1,5 @@
 import os
+from uuid import uuid4
 from django.views import View
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -19,7 +20,10 @@ class TblisRawUploadView(LoginRequiredMixin, View):
             return render(request, self.template_name, {"form": form})
 
         file_instance = request.FILES["file"]
-        file_path = os.path.join("media", "imports", "tblis_raw", file_instance.name)
+        original_filename = os.path.basename(file_instance.name)
+        file_extension = os.path.splitext(original_filename)[1]
+        stored_filename = f"{uuid4().hex}{file_extension}"
+        file_path = os.path.join("media", "imports", "tblis_raw", stored_filename)
 
         # Make sure the directory exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -30,6 +34,6 @@ class TblisRawUploadView(LoginRequiredMixin, View):
                 destination.write(chunk)
 
         # Pass absolute path to Celery for background processing
-        task = process_raw_tblis_upload.delay(file_path, request.user.id)
+        task = process_raw_tblis_upload.delay(file_path, request.user.id, original_filename)
 
         return JsonResponse({"task_id": task.id})
