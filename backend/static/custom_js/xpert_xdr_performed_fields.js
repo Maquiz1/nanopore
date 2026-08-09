@@ -3,8 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const XpertXdrPerformed = document.getElementById("id_xpert_xdr_performed");
 
     // Field to show/hide
-    const xpertXdrDatePerformed = document.getElementById("id_xpert_xdr_date_performed");
-    const xpertXdrDatePerformedSection = document.getElementById("xpert-xdr-date-performed-section");
+    const xpertXdrDatePerformedSection = document.getElementById("xpert-xdr-date-performed");
     const xpertXdrHeader = document.getElementById("xpert-xdr-header");
     const xpertXdrResults = document.getElementById("xpert-xdr-results");
 
@@ -14,21 +13,19 @@ document.addEventListener("DOMContentLoaded", function () {
         const value = String(XpertXdrPerformed?.value || "");
 
         if (value === "1") {
-            xpertXdrDatePerformedSection.style.display = "block";
-            xpertXdrDatePerformed.style.display = "block";
-            xpertXdrHeader.style.display = "block";
-            xpertXdrResults.style.display = "block";
+            if (xpertXdrDatePerformedSection) xpertXdrDatePerformedSection.style.display = "block";
+            if (xpertXdrHeader) xpertXdrHeader.style.display = "block";
+            if (xpertXdrResults) xpertXdrResults.style.display = "block";
         } else {
-            xpertXdrDatePerformedSection.style.display = "none";
-            xpertXdrDatePerformed.style.display = "none";
-            xpertXdrHeader.style.display = "none";
-            xpertXdrResults.style.display = "none";
+            if (xpertXdrDatePerformedSection) xpertXdrDatePerformedSection.style.display = "none";
+            if (xpertXdrHeader) xpertXdrHeader.style.display = "none";
+            if (xpertXdrResults) xpertXdrResults.style.display = "none";
         }
     }
 
     // Initial state on page load
     toggleXpertXdrPerformed();
 
-    // Update when either result changes
+    // Update when dropdown changes
     XpertXdrPerformed.addEventListener("change", toggleXpertXdrPerformed);
 });
