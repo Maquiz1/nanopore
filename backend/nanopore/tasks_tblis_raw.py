@@ -247,11 +247,56 @@ def apply_tblis_transformations(edcs_zonal, clean_row, labno):
     # Phenotypic DST Date
     mgitdst1_date = clean_row.get("mgitdst1_date")
     mgitdst2_date = clean_row.get("mgitdst2_date")
-    pheno_date = mgitdst1_date or mgitdst2_date
-    # if pheno_date:
-    #     parsed_pheno_date = parse_date_field(pheno_date)
-    #     log_mismatch("phenotypic_date_results", edcs_zonal.phenotypic_date_results, parsed_pheno_date)
-    #     edcs_zonal.phenotypic_date_results = parsed_pheno_date
+    ljdst1_date = clean_row.get("ljdst1_date")
+    ljdst2_date = clean_row.get("ljdst2_date")
+    
+    mgitdst1_entrydate = clean_row.get("mgitdst1_entrydate")
+    mgitdst2_entrydate = clean_row.get("mgitdst2_entrydate")
+    ljdst1_entrydate = clean_row.get("ljdst1_entrydate")
+    ljdst2_entrydate = clean_row.get("ljdst2_entrydate")
+    
+    pheno_date = mgitdst1_date or mgitdst2_date or ljdst1_date or ljdst2_date
+    pheno_perf_val = 1 if pheno_date else 2
+    log_mismatch("phenotypic_performed_id", edcs_zonal.phenotypic_performed_id, pheno_perf_val)
+    edcs_zonal.phenotypic_performed_id = pheno_perf_val
+    if pheno_date:
+        parsed_pheno_date = parse_date_field(pheno_date)
+        log_mismatch("phenotypic_date_performed", edcs_zonal.phenotypic_date_performed, parsed_pheno_date)
+        edcs_zonal.phenotypic_date_performed = parsed_pheno_date
+
+    # First and Second Line DST Performed (Entry Dates)
+    first_line_perf_date = mgitdst1_entrydate or ljdst1_entrydate
+    first_perf_val = 1 if first_line_perf_date else 2
+    log_mismatch("first_line_dst_performed_id", edcs_zonal.first_line_dst_performed_id, first_perf_val)
+    edcs_zonal.first_line_dst_performed_id = first_perf_val
+    if first_line_perf_date:
+        parsed_first_perf = parse_date_field(first_line_perf_date)
+        log_mismatch("first_line_dst_performed_date", edcs_zonal.first_line_dst_performed_date, parsed_first_perf)
+        edcs_zonal.first_line_dst_performed_date = parsed_first_perf
+
+    second_line_perf_date = mgitdst2_entrydate or ljdst2_entrydate
+    
+    second_perf_val = 1 if second_line_perf_date else 2
+    log_mismatch("second_line_dst_performed_id", edcs_zonal.second_line_dst_performed_id, second_perf_val)
+    edcs_zonal.second_line_dst_performed_id = second_perf_val
+    if second_line_perf_date:
+        parsed_second_perf = parse_date_field(second_line_perf_date)
+        log_mismatch("second_line_dst_performed_date", edcs_zonal.second_line_dst_performed_date, parsed_second_perf)
+        edcs_zonal.second_line_dst_performed_date = parsed_second_perf
+
+
+    # First and Second Line DST Results Dates
+    first_line_res_date = mgitdst1_date or ljdst1_date
+    if first_line_res_date:
+        parsed_first_res = parse_date_field(first_line_res_date)
+        log_mismatch("first_line_dst_results_date", edcs_zonal.first_line_dst_results_date, parsed_first_res)
+        edcs_zonal.first_line_dst_results_date = parsed_first_res
+
+    second_line_res_date = mgitdst2_date or ljdst2_date
+    if second_line_res_date:
+        parsed_second_res = parse_date_field(second_line_res_date)
+        log_mismatch("second_line_dst_results_date", edcs_zonal.second_line_dst_results_date, parsed_second_res)
+        edcs_zonal.second_line_dst_results_date = parsed_second_res
 
     # Phenotypic DST Results
     def apply_dst(edcs_field, tblis_col, override_col=None):
