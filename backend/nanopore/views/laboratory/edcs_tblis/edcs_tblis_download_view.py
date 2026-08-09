@@ -69,6 +69,10 @@ class EdcsTblisDownloadCsvView(LoginRequiredMixin, View):
             "epi_to_me",
             "sequencing_results",
             "sequencing_delayed",
+        ).order_by(
+            "screening__site__district__region__zone__name",
+            "screening__site__name",
+            "screening__pid",
         ).iterator(chunk_size=500)
 
         def fk_val(obj):

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-4">
@@ -12,177 +13,279 @@
     <!-- Filters -->
     {% include "partials/filter_form.html" %}
 
-    <!-- <div>
-        <a href="{% url 'nanopore:zonal-laboratory-create' %}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Add Zonal Lab Test
-        </a>
-    </div> -->
+    <!-- Export Progress Toast (shared, hidden by default) -->
+    <div id="exportToast" class="position-fixed bottom-0 end-0 m-3 p-3 bg-white border rounded shadow" style="min-width:280px;display:none;z-index:9999">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold small" id="toastTitle">Exporting…</span>
+            <button class="btn btn-sm btn-link p-0 text-muted" onclick="document.getElementById('exportToast').style.display='none'">✕</button>
+        </div>
+        <div class="progress" style="height:8px">
+            <div id="toastBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:0%"></div>
+        </div>
+        <div class="small text-muted mt-1" id="toastLabel">Preparing…</div>
+    </div>
 
     <!-- Upload Summary Card -->
     <div class="mb-3">
         <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span class="fw-bold">📊 EDCS / TBLIS Integration Summary</span>
-                <button id="exportBtn" class="btn btn-sm btn-outline-success" onclick="startExport()">
-                    ⬇️ Download All Data (CSV)
-                </button>
-            </div>
-            <!-- Export progress (hidden by default) -->
-            <div id="exportProgressWrapper" class="px-3 pt-2" style="display:none">
-                <div class="d-flex justify-content-between small mb-1">
-                    <span id="exportProgressLabel">Preparing export…</span>
-                    <span id="exportProgressPct">0%</span>
-                </div>
-                <div class="progress" style="height:10px">
-                    <div id="exportProgressBar"
-                        class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:0%">
-                    </div>
-                </div>
-            </div>
+            <div class="card-header fw-bold">📊 EDCS / TBLIS Integration Summary</div>
             <div class="card-body">
+
+                <!-- Row 1: EDCS CTRL + TBLIS + Last Upload -->
                 <div class="row text-center g-3 mb-3">
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-primary">{{ total_edcs_records|default:"0" }}</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'total_edcs' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'total_edcs' %}card_type=total_edcs{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('total_edcs', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-primary">{{ total_edcs_records|default:"0"|intcomma }}</div>
                             <div class="text-muted small">Total EDCS Zonal Records</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-primary">{{ total_ctrl_records|default:"0" }}</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'ctrl' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'ctrl' %}card_type=ctrl{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('ctrl', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-primary">{{ total_ctrl_records|default:"0"|intcomma }}</div>
                             <div class="text-muted small">Total EDCS CTRL Records</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-secondary">{{ total_raw_tblis_records|default:"0" }}</div>
-                            <div class="text-muted small">Total TBLIS Records</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones' %}card_type=other_zones{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('other_zones', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-info">{{ total_other_zonal_records|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Total EDCS Other Zonal Records</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100">
-                            {% if last_upload %}
-                            <div class="fs-6 fw-bold text-secondary">{{ last_upload|date:"M d, Y" }}</div>
-                            <div class="text-muted small">
-                                {{ last_upload|date:"H:i" }}
-                                {% if last_upload_by %}· {{ last_upload_by.get_full_name|default:last_upload_by.username }}{% endif %}
+                        <div class="border rounded p-3 h-100 bg-light">
+                            <div class="fs-6 fw-bold text-muted mt-1">
+                                {% if last_upload %}
+                                {{ last_upload|date:"M d, Y" }}
+                                <br><small class="fw-normal">{{ last_upload|date:"H:i" }} {% if last_upload_by %}· {{ last_upload_by }}{% endif %}</small>
+                                {% else %}
+                                N/A
+                                {% endif %}
                             </div>
-                            {% else %}
-                            <div class="fs-6 text-muted">No uploads yet</div>
-                            {% endif %}
                             <div class="text-muted small mt-1">Last Upload</div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Row 2: Coverage + Missing culture + Uncategorized Merged + TBLIS not in EDCS -->
                 <div class="row text-center g-3 mb-3">
-                    <div class="col-6 col-md-6">
+                    <div class="col-6 col-md-3">
                         <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-info">{{ percentage_uploaded|default:"0" }}%</div>
+                            <div class="fs-3 fw-bold text-success">{{ percentage_uploaded }}%</div>
                             <div class="text-muted small">Coverage</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-6">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-danger">{{ total_tblis_not_in_edcs|default:"0" }}</div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'missing_culture' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'missing_culture' %}card_type=missing_culture{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('missing_culture', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-warning">{{ total_missing_culture_performed|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Missing culture performed</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'total_tblis' %}border-secondary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'total_tblis' %}card_type=total_tblis{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('total_tblis', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-secondary">{{ total_raw_tblis_records|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Total TBLIS Records</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'tblis_not_in_edcs' %}border-danger bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'tblis_not_in_edcs' %}card_type=tblis_not_in_edcs{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('tblis_not_in_edcs', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-danger">{{ total_tblis_not_in_edcs|default:"0"|intcomma }}</div>
                             <div class="text-muted small">TBLIS Records Not in EDCS</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Substudy Breakdown for Total Merged Records (6 Cards) -->
+                <!-- Row 3: Total EDCS CTRL Merged Records breakdown (6 cards) -->
                 <div class="row text-center g-3 mb-3">
                     <div class="col">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-success">{{ total_merged_records|default:"0" }}</div>
-                            <div class="text-muted small">Total Merged Records</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged' %}border-success bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged' %}card_type=merged{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('merged', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-success">{{ total_merged_records|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Total EDCS CTRL Merged Records</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy2|default:"0" }}</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_substudy2' %}border-success bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_substudy2' %}card_type=merged_substudy2{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('merged_substudy2', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy2|default:"0"|intcomma }}</div>
                             <div class="text-muted small">Substudy 2 – Merged Records ({{ merged_percentages.substudy2|default:"0" }}%)</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy2|default:"0" }}</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_missing_culture_substudy2' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_missing_culture_substudy2' %}card_type=merged_missing_culture_substudy2{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('merged_missing_culture_substudy2', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy2|default:"0"|intcomma }}</div>
                             <div class="text-muted small">Missing culture performed (Substudy 2)</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy4|default:"0" }}</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_substudy4' %}border-success bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_substudy4' %}card_type=merged_substudy4{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('merged_substudy4', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy4|default:"0"|intcomma }}</div>
                             <div class="text-muted small">Substudy 4 – Merged Records ({{ merged_percentages.substudy4|default:"0" }}%)</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy4|default:"0" }}</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_missing_culture_substudy4' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_missing_culture_substudy4' %}card_type=merged_missing_culture_substudy4{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('merged_missing_culture_substudy4', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy4|default:"0"|intcomma }}</div>
                             <div class="text-muted small">Missing culture performed (Substudy 4)</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.uncategorized|default:"0" }}</div>
-                            <div class="text-muted small">Uncategorized – Merged Records ({{ merged_percentages.uncategorized|default:"0" }}%)</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_uncategorized' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_uncategorized' %}card_type=edcs_not_in_tblis_uncategorized{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('edcs_not_in_tblis_uncategorized', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.uncategorized|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Uncategorized – Not in TBLIS ({{ edcs_not_in_tblis_percentages.uncategorized|default:"0" }}%)</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Substudy Breakdown Cards for EDCS Not in TBLIS (6 Cards) -->
+
+                <!-- Row 4: EDCS Records Not in TBLIS breakdown (6 cards) -->
                 <div class="row text-center g-3 mb-3">
                     <!-- 0. EDCS Records Not in TBLIS Summary Card -->
                     <div class="col">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-warning">{{ total_edcs_not_in_tblis|default:"0" }}</div>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis' %}card_type=edcs_not_in_tblis{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('edcs_not_in_tblis', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-warning">{{ total_edcs_not_in_tblis|default:"0"|intcomma }}</div>
                             <div class="text-muted small">EDCS Records Not in TBLIS</div>
                         </div>
                     </div>
                     <!-- 1. Substudy 2 – Not in TBLIS -->
                     <div class="col">
-                        <a href="?substudy=Substudy%202" class="text-decoration-none">
-                            <div class="border rounded p-3 h-100">
-                                <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy2|default:"0" }}</div>
-                                <div class="text-muted small">Substudy 2 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy2|default:"0" }}%)</div>
-                            </div>
-                        </a>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_substudy2' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_substudy2' %}card_type=edcs_not_in_tblis_substudy2{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('edcs_not_in_tblis_substudy2', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy2|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Substudy 2 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy2|default:"0" }}%)</div>
+                        </div>
                     </div>
                     <!-- 2. Missing culture performed – Substudy 2 -->
                     <div class="col">
-                        <a href="?missing_culture_substudy=2" class="text-decoration-none">
-                            <div class="border rounded p-3 h-100">
-                                <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy2|default:"0" }}</div>
-                                <div class="text-muted small">Missing culture performed (Substudy 2)</div>
-                            </div>
-                        </a>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'missing_culture_substudy2' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'missing_culture_substudy2' %}card_type=missing_culture_substudy2{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('missing_culture_substudy2', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy2|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Missing culture performed (Substudy 2)</div>
+                        </div>
                     </div>
                     <!-- 3. Substudy 4 – Not in TBLIS -->
                     <div class="col">
-                        <a href="?substudy=Substudy%204" class="text-decoration-none">
-                            <div class="border rounded p-3 h-100">
-                                 <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy4|default:"0" }}</div>
-                                 <div class="text-muted small">Substudy 4 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy4|default:"0" }}%)</div>
-                            </div>
-                        </a>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_substudy4' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_substudy4' %}card_type=edcs_not_in_tblis_substudy4{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('edcs_not_in_tblis_substudy4', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy4|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Substudy 4 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy4|default:"0" }}%)</div>
+                        </div>
                     </div>
                     <!-- 4. Missing culture performed – Substudy 4 -->
                     <div class="col">
-                        <a href="?missing_culture_substudy=4" class="text-decoration-none">
-                            <div class="border rounded p-3 h-100">
-                                <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy4|default:"0" }}</div>
-                                <div class="text-muted small">Missing culture performed (Substudy 4)</div>
-                            </div>
-                        </a>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'missing_culture_substudy4' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'missing_culture_substudy4' %}card_type=missing_culture_substudy4{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('missing_culture_substudy4', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy4|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Missing culture performed (Substudy 4)</div>
+                        </div>
                     </div>
                     <!-- 5. Uncategorized – Not in TBLIS -->
                     <div class="col">
-                        <a href="?substudy=Uncategorized" class="text-decoration-none">
-                            <div class="border rounded p-3 h-100">
-                                 <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.uncategorized|default:"0" }}</div>
-                                 <div class="text-muted small">Uncategorized – Not in TBLIS ({{ edcs_not_in_tblis_percentages.uncategorized|default:"0" }}%)</div>
-                            </div>
-                        </a>
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_uncategorized' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_uncategorized' %}card_type=edcs_not_in_tblis_uncategorized{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('edcs_not_in_tblis_uncategorized', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.uncategorized|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Uncategorized – Not in TBLIS ({{ edcs_not_in_tblis_percentages.uncategorized|default:"0" }}%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: Total EDCS Other Zonal Records breakdown (5 cards) -->
+                <div class="row text-center row-cols-1 row-cols-md-3 row-cols-lg-5 g-3 mb-3">
+                    <!-- 1. Total EDCS Other Zonal Records -->
+                    <div class="col">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones' %}card_type=other_zones{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('other_zones', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-info">{{ total_other_zonal_records|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Total EDCS Other Zonal Records</div>
+                        </div>
+                    </div>
+                    <!-- 2. Substudy 2 -->
+                    <div class="col">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_substudy2' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_substudy2' %}card_type=other_zones_substudy2{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('other_zones_substudy2', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-info">{{ other_zonal_substudy2|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Substudy 2 Other Zonal ({{ other_zonal_percentages.substudy2|default:"0" }}%)</div>
+                        </div>
+                    </div>
+                    <!-- 3. Substudy 4 -->
+                    <div class="col">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_substudy4' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_substudy4' %}card_type=other_zones_substudy4{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('other_zones_substudy4', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-info">{{ other_zonal_substudy4|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Substudy 4 Other Zonal ({{ other_zonal_percentages.substudy4|default:"0" }}%)</div>
+                        </div>
+                    </div>
+                    <!-- 4. Missing culture performed -->
+                    <div class="col">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_missing_culture' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_missing_culture' %}card_type=other_zones_missing_culture{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('other_zones_missing_culture', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-warning">{{ other_zonal_missing_culture|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Missing culture performed (Other Zonal)</div>
+                        </div>
+                    </div>
+                    <!-- 5. Uncategorized -->
+                    <div class="col">
+                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_uncategorized' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_uncategorized' %}card_type=other_zones_uncategorized{% endif %}'">
+                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
+                                    title="Export Excel"
+                                    onclick="startCardExport('other_zones_uncategorized', this)">⬇️</button>
+                            <div class="fs-3 fw-bold text-primary">{{ other_zonal_uncategorized|default:"0"|intcomma }}</div>
+                            <div class="text-muted small">Uncategorized – Other Zonal ({{ other_zonal_percentages.uncategorized|default:"0" }}%)</div>
+                        </div>
                     </div>
                 </div>
 
@@ -203,7 +306,7 @@
                     </div>
                 </div>
                 <div class="text-muted small mt-1">
-                    {{ total_tblis_records }} of {{ total_zonal_edcs }} Zonal EDCS records successfully merged
+                    {{ total_tblis_records|intcomma }} of {{ total_ctrl_records|intcomma }} EDCS CTRL records successfully merged
                 </div>
 
                 {% if merge_summary.tblis_date_from and merge_summary.tblis_date_to %}
@@ -211,20 +314,20 @@
                     📅 <strong>TBLIS Data Range:</strong>
                     {{ merge_summary.tblis_date_from }} → {{ merge_summary.tblis_date_to }}
                     &nbsp;|&nbsp;
-                    <strong>{{ merge_summary.total_tblis_rows }}</strong> records in TBLIS file
+                    <strong>{{ merge_summary.total_tblis_rows|intcomma }}</strong> records in TBLIS file
                 </div>
                 {% endif %}
 
                 {% if merge_summary %}
                 <div class="mt-2 d-flex gap-3 flex-wrap small">
                     <a href="{% url 'nanopore:tblis-raw-discrepancies' 'edcs_not_in_tblis' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
-                        ⚠️ EDCS records NOT in TBLIS: <strong>{{ merge_summary.edcs_not_in_tblis }}</strong>
+                        ⚠️ EDCS records NOT in TBLIS: <strong>{{ merge_summary.edcs_not_in_tblis|intcomma }}</strong>
                     </a>
                     <a href="{% url 'nanopore:tblis-raw-discrepancies' 'tblis_not_in_edcs' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
-                        ⚠️ TBLIS records NOT in EDCS: <strong>{{ merge_summary.tblis_not_in_edcs }}</strong>
+                        ⚠️ TBLIS records NOT in EDCS: <strong>{{ merge_summary.tblis_not_in_edcs|intcomma }}</strong>
                     </a>
                     <a href="{% url 'nanopore:tblis-raw-discrepancies' 'mismatches' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
-                        ⚠️ Mismatched values: <strong>{{ merge_summary.total_mismatch_records }}</strong>
+                        ⚠️ Mismatched values: <strong>{{ merge_summary.total_mismatch_records|intcomma }}</strong>
                     </a>
                 </div>
                 {% endif %}
@@ -234,7 +337,74 @@
     <hr class="my-3">
 
 
-    Total Records: {{ page_obj.paginator.count }}
+    {% if view_type == 'total_tblis' or view_type == 'tblis_not_in_edcs' %}
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Latest Upload Batch Records ({{ latest_upload_batch.uploaded_at|date:"M d, Y H:i"|default:"Latest Upload" }})</h5>
+        <div>
+            <span class="badge bg-primary fs-6 me-2">Total Records: {{ page_obj.paginator.count|intcomma }}</span>
+            <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">Reset View</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Lab No</th>
+                    <th>Study Code</th>
+                    <th>TB No</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Age</th>
+                    <th>Health Facility</th>
+                    <th>District</th>
+                    <th>Region</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in object_list %}
+                <tr>
+                    <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                    <td><strong>{{ row.labno|default:row.raw_data.labno }}</strong></td>
+                    <td>{{ row.raw_data.studycode|default:"-" }}</td>
+                    <td>{{ row.raw_data.tbno|default:"-" }}</td>
+                    <td>{{ row.raw_data.name|default:"-" }}</td>
+                    <td>{{ row.raw_data.gender|default:"-" }}</td>
+                    <td>{{ row.raw_data.age|default:"-" }}</td>
+                    <td>{{ row.raw_data.hfacility|default:row.raw_data.hfacilitycode|default:"-" }}</td>
+                    <td>{{ row.raw_data.hfacilitydistrict|default:"-" }}</td>
+                    <td>{{ row.raw_data.tbregion|default:"-" }}</td>
+                    <td>{{ row.raw_data.patcategory|default:"-" }}</td>
+                    <td>
+                        {% if row.is_merged %}
+                        <span class="badge bg-success">Merged</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Unmerged</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="text-center">No TBLIS records found in latest upload batch.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            Total Records: <strong>{{ page_obj.paginator.count|intcomma }}</strong>
+            {% if active_card_type %}
+            <span class="badge bg-info text-dark ms-2">Card Filter: {{ active_card_type }}</span>
+            {% endif %}
+        </div>
+        {% if active_card_type %}
+        <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">Reset View</a>
+        {% endif %}
+    </div>
     <div class="table-responsive">
         <table class="table table-striped table-bordered align-middle">
             <thead class="table-light">
@@ -246,7 +416,9 @@
                     <th>Date Sputum Received</th>
                     <th>Appearence</th>
                     <th>Lab Number</th>
-                    <!-- <th>Result</th> -->
+                    <th>Xpert MTB/RIF Conducted</th>
+                    <th>Xpert MTB</th>
+                    <th>Culture Performed</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -260,23 +432,23 @@
                     <td>{{ lab.date_sputum_received|date:"M d, Y" }}</td>
                     <td>{{ lab.appearance }}</td>
                     <td>{{ lab.unique_lab_no }}</td>
-                    <!-- <td>{{ lab.result|default:"Pending" }}</td> -->
+                    <td>{{ lab.screening.clinic_laboratory.xpert_mtb_rif_conducted|default:"-" }}</td>
+                    <td>{{ lab.screening.clinic_laboratory.xpert_mtb|default:"-" }}</td>
+                    <td>{{ lab.culture_performed|default:"-" }}</td>
                     <td>
                         <a href="{% url 'nanopore:edcs-tblis-laboratory-view' lab.pk %}"
                             class="btn btn-sm btn-primary">View</a>
-                        <!-- <a href="{% url 'nanopore:zonal-laboratory-detail' lab.pk %}" class="btn btn-sm btn-primary">View</a> -->
-                        <!-- <a href="{% url 'nanopore:zonal-laboratory-update' lab.pk %}" class="btn btn-sm btn-warning">Edit</a> -->
-                        <!-- <a href="{% url 'nanopore:zonal-laboratory-delete' lab.pk %}" class="btn btn-sm btn-danger">Delete</a> -->
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center">No Edcs-Tblis zonal lab records found.</td>
+                    <td colspan="11" class="text-center">No Edcs-Tblis zonal lab records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% endif %}
 
     <!-- {% include "partials/pagination.html" %} -->
     {% if is_paginated %}
@@ -339,69 +511,103 @@
 <script>
     const TRIGGER_URL = "{% url 'nanopore:edcs-tblis-export-trigger' %}";
     const STATUS_BASE = "{% url 'nanopore:task-status' 'TASKID' %}";
-    const SERVE_BASE = "{% url 'nanopore:edcs-tblis-export-serve' 'FILENAME' %}";
+    const SERVE_BASE  = "{% url 'nanopore:edcs-tblis-export-serve' 'FILENAME' %}";
 
-    const exportBtn = document.getElementById("exportBtn");
-    const exportProgressWrapper = document.getElementById("exportProgressWrapper");
-    const exportProgressBar = document.getElementById("exportProgressBar");
-    const exportProgressLabel = document.getElementById("exportProgressLabel");
-    const exportProgressPct = document.getElementById("exportProgressPct");
+    const toast      = document.getElementById("exportToast");
+    const toastBar   = document.getElementById("toastBar");
+    const toastLabel = document.getElementById("toastLabel");
+    const toastTitle = document.getElementById("toastTitle");
 
-    function startExport() {
-        exportBtn.disabled = true;
-        exportBtn.innerText = "⏳ Preparing…";
-        exportProgressWrapper.style.display = "block";
-        exportProgressBar.style.width = "0%";
-        exportProgressLabel.innerText = "Queuing export task…";
-        exportProgressPct.innerText = "0%";
+    let activeInterval = null;
 
-        fetch(TRIGGER_URL, { method: "POST", headers: { "X-CSRFToken": getCsrf() } })
-            .then(r => r.json())
-            .then(data => {
-                if (!data.task_id) { resetExportBtn("❌ Failed to start"); return; }
-                pollExport(data.task_id);
-            })
-            .catch(() => resetExportBtn("❌ Error"));
+    /**
+     * Kick off export for a given card_type, also forwarding current URL filter params.
+     * @param {string} cardType - e.g. 'ctrl', 'merged', 'tblis_not_in_edcs', etc.
+     * @param {HTMLElement} btn  - the clicked button (to show spinner)
+     */
+    function startCardExport(cardType, btn) {
+        if (btn) { btn.disabled = true; btn.innerText = "⏳"; }
+
+        // Collect current URL filters
+        const sp = new URLSearchParams(window.location.search);
+        const filters = {
+            card_type: cardType,
+            zone: sp.get("zone") || "",
+            site: sp.get("site") || "",
+            pid: sp.get("pid") || "",
+            unique_lab_no: sp.get("unique_lab_no") || "",
+            substudy: sp.get("substudy") || "",
+            missing_culture_substudy: sp.get("missing_culture_substudy") || "",
+            missing_culture: sp.get("missing_culture") || "",
+        };
+
+        // Show progress toast
+        toast.style.display = "block";
+        toastTitle.innerText = `Exporting: ${cardType}…`;
+        toastBar.style.width = "5%";
+        toastLabel.innerText = "Queuing task…";
+
+        if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
+
+        fetch(TRIGGER_URL, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCsrf(),
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(filters),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.task_id) {
+                toastLabel.innerText = "❌ Failed to start export.";
+                if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
+                return;
+            }
+            pollExport(data.task_id, data.filename, btn);
+        })
+        .catch(() => {
+            toastLabel.innerText = "❌ Network error.";
+            if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
+        });
     }
 
-    function pollExport(taskId) {
+    function pollExport(taskId, filename, btn) {
         const url = STATUS_BASE.replace("TASKID", taskId);
-        const interval = setInterval(() => {
+        activeInterval = setInterval(() => {
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     if (data.state === "PROGRESS") {
-                        const pct = data.total ? Math.round((data.current / data.total) * 100) : 0;
-                        exportProgressBar.style.width = pct + "%";
-                        exportProgressLabel.innerText = `Exporting… ${data.current} / ${data.total} rows`;
-                        exportProgressPct.innerText = pct + "%";
+                        const pct = data.total ? Math.round((data.current / data.total) * 100) : 10;
+                        toastBar.style.width = pct + "%";
+                        toastLabel.innerText = `Exporting… ${data.current} / ${data.total} rows`;
                     } else if (data.state === "SUCCESS") {
-                        clearInterval(interval);
-                        exportProgressBar.style.width = "100%";
-                        exportProgressLabel.innerText = "✅ Ready! Downloading…";
-                        exportProgressPct.innerText = "100%";
-                        // Auto-trigger download
-                        const filename = data.file || "edcs_tblis_zonal_export.csv";
-                        const dlUrl = SERVE_BASE.replace("FILENAME", filename);
+                        clearInterval(activeInterval); activeInterval = null;
+                        toastBar.style.width = "100%";
+                        toastLabel.innerText = "✅ Ready! Downloading…";
+
+                        const fname = data.file || filename;
+                        const dlUrl = SERVE_BASE.replace("FILENAME", fname);
                         const a = document.createElement("a");
-                        a.href = dlUrl; a.download = filename; a.click();
+                        a.href = dlUrl; a.download = fname; a.click();
+
                         setTimeout(() => {
-                            resetExportBtn("⬇️ Download All Data (CSV)");
-                            exportProgressWrapper.style.display = "none";
-                        }, 2000);
+                            toast.style.display = "none";
+                            if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
+                        }, 2500);
                     } else if (data.state === "FAILURE") {
-                        clearInterval(interval);
-                        resetExportBtn("❌ Export failed — Retry");
-                        exportProgressLabel.innerText = "Export failed: " + (data.error || "unknown error");
+                        clearInterval(activeInterval); activeInterval = null;
+                        toastLabel.innerText = "❌ Export failed: " + (data.error || "unknown error");
+                        if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
                     }
                 })
-                .catch(() => { clearInterval(interval); resetExportBtn("❌ Error"); });
+                .catch(() => {
+                    clearInterval(activeInterval); activeInterval = null;
+                    toastLabel.innerText = "❌ Poll error.";
+                    if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
+                });
         }, 1500);
-    }
-
-    function resetExportBtn(label) {
-        exportBtn.disabled = false;
-        exportBtn.innerText = label;
     }
 
     function getCsrf() {

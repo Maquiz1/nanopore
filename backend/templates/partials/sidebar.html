@@ -76,7 +76,6 @@
             </a>
 
             {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
-
             <!-- EDCS / TBLIS -->
             <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"
                 class="{% if request.resolver_match.url_name == 'edcs-tblis-laboratory-list' %}active{% endif %}">
@@ -191,7 +190,7 @@
     {% endwith %}
 
     {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
+    {% if user.is_superuser or user_group == "ADMIN" %}
     <!-- Queries Report -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -383,7 +382,8 @@
             <a href="{% url 'nanopore:clinic-upload-csv' %}"><i class="fas fa-vial"></i> Clinic Lab</a>
             <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
             <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
-            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
+            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen
+                Changes</a>
             <a href="{% url 'nanopore:edcs-tblis-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Edcs-Tblis</a>
             {% endif %}
             <a href="{% url 'nanopore:tblis-raw-upload' %}"><i class="fas fa-upload"></i> TBLIS Raw</a>

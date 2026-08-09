@@ -183,7 +183,11 @@ class ZonalLaboratory(models.Model):
     class Meta:
         # verbose_name = "Country"
         # verbose_name_plural = "Countries"
-        ordering = ["-date_sputum_received"]
+        ordering = [
+            "screening__site__district__region__zone__name",
+            "screening__site__name",
+            "screening__pid",
+        ]
         
     def save(self, *args, **kwargs):
         if self.isolate_unique_lab_no == "":

@@ -38,7 +38,7 @@ class TblisRawData(models.Model):
     is_merged = models.BooleanField(default=False, help_text="True if this row was successfully merged into EdcsTblisZonal")
 
     class Meta:
-        ordering = ["-uploaded_at"]
+        ordering = ["labno"]
 
     def __str__(self):
         return f"Raw TBLIS: {self.labno}"
