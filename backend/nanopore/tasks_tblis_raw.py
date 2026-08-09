@@ -53,7 +53,7 @@ microscopy_results_map = {
         "POSITIVE - 6 AFBs/100 fields seen","POSITIVE - 7 AFBs/100 fields seen","POSITIVE - 8 AFBs/100 fields seen","POSITIVE - 9 AFBs/100 fields seen",
         "POSITIVE   20 AFBs / Length Seen","POSITIVE   21 AFBs / Length Seen","POSITIVE   22 AFBs / Length Seen","POSITIVE   23 AFBs / Length Seen","POSITIVE   24 AFBs / Length Seen","POSITIVE   25 AFBs / Length Seen",
         "POSITIVE   26 AFBs / Length Seen","POSITIVE   27 AFBs / Length Seen","POSITIVE   28 AFBs / Length Seen","POSITIVE   29 AFBs / Length Seen","POSITIVE   30 AFBs / Length Seen",
-    ], 2),
+    ], 6),
 }
 
 lj_results_map = {
@@ -227,6 +227,11 @@ def apply_tblis_transformations(edcs_zonal, clean_row, labno):
         edcs_zonal.lj_results_id = lj_res_val
 
     # MGIT Culture
+    if mgit_entry:
+        parsed_mgit_entrydate = parse_date_field(mgit_entry)
+        log_mismatch("mgit_inoculation_date", edcs_zonal.mgit_inoculation_date, parsed_mgit_entrydate)
+        edcs_zonal.mgit_inoculation_date = parsed_mgit_entrydate
+
     mgit_date = clean_row.get("mgit_date")
     if mgit_date:
         parsed_mgit_date = parse_date_field(mgit_date)

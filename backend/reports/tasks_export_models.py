@@ -13,7 +13,9 @@ def sanitize_text(val):
 @shared_task(bind=True)
 def export_model_raw_data_task(self, model_name, filename=None):
     if not filename:
-        filename = f"{model_name}_raw_data_export.csv"
+        from datetime import datetime
+        date_str = datetime.now().strftime("%Y%m%d")
+        filename = f"{model_name}_raw_data_export_{date_str}.csv"
 
     try:
         model = apps.get_model('nanopore', model_name)
@@ -69,6 +71,45 @@ def export_model_raw_data_task(self, model_name, filename=None):
         qs = qs.select_related(*select_related_fields)
     if prefetch_related_fields:
         qs = qs.prefetch_related(*prefetch_related_fields)
+        
+    if model_name == 'EdcsTblisZonal':
+        from django.db.models import Q
+        from nanopore.models import TblisRawData, TblisUploadBatch
+        
+        ctrl_prefixes = [
+            "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
+            "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19",
+        ]
+        ctrl_q = Q()
+        for prefix in ctrl_prefixes:
+            ctrl_q |= Q(screening__pid__startswith=prefix)
+            
+        latest_batch = TblisUploadBatch.objects.first()
+        
+        if latest_batch:
+            merged_labnos = TblisRawData.objects.filter(
+                upload_batch=latest_batch, 
+                is_merged=True
+            ).values("labno")
+        else:
+            merged_labnos = []
+        
+        qs = qs.exclude(
+            ctrl_q & ~Q(unique_lab_no__in=merged_labnos)
+        )
+        
+        # We also need to update 'total' because it was computed earlier as model.objects.count()
+        total = qs.count()
+
+    # Apply consistent ordering
+    if model_name in ('EdcsTblisZonal', 'ZonalLaboratory'):
+        qs = qs.order_by(
+            "screening__site__district__region__zone__name",
+            "screening__site__name",
+            "screening__pid",
+        )
+    elif model_name == 'TblisRawData':
+        qs = qs.order_by("labno")
 
     # Use iterator for memory efficiency
     qs = qs.iterator(chunk_size=500)
@@ -124,7 +165,9 @@ REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 @shared_task(bind=True)
 def export_all_models_combined_task(self, mode="zonal", filename=None):
     if not filename:
-        filename = f"all_models_combined_{mode}.csv"
+        from datetime import datetime
+        date_str = datetime.now().strftime("%Y%m%d")
+        filename = f"all_models_combined_{mode}_{date_str}.csv"
 
     export_dir = os.path.join(settings.MEDIA_ROOT, "exports")
     os.makedirs(export_dir, exist_ok=True)

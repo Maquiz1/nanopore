@@ -14,7 +14,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from django.views.generic import TemplateView
 from django.db.models import Count, Q, F
 from django.views.generic import ListView
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta  # pip install python-dateutil
 from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory, Diagnosis
 from locations.models import Zone,Site
@@ -1041,7 +1041,7 @@ class ExportRecordsView(View):
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        response["Content-Disposition"] = "attachment; filename=records.xlsx"
+        response["Content-Disposition"] = f"attachment; filename=records_{datetime.now().strftime('%Y%m%d')}.xlsx"
         wb.save(response)
         return response
 

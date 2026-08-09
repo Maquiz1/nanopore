@@ -68,8 +68,8 @@ def list_models_view(request):
         },
         {
             "name": "EdcsTblisZonal",
-            "count": EdcsTblisZonal.objects.count(),
-            "description": "All Edcs/TBLIS records linked to Screening",
+            "count": _get_edcs_tblis_count(),
+            "description": "CTRL zone (merged from TBLIS) + all other zones",
             "download_url": reverse("reports:download_model_data", args=["EdcsTblisZonal"]),
             "labels_url": reverse("reports:download_model_labels", args=["EdcsTblisZonal"]),
             "fields_url": reverse("reports:download_model_fields", args=["EdcsTblisZonal"]),
@@ -81,3 +81,43 @@ def list_models_view(request):
             "total_screenings": total_screenings
         }
     )
+
+
+def _get_edcs_tblis_count():
+    """
+    EdcsTblisZonal count uses two rules:
+      - CTRL zone (PID prefixes DF_TZ_SS2_14 to DF_TZ_SS2_19):
+            count only records that were successfully merged from the *latest* TBLIS upload
+            (i.e., their unique_lab_no appears in TblisRawData with is_merged=True for the latest batch).
+      - All other zones:
+            count all records regardless of merge status.
+    """
+    from django.db.models import Q
+    from nanopore.models import TblisRawData, TblisUploadBatch
+
+    ctrl_prefixes = [
+        "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
+        "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19",
+    ]
+    ctrl_q = Q()
+    for prefix in ctrl_prefixes:
+        ctrl_q |= Q(screening__pid__startswith=prefix)
+
+    latest_batch = TblisUploadBatch.objects.first()
+    
+    if latest_batch:
+        merged_labnos = TblisRawData.objects.filter(
+            upload_batch=latest_batch, 
+            is_merged=True
+        ).values("labno")
+    else:
+        merged_labnos = []
+
+    ctrl_merged_count = EdcsTblisZonal.objects.filter(
+        ctrl_q,
+        unique_lab_no__in=merged_labnos,
+    ).count()
+
+    other_zones_count = EdcsTblisZonal.objects.exclude(ctrl_q).count()
+
+    return ctrl_merged_count + other_zones_count
