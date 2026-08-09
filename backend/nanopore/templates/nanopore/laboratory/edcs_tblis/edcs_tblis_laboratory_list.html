@@ -42,25 +42,25 @@
             <div class="card-body">
                 <div class="row text-center g-3 mb-3">
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3">
+                        <div class="border rounded p-3 h-100">
                             <div class="fs-3 fw-bold text-primary">{{ total_edcs_records|default:"0" }}</div>
-                            <div class="text-muted small">Total EDCS Records</div>
+                            <div class="text-muted small">Total EDCS Zonal Records</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3">
-                            <div class="fs-3 fw-bold text-success">{{ total_tblis_records|default:"0" }}</div>
-                            <div class="text-muted small">Merged TBLIS Records</div>
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-primary">{{ total_ctrl_records|default:"0" }}</div>
+                            <div class="text-muted small">Total EDCS CTRL Records</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3">
-                            <div class="fs-3 fw-bold text-info">{{ percentage_uploaded|default:"0" }}%</div>
-                            <div class="text-muted small">Coverage</div>
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-secondary">{{ total_raw_tblis_records|default:"0" }}</div>
+                            <div class="text-muted small">Total TBLIS Records</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="border rounded p-3">
+                        <div class="border rounded p-3 h-100">
                             {% if last_upload %}
                             <div class="fs-6 fw-bold text-secondary">{{ last_upload|date:"M d, Y" }}</div>
                             <div class="text-muted small">
@@ -76,35 +76,113 @@
                 </div>
 
                 <div class="row text-center g-3 mb-3">
-                    <div class="col-6 col-md">
+                    <div class="col-6 col-md-6">
                         <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-primary">{{ total_ctrl_records|default:"0" }}</div>
-                            <div class="text-muted small">Total CTRL Records</div>
+                            <div class="fs-3 fw-bold text-info">{{ percentage_uploaded|default:"0" }}%</div>
+                            <div class="text-muted small">Coverage</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md">
+                    <div class="col-6 col-md-6">
                         <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-secondary">{{ total_raw_tblis_records|default:"0" }}</div>
-                            <div class="text-muted small">Total TBLIS Records</div>
+                            <div class="fs-3 fw-bold text-danger">{{ total_tblis_not_in_edcs|default:"0" }}</div>
+                            <div class="text-muted small">TBLIS Records Not in EDCS</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md">
+                </div>
+
+                <!-- Substudy Breakdown for Total Merged Records (6 Cards) -->
+                <div class="row text-center g-3 mb-3">
+                    <div class="col">
                         <div class="border rounded p-3 h-100">
                             <div class="fs-3 fw-bold text-success">{{ total_merged_records|default:"0" }}</div>
                             <div class="text-muted small">Total Merged Records</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md">
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy2|default:"0" }}</div>
+                            <div class="text-muted small">Substudy 2 – Merged Records ({{ merged_percentages.substudy2|default:"0" }}%)</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy2|default:"0" }}</div>
+                            <div class="text-muted small">Missing culture performed (Substudy 2)</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy4|default:"0" }}</div>
+                            <div class="text-muted small">Substudy 4 – Merged Records ({{ merged_percentages.substudy4|default:"0" }}%)</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy4|default:"0" }}</div>
+                            <div class="text-muted small">Missing culture performed (Substudy 4)</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.uncategorized|default:"0" }}</div>
+                            <div class="text-muted small">Uncategorized – Merged Records ({{ merged_percentages.uncategorized|default:"0" }}%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Substudy Breakdown Cards for EDCS Not in TBLIS (6 Cards) -->
+                <div class="row text-center g-3 mb-3">
+                    <!-- 0. EDCS Records Not in TBLIS Summary Card -->
+                    <div class="col">
                         <div class="border rounded p-3 h-100">
                             <div class="fs-3 fw-bold text-warning">{{ total_edcs_not_in_tblis|default:"0" }}</div>
                             <div class="text-muted small">EDCS Records Not in TBLIS</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-danger">{{ total_tblis_not_in_edcs|default:"0" }}</div>
-                            <div class="text-muted small">TBLIS Records Not in EDCS</div>
-                        </div>
+                    <!-- 1. Substudy 2 – Not in TBLIS -->
+                    <div class="col">
+                        <a href="?substudy=Substudy%202" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy2|default:"0" }}</div>
+                                <div class="text-muted small">Substudy 2 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy2|default:"0" }}%)</div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 2. Missing culture performed – Substudy 2 -->
+                    <div class="col">
+                        <a href="?missing_culture_substudy=2" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy2|default:"0" }}</div>
+                                <div class="text-muted small">Missing culture performed (Substudy 2)</div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 3. Substudy 4 – Not in TBLIS -->
+                    <div class="col">
+                        <a href="?substudy=Substudy%204" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                 <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy4|default:"0" }}</div>
+                                 <div class="text-muted small">Substudy 4 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy4|default:"0" }}%)</div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 4. Missing culture performed – Substudy 4 -->
+                    <div class="col">
+                        <a href="?missing_culture_substudy=4" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy4|default:"0" }}</div>
+                                <div class="text-muted small">Missing culture performed (Substudy 4)</div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 5. Uncategorized – Not in TBLIS -->
+                    <div class="col">
+                        <a href="?substudy=Uncategorized" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                 <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.uncategorized|default:"0" }}</div>
+                                 <div class="text-muted small">Uncategorized – Not in TBLIS ({{ edcs_not_in_tblis_percentages.uncategorized|default:"0" }}%)</div>
+                            </div>
+                        </a>
                     </div>
                 </div>
 

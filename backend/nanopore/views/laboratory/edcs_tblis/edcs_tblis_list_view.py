@@ -28,6 +28,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         site_id = self.request.GET.get("site")
         pid = self.request.GET.get("pid")
         unique_lab_no = self.request.GET.get("unique_lab_no")
+        substudy = self.request.GET.get("substudy")
         if zone_id:
             qs = qs.filter(screening__site__district__region__zone_id=zone_id)
         if site_id:
@@ -36,6 +37,11 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             qs = qs.filter(screening__pid__icontains=pid)
         if unique_lab_no:
             qs = qs.filter(unique_lab_no__icontains=unique_lab_no)
+        if substudy:
+            if substudy == 'Substudy 2':
+                qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6])
+            elif substudy == 'Substudy 4':
+                qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9])
         return qs
 
     def get_context_data(self, **kwargs):
@@ -75,9 +81,44 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         total_ctrl_records = total_zonal_edcs
         total_raw_tblis_records = latest_tblis_rows.count()
         total_merged_records = latest_tblis_rows.filter(is_merged=True).count()
-        total_edcs_not_in_tblis = ctrl_laboratories.exclude(
+        total_edcs_not_in_tblis_qs = ctrl_laboratories.exclude(
             unique_lab_no__in=tblis_lab_numbers
-        ).count()
+        )
+        total_edcs_not_in_tblis = total_edcs_not_in_tblis_qs.count()
+
+        # Breakdown by substudy for EDCS Not in TBLIS
+        from django.db.models import Case, When, CharField, Count, Value
+        substudy_breakdown_qs = total_edcs_not_in_tblis_qs.annotate(
+            substudy=Case(
+                When(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6], then=Value('Substudy 2')),
+                When(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9], then=Value('Substudy 4')),
+                default=Value('Uncategorized'),
+                output_field=CharField(),
+            )
+        ).values('substudy').annotate(cnt=Count('id'))
+
+        # Breakdown by substudy for Total Merged Records
+        merged_qs = ctrl_laboratories.filter(unique_lab_no__in=latest_tblis_rows.filter(is_merged=True).values("labno"))
+        merged_substudy_breakdown_qs = merged_qs.annotate(
+            substudy=Case(
+                When(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6], then=Value('Substudy 2')),
+                When(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9], then=Value('Substudy 4')),
+                default=Value('Uncategorized'),
+                output_field=CharField(),
+            )
+        ).values('substudy').annotate(cnt=Count('id'))
+
+        # Convert to dict with space‑free keys for template access
+        key_map = {
+            'Substudy 2': 'substudy2',
+            'Substudy 4': 'substudy4',
+            'Uncategorized': 'uncategorized',
+        }
+        edcs_not_in_tblis_breakdown = {v: 0 for v in key_map.values()}
+        for item in substudy_breakdown_qs:
+            mapped_key = key_map.get(item['substudy'])
+            if mapped_key:
+                edcs_not_in_tblis_breakdown[mapped_key] = item['cnt']
         total_tblis_not_in_edcs = latest_tblis_rows.exclude(
             labno__in=zonal_lab_numbers
         ).count()
@@ -87,7 +128,43 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             round((total_tblis_records / total_zonal_edcs) * 100, 2)
             if total_zonal_edcs else 0
         )
-        
+
+        edcs_not_in_tblis_percentages = {}
+        for key, cnt in edcs_not_in_tblis_breakdown.items():
+            edcs_not_in_tblis_percentages[key] = (
+                round((cnt / total_edcs_not_in_tblis) * 100, 2) if total_edcs_not_in_tblis else 0
+            )
+
+        merged_breakdown = {v: 0 for v in key_map.values()}
+        for item in merged_substudy_breakdown_qs:
+            mapped_key = key_map.get(item['substudy'])
+            if mapped_key:
+                merged_breakdown[mapped_key] = item['cnt']
+
+        merged_percentages = {}
+        for key, cnt in merged_breakdown.items():
+            merged_percentages[key] = (
+                round((cnt / total_merged_records) * 100, 2) if total_merged_records else 0
+            )
+
+        merged_missing_culture_substudy2 = EdcsTblisZonal.objects.filter(
+            screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
+            culture_performed__isnull=True
+        ).count()
+        merged_missing_culture_substudy4 = EdcsTblisZonal.objects.filter(
+            screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9],
+            culture_performed__isnull=True
+        ).count()
+
+        missing_culture_substudy2 = EdcsTblisZonal.objects.filter(
+            screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
+            culture_performed__isnull=True
+        ).count()
+        missing_culture_substudy4 = EdcsTblisZonal.objects.filter(
+            screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9],
+            culture_performed__isnull=True
+        ).count()
+
         last_upload = EdcsTblisZonal.objects.order_by("-updated_at").first()
 
         context.update({
@@ -99,6 +176,14 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             "total_merged_records": total_merged_records,
             "total_edcs_not_in_tblis": total_edcs_not_in_tblis,
             "total_tblis_not_in_edcs": total_tblis_not_in_edcs,
+            "edcs_not_in_tblis_breakdown": edcs_not_in_tblis_breakdown,
+            "edcs_not_in_tblis_percentages": edcs_not_in_tblis_percentages,
+            "merged_breakdown": merged_breakdown,
+            "merged_percentages": merged_percentages,
+            "merged_missing_culture_substudy2": merged_missing_culture_substudy2,
+            "merged_missing_culture_substudy4": merged_missing_culture_substudy4,
+            "missing_culture_substudy2": missing_culture_substudy2,
+            "missing_culture_substudy4": missing_culture_substudy4,
             "latest_upload_batch": latest_upload_batch,
             "percentage_uploaded": percentage_uploaded,
             "last_upload": merge_summary.created_at if merge_summary else (last_upload.updated_at if last_upload else None),
