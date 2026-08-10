@@ -653,6 +653,35 @@
         </div>
         {% endif %}
 
+        {% if count_missing_isolate_unique_lab_no %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIsolateUniqueLabNo">
+                    Missing Isolate Unique Lab No ({{ count_missing_isolate_unique_lab_no|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseIsolateUniqueLabNo" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_isolate_unique_lab_no|default:"" %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% if count_missing_phenotypic_performed %}
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -682,20 +711,20 @@
         </div>
         {% endif %}
 
-        {% if count_missing_phenotypic_date_performed %}
+        {% if count_missing_first_line_dst_performed %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhenotypicDatePerformed">
-                    Missing Phenotypic Date Performed ({{ count_missing_phenotypic_date_performed|default:"0"|intcomma }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineDstPerformed">
+                    Missing First Line DST Performed ({{ count_missing_first_line_dst_performed|default:"0"|intcomma }})
                 </button>
             </h2>
-            <div id="collapsePhenotypicDatePerformed" class="accordion-collapse collapse">
+            <div id="collapseFirstLineDstPerformed" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for item in missing_phenotypic_date_performed|default:"" %}
+                                {% for item in missing_first_line_dst_performed|default:"" %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
@@ -711,20 +740,20 @@
         </div>
         {% endif %}
 
-        {% if count_missing_phenotypic_date_results %}
+        {% if count_missing_first_line_dst_performed_date %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhenotypicDateResults">
-                    Missing Phenotypic Date Results ({{ count_missing_phenotypic_date_results|default:"0"|intcomma }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineDstPerformedDate">
+                    Missing First Line DST Performed Date ({{ count_missing_first_line_dst_performed_date|default:"0"|intcomma }})
                 </button>
             </h2>
-            <div id="collapsePhenotypicDateResults" class="accordion-collapse collapse">
+            <div id="collapseFirstLineDstPerformedDate" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for item in missing_phenotypic_date_results|default:"" %}
+                                {% for item in missing_first_line_dst_performed_date|default:"" %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
@@ -740,20 +769,165 @@
         </div>
         {% endif %}
 
-        {% if count_missing_phenotypic_dst_results %}
+        {% if count_missing_first_line_dst_results_date %}
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhenotypicDST">
-                    Missing Phenotypic DST Results ({{ count_missing_phenotypic_dst_results|default:"0"|intcomma }})
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineDstResultsDate">
+                    Missing First Line DST Results Date ({{ count_missing_first_line_dst_results_date|default:"0"|intcomma }})
                 </button>
             </h2>
-            <div id="collapsePhenotypicDST" class="accordion-collapse collapse">
+            <div id="collapseFirstLineDstResultsDate" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
                             <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
                             <tbody>
-                                {% for item in missing_phenotypic_dst_results %}
+                                {% for item in missing_first_line_dst_results_date|default:"" %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_first_line_dst_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFirstLineDstResults">
+                    Missing First Line DST Results (Rifampicin / Isoniazid / Ethambutol) ({{ count_missing_first_line_dst_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseFirstLineDstResults" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_first_line_dst_results|default:"" %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_second_line_dst_performed %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecondLineDstPerformed">
+                    Missing Second Line DST Performed ({{ count_missing_second_line_dst_performed|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSecondLineDstPerformed" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_second_line_dst_performed|default:"" %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_second_line_dst_performed_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecondLineDstPerformedDate">
+                    Missing Second Line DST Performed Date ({{ count_missing_second_line_dst_performed_date|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSecondLineDstPerformedDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_second_line_dst_performed_date|default:"" %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_second_line_dst_results_date %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecondLineDstResultsDate">
+                    Missing Second Line DST Results Date ({{ count_missing_second_line_dst_results_date|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSecondLineDstResultsDate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_second_line_dst_results_date|default:"" %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>
+                                    <td>{{ item.zone_name }}</td>
+                                    <td>{{ item.site_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if count_missing_second_line_dst_results %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecondLineDstResults">
+                    Missing Second Line DST Results (Levofloxacin / Bedaquiline / Linezolid / Clofazimine / Cycloserine / Delamanid / Pretomanid) ({{ count_missing_second_line_dst_results|default:"0"|intcomma }})
+                </button>
+            </h2>
+            <div id="collapseSecondLineDstResults" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead><tr><th>No.</th><th>PID</th><th>Zone</th><th>Site</th></tr></thead>
+                            <tbody>
+                                {% for item in missing_second_line_dst_results|default:"" %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td><a href="{% url 'nanopore:zonal-laboratory-update' pk=item.id %}?next={{ request.get_full_path|urlencode }}" class="text-primary fw-bold">{{ item.pid }}</a></td>

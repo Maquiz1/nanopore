@@ -62,12 +62,32 @@ def get_zonal_dq_filters(model):
         if key == "missing_isolate_date":
             q &= Q(culture_isolate=1)
 
+        if key == "missing_isolate_unique_lab_no":
+            q &= Q(culture_isolate=1)
+
         # PHENOTYPIC DST
         if key == "missing_phenotypic_performed":
             q &= Q(culture_isolate=1)
 
-        if key in ["missing_phenotypic_date_performed", "missing_phenotypic_date_results", "missing_phenotypic_dst_results"]:
+        if key == "missing_first_line_dst_performed":
             q &= Q(phenotypic_performed=1)
+
+        if key in [
+            "missing_first_line_dst_performed_date",
+            "missing_first_line_dst_results_date",
+            "missing_first_line_dst_results"
+        ]:
+            q &= Q(first_line_dst_performed=1)
+
+        if key == "missing_second_line_dst_performed":
+            q &= Q(rifampicin=1) | Q(isoniazid=1) | Q(ethambutol=1)
+
+        if key in [
+            "missing_second_line_dst_performed_date",
+            "missing_second_line_dst_results_date",
+            "missing_second_line_dst_results"
+        ]:
+            q &= Q(second_line_dst_performed=1)
 
         # XPERT XDR
         if key in ["missing_xpert_xdr_date_performed", "missing_xpert_xdr_results"]:

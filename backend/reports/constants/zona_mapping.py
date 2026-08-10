@@ -27,16 +27,24 @@ ZONAL_DQ_FIELD_MAPPING = {
     # Culture isolate
     "missing_culture_isolate":["culture_isolate"],
     "missing_isolate_date": ["isolate_date"],
+    "missing_isolate_unique_lab_no": ["isolate_unique_lab_no"],
 
     # Phenotypic DST
     "missing_phenotypic_performed": ["phenotypic_performed"],
-    "missing_phenotypic_date_performed": ["phenotypic_date_performed"],
-    "missing_phenotypic_date_results": ["phenotypic_date_results"],
-    "missing_phenotypic_dst_results": [
-        "rifampicin","isoniazid","levofloxacin","moxifloxacin","bedaquiline",
-        "linezolid","clofazimine","cycloserine","terizidone","ethambutol",
-        "delamanid","pyrazinamide","imipenem","cilastatin","meropenem",
-        "amikacin","streptomycin","ethionamide","prothionamide","para_aminosalicylic_acid"
+    
+    # First line Phenotypic DST
+    "missing_first_line_dst_performed": ["first_line_dst_performed"],
+    "missing_first_line_dst_performed_date": ["first_line_dst_performed_date"],
+    "missing_first_line_dst_results_date": ["first_line_dst_results_date"],
+    "missing_first_line_dst_results": ["rifampicin", "isoniazid", "ethambutol"],
+    
+    # Second line Phenotypic DST
+    "missing_second_line_dst_performed": ["second_line_dst_performed"],
+    "missing_second_line_dst_performed_date": ["second_line_dst_performed_date"],
+    "missing_second_line_dst_results_date": ["second_line_dst_results_date"],
+    "missing_second_line_dst_results": [
+        "levofloxacin", "bedaquiline", "linezolid", "clofazimine", 
+        "cycloserine", "delamanid", "pretomanid"
     ],
 
     # Xpert XDR
