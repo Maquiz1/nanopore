@@ -326,6 +326,7 @@ def apply_tblis_transformations(edcs_zonal, clean_row, labno):
     apply_dst("ethionamide", "mgitdst2_ethionamide")
     apply_dst("prothionamide", "mgitdst2_prothionamide")
     apply_dst("para_aminosalicylic_acid", "mgitdst2_pas")
+    apply_dst("pretomanid", "mgitdst2_pretomanid")
     
     # Xpert XDR
     gxxdr_date = clean_row.get("gxxdr_date")
