@@ -51,6 +51,7 @@ def get_zonal_dq_counts(qs):
             distinct=True
         ),
         missing_isolate_date=Count("id", filter=Q(culture_isolate=1, isolate_date__isnull=True), distinct=True),
+        missing_isolate_unique_lab_no=Count("id", filter=Q(culture_isolate=1) & (Q(isolate_unique_lab_no__isnull=True) | Q(isolate_unique_lab_no__exact="")), distinct=True),
         
         # Phenotypic DST — only if culture_isolate = 1
         missing_phenotypic_performed = Count(

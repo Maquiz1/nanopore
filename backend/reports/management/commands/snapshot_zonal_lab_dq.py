@@ -86,6 +86,7 @@ class Command(BaseCommand):
                     output_field=IntegerField()
                 )),
                 missing_isolate_date=Count(Case(When(Q(isolate_date__isnull=True) & Q(culture_isolate=1), then=1), output_field=IntegerField())),
+                missing_isolate_unique_lab_no=Count(Case(When((Q(isolate_unique_lab_no__isnull=True) | Q(isolate_unique_lab_no="")) & Q(culture_isolate=1), then=1), output_field=IntegerField())),
 
                 # Phenotypic DST
                 missing_phenotypic_performed=Count(Case(When(Q(culture_isolate__isnull=False) & Q(culture_isolate=1) & Q(phenotypic_performed__isnull=True), then=1), output_field=IntegerField())),
