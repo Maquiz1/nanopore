@@ -7,19 +7,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const epiToMeVersion = document.getElementById("id_epi_to_me_version");
     const sequencingResults = document.getElementById("id_sequencing_results");
 
+    function setDisplay(el, display) {
+        if (!el) return;
+        const wrapper = el.closest('.col-md-6') || el.closest('.mb-3') || el.parentNode;
+        if (wrapper) wrapper.style.display = display;
+    }
+
     // Function to toggle visibility
     function toggleEpiToMe() {
 
         const value = String(EpiToMe?.value || "");
 
         if (value === "1") {
-            epiToMeDate.style.display = "block";
-            epiToMeVersion.style.display = "block";
-            sequencingResults.style.display = "block";
+            setDisplay(epiToMeDate, "block");
+            setDisplay(epiToMeVersion, "block");
+            setDisplay(sequencingResults, "block");
         } else {
-            epiToMeDate.style.display = "none";
-            epiToMeVersion.style.display = "none";
-            sequencingResults.style.display = "none";
+            setDisplay(epiToMeDate, "none");
+            setDisplay(epiToMeVersion, "none");
+            setDisplay(sequencingResults, "none");
         }
     }
 
@@ -27,5 +33,5 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleEpiToMe();
 
     // Update when either result changes
-    EpiToMe.addEventListener("change", toggleEpiToMe);
+    if (EpiToMe) EpiToMe.addEventListener("change", toggleEpiToMe);
 });

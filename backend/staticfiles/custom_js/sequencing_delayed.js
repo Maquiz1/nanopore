@@ -6,17 +6,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const sequencingDelayedDays = document.getElementById("id_sequencing_delayed_days");
     const sequencingDelayedReasons = document.getElementById("id_sequencing_delayed_reasons");
 
+    function setDisplay(el, display) {
+        if (!el) return;
+        const wrapper = el.closest('.col-md-6') || el.closest('.mb-3') || el.parentNode;
+        if (wrapper) wrapper.style.display = display;
+    }
+
     // Function to toggle visibility
     function toggleSequencingDelayed() {
 
         const value = String(SequencingDelayed?.value || "");
 
         if (value === "1") {
-            sequencingDelayedDays.style.display = "block";
-            sequencingDelayedReasons.style.display = "block";
+            setDisplay(sequencingDelayedDays, "block");
+            setDisplay(sequencingDelayedReasons, "block");
         } else {
-            sequencingDelayedDays.style.display = "none";
-            sequencingDelayedReasons.style.display = "none";
+            setDisplay(sequencingDelayedDays, "none");
+            setDisplay(sequencingDelayedReasons, "none");
         }
     }
 
@@ -24,5 +30,5 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleSequencingDelayed();
 
     // Update when either result changes
-    SequencingDelayed.addEventListener("change", toggleSequencingDelayed);
+    if (SequencingDelayed) SequencingDelayed.addEventListener("change", toggleSequencingDelayed);
 });

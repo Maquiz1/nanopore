@@ -301,9 +301,9 @@
                             <h5 class="mb-0">First-Line LPA</h5>
                         </div>
                         <div id="lpa1-section" class="row g-3 mb-3" style="display:none;">
-                            <div class="col-md-6 p-3 border-end" id="lpa1-fields">
+                            <div class="col-md-6 p-3 border-end">
                                 {% for field in form %}
-                                    {% if field.name in "first_line_lpa,first_line_lpa_date,lpa1_mtb,lpa1_rif,lpa1_inh"|split:"," %}
+                                    {% if field.name == "first_line_lpa" %}
                                     <div class="mb-3">
                                         {{ field.label_tag }}
                                         {{ field }}
@@ -313,6 +313,19 @@
                                     </div>
                                     {% endif %}
                                 {% endfor %}
+                                <div id="lpa1-fields" style="display:none;">
+                                    {% for field in form %}
+                                        {% if field.name in "first_line_lpa_date,lpa1_mtb,lpa1_rif,lpa1_inh"|split:"," %}
+                                        <div class="mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% for error in field.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
                             </div>
                             <div class="col-md-6 p-3" id="first-line-drugs" style="display:none;">
                                 <div class="mb-3">
@@ -330,9 +343,9 @@
                             <h5 class="mb-0">Second-Line LPA</h5>
                         </div>
                         <div id="lpa2-section" class="row g-3 mb-3" style="display:none;">
-                            <div class="col-md-6 p-3 border-end" id="lpa2-fields">
+                            <div class="col-md-6 p-3 border-end">
                                 {% for field in form %}
-                                    {% if field.name in "second_line_lpa,second_line_lpa_date,lpa2_mtb,lpa2_rfluoroquinolones,lpa2_aminoglycosides,lpa2_kanamycin"|split:"," %}
+                                    {% if field.name == "second_line_lpa" %}
                                     <div class="mb-3">
                                         {{ field.label_tag }}
                                         {{ field }}
@@ -342,6 +355,19 @@
                                     </div>
                                     {% endif %}
                                 {% endfor %}
+                                <div id="lpa2-fields" style="display:none;">
+                                    {% for field in form %}
+                                        {% if field.name in "second_line_lpa_date,lpa2_mtb,lpa2_rfluoroquinolones,lpa2_aminoglycosides,lpa2_kanamycin"|split:"," %}
+                                        <div class="mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% for error in field.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
                             </div>
                             <div class="col-md-6 p-3" id="second-line-drugs" style="display:none;">
                                 <div class="mb-3">
