@@ -296,12 +296,12 @@
                             </div>
                         </div>
 
-                        <!-- First-Line LPA -->
-                        <div class="p-2 mb-3 bg-primary text-white rounded">
+                        <!-- First-Line LPA (hidden until LPA=Yes) -->
+                        <div id="lpa1-header" class="p-2 mb-3 bg-primary text-white rounded" style="display:none;">
                             <h5 class="mb-0">First-Line LPA</h5>
                         </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6 p-3 border-end">
+                        <div id="lpa1-section" class="row g-3 mb-3" style="display:none;">
+                            <div class="col-md-6 p-3 border-end" id="lpa1-fields">
                                 {% for field in form %}
                                     {% if field.name in "first_line_lpa,first_line_lpa_date,lpa1_mtb,lpa1_rif,lpa1_inh"|split:"," %}
                                     <div class="mb-3">
@@ -325,12 +325,12 @@
                             </div>
                         </div>
 
-                        <!-- Second-Line LPA -->
-                        <div class="p-2 mb-3 bg-info text-white rounded">
+                        <!-- Second-Line LPA (hidden until LPA=Yes) -->
+                        <div id="lpa2-header" class="p-2 mb-3 bg-info text-white rounded" style="display:none;">
                             <h5 class="mb-0">Second-Line LPA</h5>
                         </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6 p-3 border-end">
+                        <div id="lpa2-section" class="row g-3 mb-3" style="display:none;">
+                            <div class="col-md-6 p-3 border-end" id="lpa2-fields">
                                 {% for field in form %}
                                     {% if field.name in "second_line_lpa,second_line_lpa_date,lpa2_mtb,lpa2_rfluoroquinolones,lpa2_aminoglycosides,lpa2_kanamycin"|split:"," %}
                                     <div class="mb-3">
