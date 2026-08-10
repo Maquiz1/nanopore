@@ -50,6 +50,7 @@ class ZonalLaboratoryDQSnapshot(models.Model):
 
     missing_culture_isolate = models.IntegerField(default=0)
     missing_isolate_date = models.IntegerField(default=0)
+    missing_isolate_unique_lab_no = models.IntegerField(default=0)
 
     # ── Phenotypic DST
     missing_phenotypic_performed = models.IntegerField(default=0)

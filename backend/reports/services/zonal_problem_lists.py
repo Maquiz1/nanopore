@@ -72,7 +72,7 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers, all_fields_mapping=ZONAL_
         if key == "missing_culture_isolate":
             q &= (Q(lj_results__in=[1,2,3,4]) | Q(mgit_results=1)) & Q(culture_isolate__isnull=True)
             
-        if key == "missing_isolate_date":
+        if key in ["missing_isolate_date", "missing_isolate_unique_lab_no"]:
             q &= Q(culture_isolate=1)
             
 
