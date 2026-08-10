@@ -263,6 +263,27 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
     
     if mode == "edcs":
         qs = qs.select_related('tblis_laboratory')
+        # Apply control sample exclusion logic similar to individual export
+        from django.db.models import Q
+        from nanopore.models import TblisRawData, TblisUploadBatch
+        ctrl_prefixes = [
+            "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
+            "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19",
+        ]
+        ctrl_q = Q()
+        for prefix in ctrl_prefixes:
+            ctrl_q |= Q(tblis_laboratory__pid__startswith=prefix)
+        latest_batch = TblisUploadBatch.objects.first()
+        if latest_batch:
+            merged_labnos = TblisRawData.objects.filter(
+                upload_batch=latest_batch,
+                is_merged=True
+            ).values_list("labno", flat=True)
+        else:
+            merged_labnos = []
+        qs = qs.exclude(
+            ctrl_q & ~Q(tblis_laboratory__unique_lab_no__in=merged_labnos)
+        )
     else:
         qs = qs.select_related('zonal_laboratory')
 
