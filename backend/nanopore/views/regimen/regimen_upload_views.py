@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 import io
 from django.contrib import messages
@@ -41,7 +43,8 @@ def safe_date(val):
         return None
 
 
-class RegimenChangesCsvUploadView(View):
+class RegimenChangesCsvUploadView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     template_name = "nanopore/regimen/regimen_upload.html"
 
     def get(self, request, *args, **kwargs):

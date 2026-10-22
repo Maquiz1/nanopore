@@ -1,9 +1,13 @@
+from utils import access
+from utils.access import scope_queryset
+from utils.access_mixins import FeatureAccessMixin
 import csv
 from django.views import View
 from django.http import HttpResponse
 from nanopore.models import Screening
 
-class ScreeningCsvDownloadView(View):
+class ScreeningCsvDownloadView(FeatureAccessMixin, View):
+    access_feature = access.EXPORTS
     """
     Download screening records as CSV, filtered by the user's allowed sites or zones.
     """
@@ -24,6 +28,7 @@ class ScreeningCsvDownloadView(View):
         user = request.user
 
         screenings = Screening.objects.all()
+        screenings = scope_queryset(request.user, screenings, "site")
 
         # Optional filtering by allowed sites/zones if user has these attributes
         if hasattr(user, 'sites') and user.sites.exists():

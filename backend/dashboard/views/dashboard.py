@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Count, Q, F, IntegerField, ExpressionWrapper, Sum
 from django.db.models.functions import TruncMonth
@@ -11,7 +12,7 @@ from utils.roles import get_role_context
 from locations.models import Site,Zone
 
 
-class DashboardHomeView(ListView):
+class DashboardHomeView(LoginRequiredMixin, ListView):
     model = Screening
     template_name = "dashboard/dashboard.html"
     context_object_name = "object_list"
@@ -284,7 +285,7 @@ class DashboardHomeView(ListView):
 
 
 
-class DashboardHomeView(ListView):
+class DashboardHomeView(LoginRequiredMixin, ListView):
     model = Screening
     template_name = "dashboard/dashboard.html"
     context_object_name = "object_list"

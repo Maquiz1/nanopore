@@ -9,6 +9,6 @@
 <p><strong>Updated By:</strong> {{ enrollment.updated_by }}</p>
 
 <a href="{% url 'nanopore:enrollment-update' enrollment.pk %}">✏️ Edit</a> |
-<a href="{% url 'nanopore:enrollment-delete' enrollment.pk %}">🗑️ Delete</a> |
+{% if access.delete_records %}<a href="{% url 'nanopore:enrollment-delete' enrollment.pk %}">🗑️ Delete</a> |{% endif %}
 <a href="{% url 'nanopore:enrollment-list' %}">🔙 Back to List</a>
 {% endblock %}

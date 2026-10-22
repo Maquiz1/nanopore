@@ -1,10 +1,14 @@
+from utils import access
+from utils.access import scope_queryset
+from utils.access_mixins import FeatureAccessMixin
 from django.views import View
 from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from nanopore.models import Screening
 
-class ScreeningXlsxDownloadView(View):
+class ScreeningXlsxDownloadView(FeatureAccessMixin, View):
+    access_feature = access.EXPORTS
     """
     Download screening records as an XLSX file, with formatting.
     Filters based on user's allowed sites or zones.
@@ -32,6 +36,7 @@ class ScreeningXlsxDownloadView(View):
 
         user = request.user
         screenings = Screening.objects.all()
+        screenings = scope_queryset(request.user, screenings, "site")
 
         # Filter by user's allowed sites/zones if applicable
         if hasattr(user, 'sites') and user.sites.exists():

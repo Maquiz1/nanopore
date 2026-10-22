@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
@@ -11,14 +13,16 @@ from nanopore.forms.regimen.regimenform import RegimenChangesForm
 from django.utils.http import url_has_allowed_host_and_scheme
 
 
-class DiagnosisFormView(LoginRequiredMixin, View):
+class DiagnosisFormView(FormAccessMixin, View):
+    access_form = access.DIAGNOSIS
+    access_is_form = True
     template_name = "nanopore/diagnosis/diagnosis_form.html"
     success_url = reverse_lazy("nanopore:form-status-list")
 
     def get_object(self):
         pk = self.kwargs.get("pk")
         if pk:
-            return get_object_or_404(Diagnosis, pk=pk)
+            return get_object_or_404(self.scope(Diagnosis.objects.all()), pk=pk)
         return None
 
     def get_screening_instance(self):
@@ -27,7 +31,7 @@ class DiagnosisFormView(LoginRequiredMixin, View):
             return obj.screening
         screening_id = self.request.GET.get("screening")
         if screening_id:
-            return get_object_or_404(Screening, pk=screening_id)
+            return get_object_or_404(self.scope(Screening.objects.all(), "site"), pk=screening_id)
         return None
 
     def get_regimen_error(self, diagnosis, screening_instance):
@@ -88,6 +92,8 @@ class DiagnosisFormView(LoginRequiredMixin, View):
 
         # Compute regimen error for template
         regimen_error = self.get_regimen_error(obj, screening_instance)
+
+        self.limit_choices(form)
 
         if form.is_valid():
             diagnosis = form.save(commit=False)

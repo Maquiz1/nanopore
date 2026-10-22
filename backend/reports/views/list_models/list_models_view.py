@@ -1,6 +1,9 @@
+from utils import access
+from utils.access_mixins import require_feature
 from django.shortcuts import render
 from django.apps import apps
 
+@require_feature(access.MODEL_EXPORT)
 def list_all_models_view(request):
     """Render template listing all models available for export"""
     model_names = ["Screening", "Enrollment", "Diagnosis", "ClinicLaboratory", "ZonalLaboratory"]

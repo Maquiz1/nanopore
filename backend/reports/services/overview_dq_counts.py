@@ -1,3 +1,5 @@
+from utils import access
+from utils.access import can_see_queries
 from reports.services.missing_form_dq_counts import get_missing_forms_counts
 from reports.services.screening_dq_counts import get_screening_dq_counts
 from reports.services.enrollment_dq_counts import get_enrollment_dq_counts
@@ -77,9 +79,7 @@ def get_data_quality_overview(user, zone_id=None, site_id=None):
     zonal_counts = get_zonal_dq_counts(qs)
 
     # Fetch Edcs/TBLIS counts for allowed roles
-    user_group = user.groups.first().name.upper() if user.groups.exists() else ""
-    is_super = user.is_superuser
-    show_edcs = is_super or user_group in ["ADMIN", "REVIEWER"]
+    show_edcs = can_see_queries(user, access.EDCS_TBLIS)
     
     edcs_tblis_total = 0
     if show_edcs:

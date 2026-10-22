@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 from django.views import View
 from django.http import HttpResponse
 from django.apps import apps
@@ -5,7 +7,8 @@ import importlib
 import csv
 
 
-class DownloadModelLabelsView(View):
+class DownloadModelLabelsView(FeatureAccessMixin, View):
+    access_feature = access.EXPORTS
     """
     Export CSV with form labels as column headers (if available),
     exporting readable names for ForeignKey and ManyToMany fields.

@@ -319,6 +319,20 @@ def _build_tblis_qs(filters):
     return qs
 
 
+def _scope_for_user(qs, user_id, is_tblis):
+    """Limit the export to what the requesting user may see (see utils/access.py)."""
+    from django.contrib.auth import get_user_model
+    from utils.access import is_unscoped, scope_queryset
+
+    user = get_user_model().objects.filter(pk=user_id).first() if user_id else None
+    if user is None:
+        return qs.none()
+    if is_tblis:
+        # Raw TBLIS rows carry no site: only unscoped users may export them.
+        return qs if is_unscoped(user) else qs.none()
+    return scope_queryset(user, qs, "screening__site")
+
+
 # ─── main task ────────────────────────────────────────────────────────────────
 
 @shared_task(bind=True)
@@ -357,6 +371,8 @@ def export_edcs_tblis_csv(self, filename="edcs_tblis_export.xlsx", filters=None,
     else:
         columns = EDCS_COLUMNS
         qs = _build_edcs_qs(filters)
+
+    qs = _scope_for_user(qs, user_id, is_tblis)
 
     total = qs.count()
 

@@ -140,7 +140,9 @@
                     <td>
                         <a href="{% url 'nanopore:screening-detail' screening.pk %}" class="btn btn-sm btn-primary">View</a>
                         <a href="{% url 'nanopore:screening-update' screening.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        {% if access.delete_records %}
                         <a href="{% url 'nanopore:screening-delete' screening.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}

@@ -1,10 +1,13 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 from django.http import HttpResponse
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from nanopore.models.discrepancies import TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
 
-class DiscrepancyDownloadView(LoginRequiredMixin, View):
+class DiscrepancyDownloadView(FeatureAccessMixin, View):
+    access_feature = access.TBLIS_UPLOAD
     def get(self, request, *args, **kwargs):
         discrepancy_type = kwargs.get('discrepancy_type')
         

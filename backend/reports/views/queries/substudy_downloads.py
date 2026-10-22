@@ -1,3 +1,6 @@
+from utils import access
+from utils.access import scope_queryset
+from utils.access_mixins import FeatureAccessMixin
 import pandas as pd
 from django.http import HttpResponse
 from django.views import View
@@ -5,11 +8,12 @@ from django.db.models import Q
 from nanopore.models import Screening
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-class SubstudyDownloadView(LoginRequiredMixin, View):
+class SubstudyDownloadView(FeatureAccessMixin, View):
+    access_feature = access.REPORTS
     def get(self, request, *args, **kwargs):
         query_type = kwargs.get('query_type')
         
-        base_qs = Screening.objects.filter(
+        base_qs = scope_queryset(request.user, Screening.objects.all(), "site").filter(
             eligible=True,
             clinic_laboratory__isnull=False,
             tblis_laboratory__isnull=False

@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 
@@ -9,7 +11,8 @@ from reports.services.screening_dq import (
 
 from utils.roles import get_role_context
 
-class ScreeningDataQualityView(View):
+class ScreeningDataQualityView(AnyFormAccessMixin, View):
+    access_forms = (access.SCREENING,)
 
     template_name = "reports/data_quality/screenings/data_screening_quality_report.html"
 

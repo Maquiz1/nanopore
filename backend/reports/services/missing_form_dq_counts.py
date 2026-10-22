@@ -1,3 +1,5 @@
+from utils import access
+from utils.access import can_view, visible_missing_total
 from django.apps import apps
 from django.db.models import Exists, OuterRef
 from utils.permissions import filter_queryset_by_user_role
@@ -52,7 +54,7 @@ def get_missing_forms_counts(user, zone_id=None, site_id=None):
     ).distinct().count()
 
     missing_zonal_count = 0
-    if is_privileged or is_zonal_lab:
+    if can_view(user, access.ZONAL_LAB):
         missing_zonal_count = qs.filter(
             clinic_laboratory__xpert_mtb_rif_conducted=1,
             clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
@@ -60,23 +62,13 @@ def get_missing_forms_counts(user, zone_id=None, site_id=None):
         ).count()
 
     # ── Total (role-aware) ─────────────────────────────────────────
-    if is_privileged:
-        total_form_missing = (
-            missing_enrollment_count +
-            missing_clinic_count +
-            missing_diagnosis_count +
-            missing_regimen_count +
-            missing_zonal_count
-        )
-    elif is_zonal_lab:
-        total_form_missing = missing_zonal_count
-    else:
-        total_form_missing = (
-            missing_enrollment_count +
-            missing_clinic_count +
-            missing_diagnosis_count +
-            missing_regimen_count
-        )
+    total_form_missing = visible_missing_total(user, {
+        "enrollment": missing_enrollment_count,
+        "clinic": missing_clinic_count,
+        "diagnosis": missing_diagnosis_count,
+        "regimen": missing_regimen_count,
+        "zonal": missing_zonal_count,
+    })
 
     return {
         "missing_enrollment_count": missing_enrollment_count,

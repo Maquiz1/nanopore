@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from locations.models import Zone, Site
@@ -5,7 +7,8 @@ from nanopore.models import Enrollment, ClinicLaboratory, Diagnosis, ZonalLabora
 from utils.permissions import filter_queryset_by_user_role
 
 
-class EnrollmentListView(LoginRequiredMixin, ListView):
+class EnrollmentListView(FormAccessMixin, ListView):
+    access_form = access.ENROLLMENT
     model = Enrollment
     template_name = "nanopore/enrollment/enrollment_list.html"
     context_object_name = "object_list"

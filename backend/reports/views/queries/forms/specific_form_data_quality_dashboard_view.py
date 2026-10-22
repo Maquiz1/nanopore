@@ -1,10 +1,13 @@
 # reports/views/specific_form_dashboard.py
 
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views.generic import TemplateView
 from utils.roles import get_role_context
 from reports.services.specific_form_dq import get_specific_form_dq
 
-class SpecificFormDataQualityDashboardView(TemplateView):
+class SpecificFormDataQualityDashboardView(AnyFormAccessMixin, TemplateView):
+    access_forms = access.ALL_FORMS
     template_name = "reports/data_quality/query_dashboard/specific_form_queries_dashboard.html"
 
     def get_context_data(self, **kwargs):

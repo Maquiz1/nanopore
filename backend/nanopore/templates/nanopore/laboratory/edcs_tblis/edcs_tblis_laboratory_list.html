@@ -8,6 +8,11 @@
             <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
         <h2>Edcs / TBLIS Laboratory Records</h2>
+        <div class="d-flex gap-2">
+            <span class="text-muted small align-self-center">TBLIS mapping:</span>
+            <a href="{% url 'nanopore:tblis-mapping-download' 'excel' %}" class="btn btn-sm btn-outline-success">⬇ Excel</a>
+            <a href="{% url 'nanopore:tblis-mapping-download' 'pdf' %}" class="btn btn-sm btn-outline-danger">⬇ PDF</a>
+        </div>
     </div>
 
     <!-- Filters -->

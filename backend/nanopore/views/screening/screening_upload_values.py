@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 import io
 from datetime import date
@@ -85,7 +87,8 @@ def get_foreign(obj_class, val, required=False, field_name=None):
     return obj
 
 
-class ScreeningCsvUploadValuesView(View):
+class ScreeningCsvUploadValuesView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     template_name = "nanopore/screening/screening_upload_values.html"
 
     def get(self, request, *args, **kwargs):

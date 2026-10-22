@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 from django.views import View
 from django.http import HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
@@ -7,7 +9,8 @@ import csv
 
 
 # @method_decorator(staff_member_required, name='dispatch')
-class DownloadModelFieldsView(View):
+class DownloadModelFieldsView(FeatureAccessMixin, View):
+    access_feature = access.EXPORTS
     """
     Export CSV with only real model fields (no relations, no auto fields),
     excluding timestamps and system fields.

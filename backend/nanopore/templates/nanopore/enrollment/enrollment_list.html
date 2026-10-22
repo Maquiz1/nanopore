@@ -43,7 +43,9 @@
                     <td>
                         <a href="{% url 'nanopore:enrollment-detail' enrollment.pk %}" class="btn btn-sm btn-primary">View</a>
                         <a href="{% url 'nanopore:enrollment-update' enrollment.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        {% if access.delete_records %}
                         <a href="{% url 'nanopore:enrollment-delete' enrollment.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}

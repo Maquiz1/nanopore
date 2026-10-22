@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import SoftDeleteMixin
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, ListView, DetailView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -9,7 +11,7 @@ from nanopore.forms.screening.screeningform import ScreeningForm
 # -------------------------
 
 
-class ZonalLaboratoryDeleteView(LoginRequiredMixin, DeleteView):
+class ZonalLaboratoryDeleteView(SoftDeleteMixin, DeleteView):
+    access_form = access.ZONAL_LAB
     model = ZonalLaboratory
-    template_name = 'nanopore/laboratory/zonal/zonal_laboratory_confirm_delete.html'
     success_url = reverse_lazy('nanopore:form-status-list')

@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import os
 from django.views import View
 from django.shortcuts import render
@@ -6,7 +8,8 @@ from nanopore.forms.laboratory.edcs_tblis.edcs_tblis_lab_upload_form import Edcs
 from nanopore.tasks import import_edcs_tblis
 
 
-class EdcsTBLISCsvUploadView(View):
+class EdcsTBLISCsvUploadView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     template_name = "nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_upload.html"
 
     def get(self, request):

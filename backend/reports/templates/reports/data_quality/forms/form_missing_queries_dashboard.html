@@ -3,10 +3,9 @@
 {% block content %}
 
 {# Safe group name helper: use first group if present #}
-{% with group=request.user.groups.first.name|default_if_none:"" %}
 <div class="container mt-4">
     {# Header / profile banner #}
-    {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER" %}
+    {% if access.is_unscoped %}
         <div class="alert alert-info d-flex justify-content-between align-items-center">
             <div>
                 <strong>Position:</strong> {{ request.user.profile.position|default:"-" }}
@@ -42,7 +41,7 @@
 
     {# Filter bar (show zone/site filters only to higher roles) #}
     <form method="get" class="row g-3 mb-4">
-        {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+        {% if access.is_unscoped or "LABORATORY_TECHNICIAN" in access.roles %}
         <div class="col-md-3">
             <label for="zone" class="form-label">Zone</label>
             <select name="zone" id="zone" class="form-select">
@@ -117,8 +116,8 @@
                 <tr>
                     <th>PID</th>
                     <th>Screening Date</th>
-                    {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}<th>Facility</th>{% endif %}
-                    {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER" %}<th>Zone</th>{% endif %}
+                    {% if access.is_unscoped or "LABORATORY_TECHNICIAN" in access.roles %}<th>Facility</th>{% endif %}
+                    {% if access.is_unscoped %}<th>Zone</th>{% endif %}
                     <th>Sex</th>
                     <th>Age</th>
                     <th class="text-center">Actions</th>
@@ -138,11 +137,11 @@
 
                     <td>{{ s.screening_date|date:"Y-m-d"|default:"-" }}</td>
 
-                    {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER,LABORATORY_TECHNICIAN" %}
+                    {% if access.is_unscoped or "LABORATORY_TECHNICIAN" in access.roles %}
                     <td>{{ s.site_name|default:"-" }}</td>
                     {% endif %}
 
-                    {% if request.user.is_superuser or group|upper in "ADMIN,REVIEWER" %}
+                    {% if access.is_unscoped %}
                     <td>{{ s.zone_name|default:"-" }}</td>
                     {% endif %}
 
@@ -152,7 +151,7 @@
                     <td class="text-center">
                         {% if s.id %}
                             <a href="{% url 'nanopore:screening-update' s.id %}" class="btn btn-sm btn-outline-primary">View</a>
-                            {% if group|upper in "NURSE,CLINICIAN" or request.user.is_superuser %}
+                            {% if access.edit.enrollment %}
                                 <a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}" class="btn btn-sm btn-success ms-1">Add Enrollment Form</a>
                             {% else %}
                                 <a href="{% url 'nanopore:screening-detail' s.id %}" class="btn btn-sm btn-outline-secondary ms-1">Details</a>
@@ -200,5 +199,4 @@
     </nav>
     {% endif %}
 </div>
-{% endwith %}
 {% endblock %}

@@ -4,11 +4,15 @@ from nanopore.views import (
     RegimenChangesEditView,
     RegimenChangesDeleteView,
     RegimenChangesCsvUploadView,
+    RegimenChangesListView,
+    RegimenChangesRecordDeleteView,
 )
 
 # app_name = "nanopore"
 
 urlpatterns = [
+    path("", RegimenChangesListView.as_view(), name="regimen-list"),
+    path("<int:pk>/remove/", RegimenChangesRecordDeleteView.as_view(), name="regimen-record-delete"),
     path("save/", RegimenChangesFormView.as_view(), name="regimen-save"),
     path("<int:pk>/edit/", RegimenChangesEditView.as_view(), name="regimen-edit"),
     path("<int:pk>/delete/", RegimenChangesDeleteView.as_view(), name="regimen-delete"),

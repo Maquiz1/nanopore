@@ -9,6 +9,6 @@
 <p><strong>Status:</strong> {{ screening.status }}</p>
 
 <a href="{% url 'nanopore:screening-update' screening.pk %}">✏️ Edit</a> |
-<a href="{% url 'nanopore:screening-delete' screening.pk %}">🗑️ Delete</a> |
+{% if access.delete_records %}<a href="{% url 'nanopore:screening-delete' screening.pk %}">🗑️ Delete</a> |{% endif %}
 <a href="{% url 'nanopore:screening-list' %}">🔙 Back to List</a>
 {% endblock %}

@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
@@ -11,7 +13,10 @@ from locations.models import Site,Zone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib import messages
 
-class ScreeningFormView(LoginRequiredMixin, View):
+class ScreeningFormView(FormAccessMixin, View):
+    access_form = access.SCREENING
+    access_site_field = "site"
+    access_is_form = True
     template_name = "nanopore/screening/screening_form.html"
     success_url = reverse_lazy("nanopore:form-status-list")
     form_class = ScreeningForm
@@ -19,7 +24,7 @@ class ScreeningFormView(LoginRequiredMixin, View):
 
     def get_object(self, pk=None):
         if pk:
-            return get_object_or_404(Screening, pk=pk)
+            return get_object_or_404(self.scope(Screening.objects.all()), pk=pk)
         return None
 
 
@@ -34,7 +39,7 @@ class ScreeningFormView(LoginRequiredMixin, View):
 
         next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
 
-        form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
+        form = self.limit_choices(self.form_class(instance=obj, initial=self.get_initial(request, obj)))
         context = self.get_context_data(form=form, object=obj, next=next_url)
 
         return render(request, self.template_name, context)
@@ -87,6 +92,8 @@ class ScreeningFormView(LoginRequiredMixin, View):
         form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
         context = self.get_context_data(form=form, object=obj)
         
+        self.limit_choices(form)
+        
         if form.is_valid():
             obj = form.save(commit=False)
             
@@ -100,8 +107,6 @@ class ScreeningFormView(LoginRequiredMixin, View):
                     obj.site = request.user.profile.sites.first()
                 elif hasattr(request.user, "profile") and request.user.profile.zones.exists():
                     obj.site = Site.objects.filter(district__region__zone=request.user.profile.zones.first()).first()
-                else:
-                    obj.site = Site.objects.first()
 
             if not obj.site:
                 form.add_error(None, "No site found. Please create a site first.")

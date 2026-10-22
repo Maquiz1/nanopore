@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% with user_group=request.user|upper %}
-{% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+{% if access.is_unscoped %}
     <div class="alert alert-info d-flex justify-content-between align-items-center">
         <div>
             <strong>Position:</strong> {{ request.user.profile.position }}
@@ -29,22 +28,19 @@
         </div>
     {% endif %}
 {% endif %}
-{% endwith %}
 
 <div class="container mt-4">
     <h2 class="mb-4">Screening & Form Status</h2>
 
     <!-- 🔹 Top Buttons -->
     <div class="d-flex justify-content-between mb-3">
-        {% with user_group=request.user.groups.first.name|upper %}
-        {% if request.user.is_superuser or user_group == "ADMIN" %}
+        {% if access.is_admin %}
             {% if system_control.enable_new_screening %}
             <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
                 ➕ New Screening
             </a>
             {% endif %}
         {% endif %}
-        {% endwith %}
         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
             ⬅ Back to Dashboard
         </a>
@@ -152,7 +148,7 @@
                 {% for screening in object_list %}
                 <tr>
                     <td>
-                        {% if request.user.is_superuser or is_nurse_clinician or request.user.profile.position.name|lower == "data specialist" %}
+                        {% if access.edit.screening %}
                             <a href="{% url 'nanopore:screening-update' screening.pk %}">{{ screening.pid }}</a>
                         {% else %}
                             {{ screening.pid }}

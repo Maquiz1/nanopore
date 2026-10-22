@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Sum, F
 from locations.models import Site
@@ -9,7 +10,7 @@ from locations.models import Site, Zone
 from nanopore.models import Enrollment
 from utils.permissions import filter_queryset_by_user_role
 
-class SiteTargetsView(ListView):
+class SiteTargetsView(LoginRequiredMixin, ListView):
     model = Site
     template_name = "dashboard/site_targets.html"
     context_object_name = "sites"

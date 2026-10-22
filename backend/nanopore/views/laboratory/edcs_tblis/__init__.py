@@ -4,7 +4,7 @@ from .edcs_tblis_upload_view import EdcsTBLISCsvUploadView
 from .edcs_tblis_task_views import RevokeEdcsTblisTaskView, TaskStatusView
 from .edcs_tblis_download_view import EdcsTblisDownloadCsvView
 from .edcs_tblis_csv_export_views import TriggerCsvExportView, ServeCsvExportView
-from .tblis_raw_upload_view import TblisRawUploadView
+from .tblis_raw_upload_view import TblisRawUploadView, TblisMappingDownloadView
 from .discrepancy_download_view import DiscrepancyDownloadView
 
 __all__ = [
@@ -17,5 +17,6 @@ __all__ = [
     "TriggerCsvExportView",
     "ServeCsvExportView",
     "TblisRawUploadView",
+    "TblisMappingDownloadView",
     "DiscrepancyDownloadView",
 ]

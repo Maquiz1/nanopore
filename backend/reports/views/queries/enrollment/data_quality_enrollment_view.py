@@ -1,5 +1,7 @@
 # reports/views/queries/enrollment/data_enrollment_quality_view.py
 
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 
@@ -10,7 +12,8 @@ from reports.services.enrollment_dq import (
 
 from utils.roles import get_role_context
 
-class EnrollmentDataQualityView(View):
+class EnrollmentDataQualityView(AnyFormAccessMixin, View):
+    access_forms = (access.ENROLLMENT,)
 
     template_name = (
         "reports/data_quality/enrollments/data_enrollment_quality_report.html"

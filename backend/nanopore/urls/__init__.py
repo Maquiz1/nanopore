@@ -10,6 +10,7 @@ urlpatterns = [
     path("edcs-tblis/",include("nanopore.urls.laboratory.edcs_tblis_urls")),
     path("diagnoses/", include("nanopore.urls.diagnosis.diagnosis_urls")),
     path("regimen/", include("nanopore.urls.regimen.regimen_urls")),
+    path("recycle-bin/", include("nanopore.urls.recycle_bin_urls")),
     path("form-status/", include("nanopore.urls.form_status.form_status_urls")),
     path("screenings/download/", include("nanopore.urls.exports.data_exports.csv_exports.data_csv_urls")),
     path("screenings/download/", include("nanopore.urls.exports.data_exports.xlsx_exports.data_xlsx_urls")),

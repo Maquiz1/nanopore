@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 import io
 from datetime import date
@@ -13,7 +15,8 @@ from demographic.models import Sex
 from options.models import YesNo,EnrolledReason
 
 
-class ScreeningCsvUploadView(View):
+class ScreeningCsvUploadView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     template_name = "nanopore/screening/screening_upload.html"
 
     def get(self, request, *args, **kwargs):

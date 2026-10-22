@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page { size: A4 landscape; margin: 12mm 10mm 14mm 10mm;
+            @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: #555; } }
+    body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 7.5pt; color: #222; }
+    h1 { font-size: 15pt; margin: 0 0 4pt; }
+    h2 { font-size: 11pt; margin: 14pt 0 4pt; color: #1e3a5f; page-break-before: always; }
+    h2.first { page-break-before: avoid; }
+    .meta { color: #555; margin-bottom: 8pt; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { background: #1e3a5f; color: #fff; text-align: left; padding: 3pt; }
+    td { border-bottom: 0.5pt solid #ccc; padding: 3pt; vertical-align: top; word-wrap: break-word; }
+    tr { page-break-inside: avoid; }
+    thead { display: table-header-group; }
+</style>
+</head>
+<body>
+    <h1>DREAM Fund – TBLIS mapping (Zonal Lab / EDCS-TBLIS)</h1>
+    <div class="meta">Generated {{ mapping.version.generated }} · Database version {{ mapping.version.database_version }}</div>
+
+    <h2 class="first">Upload rules</h2>
+    <table>
+        <colgroup><col style="width:18%"><col style="width:82%"></colgroup>
+        <thead><tr>{% for c in mapping.rules_columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in mapping.rules %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table>
+
+    <h2>Field mapping ({{ mapping.mapped|length }} fields)</h2>
+    <table>
+        <colgroup><col style="width:4%"><col style="width:13%"><col style="width:15%"><col style="width:14%"><col style="width:24%"><col style="width:30%"></colgroup>
+        <thead><tr>{% for c in mapping.mapped_columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in mapping.mapped %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table>
+
+    <h2>Not taken from TBLIS ({{ mapping.not_mapped|length }} fields)</h2>
+    <table>
+        <colgroup><col style="width:5%"><col style="width:20%"><col style="width:35%"><col style="width:40%"></colgroup>
+        <thead><tr>{% for c in mapping.not_mapped_columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in mapping.not_mapped %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table>
+</body>
+</html>

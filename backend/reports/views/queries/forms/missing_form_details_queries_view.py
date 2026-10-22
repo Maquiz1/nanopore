@@ -1,3 +1,8 @@
+from django.core.exceptions import PermissionDenied
+from utils import access
+from utils.access import can_view, visible_missing_total
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 from django.utils import timezone
@@ -8,7 +13,8 @@ from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
-class MissingFormDetailsQueriesView(View):
+class MissingFormDetailsQueriesView(AnyFormAccessMixin, View):
+    access_forms = access.ALL_FORMS
     """
     Detailed view of missing forms.
     - Shows summary counts for all forms (role-aware)
@@ -94,7 +100,7 @@ class MissingFormDetailsQueriesView(View):
         missing_regimen_count = missing_regimen_qs.count()
 
         missing_zonal_count = 0
-        if is_privileged or is_zonal_lab:
+        if can_view(request.user, access.ZONAL_LAB):
             missing_zonal_count = eligible_screenings.filter(
                 clinic_laboratory__xpert_mtb_rif_conducted=1,
                 clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
@@ -102,25 +108,17 @@ class MissingFormDetailsQueriesView(View):
             ).count()
 
         # ── 6. Total (role-aware) ──
-        if is_privileged:
-            total_form_missing = (
-                missing_enrollment_count +
-                missing_clinic_count +
-                missing_diagnosis_count +
-                missing_regimen_count +
-                missing_zonal_count
-            )
-        elif is_zonal_lab:
-            total_form_missing = missing_zonal_count
-        else:
-            total_form_missing = (
-                missing_enrollment_count +
-                missing_clinic_count +
-                missing_diagnosis_count +
-                missing_regimen_count
-            )
+        total_form_missing = visible_missing_total(request.user, {
+            "enrollment": missing_enrollment_count,
+            "clinic": missing_clinic_count,
+            "diagnosis": missing_diagnosis_count,
+            "regimen": missing_regimen_count,
+            "zonal": missing_zonal_count,
+        })
 
         # ── 7. Select records for requested form_type ──
+        if form_type in access.MISSING_FORM_TYPES and not can_view(request.user, access.MISSING_FORM_TYPES[form_type]):
+            raise PermissionDenied
         selected_qs = None
         if form_type == "enrollment":
             selected_qs = eligible_screenings.filter(enrollment__isnull=True)
@@ -128,7 +126,7 @@ class MissingFormDetailsQueriesView(View):
             selected_qs = eligible_screenings.filter(clinic_laboratory__isnull=True)
         elif form_type == "diagnosis":
             selected_qs = eligible_screenings.filter(diagnosis__isnull=True)
-        elif form_type == "zonal" and (is_privileged or is_zonal_lab):
+        elif form_type == "zonal" and can_view(request.user, access.ZONAL_LAB):
             selected_qs = eligible_screenings.filter(
                 clinic_laboratory__xpert_mtb_rif_conducted=1,
                 clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],

@@ -4,6 +4,11 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="mb-0">Upload Raw TBLIS Data</h3>
+        <div class="d-flex gap-2">
+            <span class="text-muted small align-self-center">TBLIS mapping:</span>
+            <a href="{% url 'nanopore:tblis-mapping-download' 'excel' %}" class="btn btn-sm btn-outline-success">⬇ Excel</a>
+            <a href="{% url 'nanopore:tblis-mapping-download' 'pdf' %}" class="btn btn-sm btn-outline-danger">⬇ PDF</a>
+        </div>
     </div>
 
     {% if messages %}
@@ -23,8 +28,15 @@
             {% csrf_token %}
             {{ form.file.label_tag }}
             {{ form.file }}
+            <input type="hidden" name="preview" id="previewInput" value="0">
+            <div class="form-text">
+                Only <strong>Sputum</strong> samples with GeneXpert <strong>MTB Detected</strong> or
+                <strong>MTB Trace Detected</strong> are merged; all other rows are left out.
+                Use <strong>Preview</strong> first: it shows exactly what the upload would do without saving anything.
+            </div>
             <div class="mt-2 d-flex gap-2">
-                <button type="submit" class="btn btn-success" id="uploadBtn">Upload CSV</button>
+                <button type="button" class="btn btn-outline-primary" id="previewBtn">🔍 Preview</button>
+                <button type="submit" class="btn btn-success" id="uploadBtn">Upload</button>
                 <button type="button" class="btn btn-danger" id="cancelBtn" style="display:none">Cancel Upload</button>
             </div>
         </form>
@@ -77,16 +89,49 @@ function statCard(label, value, color) {
         </div>`;
 }
 
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.innerText = text;
+    return div.innerHTML;
+}
+
 function showMergeSummary(data) {
     mergeSummaryCard.style.display = "block";
+    document.querySelector("#mergeSummaryCard .card-header").innerText =
+        data.preview ? "🔍 Preview — nothing was saved" : "📊 Upload & Merge Summary";
 
     mergeSummaryStats.innerHTML =
-        statCard("Total TBLIS Rows", data.total ?? "—", "primary") +
-        statCard("🔄 Merged into EDCS", data.updated ?? "—", "info") +
-        statCard("❌ Errors", data.errors ? data.errors.length : 0, "danger");
+        statCard("Rows in file", data.rows_in_file ?? "—", "secondary") +
+        statCard("✂️ Left out by filter", data.rows_left_out ?? 0, "warning") +
+        statCard("Rows used", data.total ?? "—", "primary") +
+        statCard(data.preview ? "🔄 Would merge into EDCS" : "🔄 Merged into EDCS", data.updated ?? "—", "info") +
+        statCard("❌ Row errors", data.errors ? data.errors.length : 0, "danger") +
+        statCard("📅 Unreadable dates", data.date_problems_count ?? 0, "danger");
 
     const extra = document.getElementById("mergeSummaryExtra");
-    let extraHtml = "";
+    let extraHtml = `<div class="small text-muted">Sheet: ${escapeHtml(data.sheet || "—")} · Dates read as: ${escapeHtml(data.date_order || "—")}</div>`;
+
+    const reasons = data.left_out_by_reason || {};
+    if (Object.keys(reasons).length) {
+        extraHtml += `<div class="mt-3 p-3 bg-light border rounded"><h6>Rows left out (not merged)</h6><ul class="mb-0">`;
+        for (const [reason, count] of Object.entries(reasons)) {
+            extraHtml += `<li>${escapeHtml(reason)}: <strong>${count}</strong></li>`;
+        }
+        extraHtml += `</ul></div>`;
+    }
+
+    if (data.date_problems && data.date_problems.length) {
+        extraHtml += `<div class="mt-3 p-3 border border-danger rounded"><h6 class="text-danger">Dates that could not be read (left empty)</h6><ul class="mb-0 small">`;
+        data.date_problems.forEach(p => { extraHtml += `<li>${escapeHtml(p)}</li>`; });
+        if (data.date_problems_count > data.date_problems.length) {
+            extraHtml += `<li>… and ${data.date_problems_count - data.date_problems.length} more</li>`;
+        }
+        extraHtml += `</ul></div>`;
+    }
+
+    if (data.preview) {
+        extraHtml += `<div class="alert alert-info mt-3 mb-0">This was a preview. If the numbers look right, press <strong>Upload</strong> to save.</div>`;
+    }
     
     if (data.edcs_not_in_tblis_count > 0 || data.tblis_not_in_edcs_count > 0 || data.mismatches_count > 0) {
         extraHtml += `<div class="mt-3 p-3 bg-light border rounded">
@@ -113,8 +158,17 @@ function showMergeSummary(data) {
     extra.innerHTML = extraHtml;
 }
 
+const previewBtn = document.getElementById("previewBtn");
+const previewInput = document.getElementById("previewInput");
+previewBtn.addEventListener("click", function(){
+    previewInput.value = "1";
+    uploadForm.requestSubmit();
+});
+
 uploadForm.addEventListener("submit", function(e){
     e.preventDefault();
+    if (e.submitter && e.submitter.id === "uploadBtn") previewInput.value = "0";
+    previewBtn.disabled = true;
 
     uploadBtn.disabled = true;
     uploadBtn.innerText = "Uploading...";
@@ -144,16 +198,16 @@ uploadForm.addEventListener("submit", function(e){
             data = JSON.parse(xhr.responseText);
         } catch(e) {
             errorTableWrapper.innerHTML = `<div class="alert alert-danger">Server error: ${xhr.responseText}</div>`;
-            uploadBtn.disabled = false;
-            uploadBtn.innerText = "Upload CSV";
+            uploadBtn.disabled = false; previewBtn.disabled = false;
+            uploadBtn.innerText = "Upload";
             cancelBtn.style.display = "none";
             return;
         }
 
         if (!data.task_id) {
             errorTableWrapper.innerHTML = `<div class="alert alert-danger">Upload failed — no task ID returned.</div>`;
-            uploadBtn.disabled = false;
-            uploadBtn.innerText = "Upload CSV";
+            uploadBtn.disabled = false; previewBtn.disabled = false;
+            uploadBtn.innerText = "Upload";
             cancelBtn.style.display = "none";
             return;
         }
@@ -170,8 +224,8 @@ uploadForm.addEventListener("submit", function(e){
                         pendingCount++;
                         if(pendingCount >= MAX_PENDING_POLLS){
                             clearInterval(intervalId);
-                            uploadBtn.disabled = false;
-                            uploadBtn.innerText = "Upload CSV";
+                            uploadBtn.disabled = false; previewBtn.disabled = false;
+                            uploadBtn.innerText = "Upload";
                             cancelBtn.style.display = "none";
                             uploadProgressWrapper.style.display = "none";
                             errorTableWrapper.innerHTML = `
@@ -195,8 +249,8 @@ uploadForm.addEventListener("submit", function(e){
 
                     if(data.state === "FAILURE"){
                         clearInterval(intervalId);
-                        uploadBtn.disabled = false;
-                        uploadBtn.innerText = "Upload CSV";
+                        uploadBtn.disabled = false; previewBtn.disabled = false;
+                        uploadBtn.innerText = "Upload";
                         cancelBtn.style.display = "none";
                         uploadProgressWrapper.style.display = "none";
                         errorTableWrapper.innerHTML = `<div class="alert alert-danger"><strong>Task failed:</strong><br>${data.error || 'Unknown'}</div>`;
@@ -205,14 +259,14 @@ uploadForm.addEventListener("submit", function(e){
 
                     if(data.state === "SUCCESS" || data.state === "REVOKED"){
                         clearInterval(intervalId);
-                        uploadBtn.disabled = false;
+                        uploadBtn.disabled = false; previewBtn.disabled = false;
                         cancelBtn.style.display = "none";
                         uploadProgressWrapper.style.display = "none";
 
                         if(data.errors && data.errors.length){
-                            uploadBtn.innerText = "Re-upload CSV";
+                            uploadBtn.innerText = "Re-upload";
                         } else {
-                            uploadBtn.innerText = "Upload CSV";
+                            uploadBtn.innerText = "Upload";
                         }
 
                         let now = new Date();
@@ -220,6 +274,11 @@ uploadForm.addEventListener("submit", function(e){
 
                         if(data.state === "REVOKED"){
                             errorTableWrapper.innerHTML = `<div class="alert alert-warning">Upload cancelled by user.</div>`;
+                            return;
+                        }
+
+                        if (data.file_error) {
+                            errorTableWrapper.innerHTML = `<div class="alert alert-danger"><strong>This file can't be used:</strong> ${escapeHtml(data.file_error)}</div>`;
                             return;
                         }
 
@@ -234,16 +293,14 @@ uploadForm.addEventListener("submit", function(e){
                                         <tbody>
                             `;
                             data.errors.forEach((e,i)=>{
-                                html += `<tr><td>${i+1}</td><td>${e}</td></tr>`;
+                                html += `<tr><td>${i+1}</td><td>${escapeHtml(e)}</td></tr>`;
                             });
                             html += "</tbody></table></div>";
                             errorTableWrapper.innerHTML = html;
                         } else {
-                            errorTableWrapper.innerHTML = `
-                                <div class="alert alert-success mt-2">
-                                    ✅ Import complete — ${data.updated} rows merged.
-                                </div>
-                            `;
+                            errorTableWrapper.innerHTML = data.preview
+                                ? `<div class="alert alert-info mt-2">🔍 Preview complete — ${data.updated} rows would be merged. Nothing was saved.</div>`
+                                : `<div class="alert alert-success mt-2">✅ Import complete — ${data.updated} rows merged.</div>`;
                         }
                     }
                 })
@@ -258,8 +315,8 @@ cancelBtn.addEventListener("click", function(){
         fetch("{% url 'nanopore:task-revoke' 'TASKID' %}".replace("TASKID", currentTaskId), {method:"POST"})
             .then(()=> {
                 clearInterval(intervalId);
-                uploadBtn.disabled = false;
-                uploadBtn.innerText = "Upload CSV";
+                uploadBtn.disabled = false; previewBtn.disabled = false;
+                uploadBtn.innerText = "Upload";
                 cancelBtn.style.display = "none";
                 uploadProgressWrapper.style.display = "none";
                 errorTableWrapper.innerHTML = `<div class="alert alert-warning">Upload cancelled by user.</div>`;

@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 import json
 import os
 import uuid
@@ -11,7 +13,9 @@ from django.utils.decorators import method_decorator
 from nanopore.tasks_csv_export import export_edcs_tblis_csv
 
 
-class TriggerCsvExportView(LoginRequiredMixin, View):
+class TriggerCsvExportView(FormAccessMixin, View):
+    access_form = access.EDCS_TBLIS
+    access_safe_post = True
     """
     POST: enqueue the background Excel export and return task_id.
     Accepts filters as JSON body OR as GET/POST params.
@@ -48,7 +52,8 @@ class TriggerCsvExportView(LoginRequiredMixin, View):
         return JsonResponse({"task_id": task.id, "filename": filename})
 
 
-class ServeCsvExportView(LoginRequiredMixin, View):
+class ServeCsvExportView(FormAccessMixin, View):
+    access_form = access.EDCS_TBLIS
     """
     GET: serve the generated Excel file for download once ready.
     """

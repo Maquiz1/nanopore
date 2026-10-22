@@ -1,8 +1,11 @@
+from utils import access
+from utils.access_mixins import require_feature
 from django.shortcuts import render
 from django.db.models import Sum
 from reports.models import DataQualitySnapshot, MissingFormsDQSnapshot
 
 
+@require_feature(access.SNAPSHOTS)
 def missing_forms_dashboard(request):
 
     latest_snapshot = DataQualitySnapshot.objects.order_by("-snapshot_date").first()

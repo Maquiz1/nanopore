@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import require_feature
 import json
 from django.shortcuts import render
 from django.db.models import Sum
@@ -7,6 +9,7 @@ from reports.models import MissingFormsDQSnapshot, DataQualitySnapshot
 from locations.models import Zone, Site
 
 
+@require_feature(access.SNAPSHOTS)
 def missing_forms_trends(request):
 
     zone_id = request.GET.get("zone")

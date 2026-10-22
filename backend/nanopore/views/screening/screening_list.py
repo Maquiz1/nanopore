@@ -1,11 +1,15 @@
 # nanopore/views/screening/list.py
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.views.generic import ListView
 from nanopore.models import Screening
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
-class ScreeningListView(ListView):
+class ScreeningListView(FormAccessMixin, ListView):
+    access_form = access.SCREENING
+    access_site_field = "site"
     model = Screening
     template_name = 'nanopore/screening/screening_list.html'
     context_object_name = 'object_list'

@@ -6,8 +6,7 @@
 <div class="container mt-4">
 
     <h2>Available Models for Export</h2>
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN" or user.profile.position.name|lower == "data specialist" %}
+    {% if access.is_admin or "DATA_SPECIALIST" in access.roles %}
     <div class="mb-3">
         <!-- Button for ALL models + Zonal -->
         <button class="btn btn-warning download-all-btn me-2"
@@ -24,7 +23,6 @@
         </button>
     </div>
     {% endif %}
-    {% endwith %}
     <!-- Table of individual models -->
     <table class="table table-striped">
         <thead>

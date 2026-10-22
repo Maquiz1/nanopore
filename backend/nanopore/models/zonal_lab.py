@@ -23,6 +23,7 @@ from options.models import (
     NanoporeSequencingResults,
     NanoporeSequencingDelayedReasons,
 )
+
 User = get_user_model()
 
 class ZonalLaboratory(models.Model):
@@ -36,7 +37,8 @@ class ZonalLaboratory(models.Model):
     unique_lab_no = models.CharField(max_length=100, unique=True)
     
     # Culture
-    culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="zonal_laboratory_culture_performed")
+    # Empty for Dar es Salaam (CTRL): results arrive through the TBLIS merge (see nanopore/zonal_rules.py).
+    culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, null=True, blank=True, related_name="zonal_laboratory_culture_performed")
     culture_method = models.ManyToManyField(CultureMethod, blank=True, related_name="zonal_laboratory_culture_method")
     microscopy_type = models.ForeignKey(MicroscopyType, on_delete=models.SET_NULL, null=True, blank=True, related_name="zonal_laboratory_culture_microscopy_type")
     microscopy_date = models.DateField(null=True, blank=True)

@@ -1,3 +1,4 @@
+from nanopore.zonal_rules import is_lab_number_only
 from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ZonalLaboratory
@@ -293,6 +294,15 @@ class ZonalLaboratoryForm(forms.ModelForm):
         
         # Keep readonly display in template
         self.readonly_screening = screening_instance
+
+        # Dar es Salaam (CTRL): only the Unique Lab Number is entered here; the
+        # results come from the TBLIS upload. Fields left out of the form are
+        # not touched on save.
+        self.lab_number_only = is_lab_number_only(screening_instance)
+        if self.lab_number_only:
+            for name in list(self.fields):
+                if name not in ("screening", "unique_lab_no"):
+                    del self.fields[name]
 
     def clean(self):
         cleaned_data = super().clean()

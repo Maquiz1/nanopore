@@ -36,7 +36,7 @@ class EdcsTblisZonal(models.Model):
     unique_lab_no = models.CharField(max_length=100, unique=True)
     
     # Culture
-    culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, related_name="tblis_laboratory_culture_performed")
+    culture_performed = models.ForeignKey(YesNo, on_delete=models.PROTECT, null=True, blank=True, related_name="tblis_laboratory_culture_performed")
     culture_method = models.ManyToManyField(CultureMethod, blank=True, related_name="tblis_laboratory_culture_method")
     microscopy_type = models.ForeignKey(MicroscopyType, on_delete=models.SET_NULL, null=True, blank=True, related_name="tblis_laboratory_culture_microscopy_type")
     microscopy_date = models.DateField(null=True, blank=True)

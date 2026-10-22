@@ -1,3 +1,6 @@
+from utils import access
+from utils.access import scope_queryset
+from utils.access_mixins import FeatureAccessMixin
 import csv
 from django.views import View
 from django.http import HttpResponse
@@ -6,7 +9,8 @@ from nanopore.models import Enrollment
 
 
 # ---------------- CSV Export ----------------
-class EnrollmentCsvDownloadView(View):
+class EnrollmentCsvDownloadView(FeatureAccessMixin, View):
+    access_feature = access.EXPORTS
     """
     Download Enrollment records as CSV, filtered by allowed sites/zones.
     """
@@ -22,6 +26,7 @@ class EnrollmentCsvDownloadView(View):
 
         user = request.user
         enrollments = Enrollment.objects.select_related('screening').all()
+        enrollments = scope_queryset(request.user, enrollments, "screening__site")
 
         # Filter based on allowed sites/zones if user is not superuser
         if not user.is_superuser:

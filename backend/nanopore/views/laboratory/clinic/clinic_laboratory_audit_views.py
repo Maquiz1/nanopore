@@ -1,18 +1,19 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import DetailView
 from django.shortcuts import get_object_or_404
 from nanopore.models import ClinicLaboratory
 
 
-class ClinicLaboratoryAuditView(LoginRequiredMixin, DetailView):
+class ClinicLaboratoryAuditView(FormAccessMixin, DetailView):
+    access_form = access.CLINIC_LAB
     model = ClinicLaboratory
     template_name = "nanopore/laboratory/clinic/clinic_laboratory_audit.html"
     context_object_name = "object"
 
     def get_object(self):
-        return get_object_or_404(
-            ClinicLaboratory,
-            pk=self.kwargs.get("pk")
+        return get_object_or_404(self.scope(ClinicLaboratory.objects.all()), pk=self.kwargs.get("pk")
         )
 
     def get_context_data(self, **kwargs):

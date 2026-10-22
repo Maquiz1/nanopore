@@ -11,6 +11,6 @@
 <p><strong>Updated By:</strong> {{ zonal_laboratory.updated_by }}</p>
 
 <a href="{% url 'nanopore:zonal-laboratory-update' zonal_laboratory.pk %}">✏️ Edit</a> |
-<a href="{% url 'nanopore:zonal-laboratory-delete' zonal_laboratory.pk %}">🗑️ Delete</a> |
+{% if access.delete_records %}<a href="{% url 'nanopore:zonal-laboratory-delete' zonal_laboratory.pk %}">🗑️ Delete</a> |{% endif %}
 <a href="{% url 'nanopore:zonal-laboratory-list' %}">🔙 Back to List</a>
 {% endblock %}

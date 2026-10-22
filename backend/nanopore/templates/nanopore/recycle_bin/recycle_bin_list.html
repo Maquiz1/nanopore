@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">⬅ Back to Dashboard</a>
+        <h2 class="mb-0">🗑️ Recycle Bin</h2>
+    </div>
+
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label for="model" class="form-label">Form</label>
+            <select name="model" id="model" class="form-select">
+                <option value="">All forms</option>
+                {% for key, label in model_labels.items %}
+                <option value="{{ key }}" {% if selected_model == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="pid" class="form-label">PID</label>
+            <input type="text" name="pid" id="pid" value="{{ selected_pid }}" class="form-control" placeholder="Enter PID">
+        </div>
+        <div class="col-md-4">
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-select">
+                <option value="deleted" {% if selected_status == "deleted" %}selected{% endif %}>In Recycle Bin</option>
+                <option value="restored" {% if selected_status == "restored" %}selected{% endif %}>Restored</option>
+                <option value="all" {% if selected_status == "all" %}selected{% endif %}>All</option>
+            </select>
+        </div>
+        <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ request.path }}" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Deleted</th>
+                    <th>Form</th>
+                    <th>PID</th>
+                    <th>Records removed</th>
+                    <th>Deleted by</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.deleted_at|date:"M d, Y H:i" }}</td>
+                    <td>{{ entry.model_name }}</td>
+                    <td>{{ entry.pid|default:"-" }}</td>
+                    <td>
+                        {% for name, count in entry.summary.items %}
+                        <span class="badge bg-secondary">{{ name }} × {{ count }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>{{ entry.deleted_by.get_full_name|default:entry.deleted_by.username|default:"-" }}</td>
+                    <td>{{ entry.reason|default:"-" }}</td>
+                    <td>
+                        {% if entry.is_restored %}
+                        <span class="badge bg-success">Restored {{ entry.restored_at|date:"M d, Y" }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">Deleted</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-nowrap">
+                        <a href="{% url 'nanopore:recycle-bin-detail' entry.pk %}" class="btn btn-sm btn-primary">View</a>
+                        {% if not entry.is_restored %}
+                        <form method="post" action="{% url 'nanopore:recycle-bin-restore' entry.pk %}" class="d-inline"
+                              onsubmit="return confirm('Restore {{ entry.model_name }} {{ entry.pid }} and all records deleted with it?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success">♻️ Restore</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">The Recycle Bin is empty.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/pagination.html" %}
+</div>
+{% endblock %}

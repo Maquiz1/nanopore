@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import View
@@ -8,14 +10,16 @@ from nanopore.forms.enrollment.enrollmentform import EnrollmentForm
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib import messages
 
-class EnrollmentFormView(LoginRequiredMixin, View):
+class EnrollmentFormView(FormAccessMixin, View):
+    access_form = access.ENROLLMENT
+    access_is_form = True
     template_name = "nanopore/enrollment/enrollment_form.html"
     success_url = reverse_lazy("nanopore:form-status-list")
 
     def get_object(self):
         pk = self.kwargs.get("pk")
         if pk:
-            return get_object_or_404(Enrollment, pk=pk)
+            return get_object_or_404(self.scope(Enrollment.objects.all()), pk=pk)
         return None
 
     def get_screening_instance(self):
@@ -23,7 +27,7 @@ class EnrollmentFormView(LoginRequiredMixin, View):
             return self.get_object().screening
         screening_id = self.request.GET.get("screening")
         if screening_id:
-            return get_object_or_404(Screening, pk=screening_id)
+            return get_object_or_404(self.scope(Screening.objects.all(), "site"), pk=screening_id)
         return None
 
     def get(self, request, *args, **kwargs):
@@ -38,6 +42,8 @@ class EnrollmentFormView(LoginRequiredMixin, View):
         obj = self.get_object()
         screening_instance = self.get_screening_instance()
         form = EnrollmentForm(request.POST, instance=obj, screening_instance=screening_instance)
+
+        self.limit_choices(form)
 
         if form.is_valid():
             enrollment = form.save(commit=False)

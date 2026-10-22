@@ -1,5 +1,7 @@
 from django.db.models import Q
 from reports.constants.zona_mapping import ZONAL_DQ_FIELD_MAPPING
+from nanopore.models import ZonalLaboratory
+from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
 
 def get_zonal_dq_filters(model):
     """
@@ -157,6 +159,11 @@ def get_zonal_dq_filters(model):
         # Nanopore drug results
         if key == "missing_nanopore_drug_results":
             q &= Q(nanopore_results=1)
+
+        # Dar es Salaam Zonal Lab records only hold the lab number; their results
+        # are checked on the merged EDCS/TBLIS records instead.
+        if model is ZonalLaboratory and key != "missing_unique_lab_no":
+            q &= ~LAB_NUMBER_ONLY_Q
 
         filters[key] = q
 

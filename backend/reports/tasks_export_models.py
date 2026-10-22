@@ -10,12 +10,30 @@ def sanitize_text(val):
     return val
 
 
+def _scope_for_user(model, qs, user_id):
+    """Limit an export to the records the requesting user may see (utils/access.py)."""
+    from django.contrib.auth import get_user_model
+    from utils.access import is_unscoped, scope_queryset
+
+    user = get_user_model().objects.filter(pk=user_id).first() if user_id else None
+    if user is None:
+        return qs.none()
+    if is_unscoped(user):
+        return qs
+    field_names = {f.name for f in model._meta.get_fields()}
+    if "site" in field_names:
+        return scope_queryset(user, qs, "site")
+    if "screening" in field_names:
+        return scope_queryset(user, qs, "screening__site")
+    return qs.none()  # no site to scope by (e.g. raw TBLIS rows)
+
+
 @shared_task(bind=True)
-def export_model_raw_data_task(self, model_name, filename=None):
+def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
     if not filename:
         from datetime import datetime
         date_str = datetime.now().strftime("%Y%m%d")
-        filename = f"{model_name}_raw_data_export_{date_str}.csv"
+        filename = f"{model_name}_raw_data_export_{date_str}_u{user_id}.csv"
 
     try:
         model = apps.get_model('nanopore', model_name)
@@ -59,14 +77,15 @@ def export_model_raw_data_task(self, model_name, filename=None):
     remarks_field_name = f"{model_name.lower()}_remarks"
     header.append(remarks_field_name)
 
-    total = model.objects.count()
+    base_qs = _scope_for_user(model, model.objects.all(), user_id)
+    total = base_qs.count()
     if total == 0:
         with open(filepath, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(header)
         return {"state": "SUCCESS", "file": filename, "total": 0}
 
-    qs = model.objects.all()
+    qs = base_qs
     if select_related_fields:
         qs = qs.select_related(*select_related_fields)
     if prefetch_related_fields:

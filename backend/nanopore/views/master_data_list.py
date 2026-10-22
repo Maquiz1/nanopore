@@ -1,9 +1,12 @@
 from django.views.generic import ListView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from utils import access
+from utils.access import assigned_locations, legacy_role_flags, scope_queryset
+from utils.access_mixins import AnyFormAccessMixin
 from nanopore.models import Screening
 from dashboard.views.dashboard import get_role_context
 
-class MasterDataListView(LoginRequiredMixin, ListView):
+class MasterDataListView(AnyFormAccessMixin, ListView):
+    access_forms = access.ALL_FORMS
     model = Screening
     template_name = "nanopore/master_data_list.html"
     context_object_name = "screenings"
@@ -51,11 +54,7 @@ class MasterDataListView(LoginRequiredMixin, ListView):
         )
 
         # Apply role-based filtering (same as dashboard/form_status)
-        role_context = get_role_context(self.request.user)
-        assigned_sites = role_context.get("sites", [])
-
-        if not self.request.user.is_superuser:
-            qs = qs.filter(site__in=assigned_sites)
+        qs = scope_queryset(self.request.user, qs, "site")
 
         # Handle basic GET filters
         pid_query = self.request.GET.get("pid_labno", "").strip()
@@ -157,26 +156,13 @@ class MasterDataListView(LoginRequiredMixin, ListView):
         context.update(role_context)
         
         # Explicit Profile Assignments for Header Display
-        assigned_zones = []
-        assigned_sites = []
-        if hasattr(self.request.user, "profile"):
-            assigned_zones = list(self.request.user.profile.zones.all())
-            explicit_sites = set(self.request.user.profile.sites.all())
-            
-            from locations.models import Site
-            derived_sites = set(Site.objects.filter(district__region__zone__in=assigned_zones))
-            assigned_sites = sorted(list(explicit_sites.union(derived_sites)), key=lambda s: s.name)
-
+        assigned_zones, assigned_sites = assigned_locations(self.request.user)
         context.update({
             "assigned_zones": assigned_zones,
             "assigned_sites": assigned_sites,
         })
-        
+
         # User permissions flags for UI rendering
-        user_groups = [g.upper() for g in self.request.user.groups.values_list('name', flat=True)]
-        is_data_specialist = hasattr(self.request.user, "profile") and self.request.user.profile.position and self.request.user.profile.position.name.lower() == "data specialist"
-        
-        context['is_admin_or_reviewer'] = self.request.user.is_superuser or "ADMIN" in user_groups or "REVIEWER" in user_groups or is_data_specialist
-        context['is_admin_only'] = self.request.user.is_superuser or "ADMIN" in user_groups or is_data_specialist
-        
+        context.update(legacy_role_flags(self.request.user))
+
         return context

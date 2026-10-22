@@ -1,9 +1,12 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 from django.http import HttpResponse
 from django.views import View
 from nanopore.models import Screening
 
-class ScreeningCsvTemplateDownloadView(View):
+class ScreeningCsvTemplateDownloadView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     """
     Provides a CSV template for uploading Screening records,
     matching the structure of the downloaded screening data.

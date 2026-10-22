@@ -297,7 +297,7 @@
             </h2>
             <div id="zonal" class="accordion-collapse collapse show">
                 <div class="accordion-body table-responsive">
-                    {% if is_privileged or is_zonal_lab %}
+                    {% if access.view.zonal_lab %}
                         {% if missing_records %}
                             <table class="table table-sm table-bordered table-hover">
                                 <thead class="table-light">

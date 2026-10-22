@@ -39,6 +39,25 @@
                             {{ form.screening }}
                         </div>
 
+                        {% if form.lab_number_only %}
+                        <!-- Dar es Salaam (CTRL): lab number only -->
+                        <div class="p-2 mb-3 bg-warning text-white rounded">
+                            <h5 class="mb-0">Lab Details</h5>
+                        </div>
+                        <div class="alert alert-info">
+                            <strong>Dar es Salaam:</strong> enter only the <strong>Unique Lab Number</strong>.
+                            Culture, DST, Xpert XDR, LPA and Nanopore results come from the TBLIS upload,
+                            which merges them into the EDCS / TBLIS record using this lab number.
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.unique_lab_no.label_tag }}{{ form.unique_lab_no }}
+                                {% for error in form.unique_lab_no.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
                         <!-- Lab Details -->
                         <div class="p-2 mb-3 bg-warning text-white rounded">
                             <h5 class="mb-0">Lab Details</h5>
@@ -429,17 +448,16 @@
                         </div>
                         <div class="mb-3">{{ form.remarks.label_tag }}{{ form.remarks }}</div>
 
+                        {% endif %}
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
-                            {% with user_group=request.user.groups.first.name|upper %}
-                            {% if not user_group == "REVIEWER" %}
+                            {% if access.edit.zonal_lab %}
                             {% if system_control.enable_form_submissions %}
                                 <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>
                             {% else %}
                                 <button type="button" class="btn btn-secondary" disabled>🚫 Submissions Disabled</button>
                             {% endif %}
                             {% endif %}
-                            {% endwith %}
                         </div>
                     </form>
                 </div>
@@ -452,6 +470,7 @@
 
 
 {% block extra_scripts %}
+{% if not form.lab_number_only %}
 
 <script src="{% static 'custom_js/culture_performed_fields.js' %}"></script>
 <script src="{% static 'custom_js/culture_method_fields.js' %}"></script>
@@ -472,6 +491,7 @@
 <script src="{% static 'custom_js/nanopore_results_fields.js' %}"></script >
 
 
+{% endif %}
 {% endblock %}
 
 

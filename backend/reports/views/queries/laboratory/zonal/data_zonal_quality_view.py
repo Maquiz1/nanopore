@@ -1,5 +1,7 @@
 # reports/views/queries/laboratory/zonal/data_zonal_quality_view.py
 
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 from django.apps import apps
@@ -8,7 +10,8 @@ from reports.services.zonal_dq import get_zonal_dq
 
 from utils.roles import get_role_context
 
-class ZonalDataQualityView(View):
+class ZonalDataQualityView(AnyFormAccessMixin, View):
+    access_forms = (access.ZONAL_LAB,)
 
     template_name = "reports/data_quality/laboratory/zonal/data_zonal_quality_report.html"
 

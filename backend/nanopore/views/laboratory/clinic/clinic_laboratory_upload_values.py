@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 import io
 from datetime import date
@@ -142,7 +144,8 @@ def to_bool(val):
         return False
 
 
-class ClinicLabCsvUploadView(View):
+class ClinicLabCsvUploadView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     template_name = "nanopore/laboratory/clinic/clinic_laboratory_upload.html"
 
     def get(self, request, *args, **kwargs):

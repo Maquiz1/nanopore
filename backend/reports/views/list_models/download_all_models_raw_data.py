@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 from django.views import View
 from django.http import StreamingHttpResponse
 from django.apps import apps
@@ -6,7 +8,8 @@ import io
 
 REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 
-class ExportAllModelsRawDataView(View):
+class ExportAllModelsRawDataView(FeatureAccessMixin, View):
+    access_feature = access.MODEL_EXPORT
 
     # Fields to exclude from all models
     exclude_fields = [

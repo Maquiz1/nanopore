@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
@@ -10,7 +11,7 @@ from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
-class GraphsHomeView(ListView):
+class GraphsHomeView(LoginRequiredMixin, ListView):
     model = Screening
     template_name = "visual/visual_graphs.html"
     context_object_name = "object_list"

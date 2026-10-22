@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission, ContentType
 from locations.models import SiteType, SiteLevel
-from nanopore.models import Screening, Enrollment, ClinicLaboratory, Diagnosis, ZonalLaboratory
+from nanopore.models import Screening, Enrollment, ClinicLaboratory, Diagnosis, ZonalLaboratory, RegimenChanges, EdcsTblisZonal
 
 
 class Command(BaseCommand):
@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"Created SiteLevel: {name}"))
 
         # 3. Create Groups
-        groups = ["NURSE", "CLINICIAN", "LABORATORY_TECHNICIAN", "ADMIN", "REVIEWER"]
+        groups = ["NURSE", "CLINICIAN", "LABORATORY_TECHNICIAN", "DATA_SPECIALIST", "ADMIN", "REVIEWER"]
         for g in groups:
             group, created = Group.objects.get_or_create(name=g)
             if created:
@@ -52,18 +52,23 @@ class Command(BaseCommand):
                 view_perms = Permission.objects.filter(content_type=content_type, codename__startswith='view_')
                 group.permissions.add(*view_perms)
 
-        # 4. Assign permissions
-        # NURSE & CLINICIAN -> Screening, Enrollment, ClinicLab, Diagnosis (full perms)
-        nurse_models = [Screening, Enrollment, ClinicLaboratory, Diagnosis]
+        # 4. Assign permissions (mirrors utils/access.py, which is what the views enforce)
+        # NURSE & CLINICIAN -> clinical forms (full perms)
+        nurse_models = [Screening, Enrollment, ClinicLaboratory, Diagnosis, RegimenChanges]
         assign_full_perms("NURSE", nurse_models)
         assign_full_perms("CLINICIAN", nurse_models)
 
-        # LAB_TECHNICIAN -> Zonal Laboratory only (full perms)
-        lab_models = [ZonalLaboratory]
+        # LAB_TECHNICIAN -> Zonal Laboratory + EDCS/TBLIS (full perms), Screening (view only)
+        lab_models = [ZonalLaboratory, EdcsTblisZonal]
         assign_full_perms("LABORATORY_TECHNICIAN", lab_models)
+        assign_view_only_perms("LABORATORY_TECHNICIAN", [Screening])
+
+        all_models = [Screening, Enrollment, ClinicLaboratory, ZonalLaboratory, EdcsTblisZonal, Diagnosis, RegimenChanges]
+
+        # DATA_SPECIALIST -> All forms (full perms), limited to their assignment
+        assign_full_perms("DATA_SPECIALIST", all_models)
 
         # ADMIN -> All models (full perms)
-        all_models = [Screening, Enrollment, ClinicLaboratory, Diagnosis, ZonalLaboratory]
         assign_full_perms("ADMIN", all_models)
 
         # REVIEWER -> All models (view only)

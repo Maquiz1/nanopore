@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 import io
 from django.contrib import messages
@@ -135,7 +137,8 @@ def to_bool(val):
     except (ValueError, TypeError):
         return False
 
-class DiagnosisCsvUploadView(View):
+class DiagnosisCsvUploadView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     template_name = "nanopore/diagnosis/diagnosis_upload_values.html"
 
     def get(self, request, *args, **kwargs):

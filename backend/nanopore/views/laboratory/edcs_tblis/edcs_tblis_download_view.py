@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 import csv
 from django.http import StreamingHttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,7 +13,8 @@ class Echo:
         return value
 
 
-class EdcsTblisDownloadCsvView(LoginRequiredMixin, View):
+class EdcsTblisDownloadCsvView(FormAccessMixin, View):
+    access_form = access.EDCS_TBLIS
     """
     Streams EdcsTblisZonal data as CSV using StreamingHttpResponse
     to avoid memory/timeout issues in production with large datasets.
@@ -196,7 +199,7 @@ class EdcsTblisDownloadCsvView(LoginRequiredMixin, View):
         writer = csv.writer(pseudo_buffer)
 
         response = StreamingHttpResponse(
-            (writer.writerow(row) for row in row_gen(qs)),
+            (writer.writerow(row) for row in row_gen(self.scope(qs))),
             content_type="text/csv",
         )
         response["Content-Disposition"] = 'attachment; filename="edcs_tblis_zonal_data.csv"'

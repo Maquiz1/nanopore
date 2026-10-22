@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'nanopore:recycle-bin' %}" class="btn btn-secondary">⬅ Back to Recycle Bin</a>
+        <h2 class="mb-0">{{ entry.model_name }} {{ entry.pid }}</h2>
+    </div>
+
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <div><strong>Deleted:</strong> {{ entry.deleted_at|date:"M d, Y H:i" }} by {{ entry.deleted_by.get_full_name|default:entry.deleted_by.username|default:"-" }}</div>
+                <div><strong>Reason:</strong> {{ entry.reason|default:"-" }}</div>
+                {% if entry.is_restored %}
+                <div><strong>Restored:</strong> {{ entry.restored_at|date:"M d, Y H:i" }} by {{ entry.restored_by.get_full_name|default:entry.restored_by.username }}</div>
+                {% endif %}
+            </div>
+            {% if not entry.is_restored %}
+            <form method="post" action="{% url 'nanopore:recycle-bin-restore' entry.pk %}"
+                  onsubmit="return confirm('Restore all {{ entry.total_records }} record(s)?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">♻️ Restore all {{ entry.total_records }} record(s)</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% for record in records %}
+    <div class="card mb-3">
+        <div class="card-header"><strong>{{ record.model }}</strong> #{{ record.pk }}</div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+                <tbody>
+                    {% for name, value in record.fields %}
+                    <tr>
+                        <th style="width: 35%;">{{ name }}</th>
+                        <td>{{ value|default_if_none:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,11 +1,14 @@
 # reports/views/missing_form_dashboard.py
 
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views.generic import TemplateView
 from utils.roles import get_role_context
 from reports.services.missing_form_dq import get_missing_forms_dq
 
 
-class MissingFormDataQualityDashboardView(TemplateView):
+class MissingFormDataQualityDashboardView(AnyFormAccessMixin, TemplateView):
+    access_forms = access.ALL_FORMS
     template_name = (
         "reports/data_quality/query_dashboard/"
         "missing_form_queries_dashboard.html"

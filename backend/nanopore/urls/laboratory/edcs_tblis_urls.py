@@ -1,6 +1,7 @@
 # nanopore/urls/laboratory/zonal_laboratory_urls.py
 from django.urls import path
 from nanopore.views import (
+    TblisMappingDownloadView,
     EdcsTBLISLaboratoryListView,
     EdcsTBLISCsvUploadView,
     EdcsTblisFormView,
@@ -19,6 +20,7 @@ urlpatterns = [
     path("edcs-tblis/form/<int:pk>/view", EdcsTblisFormView.as_view(), name="edcs-tblis-laboratory-view"),
     path('upload-edcs-tblis/', EdcsTBLISCsvUploadView.as_view(), name="edcs-tblis-upload-csv"),
     path('upload-tblis-raw/', TblisRawUploadView.as_view(), name="tblis-raw-upload"),
+    path('tblis-mapping/<str:fmt>/', TblisMappingDownloadView.as_view(), name="tblis-mapping-download"),
     path('upload-tblis-raw/discrepancies/<str:discrepancy_type>/', DiscrepancyDownloadView.as_view(), name="tblis-raw-discrepancies"),
     path('edcs-tblis/revoke/<str:task_id>/', RevokeEdcsTblisTaskView.as_view(), name='task-revoke'),
     path("task-status/<str:task_id>/", TaskStatusView.as_view(), name="task-status"),

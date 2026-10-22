@@ -15,7 +15,7 @@
     <!-- ───────────────── Cards ───────────────── -->
     <div class="row g-4 justify-content-center">
 
-        {% if is_privileged or not is_zonal_lab %}
+        {% if access.view.enrollment %}
 
             <!-- Enrollment -->
             <div class="col-md-4">
@@ -83,7 +83,7 @@
 
         {% endif %}
 
-        {% if is_privileged or is_zonal_lab %}
+        {% if access.view.zonal_lab %}
             <!-- Zonal -->
             <div class="col-md-6">
                 <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}"

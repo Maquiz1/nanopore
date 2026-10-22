@@ -87,8 +87,7 @@
                         </div>
 
                         <div class="row g-3 mb-3">
-                            {% with user_group=request.user.groups.first.name|upper %}
-                            {% if request.user.is_superuser or user_group == "ADMIN" or user_group == "REVIEWER" %}
+                            {% if access.is_unscoped %}
                             <!-- Admins & reviewers see both -->
                             <div class="col-md-6">
                                 {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
@@ -129,7 +128,6 @@
                                 <em>No site information available.</em>
                             </div>
                             {% endif %}
-                            {% endwith %}
                         </div>
 
                         <div class="row g-3 mb-3">
@@ -225,15 +223,13 @@
                         <!-- Buttons -->
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">❌ Cancel</a>
-                            {% with user_group=request.user.groups.first.name|upper %}
-                            {% if not user_group == "REVIEWER" %}
+                            {% if access.edit.screening %}
                             {% if system_control.enable_form_submissions %}
                                 <button type="submit" class="btn btn-success">💾 Save Screening</button>
                             {% else %}
                                 <button type="button" class="btn btn-secondary" disabled>🚫 Submissions Disabled</button>
                             {% endif %}
                             {% endif %}
-                            {% endwith %}
                         </div>
                     </form>
                 </div>

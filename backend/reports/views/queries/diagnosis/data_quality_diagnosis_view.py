@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 
@@ -8,7 +10,8 @@ from reports.services.diagnosis_dq import (
 from utils.roles import get_role_context
 
 
-class DiagnosisDataQualityView(View):
+class DiagnosisDataQualityView(AnyFormAccessMixin, View):
+    access_forms = (access.DIAGNOSIS,)
 
     template_name = (
         "reports/data_quality/diagnosis/data_diagnosis_quality_report.html"

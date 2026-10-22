@@ -11,9 +11,14 @@ from nanopore.models import (
     ZonalLaboratory,
 )
 from utils.permissions import filter_queryset_by_user_role
+from utils import access
+from utils.access import is_unscoped
+from utils.access_mixins import FormAccessMixin
+from utils.roles import get_role_context
 
 
-class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
+class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
+    access_form = access.EDCS_TBLIS
     model = EdcsTblisZonal
     template_name = "nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_list.html"
     context_object_name = "object_list"
@@ -25,6 +30,15 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             self._latest_batch = TblisUploadBatch.objects.first()
         return self._latest_batch
 
+    def raw_tblis_rows(self, batch, visible_only=True):
+        """
+        Raw TBLIS rows carry no site, so only unscoped users (admin/reviewer) may
+        list or count them. visible_only=False is for matching lab numbers only.
+        """
+        if not batch or (visible_only and not is_unscoped(self.request.user)):
+            return TblisRawData.objects.none()
+        return TblisRawData.objects.filter(upload_batch=batch)
+
     def get_queryset(self):
         card_type = self.request.GET.get("card_type") or self.request.GET.get("view_type")
 
@@ -34,7 +48,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             if not latest_batch:
                 return TblisRawData.objects.none()
             
-            qs = TblisRawData.objects.filter(upload_batch=latest_batch).order_by("labno")
+            qs = self.raw_tblis_rows(latest_batch).order_by("labno")
             if card_type == "tblis_not_in_edcs":
                 zonal_lab_numbers = ZonalLaboratory.objects.values("unique_lab_no")
                 qs = qs.exclude(labno__in=zonal_lab_numbers)
@@ -93,11 +107,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
 
         # Latest upload batch labnos for merged / not in TBLIS logic
         latest_batch = self._get_latest_batch()
-        latest_tblis_rows = (
-            TblisRawData.objects.filter(upload_batch=latest_batch)
-            if latest_batch
-            else TblisRawData.objects.none()
-        )
+        latest_tblis_rows = self.raw_tblis_rows(latest_batch, visible_only=False)
         tblis_lab_numbers = latest_tblis_rows.values("labno")
         merged_lab_numbers = latest_tblis_rows.filter(is_merged=True).values("labno")
 
@@ -207,12 +217,13 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         active_card = self.request.GET.get("card_type") or self.request.GET.get("view_type", "")
         context["view_type"] = active_card
         context["active_card_type"] = active_card
-        context["zones"] = Zone.objects.all()
-        context["sites"] = Site.objects.all()
+        context.update(get_role_context(self.request.user))
         context["request"] = self.request
+        zonal_labs = self.scope(ZonalLaboratory.objects.all())
+        edcs_labs = self.scope(EdcsTblisZonal.objects.all())
 
         # Upload stats
-        total_edcs_records = ZonalLaboratory.objects.count()
+        total_edcs_records = zonal_labs.count()
         
         # Other zonal (non-CTRL) records
         from django.db.models import Q as _Q
@@ -223,7 +234,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         _other_q = _Q()
         for _p in _ctrl_prefixes:
             _other_q |= _Q(screening__pid__startswith=_p)
-        other_qs = ZonalLaboratory.objects.exclude(_other_q)
+        other_qs = zonal_labs.exclude(_other_q)
         total_other_zonal_records = other_qs.count()
         other_zonal_substudy2 = other_qs.filter(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]).count()
         other_zonal_substudy4 = other_qs.filter(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9]).count()
@@ -245,7 +256,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         prefix_query = Q()
         for prefix in ctrl_prefixes:
             prefix_query |= Q(screening__pid__startswith=prefix)
-        ctrl_laboratories = ZonalLaboratory.objects.filter(prefix_query)
+        ctrl_laboratories = zonal_labs.filter(prefix_query)
         zonal_lab_numbers = ZonalLaboratory.objects.values("unique_lab_no")
         latest_upload_batch = self._get_latest_batch()
         merge_summary = (
@@ -253,14 +264,11 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             if latest_upload_batch
             else EdcsTblisMergeSummary.objects.first()
         )
-        latest_tblis_rows = (
-            TblisRawData.objects.filter(upload_batch=latest_upload_batch)
-            if latest_upload_batch
-            else TblisRawData.objects.none()
-        )
-        tblis_lab_numbers = latest_tblis_rows.values("labno")
+        latest_tblis_rows = self.raw_tblis_rows(latest_upload_batch)
+        all_tblis_rows = self.raw_tblis_rows(latest_upload_batch, visible_only=False)
+        tblis_lab_numbers = all_tblis_rows.values("labno")
 
-        total_zonal_edcs = ZonalLaboratory.objects.count()
+        total_zonal_edcs = zonal_labs.count()
         total_ctrl_records = ctrl_laboratories.count()
         total_raw_tblis_records = latest_tblis_rows.count()
         total_merged_records = latest_tblis_rows.filter(is_merged=True).count()
@@ -281,7 +289,9 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         ).values('substudy').annotate(cnt=Count('id'))
 
         # Breakdown by substudy for Total EDCS CTRL Merged Records
-        merged_qs = ctrl_laboratories.filter(unique_lab_no__in=latest_tblis_rows.filter(is_merged=True).values("labno"))
+        merged_qs = ctrl_laboratories.filter(unique_lab_no__in=all_tblis_rows.filter(is_merged=True).values("labno"))
+        if not is_unscoped(self.request.user):
+            total_merged_records = merged_qs.count()
         merged_substudy_breakdown_qs = merged_qs.annotate(
             substudy=Case(
                 When(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6], then=Value('Substudy 2')),
@@ -330,34 +340,34 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
                 round((cnt / total_merged_records) * 100, 2) if total_merged_records else 0
             )
 
-        merged_missing_culture_substudy2 = EdcsTblisZonal.objects.filter(
+        merged_missing_culture_substudy2 = edcs_labs.filter(
             screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
             culture_performed__isnull=True
         ).count()
-        merged_missing_culture_substudy4 = EdcsTblisZonal.objects.filter(
+        merged_missing_culture_substudy4 = edcs_labs.filter(
             screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9],
             culture_performed__isnull=True
         ).count()
-        merged_missing_culture_uncategorized = EdcsTblisZonal.objects.filter(
+        merged_missing_culture_uncategorized = edcs_labs.filter(
             culture_performed__isnull=True
         ).exclude(
             screening__clinic_laboratory__xpert_mtb__in=[1,2,3,4,5,6,7,8,9]
         ).count()
 
-        missing_culture_substudy2 = EdcsTblisZonal.objects.filter(
+        missing_culture_substudy2 = edcs_labs.filter(
             screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
             culture_performed__isnull=True
         ).count()
-        missing_culture_substudy4 = EdcsTblisZonal.objects.filter(
+        missing_culture_substudy4 = edcs_labs.filter(
             screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9],
             culture_performed__isnull=True
         ).count()
-        missing_culture_uncategorized = EdcsTblisZonal.objects.filter(
+        missing_culture_uncategorized = edcs_labs.filter(
             culture_performed__isnull=True
         ).exclude(
             screening__clinic_laboratory__xpert_mtb__in=[1,2,3,4,5,6,7,8,9]
         ).count()
-        total_missing_culture_performed = EdcsTblisZonal.objects.filter(
+        total_missing_culture_performed = edcs_labs.filter(
             culture_performed__isnull=True
         ).count()
 
@@ -367,7 +377,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
             'uncategorized': missing_culture_uncategorized,
         }
 
-        last_upload = EdcsTblisZonal.objects.order_by("-updated_at").first()
+        last_upload = edcs_labs.order_by("-updated_at").first()
 
         context.update({
             "total_edcs_records": total_edcs_records,
@@ -404,7 +414,7 @@ class EdcsTBLISLaboratoryListView(LoginRequiredMixin, ListView):
         })
 
         # TBLIS date range from DB
-        date_agg = EdcsTblisZonal.objects.aggregate(
+        date_agg = edcs_labs.aggregate(
             date_from=Min("date_sputum_received"),
             date_to=Max("date_sputum_received"),
         )

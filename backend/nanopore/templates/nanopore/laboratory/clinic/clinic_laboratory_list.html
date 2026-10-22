@@ -43,16 +43,16 @@
                     <td>{{ lab.screening.site.name }}</td>
                     <td>{{ lab.screening.site.district.region.zone.name }}</td>
                     <td>
-                        {% with user_group=request.user.groups.first.name|upper %}
-                        {% if user.is_superuser or user_group in "ADMIN" %}
                         <a href="{% url 'nanopore:clinic-laboratory-detail' lab.pk %}"
                             class="btn btn-sm btn-primary">View</a>
+                        {% if access.edit.clinic_lab %}
                         <a href="{% url 'nanopore:clinic-laboratory-update' lab.pk %}"
                             class="btn btn-sm btn-warning">Edit</a>
+                        {% endif %}
+                        {% if access.delete_records %}
                         <a href="{% url 'nanopore:clinic-laboratory-delete' lab.pk %}"
                             class="btn btn-sm btn-danger">Delete</a>
                         {% endif %}
-                        {% endwith %}
                         <a href="{% url 'nanopore:clinic-lab-audit' lab.pk %}">
                             View Audit Trail
                         </a>

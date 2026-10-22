@@ -75,6 +75,8 @@ from reports.views import (
     SubstudyDownloadView
     )
 
+from reports.views.codebook_views import CodebookDownloadView, CodebookView
+
 app_name = "reports"
 
 urlpatterns = [
@@ -193,4 +195,7 @@ urlpatterns = [
     SubstudyDownloadView.as_view(),
     name="substudy_download"
     ),
+
+    path("codebook/", CodebookView.as_view(), name="codebook"),
+    path("codebook/download/<str:form_key>/<str:fmt>/", CodebookDownloadView.as_view(), name="codebook-download"),
 ]

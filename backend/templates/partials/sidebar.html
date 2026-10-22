@@ -19,8 +19,11 @@
         class="{% if request.resolver_match.url_name == 'master-data-list' %}active{% endif %}">
         <i class="fas fa-database"></i><span> Master Data Table</span>
     </a>
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group == "ADMIN" %}
+    <a href="{% url 'reports:codebook' %}"
+        class="{% if request.resolver_match.url_name == 'codebook' %}active{% endif %}">
+        <i class="fas fa-book"></i><span> Codebook</span>
+    </a>
+    {% if access.system_admin %}
     <!-- System Controls -->
     <a href="{% url 'nanopore:system-controls' %}"
         class="{% if request.resolver_match.url_name == 'system-controls' %}active{% endif %}">
@@ -56,9 +59,6 @@
     </div>
 
     {% endif %}
-    {% endwith %}
-
-    {% with user_group=request.user.groups.first.name|upper %}
 
     <div class="menu-group">
 
@@ -75,7 +75,7 @@
                 <i class="fas fa-chart-line"></i> Graphs
             </a>
 
-            {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
+            {% if access.view.edcs_tblis %}
             <!-- EDCS / TBLIS -->
             <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"
                 class="{% if request.resolver_match.url_name == 'edcs-tblis-laboratory-list' %}active{% endif %}">
@@ -88,10 +88,7 @@
 
     </div>
 
-    {% endwith %}
-
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group == "ADMIN" %}
+    {% if access.snapshots %}
 
     <!-- Snapshots -->
     <div class="menu-group">
@@ -122,7 +119,6 @@
     </div>
 
     {% endif %}
-    {% endwith %}
 
     {% if user.is_superuser %}
     <a href="{% url 'users:staff_list' %}">
@@ -136,8 +132,7 @@
     </a>
     {% endif %}
 
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
+    {% if access.reports %}
     <!-- Reports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -153,7 +148,6 @@
         </div>
     </div>
     {% endif %}
-    {% endwith %}
 
     <!-- Forms -->
     <div class="menu-group">
@@ -162,17 +156,34 @@
             <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
-            <!-- <a href="{% url 'nanopore:form-status-list' %}"><i class="fas fa-list-ul"></i> All</a>
-            <a href="{% url 'nanopore:screening-list' %}"><i class="fas fa-user-check"></i> Screenings</a>
-            <a href="{% url 'nanopore:enrollment-list' %}"><i class="fas fa-user-plus"></i> Enrollment</a> -->
+            {% if access.view.screening %}
+            <a href="{% url 'nanopore:screening-list' %}"><i class="fas fa-user-check"></i> Screening</a>
+            {% endif %}
+            {% if access.view.enrollment %}
+            <a href="{% url 'nanopore:enrollment-list' %}"><i class="fas fa-user-plus"></i> Enrollment</a>
+            {% endif %}
+            {% if access.view.clinic_lab %}
             <a href="{% url 'nanopore:clinic-laboratory-list' %}"><i class="fas fa-vial"></i> Clinic Laboratory</a>
-            <!-- <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i> Zonal Laboratory</a>
-            <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a> -->
+            {% endif %}
+            {% if access.view.zonal_lab %}
+            <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i> Zonal Laboratory</a>
+            {% endif %}
+            {% if access.view.edcs_tblis %}
+            <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"><i class="fas fa-database"></i> EDCS / TBLIS</a>
+            {% endif %}
+            {% if access.view.diagnosis %}
+            <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
+            {% endif %}
+            {% if access.view.regimen %}
+            <a href="{% url 'nanopore:regimen-list' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
+            {% endif %}
+            {% if access.delete_records %}
+            <a href="{% url 'nanopore:recycle-bin' %}"><i class="fas fa-trash-restore"></i> Recycle Bin</a>
+            {% endif %}
         </div>
     </div>
 
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
+    {% if access.exports %}
     <!-- Exports -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -181,16 +192,14 @@
         </a>
         <div class="submenu">
             <a href="{% url 'reports:list_models' %}"><i class="fas fa-file-csv"></i> Download</a>
-            {% if user.is_superuser or user_group == "ADMIN" %}
+            {% if access.model_export %}
             <a href="{% url 'reports:list_models_view' %}"><i class="fas fa-file-csv"></i> Export</a>
             {% endif %}
         </div>
     </div>
     {% endif %}
-    {% endwith %}
 
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group == "ADMIN" %}
+    {% if access.is_admin %}
     <!-- Queries Report -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -213,7 +222,6 @@
         </div>
     </div>
     {% endif %}
-    {% endwith %}
 
     {% if context_total_issues %}
     <!-- Queries / Total Issues -->
@@ -242,9 +250,7 @@
                 </span>
             </a>
             <div class="submenu">
-                {% with user_group=request.user.groups.first.name|upper %}
-                {% if user.is_superuser or user_group in "ADMIN REVIEWER NURSE CLINICIAN" %}
-                {% if context_forms_report_total.context_missing_enrollment_count %}
+                {% if access.queries.enrollment and context_forms_report_total.context_missing_enrollment_count %}
                 <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}"
                     class="d-flex justify-content-between">
                     <span>Enrollment</span>
@@ -253,7 +259,7 @@
                     </span>
                 </a>
                 {% endif %}
-                {% if context_forms_report_total.context_missing_clinic_count %}
+                {% if access.queries.clinic_lab and context_forms_report_total.context_missing_clinic_count %}
                 <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}"
                     class="d-flex justify-content-between">
                     <span>Clinic</span>
@@ -262,7 +268,7 @@
                     </span>
                 </a>
                 {% endif %}
-                {% if context_forms_report_total.context_missing_diagnosis_count %}
+                {% if access.queries.diagnosis and context_forms_report_total.context_missing_diagnosis_count %}
                 <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}"
                     class="d-flex justify-content-between">
                     <span>Diagnosis</span>
@@ -271,7 +277,7 @@
                     </span>
                 </a>
                 {% endif %}
-                {% if context_forms_report_total.context_missing_regimen_count %}
+                {% if access.queries.regimen and context_forms_report_total.context_missing_regimen_count %}
                 <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}"
                     class="d-flex justify-content-between">
                     <span>Regimen</span>
@@ -280,9 +286,7 @@
                     </span>
                 </a>
                 {% endif %}
-                {% endif %}
-                {% if user.is_superuser or user_group in "ADMIN REVIEWER LABORATORY_TECHNICIAN" %}
-                {% if context_forms_report_total.context_missing_zonal_count %}
+                {% if access.queries.zonal_lab and context_forms_report_total.context_missing_zonal_count %}
                 <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}"
                     class="d-flex justify-content-between">
                     <span>Zonal</span>
@@ -291,8 +295,6 @@
                     </span>
                 </a>
                 {% endif %}
-                {% endif %}
-                {% endwith %}
             </div>
             {% endif %}
 
@@ -310,56 +312,48 @@
                 </span>
             </a>
             <div class="submenu">
-                {% with user_group=request.user.groups.first.name|upper %}
-                {% if user.is_superuser or user_group in "ADMIN REVIEWER NURSE CLINICIAN" %}
-                {% if context_screening_report_total %}
+                {% if access.queries.screening and context_screening_report_total %}
                 <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
                     <span>Screening</span>
                     <span class="badge bg-danger rounded-pill">{{ context_screening_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% if context_enrollment_report_total %}
+                {% if access.queries.enrollment and context_enrollment_report_total %}
                 <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
                     <span>Enrollment</span>
                     <span class="badge bg-danger rounded-pill">{{ context_enrollment_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% if context_clinic_report_total %}
+                {% if access.queries.clinic_lab and context_clinic_report_total %}
                 <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
                     <span>Clinic</span>
                     <span class="badge bg-danger rounded-pill">{{ context_clinic_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% if context_diagnosis_report_total %}
+                {% if access.queries.diagnosis and context_diagnosis_report_total %}
                 <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
                     <span>Diagnosis</span>
                     <span class="badge bg-danger rounded-pill">{{ context_diagnosis_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% if context_regimen_report_total %}
+                {% if access.queries.regimen and context_regimen_report_total %}
                 <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
                     <span>Regimen</span>
                     <span class="badge bg-danger rounded-pill">{{ context_regimen_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% endif %}
-                {% if user.is_superuser or user_group in "ADMIN REVIEWER LABORATORY_TECHNICIAN" %}
-                {% if context_zonal_report_total %}
+                {% if access.queries.zonal_lab and context_zonal_report_total %}
                 <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
                     <span>Zonal</span>
                     <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% if user.is_superuser or user_group in "ADMIN REVIEWER" or user.profile.position.name|lower == "data specialist" %}
-                {% if context_edcs_tblis_report_total %}
+                {% if access.queries.edcs_tblis and context_edcs_tblis_report_total %}
                 <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="d-flex justify-content-between">
                     <span>Edcs/TBLIS</span>
                     <span class="badge bg-danger rounded-pill">{{ context_edcs_tblis_report_total|intcomma }}</span>
                 </a>
                 {% endif %}
-                {% endif %}
-                {% endif %}
-                {% endwith %}
             </div>
             {% endif %}
 
@@ -367,8 +361,7 @@
     </div>
     {% endif %}
 
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user.profile.position.name|lower == "data specialist" %}
+    {% if access.tblis_upload %}
     <!-- Uploads -->
     <div class="menu-group">
         <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
@@ -376,7 +369,7 @@
             <i class="fas fa-chevron-down"></i>
         </a>
         <div class="submenu">
-            {% if user.is_superuser %}
+            {% if access.bulk_upload %}
             <a href="{% url 'nanopore:screening-upload-values' %}"><i class="fas fa-user-check"></i> Screenings</a>
             <a href="{% url 'nanopore:enrollment-upload-csv' %}"><i class="fas fa-user-plus"></i> Enrollments</a>
             <a href="{% url 'nanopore:clinic-upload-csv' %}"><i class="fas fa-vial"></i> Clinic Lab</a>
@@ -390,15 +383,12 @@
         </div>
     </div>
     {% endif %}
-    {% endwith %}
 
-    {% with user_group=request.user.groups.first.name|upper %}
-    {% if user.is_superuser or user_group == "ADMIN" %}
+    {% if access.is_admin %}
     <a href="{% url 'admin:index' %}">
         <i class="fas fa-user-shield"></i><span> Admin Dashboard</span>
     </a>
     {% endif %}
-    {% endwith %}
 </div>
 
 <!-- Sidebar toggle script -->

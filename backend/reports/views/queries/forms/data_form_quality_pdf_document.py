@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -12,7 +14,8 @@ from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
-class DreamFundQueriesPDFView(View):
+class DreamFundQueriesPDFView(AnyFormAccessMixin, View):
+    access_forms = access.ALL_FORMS
     """Generate DREAM FUND - NANOPORE TB SEQUENCING QUERIES REPORT PDF with user info."""
 
     def get(self, request, *args, **kwargs):

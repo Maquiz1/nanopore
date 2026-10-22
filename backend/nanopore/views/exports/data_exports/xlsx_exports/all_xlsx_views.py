@@ -1,3 +1,6 @@
+from utils import access
+from utils.access import scope_queryset
+from utils.access_mixins import FeatureAccessMixin
 import csv
 from django.views import View
 from django.http import HttpResponse
@@ -5,7 +8,8 @@ from openpyxl import Workbook
 from nanopore.models import Screening
 
 
-class AllXlsxDownloadView(View):
+class AllXlsxDownloadView(FeatureAccessMixin, View):
+    access_feature = access.EXPORTS
     """
     Download Screening + Enrollment combined data as Excel
     """
@@ -27,6 +31,7 @@ class AllXlsxDownloadView(View):
         screenings = Screening.objects.select_related(
             "sex", "site", "enrollment"
         ).all()
+        screenings = scope_queryset(request.user, screenings, "site")
 
         # 🔹 Filter by sites/zones
         if not user.is_superuser:

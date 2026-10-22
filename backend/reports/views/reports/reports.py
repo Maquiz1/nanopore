@@ -48,6 +48,20 @@ from django.views.generic import ListView
 from django.core.paginator import Paginator
 from django.urls import reverse
 
+from utils import access
+from utils.access import get_accessible_sites, get_accessible_zones, scope_queryset
+from utils.access_mixins import FeatureAccessMixin, require_feature
+
+
+def _scoped(request, model, site_field="screening__site"):
+    """model.objects limited to the sites the user is assigned to (utils/access.py)."""
+    return scope_queryset(request.user, model.objects.all(), site_field)
+
+
+def _scoped_sites(request, sites):
+    accessible = get_accessible_sites(request.user)
+    return sites if accessible is None else sites.filter(pk__in=accessible)
+
     
 def annotate_months_and_substudy(qs, months_filter=None, substudy_filter=None):
     annotated_qs = []
@@ -116,7 +130,8 @@ def annotate_months_and_substudy_for_export(qs, months_filter=None, substudy_fil
     return annotated_qs
 
 
-class BaseRecordsListView(ListView):
+class BaseRecordsListView(FeatureAccessMixin, ListView):
+    access_feature = access.REPORTS
     template_name = "reports/records_list.html"
     context_object_name = "records"
     model = Diagnosis
@@ -125,7 +140,7 @@ class BaseRecordsListView(ListView):
     exclude_filter = None
 
     def get_queryset(self):
-        qs = Diagnosis.objects.select_related("screening__site__district__region__zone")
+        qs = _scoped(self.request, Diagnosis).select_related("screening__site__district__region__zone")
 
         # --- Common GET filters ---
         zone_id = self.request.GET.get("zone")
@@ -170,8 +185,8 @@ class BaseRecordsListView(ListView):
         context["selected_site"] = self.request.GET.get("site", "")
         context["selected_months"] = self.request.GET.get("months", "")
         context["selected_substudy"] = self.request.GET.get("substudy", "")
-        context["zones"] = Zone.objects.all()
-        context["sites"] = Site.objects.all()
+        context["zones"] = get_accessible_zones(self.request.user)
+        context["sites"] = _scoped_sites(self.request, Site.objects.all())
 
         # --- Build summaries ---
         substudy2_records = [
@@ -199,8 +214,9 @@ class BaseRecordsListView(ListView):
 
         return context
     
+@require_feature(access.REPORTS)
 def substudy_list(request):
-    records = Diagnosis.objects.all()  # Or your filtered queryset
+    records = _scoped(request, Diagnosis)
     paginator = Paginator(records, 25)  # 25 records per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -213,6 +229,7 @@ def substudy_list(request):
 # -----------------------
 # Dashboard Report (charts)
 # -----------------------
+@require_feature(access.REPORTS)
 def dashboard_report(request):
     visits_per_site = {'Site A': 12, 'Site B': 19, 'Site C': 3, 'Site D': 5}
     mentorship_progress = [3, 7, 4, 6, 8, 10]
@@ -232,7 +249,8 @@ def dashboard_report(request):
 # -----------------------
 # Dashboard View
 # -----------------------
-class ReportDashboardView(View):
+class ReportDashboardView(FeatureAccessMixin, View):
+    access_feature = access.REPORTS
     template_name = "reports/dashboard.html"
 
     def get(self, request, *args, **kwargs):
@@ -248,13 +266,14 @@ from django.db.models import Count
 
 from nanopore.models import Screening, Enrollment
 
-class SummaryReportView(View):
+class SummaryReportView(FeatureAccessMixin, View):
+    access_feature = access.REPORTS
     template_name = "reports/summary.html"
 
     def get(self, request, *args, **kwargs):
         # Count screenings and enrollments per site/zone
         data = (
-            Screening.objects
+            _scoped(request, Screening, "site")
             .values(
                 "site__district__region__zone__name",
                 "site__name"
@@ -296,11 +315,12 @@ class SummaryReportView(View):
 # -----------------------
 # Forms Report
 # -----------------------
-class FormsReportView(View):
+class FormsReportView(FeatureAccessMixin, View):
+    access_feature = access.REPORTS
     template_name = "reports/forms.html"
 
     def get(self, request, *args, **kwargs):
-        zones = Zone.objects.all()
+        zones = get_accessible_zones(request.user)
         rows = []
         zone_totals = {}
         grand_totals = {
@@ -320,7 +340,7 @@ class FormsReportView(View):
             ).values_list('site', flat=True).distinct()
 
             from locations.models import Site
-            sites = Site.objects.filter(id__in=sites)
+            sites = _scoped_sites(request, Site.objects.filter(id__in=sites))
 
             for site in sites:
                 row = {
@@ -349,10 +369,11 @@ class FormsReportView(View):
 # -----------------------
 # Export Summary
 # -----------------------
+@require_feature(access.REPORTS)
 def export_summary(request, fmt):
     # Count screenings and enrollments per site/zone
     data = (
-        Screening.objects
+        _scoped(request, Screening, "site")
         .values(
             "site__district__region__zone__name",
             "site__name"
@@ -416,10 +437,11 @@ def export_summary(request, fmt):
 # -----------------------
 # Export Forms
 # -----------------------
+@require_feature(access.REPORTS)
 def export_forms(request, fmt):
     table_data = [["Zone", "Site", "Screenings", "Enrollments", "Clinic Lab", "Zonal Lab", "Diagnosis"]]
 
-    zones = Zone.objects.all()
+    zones = get_accessible_zones(request.user)
     for zone in zones:
         # Get all sites under this zone
         sites = Screening.objects.filter(
@@ -427,7 +449,7 @@ def export_forms(request, fmt):
         ).values_list('site', flat=True).distinct()
 
         from locations.models import Site
-        sites = Site.objects.filter(id__in=sites)
+        sites = _scoped_sites(request, Site.objects.filter(id__in=sites))
 
         for site in sites:
             table_data.append([
@@ -474,17 +496,18 @@ def export_forms(request, fmt):
         return response
 
 
-class EnrollmentSummaryView(TemplateView):
+class EnrollmentSummaryView(FeatureAccessMixin, TemplateView):
+    access_feature = access.REPORTS
     template_name = "reports/enrollment_summary.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         # --- Base Query ---
-        enrollments = Enrollment.objects.select_related(
+        enrollments = _scoped(self.request, Enrollment).select_related(
             "screening__site__district__region__zone"
         )
-        labs = ClinicLaboratory.objects.select_related(
+        labs = _scoped(self.request, ClinicLaboratory).select_related(
             "screening__site__district__region__zone"
         )
 
@@ -573,7 +596,8 @@ class EnrollmentSummaryView(TemplateView):
 
         return context
     
-class SubstudyDetailView(TemplateView):
+class SubstudyDetailView(FeatureAccessMixin, TemplateView):
+    access_feature = access.REPORTS
     template_name = "reports/substudy_detail.html"
 
     def get_context_data(self, substudy, **kwargs):
@@ -594,7 +618,7 @@ class SubstudyDetailView(TemplateView):
             context["title"] = "Detailed List"
 
         # --- Base query ---
-        labs = ClinicLaboratory.objects.select_related(
+        labs = _scoped(self.request, ClinicLaboratory).select_related(
             "screening__patient", "screening__site__district__region__zone"
         )
 
@@ -617,14 +641,15 @@ class SubstudyDetailView(TemplateView):
         return context
 
 
-class SubstudySummaryView(TemplateView):
+class SubstudySummaryView(FeatureAccessMixin, TemplateView):
+    access_feature = access.REPORTS
     template_name = "reports/substudy_summary.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         data = (
-            ClinicLaboratory.objects
+            _scoped(self.request, ClinicLaboratory)
             .select_related("screening__site__district__region__zone")
             .values(
                 "screening__site__district__region__zone__name",
@@ -643,7 +668,8 @@ class SubstudySummaryView(TemplateView):
         return context
     
     
-class SubstudyDetailView(TemplateView):
+class SubstudyDetailView(FeatureAccessMixin, TemplateView):
+    access_feature = access.REPORTS
     template_name = "reports/substudy_detail.html"
 
     def get_context_data(self, substudy, **kwargs):
@@ -667,7 +693,7 @@ class SubstudyDetailView(TemplateView):
             context["title"] = "Unknown Substudy"
 
         # --- Optimize query ---
-        labs = labs.select_related(
+        labs = scope_queryset(self.request.user, labs, "screening__site").select_related(
             "screening__site__district__region__zone"
         )
 
@@ -685,12 +711,13 @@ class SubstudyDetailView(TemplateView):
     
     
 
-class CompletedStudySummaryView(TemplateView):
+class CompletedStudySummaryView(FeatureAccessMixin, TemplateView):
+    access_feature = access.REPORTS
     template_name = "reports/completed_study_summary.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        diagnoses = Diagnosis.objects.select_related(
+        diagnoses = _scoped(self.request, Diagnosis).select_related(
             "screening__site__district__region__zone"
         )
 
@@ -974,9 +1001,10 @@ class RecordsBySiteView(BaseRecordsListView):
 
 
 # --- Export Records View ---
-class ExportRecordsView(View):
+class ExportRecordsView(FeatureAccessMixin, View):
+    access_feature = access.REPORTS
     def get(self, request, export_format, *args, **kwargs):
-        qs = Diagnosis.objects.select_related("screening__site__district__region__zone")
+        qs = _scoped(request, Diagnosis).select_related("screening__site__district__region__zone")
 
         # --- Apply GET filters ---
         zone_id = request.GET.get("zone")
@@ -1146,14 +1174,15 @@ class ExportRecordsView(View):
 
     
         
-class ScreeningSummaryView(TemplateView):
+class ScreeningSummaryView(FeatureAccessMixin, TemplateView):
+    access_feature = access.REPORTS
     template_name = "reports/screening_summary.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         # --- Base Query ---
-        screenings = Screening.objects.select_related(
+        screenings = _scoped(self.request, Screening, "site").select_related(
             "site__district__region__zone"
         )
 
@@ -1222,14 +1251,15 @@ class ScreeningSummaryView(TemplateView):
 
 
   
-class EligibilitySummaryView(TemplateView):
+class EligibilitySummaryView(FeatureAccessMixin, TemplateView):
+    access_feature = access.REPORTS
     template_name = "reports/eligibility_summary.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         # --- Base Query ---
-        screenings = Screening.objects.select_related(
+        screenings = _scoped(self.request, Screening, "site").select_related(
             "site__district__region__zone"
         )
 
@@ -1297,7 +1327,8 @@ class EligibilitySummaryView(TemplateView):
         return context
     
     
-class SubstudyExportView(View):
+class SubstudyExportView(FeatureAccessMixin, View):
+    access_feature = access.REPORTS
     def get(self, request, export_format):
         # Get type from query params: "2", "4", or "uncategorized"
         export_type = request.GET.get("type")  
@@ -1316,7 +1347,7 @@ class SubstudyExportView(View):
             return HttpResponse("Invalid type", status=400)
 
         # --- Base query ---
-        labs = ClinicLaboratory.objects.select_related(
+        labs = _scoped(request, ClinicLaboratory).select_related(
             "screening__site__district__region__zone"
         )
 

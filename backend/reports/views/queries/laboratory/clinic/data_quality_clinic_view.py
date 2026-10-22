@@ -1,5 +1,7 @@
 # reports/views/queries/laboratory/clinic/data_clinic_quality_view.py
 
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 
@@ -9,7 +11,8 @@ from reports.services.clinic_dq import (
 )
 from utils.roles import get_role_context
 
-class ClinicDataQualityView(View):
+class ClinicDataQualityView(AnyFormAccessMixin, View):
+    access_forms = (access.CLINIC_LAB,)
 
     template_name = (
         "reports/data_quality/laboratory/clinic/data_clinic_quality_report.html"

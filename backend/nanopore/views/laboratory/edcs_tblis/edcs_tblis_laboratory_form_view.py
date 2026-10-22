@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import UpdateView
@@ -17,14 +19,16 @@ from nanopore.models import ZonalLaboratory, Screening
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib import messages
 
-class EdcsTblisFormView(LoginRequiredMixin, View):
+class EdcsTblisFormView(FormAccessMixin, View):
+    access_form = access.EDCS_TBLIS
+    access_is_form = True
     template_name = "nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_form.html"
     success_url = reverse_lazy("nanopore:edcs-tblis-laboratory-list")
 
     def get_object(self):
         pk = self.kwargs.get("pk")
         if pk:
-            return get_object_or_404(EdcsTblisZonal, pk=pk)
+            return get_object_or_404(self.scope(EdcsTblisZonal.objects.all()), pk=pk)
         return None
 
     def get_screening_instance(self):
@@ -33,7 +37,7 @@ class EdcsTblisFormView(LoginRequiredMixin, View):
             return obj.screening
         screening_id = self.request.GET.get("screening")
         if screening_id:
-            return get_object_or_404(Screening, pk=screening_id)
+            return get_object_or_404(self.scope(Screening.objects.all(), "site"), pk=screening_id)
         return None
 
     def get(self, request, *args, **kwargs):
@@ -63,6 +67,8 @@ class EdcsTblisFormView(LoginRequiredMixin, View):
             instance=obj,
             screening_instance=screening_instance
         )
+
+        self.limit_choices(form)
 
         if form.is_valid():
             zonal_lab = form.save(commit=False)

@@ -17,7 +17,7 @@
 
     <div class="row g-4 justify-content-center">
 
-        {% if is_privileged or not is_zonal_lab %}
+        {% if access.view.enrollment %}
         <!-- Screening -->
         <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:screening_quality_report' %}" 
@@ -116,7 +116,7 @@
 
 
         <!-- Zonal Laboratory – only for privileged or zonal users -->
-        {% if is_privileged or is_zonal_lab %}
+        {% if access.view.zonal_lab %}
         <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:zonal_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-secondary hover-lift">
@@ -137,7 +137,7 @@
         {% endif %}
 
         <!-- Edcs/TBLIS Laboratory – only for privileged users -->
-        {% if is_privileged %}
+        {% if access.view.edcs_tblis %}
         <div class="col-md-4 col-lg-4">
             <a href="{% url 'reports:edcs_tblis_quality_report' %}" 
                class="card text-decoration-none shadow-lg h-100 border-dark hover-lift">

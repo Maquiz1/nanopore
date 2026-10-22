@@ -1,10 +1,13 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from locations.models import Zone, Site
 from nanopore.models import Enrollment, ClinicLaboratory, Diagnosis, ZonalLaboratory
 from utils.permissions import filter_queryset_by_user_role
 
-class DiagnosisListView(LoginRequiredMixin, ListView):
+class DiagnosisListView(FormAccessMixin, ListView):
+    access_form = access.DIAGNOSIS
     model = Diagnosis
     template_name = "nanopore/diagnosis/diagnosis_list.html"
     context_object_name = "object_list"

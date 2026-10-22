@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import require_feature
 import json
 from django.shortcuts import render
 from django.db.models import Sum
@@ -16,6 +18,7 @@ from reports.models import (
 from locations.models import Zone, Site
 
 
+@require_feature(access.SNAPSHOTS)
 def specific_form_snapshot_view(request):
 
     zone_id = request.GET.get("zone")

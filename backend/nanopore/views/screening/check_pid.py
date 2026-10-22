@@ -1,10 +1,15 @@
+from utils import access
+from utils.access_mixins import FormAccessMixin
 from django.views import View
 from django.http import JsonResponse
 from nanopore.models import Screening
 from locations.models import Site
 
 
-class CheckPIDView(View):
+class CheckPIDView(FormAccessMixin, View):
+    access_form = access.SCREENING
+    access_site_field = "site"
+    access_write = True
     def get(self, request, *args, **kwargs):
         pid1 = request.GET.get('pid1', '').strip()
         site_id = request.GET.get('site_id')

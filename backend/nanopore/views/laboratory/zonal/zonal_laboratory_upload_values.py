@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import csv
 import io
 from django.contrib import messages
@@ -90,7 +92,8 @@ def split_m2m(obj_class, val, required=False, field_name=None):
 
 
 
-class ZonalLabCsvUploadView(View):
+class ZonalLabCsvUploadView(FeatureAccessMixin, View):
+    access_feature = access.BULK_UPLOAD
     template_name = "nanopore/laboratory/zonal/zonal_laboratory_upload.html"
 
     def get(self, request, *args, **kwargs):

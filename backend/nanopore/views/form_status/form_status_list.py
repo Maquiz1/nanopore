@@ -1,14 +1,17 @@
 # nanopore/views/status.py
-from lib2to3.fixes.fix_input import context
 from django.views.generic import ListView
 from nanopore.models import Screening,Enrollment,Diagnosis,ClinicLaboratory,ZonalLaboratory,RegimenChanges
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
+from utils import access
+from utils.access import assigned_locations, legacy_role_flags
+from utils.access_mixins import AnyFormAccessMixin
 from django.db.models import Case, When, Value, CharField, Q
 from django.utils.http import urlencode
 
 
-class FormStatusListView(ListView):
+class FormStatusListView(AnyFormAccessMixin, ListView):
+    access_forms = access.ALL_FORMS
     model = Screening
     template_name = "nanopore/form_status/form_status_list.html"
     context_object_name = "screenings"
@@ -140,31 +143,14 @@ class FormStatusListView(ListView):
         context.update(role_context)
         
         # Explicit Profile Assignments for Header Display
-        assigned_zones = []
-        assigned_sites = []
-        if hasattr(self.request.user, "profile"):
-            assigned_zones = list(self.request.user.profile.zones.all())
-            explicit_sites = set(self.request.user.profile.sites.all())
-            
-            # Add sites derived from explicitly assigned zones
-            from locations.models import Site
-            derived_sites = set(Site.objects.filter(district__region__zone__in=assigned_zones))
-            assigned_sites = sorted(list(explicit_sites.union(derived_sites)), key=lambda s: s.name)
-
+        assigned_zones, assigned_sites = assigned_locations(self.request.user)
         context.update({
             "assigned_zones": assigned_zones,
             "assigned_sites": assigned_sites,
         })
-        
-        # Explicit group flags to fix template multi-role visibility
-        user_groups = [g.upper() for g in self.request.user.groups.values_list('name', flat=True)]
-        is_data_specialist = hasattr(self.request.user, "profile") and self.request.user.profile.position and self.request.user.profile.position.name.lower() == "data specialist"
-        
-        context['is_admin_or_reviewer'] = self.request.user.is_superuser or "ADMIN" in user_groups or "REVIEWER" in user_groups or is_data_specialist
-        context['is_admin_only'] = self.request.user.is_superuser or "ADMIN" in user_groups or is_data_specialist
-        context['is_reviewer_only'] = "REVIEWER" in user_groups and not context['is_admin_only']
-        context['is_lab_tech'] = "LABORATORY_TECHNICIAN" in user_groups
-        context['is_nurse_clinician'] = "NURSE" in user_groups or "CLINICIAN" in user_groups
+
+        # Role flags (union of all the user's roles)
+        context.update(legacy_role_flags(self.request.user))
 
         # Keep GET params for form persistence
         context['selected_zone'] = self.request.GET.get("zone", "")

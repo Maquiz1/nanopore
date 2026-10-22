@@ -1,3 +1,5 @@
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 import logging
 
 from django.views import View
@@ -16,7 +18,8 @@ REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 PRIORITY_FIELDS = ["pid", "pid1", "pid2"]
 
 
-class ExportModelDataView(View):
+class ExportModelDataView(FeatureAccessMixin, View):
+    access_feature = access.MODEL_EXPORT
     exclude_fields = [
         'id', 'created_at', 'updated_at', 'created_by', 'updated_by',
         'screening', 'enrollment', 'clinic_laboratory', 'zonal_laboratory',
@@ -132,7 +135,8 @@ class ExportModelDataView(View):
 from django.http import JsonResponse
 from reports.tasks_export_models import export_all_models_combined_task
 
-class ExportAllModelsCombinedView(View):
+class ExportAllModelsCombinedView(FeatureAccessMixin, View):
+    access_feature = access.MODEL_EXPORT
     def get(self, request):
         mode = request.GET.get("with", "zonal")
         task = export_all_models_combined_task.delay(mode=mode)

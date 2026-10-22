@@ -1,5 +1,8 @@
 from django.shortcuts import render
 from django.urls import reverse
+from utils import access
+from utils.access import scope_queryset
+from utils.access_mixins import require_feature
 from django.contrib.admin.views.decorators import staff_member_required
 
 # Import your main models
@@ -15,8 +18,14 @@ from nanopore.models.edcs_tblis_zonal import EdcsTblisZonal
 
 
 # @staff_member_required
+def _scoped(request, model):
+    site_field = "site" if model is Screening else "screening__site"
+    return scope_queryset(request.user, model.objects.all(), site_field)
+
+
+@require_feature(access.EXPORTS)
 def list_models_view(request):
-    total_screenings = Screening.objects.count()
+    total_screenings = _scoped(request, Screening).count()
     models_list = [
         {
             "name": "Screening",
@@ -28,7 +37,7 @@ def list_models_view(request):
         },
         {
             "name": "Enrollment",
-            "count": Enrollment.objects.count(),
+            "count": _scoped(request, Enrollment).count(),
             "description": "All Enrollment records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["Enrollment"]),
             "labels_url": reverse("reports:download_model_labels", args=["Enrollment"]),
@@ -36,7 +45,7 @@ def list_models_view(request):
         },
         {
             "name": "ClinicLaboratory",
-            "count": ClinicLaboratory.objects.count(),
+            "count": _scoped(request, ClinicLaboratory).count(),
             "description": "All ClinicLaboratory records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["ClinicLaboratory"]),
             "labels_url": reverse("reports:download_model_labels", args=["ClinicLaboratory"]),
@@ -44,7 +53,7 @@ def list_models_view(request):
         },
         {
             "name": "Diagnosis",
-            "count": Diagnosis.objects.count(),
+            "count": _scoped(request, Diagnosis).count(),
             "description": "All Diagnosis records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["Diagnosis"]),
             "labels_url": reverse("reports:download_model_labels", args=["Diagnosis"]),
@@ -52,7 +61,7 @@ def list_models_view(request):
         },
         {
             "name": "ZonalLaboratory",
-            "count": ZonalLaboratory.objects.count(),
+            "count": _scoped(request, ZonalLaboratory).count(),
             "description": "All ZonalLaboratory records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["ZonalLaboratory"]),
             "labels_url": reverse("reports:download_model_labels", args=["ZonalLaboratory"]),
@@ -60,7 +69,7 @@ def list_models_view(request):
         },
         {
             "name": "RegimenChanges",
-            "count": RegimenChanges.objects.count(),
+            "count": _scoped(request, RegimenChanges).count(),
             "description": "All RegimenChanges records linked to Screening",
             "download_url": reverse("reports:download_model_data", args=["RegimenChanges"]),
             "labels_url": reverse("reports:download_model_labels", args=["RegimenChanges"]),
@@ -68,7 +77,7 @@ def list_models_view(request):
         },
         {
             "name": "EdcsTblisZonal",
-            "count": _get_edcs_tblis_count(),
+            "count": _get_edcs_tblis_count(request),
             "description": "CTRL zone (merged from TBLIS) + all other zones",
             "download_url": reverse("reports:download_model_data", args=["EdcsTblisZonal"]),
             "labels_url": reverse("reports:download_model_labels", args=["EdcsTblisZonal"]),
@@ -83,7 +92,7 @@ def list_models_view(request):
     )
 
 
-def _get_edcs_tblis_count():
+def _get_edcs_tblis_count(request):
     """
     EdcsTblisZonal count uses two rules:
       - CTRL zone (PID prefixes DF_TZ_SS2_14 to DF_TZ_SS2_19):
@@ -113,11 +122,12 @@ def _get_edcs_tblis_count():
     else:
         merged_labnos = []
 
-    ctrl_merged_count = EdcsTblisZonal.objects.filter(
+    edcs = _scoped(request, EdcsTblisZonal)
+    ctrl_merged_count = edcs.filter(
         ctrl_q,
         unique_lab_no__in=merged_labnos,
     ).count()
 
-    other_zones_count = EdcsTblisZonal.objects.exclude(ctrl_q).count()
+    other_zones_count = edcs.exclude(ctrl_q).count()
 
     return ctrl_merged_count + other_zones_count

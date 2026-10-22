@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 760px;">
+    <h2 class="mb-3">🗑️ Delete {{ model_label }}</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <p class="mb-2">
+                You are deleting <strong>{{ model_label }}</strong>
+                {% if object.pid %}<strong>{{ object.pid }}</strong>{% elif object.screening %}for participant <strong>{{ object.screening.pid }}</strong>{% endif %}.
+            </p>
+
+            <p class="mb-2">These records will be moved to the Recycle Bin together:</p>
+            <ul class="list-group mb-3">
+                {% for name, count in to_delete.items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ name }}
+                    <span class="badge bg-danger rounded-pill">{{ count }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <div class="alert alert-info py-2">
+                Nothing is lost: an admin can restore all of them from the <strong>Recycle Bin</strong>.
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="reason" class="form-label">Reason (optional)</label>
+                    <textarea name="reason" id="reason" rows="2" class="form-control" placeholder="e.g. duplicate entry"></textarea>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ cancel_url }}" class="btn btn-secondary">❌ Cancel</a>
+                    <button type="submit" class="btn btn-danger">🗑️ Move to Recycle Bin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,7 @@
 # reports/views/queries/laboratory/zonal/data_zonal_quality_view.py
 
+from utils import access
+from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 from django.apps import apps
@@ -7,7 +9,8 @@ from django.apps import apps
 from reports.services.zonal_dq import get_zonal_dq
 from utils.roles import get_role_context
 
-class EdcsTBLISDataQualityView(View):
+class EdcsTBLISDataQualityView(AnyFormAccessMixin, View):
+    access_forms = (access.EDCS_TBLIS,)
 
     template_name = "reports/data_quality/laboratory/edcs_tblis/data_edcs_tblis_quality_report.html"
 

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">⬅ Back to Dashboard</a>
+        <h2>Regimen Changes</h2>
+    </div>
+
+
+    <p class="text-muted">
+        Regimen changes are recorded from each participant's Diagnosis form when "Regimen changed" is Yes.
+        Open the Diagnosis to add or edit them.
+    </p>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label for="zone" class="form-label">Zone</label>
+            <select name="zone" id="zone" class="form-select">
+                <option value="">All Zones</option>
+                {% for z in zones %}
+                <option value="{{ z.id }}" {% if request.GET.zone == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="site" class="form-label">Site</label>
+            <select name="site" id="site" class="form-select">
+                <option value="">All Sites</option>
+                {% for s in sites %}
+                <option value="{{ s.id }}" {% if request.GET.site == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="pid" class="form-label">PID</label>
+            <input type="text" name="pid" id="pid" value="{{ request.GET.pid }}" class="form-control" placeholder="Enter PID">
+        </div>
+        <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ request.path }}" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>PID</th>
+                    <th>Site</th>
+                    <th>Date</th>
+                    <th>Drug</th>
+                    <th>Type of Change</th>
+                    <th>Reason for Change</th>
+                    <th>Specify</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rc in object_list %}
+                <tr>
+                    <td>{{ rc.screening.pid }}</td>
+                    <td>{{ rc.screening.site.name }}</td>
+                    <td>{{ rc.date|date:"M d, Y"|default:"-" }}</td>
+                    <td>{{ rc.drug|default:"-" }}</td>
+                    <td>{{ rc.changes|default:"-" }}</td>
+                    <td>{{ rc.reason|default:"-" }}</td>
+                    <td>{{ rc.specify|default:"-" }}</td>
+                    <td class="text-nowrap">
+                        {% if rc.screening.diagnosis %}
+                        <a href="{% url 'nanopore:diagnosis-update' rc.screening.diagnosis.pk %}" class="btn btn-sm btn-primary">Open Diagnosis</a>
+                        {% endif %}
+                        {% if access.delete_records %}
+                        <a href="{% url 'nanopore:regimen-record-delete' rc.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No regimen changes found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/pagination.html" %}
+</div>
+{% endblock %}
