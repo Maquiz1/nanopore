@@ -1,11 +1,14 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from utils import access
+from utils.access_mixins import FeatureAccessMixin
 from django.views.generic import ListView, DetailView
 from .models import Country, Region, District, Site
 
-class CountryListView(ListView):
+class CountryListView(LoginRequiredMixin, ListView):
     model = Country
     template_name = 'locations/country_list.html'
 
-class CountryDetailView(DetailView):
+class CountryDetailView(LoginRequiredMixin, DetailView):
     model = Country
     template_name = 'locations/country_detail.html'
 
@@ -14,7 +17,7 @@ class CountryDetailView(DetailView):
         context['regions'] = Region.objects.filter(country=self.object)
         return context
 
-class RegionDetailView(DetailView):
+class RegionDetailView(LoginRequiredMixin, DetailView):
     model = Region
     template_name = 'locations/region_detail.html'
 
@@ -23,7 +26,7 @@ class RegionDetailView(DetailView):
         context['districts'] = District.objects.filter(region=self.object)
         return context
 
-class DistrictDetailView(DetailView):
+class DistrictDetailView(LoginRequiredMixin, DetailView):
     model = District
     template_name = 'locations/district_detail.html'
 
@@ -32,7 +35,7 @@ class DistrictDetailView(DetailView):
         context['sites'] = Site.objects.filter(district=self.object)
         return context
 
-class SiteDetailView(DetailView):
+class SiteDetailView(LoginRequiredMixin, DetailView):
     model = Site
     template_name = 'locations/site_detail.html'
 
@@ -56,7 +59,7 @@ from .forms import SiteForm  # We'll create this form next
 # ---------------------------
 # List all sites
 # ---------------------------
-class AllSitesListView(ListView):
+class AllSitesListView(LoginRequiredMixin, ListView):
     model = Site
     template_name = 'locations/all_sites.html'
     context_object_name = 'sites'
@@ -68,7 +71,8 @@ class AllSitesListView(ListView):
 # ---------------------------
 # Add new site
 # ---------------------------
-class SiteCreateView(CreateView):
+class SiteCreateView(FeatureAccessMixin, CreateView):
+    access_feature = access.SYSTEM_ADMIN
     model = Site
     form_class = SiteForm
     template_name = 'locations/site_form.html'
@@ -80,7 +84,8 @@ class SiteCreateView(CreateView):
 # ---------------------------
 # Edit existing site
 # ---------------------------
-class SiteUpdateView(UpdateView):
+class SiteUpdateView(FeatureAccessMixin, UpdateView):
+    access_feature = access.SYSTEM_ADMIN
     model = Site
     form_class = SiteForm
     template_name = 'locations/site_form.html'

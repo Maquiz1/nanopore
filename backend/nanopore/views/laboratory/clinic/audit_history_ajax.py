@@ -1,7 +1,10 @@
+from utils import access
+from utils.access_mixins import require_form
 # views.py
 from django.http import JsonResponse
 from nanopore.models import ClinicLaboratory
 
+@require_form(access.CLINIC_LAB)
 def audit_history_ajax(request, field):
     pid = request.GET.get('pid')  # optional: pass PID to filter
     history = []  # fetch history for this field

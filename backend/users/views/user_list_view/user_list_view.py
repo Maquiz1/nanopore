@@ -1,3 +1,4 @@
+from utils.access_mixins import SuperuserRequiredMixin
 from django.views.generic import ListView
 from django.contrib.auth import get_user_model
 from users.models import Prefix, Position
@@ -7,7 +8,7 @@ from django.db.models import Q
 
 User = get_user_model()
 
-class StaffListView(ListView):
+class StaffListView(SuperuserRequiredMixin, ListView):
     model = User
     template_name = 'users/staff/staff_list.html'
     context_object_name = 'staff_list'

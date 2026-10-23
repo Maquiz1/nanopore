@@ -1,3 +1,4 @@
+from utils.access_mixins import SuperuserRequiredMixin
 from django.views.generic import FormView, ListView, DetailView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
@@ -15,7 +16,7 @@ def force_logout(request):
     logout(request)
     return redirect('users:login')
 
-class StaffCreateUpdateView(FormView):
+class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
     template_name = "users/staff/staff_form.html"
     form_class = StaffForm
     success_url = reverse_lazy("users:staff_list")

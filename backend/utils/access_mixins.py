@@ -152,3 +152,25 @@ class SoftDeleteMixin(FormAccessMixin):
             f"({entry.total_records} record(s)). An admin can restore it.",
         )
         return HttpResponseRedirect(self.get_success_url())
+
+
+class SuperuserRequiredMixin(AccessMixin):
+    """Superusers only (user accounts and their roles)."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+class OwnProfileOrSuperuserMixin(AccessMixin):
+    """A user may open their own profile; superusers may open anyone's."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not (request.user.is_superuser or str(kwargs.get("pk")) == str(request.user.pk)):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)

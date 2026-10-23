@@ -1,3 +1,4 @@
+from utils.access_mixins import OwnProfileOrSuperuserMixin
 from django.views.generic import FormView, ListView, DetailView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
@@ -16,7 +17,7 @@ def force_logout(request):
     return redirect('users:login')
 
 
-class StaffDetailView(DetailView):
+class StaffDetailView(OwnProfileOrSuperuserMixin, DetailView):
     model = User
     template_name = 'users/staff/staff_detail.html'
     context_object_name = 'staff_member'
