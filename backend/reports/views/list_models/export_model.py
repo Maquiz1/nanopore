@@ -51,6 +51,9 @@ class ExportModelDataView(FeatureAccessMixin, View):
 
         # Determine which priority fields actually exist on this model
         active_priority = [f for f in PRIORITY_FIELDS if self._model_has_field(model, f)]
+        # Forms linked to a participant without their own pid column get the
+        # participant's PID from the screening, so every row can be matched.
+        pid_from_screening = "pid" not in active_priority and self._model_has_field(model, "screening")
 
         # Pre-build select_related list (avoids N+1 FK lookups on every row)
         related_fields = self._build_select_related(model)
@@ -61,7 +64,7 @@ class ExportModelDataView(FeatureAccessMixin, View):
 
             try:
                 # ── Header ─────────────────────────────────────────────────
-                headers = list(active_priority)
+                headers = (["pid"] if pid_from_screening else []) + list(active_priority)
                 for f in model._meta.fields:
                     if f.name not in self.exclude_fields and f.name not in active_priority:
                         headers.append(f.name)
@@ -78,10 +81,15 @@ class ExportModelDataView(FeatureAccessMixin, View):
                 # without this, each row fires 30+ extra DB queries → timeout.
                 site_field = "site" if model._meta.model_name == "screening" else "screening__site"
                 records = export_queryset(request.user, model.objects.all(), site_field)
+                pids = {}
+                if pid_from_screening:
+                    # One extra query instead of one more join (lab models already join ~60 tables).
+                    Screening = apps.get_model("nanopore", "Screening")
+                    pids = dict(Screening.objects.filter(pk__in=records.values("screening_id")).values_list("pk", "pid"))
                 qs = records.select_related(*related_fields).iterator(chunk_size=200)
 
                 for obj in qs:
-                    row = []
+                    row = [pids.get(obj.screening_id, "")] if pid_from_screening else []
 
                     # 1. Priority fields — __dict__ fallback bypasses ORM
                     #    descriptors that can suppress editable=False values.

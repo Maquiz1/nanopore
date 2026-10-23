@@ -235,6 +235,10 @@ class ViewEnforcementTests(AccessTestBase):
 
 
 class MissingFormsTests(AccessTestBase):
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()  # sidebar counts are cached per user id; ids repeat across tests
+
     def test_lab_tech_sees_zonal_missing_forms_at_any_site_level(self):
         from reports.services.missing_form_dq_counts import get_missing_forms_counts
         for name, kwargs in [("zonal_site", {"sites": [self.alab]}), ("local_site", {"sites": [self.a1]}),
@@ -315,3 +319,29 @@ class ExportRolesTests(AccessTestBase):
         body = b"".join(response.streaming_content).decode()
         self.assertIn(self.pid("A1"), body)
         self.assertNotIn(self.pid("B1"), body)
+
+
+class ExportFormsTests(AccessTestBase):
+    def export(self, model_name):
+        response = self.client.get(reverse("reports:export_data") + f"?model={model_name}&mode=full")
+        self.assertEqual(response.status_code, 200, model_name)
+        return b"".join(response.streaming_content).decode().splitlines()
+
+    def test_every_form_export_starts_with_pid(self):
+        from nanopore.models import EdcsTblisZonal, RegimenChanges
+        EdcsTblisZonal.objects.create(screening=self.screenings["A1"], unique_lab_no="E-A1")
+        RegimenChanges.objects.create(screening=self.screenings["A1"], pid=self.pid("A1"), drug="x")
+        self.client.force_login(self.make_user("admin", [access.ADMIN]))
+        for model_name in ("Screening", "ZonalLaboratory", "EdcsTblisZonal", "RegimenChanges"):
+            lines = self.export(model_name)
+            self.assertEqual(lines[0].split(",")[0], "pid", model_name)
+            # The lab forms join ~60 option tables, beyond SQLite's 64-table limit (PostgreSQL
+            # has none), so their rows are only checked on PostgreSQL.
+            if model_name not in ("ZonalLaboratory", "EdcsTblisZonal"):
+                self.assertTrue(any(line.startswith(self.pid("A1")) for line in lines[1:]), model_name)
+
+    def test_new_forms_listed_on_page(self):
+        self.client.force_login(self.make_user("stat", [access.STATISTICIAN]))
+        page = self.client.get(reverse("reports:codebook"))
+        self.assertContains(page, "model=EdcsTblisZonal")
+        self.assertContains(page, "model=RegimenChanges")

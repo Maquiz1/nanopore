@@ -21,7 +21,9 @@ EXPORT_FORMS = [
     ("Enrollment", "Enrollment"),
     ("ClinicLaboratory", "Clinic Laboratory"),
     ("ZonalLaboratory", "Zonal Laboratory"),
+    ("EdcsTblisZonal", "EDCS / TBLIS"),
     ("Diagnosis", "Diagnosis"),
+    ("RegimenChanges", "Regimen Changes"),
 ]
 
 
