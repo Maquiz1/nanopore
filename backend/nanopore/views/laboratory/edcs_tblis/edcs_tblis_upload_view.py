@@ -1,3 +1,5 @@
+from uuid import uuid4
+from django.conf import settings
 from utils import access
 from utils.access_mixins import FeatureAccessMixin
 import os
@@ -30,7 +32,8 @@ class EdcsTBLISCsvUploadView(FeatureAccessMixin, View):
             )
 
         file_instance = request.FILES["file"]
-        file_path = os.path.join("media", "imports", file_instance.name)
+        stored_filename = f"{uuid4().hex}{os.path.splitext(file_instance.name)[1]}"
+        file_path = os.path.join(settings.PRIVATE_IMPORTS_DIR, "edcs_tblis", stored_filename)
 
         # Make sure the directory exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)

@@ -37,7 +37,7 @@ class ServeModelExportView(FeatureAccessMixin, View):
         if not is_unscoped(request.user) and not filename.endswith(f"_u{request.user.id}.csv"):
             raise Http404("Export file not found.")
         filename = os.path.basename(filename)
-        filepath = os.path.join(settings.MEDIA_ROOT, "exports", filename)
+        filepath = os.path.join(settings.PRIVATE_EXPORTS_DIR, os.path.basename(filename))
         if not os.path.exists(filepath):
             raise Http404("Export file not found.")
         response = FileResponse(

@@ -58,7 +58,7 @@ class ServeCsvExportView(FormAccessMixin, View):
     GET: serve the generated Excel file for download once ready.
     """
     def get(self, request, filename, *args, **kwargs):
-        filepath = os.path.join(settings.MEDIA_ROOT, "exports", filename)
+        filepath = os.path.join(settings.PRIVATE_EXPORTS_DIR, os.path.basename(filename))
         if not os.path.exists(filepath):
             raise Http404("Export file not found.")
         content_type = (

@@ -1,3 +1,4 @@
+from django.conf import settings
 from utils import access
 from utils.access_mixins import FeatureAccessMixin, FormAccessMixin
 import os
@@ -26,7 +27,7 @@ class TblisRawUploadView(FeatureAccessMixin, View):
         original_filename = os.path.basename(file_instance.name)
         file_extension = os.path.splitext(original_filename)[1]
         stored_filename = f"{uuid4().hex}{file_extension}"
-        file_path = os.path.join("media", "imports", "tblis_raw", stored_filename)
+        file_path = os.path.join(settings.PRIVATE_IMPORTS_DIR, "tblis_raw", stored_filename)
 
         # Make sure the directory exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)

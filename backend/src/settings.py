@@ -136,6 +136,14 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "uploads"
 
+# Private files: exports and uploaded source files contain participant data, so they
+# live OUTSIDE MEDIA_ROOT (which the web server publishes at /media/). They are only
+# reachable through the download views, which check login and roles. Never point the
+# web server at this folder.
+PRIVATE_ROOT = Path(env("PRIVATE_ROOT", default=str(BASE_DIR / "private")))
+PRIVATE_EXPORTS_DIR = PRIVATE_ROOT / "exports"
+PRIVATE_IMPORTS_DIR = PRIVATE_ROOT / "imports"
+
 # Default primary key
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

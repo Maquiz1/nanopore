@@ -340,7 +340,7 @@ def export_edcs_tblis_csv(self, filename="edcs_tblis_export.xlsx", filters=None,
     """
     Export EDCS/TBLIS data to Excel based on card_type in filters.
 
-    Always writes to MEDIA_ROOT/exports/<filename>.
+    Always writes to PRIVATE_EXPORTS_DIR/<filename> (outside the public media folder).
     """
     try:
         import openpyxl
@@ -352,7 +352,7 @@ def export_edcs_tblis_csv(self, filename="edcs_tblis_export.xlsx", filters=None,
     card_type = filters.get("card_type", "")
     is_tblis = card_type in TBLIS_CARD_TYPES
 
-    export_dir = os.path.join(settings.MEDIA_ROOT, "exports")
+    export_dir = str(settings.PRIVATE_EXPORTS_DIR)
     os.makedirs(export_dir, exist_ok=True)
     filepath = os.path.join(export_dir, filename)
 

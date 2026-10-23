@@ -40,7 +40,7 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
     except LookupError:
         return {"state": "FAILURE", "error": f"Unknown model {model_name}"}
 
-    export_dir = os.path.join(settings.MEDIA_ROOT, "exports")
+    export_dir = str(settings.PRIVATE_EXPORTS_DIR)
     os.makedirs(export_dir, exist_ok=True)
     filepath = os.path.join(export_dir, filename)
 
@@ -188,7 +188,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
         date_str = datetime.now().strftime("%Y%m%d")
         filename = f"all_models_combined_{mode}_{date_str}.csv"
 
-    export_dir = os.path.join(settings.MEDIA_ROOT, "exports")
+    export_dir = str(settings.PRIVATE_EXPORTS_DIR)
     os.makedirs(export_dir, exist_ok=True)
     filepath = os.path.join(export_dir, filename)
 
