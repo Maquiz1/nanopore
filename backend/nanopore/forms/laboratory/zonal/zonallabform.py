@@ -1,3 +1,4 @@
+from nanopore.forms.laboratory.lpa_rules import relax_lpa_lines, require_lpa_lines_when_done
 from nanopore.zonal_rules import is_lab_number_only
 from django import forms
 from django.core.exceptions import ValidationError
@@ -290,6 +291,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
         self.fields["first_line_lpa"].required = True
         self.fields["second_line_lpa"].required = True
         self.fields["nanopore_done"].required = True
+        relax_lpa_lines(self)  # first/second-line LPA: required only when LPA = Yes (see clean)
 
         
         # Keep readonly display in template
@@ -306,6 +308,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        require_lpa_lines_when_done(self, cleaned_data)
         screening = cleaned_data.get("screening")
         if screening and self.instance.pk is None:
             if hasattr(screening, "zonal_laboratory"):

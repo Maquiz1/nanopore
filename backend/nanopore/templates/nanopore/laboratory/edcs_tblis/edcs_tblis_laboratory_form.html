@@ -21,13 +21,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ next }}">
 
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-warning">
-                            {% for error in form.non_field_errors %}
-                            <div>{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        {% include "nanopore/partials/form_error_summary.html" with form=form %}
 
                         <!-- Screening info -->
                         <div class="p-2 mb-3 bg-info text-white rounded">
