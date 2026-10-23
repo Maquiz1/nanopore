@@ -1,0 +1,3 @@
+
+# Raw TB-LIS exports contain participant names, NIN and addresses: never commit
+documentations/TBLIS_RAW_DATA/

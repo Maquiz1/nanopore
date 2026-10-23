@@ -52,3 +52,13 @@ Thumbs.db
 
 # Private exports and uploaded source files (participant data)
 private/
+
+# Data exports and database dumps (participant or user data): never commit
+*.xlsx
+*.xls
+*.csv
+backup.sql
+auth_user_data.json
+users_data.json
+selected_apps_data.json
+full_database.json
