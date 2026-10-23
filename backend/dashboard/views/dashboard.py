@@ -8,6 +8,7 @@ from datetime import timedelta
 
 from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory,Diagnosis
 from utils.permissions import filter_queryset_by_user_role
+from utils.access import assigned_locations, get_user_roles
 from utils.roles import get_role_context
 from locations.models import Site,Zone
 
@@ -495,6 +496,15 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         nanopore_progress = round(
             nanopore_completed_count / total_substudy_counts * 100, 1
         ) if total_substudy_counts else 0
+
+        # Header: who is looking, and which records the numbers cover.
+        assigned_zones, assigned_sites = assigned_locations(self.request.user)
+        context.update({
+            "assigned_zones": assigned_zones,
+            "assigned_sites": assigned_sites,
+            "role_names": sorted(role.replace("_", " ").title() for role in get_user_roles(self.request.user)),
+            "eligible_progress": round(eligible_count / screened_count * 100, 1) if screened_count else 0,
+        })
 
         # ==================================================
         # CONTEXT PUSH

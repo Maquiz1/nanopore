@@ -1,0 +1,22 @@
+{% load humanize %}
+{% comment %}
+One progress row. Params: label, done, total, pct, note (optional), step (optional number).
+Single hue on a neutral track; the numbers are always written out, so the bar never carries meaning alone.
+{% endcomment %}
+<div class="dash-meter">
+    <div class="dash-meter-head">
+        <span class="dash-meter-label">
+            {% if step %}<span class="dash-step">{{ step }}</span>{% endif %}
+            {{ label }}
+            {% if note %}<span class="dash-meter-note">{{ note }}</span>{% endif %}
+        </span>
+        <span class="dash-meter-value">
+            {% if pct >= 100 and total %}<span class="dash-done-badge"><i class="fas fa-check"></i> Target reached</span>{% endif %}
+            <strong>{{ done|intcomma }}</strong> / {{ total|intcomma }}
+            <span class="dash-pct">{{ pct }}%</span>
+        </span>
+    </div>
+    <div class="dash-track" role="progressbar" aria-label="{{ label }}" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="dash-fill" style="width: {% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%;"></div>
+    </div>
+</div>
