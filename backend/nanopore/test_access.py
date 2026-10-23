@@ -308,13 +308,13 @@ class ExportRolesTests(AccessTestBase):
 
     def test_export_page_and_downloads(self):
         self.client.force_login(self.make_user("rev", [access.REVIEWER]))
-        page = self.client.get(reverse("reports:codebook"))
-        self.assertNotContains(page, "Data export")
+        self.assertNotContains(self.client.get(reverse("reports:codebook")), reverse("reports:data-export"))
+        self.assertEqual(self.client.get(reverse("reports:data-export")).status_code, 403)
         self.assertEqual(self.client.get(reverse("reports:export_data") + "?model=Screening").status_code, 403)
 
         self.client.force_login(self.make_user("ds2", [access.DATA_SPECIALIST], sites=[self.a1]))
-        page = self.client.get(reverse("reports:codebook"))
-        self.assertContains(page, "Data export")
+        self.assertContains(self.client.get(reverse("reports:codebook")), reverse("reports:data-export"))
+        self.assertContains(self.client.get(reverse("reports:data-export")), "model=Screening")
         response = self.client.get(reverse("reports:export_data") + "?model=Screening&mode=full")
         body = b"".join(response.streaming_content).decode()
         self.assertIn(self.pid("A1"), body)
@@ -342,6 +342,6 @@ class ExportFormsTests(AccessTestBase):
 
     def test_new_forms_listed_on_page(self):
         self.client.force_login(self.make_user("stat", [access.STATISTICIAN]))
-        page = self.client.get(reverse("reports:codebook"))
+        page = self.client.get(reverse("reports:data-export"))
         self.assertContains(page, "model=EdcsTblisZonal")
         self.assertContains(page, "model=RegimenChanges")

@@ -1,471 +1,461 @@
 {% load static %}
 {% load humanize %}
 
-<div class="sidebar" id="sidebar">
-    <h2 class="sidebar-title">
-        <i class="fas fa-book-medical"></i> DREAM FUND<br> - NANOPORE
-    </h2>
-
-    <!-- Dashboard -->
-    <a href="{% url 'dashboard:dashboard' %}"
-        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-        <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
-    </a>
-    <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled"
-        class="{% if request.resolver_match.url_name == 'enrolled-list' or request.resolver_match.url_name == 'enrollment-update' %}active{% endif %}">
-        <i class="fas fa-user-check"></i><span> Enrolled</span>
-    </a>
-    <a href="{% url 'nanopore:master-data-list' %}"
-        class="{% if request.resolver_match.url_name == 'master-data-list' %}active{% endif %}">
-        <i class="fas fa-database"></i><span> Master Data Table</span>
-    </a>
-    <a href="{% url 'reports:codebook' %}"
-        class="{% if request.resolver_match.url_name == 'codebook' %}active{% endif %}">
-        <i class="fas fa-book"></i><span> Codebook{% if access.exports %} &amp; Export{% endif %}</span>
-    </a>
-    {% if access.system_admin %}
-    <!-- System Controls -->
-    <a href="{% url 'nanopore:system-controls' %}"
-        class="{% if request.resolver_match.url_name == 'system-controls' %}active{% endif %}">
-        <i class="fas fa-cogs"></i><span> System Controls</span>
+<nav class="sidebar" id="sidebar" aria-label="Main menu">
+    <!-- Brand -->
+    <a href="{% url 'dashboard:dashboard' %}" class="sb-brand" title="DREAM Fund – Nanopore">
+        <span class="sb-brand-icon"><i class="fas fa-dna"></i></span>
+        <span class="sb-brand-text">
+            <span class="sb-brand-name">DREAM FUND</span>
+            <span class="sb-brand-sub">Nanopore TB Sequencing</span>
+        </span>
     </a>
 
-    <!-- Extras -->
-    <div class="menu-group">
+    <div class="sb-scroll">
 
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-layer-group"></i> Extras</span>
-            <i class="fas fa-chevron-down"></i>
+        <!-- ── Main ─────────────────────────────────────────── -->
+        <div class="sb-section">Main</div>
+        <a href="{% url 'dashboard:dashboard' %}" class="sb-link" title="Dashboard">
+            <i class="fas fa-gauge-high"></i><span>Dashboard</span>
+        </a>
+        <a href="{% url 'dashboard:graphs' %}" class="sb-link" title="Graphs">
+            <i class="fas fa-chart-line"></i><span>Graphs</span>
+        </a>
+        <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled" class="sb-link" title="Enrolled">
+            <i class="fas fa-user-check"></i><span>Enrolled</span>
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'nanopore:form-status-list' %}" class="sb-link" title="Visits">
+            <i class="fas fa-calendar-check"></i><span>Visits</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'nanopore:master-data-list' %}" class="sb-link" title="Master Data Table">
+            <i class="fas fa-table"></i><span>Master Data</span>
         </a>
 
-        <div class="submenu">
-            <a href="{% url 'locations:country-list' %}"
-                class="{% if request.resolver_match.url_name == 'country-list' %}active{% endif %}">
-                <i class="fas fa-globe-africa"></i> Countries
-            </a>
-
-            <a href="{% url 'locations:all-sites' %}"
-                class="{% if request.resolver_match.url_name == 'all-sites' %}active{% endif %}">
-                <i class="fas fa-hospital"></i> Sites
-            </a>
-
-            <a href="{% url 'dashboard:site-targets' %}"
-                class="{% if request.resolver_match.url_name == 'site-targets' %}active{% endif %}">
-                <i class="fas fa-bullseye"></i> Targets
-            </a>
-
-        </div>
-
-    </div>
-
-    {% endif %}
-
-    <div class="menu-group">
-
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-cubes"></i> Components</span>
-            <i class="fas fa-chevron-down"></i>
-        </a>
-
-        <div class="submenu">
-
-            <!-- Graphs -->
-            <a href="{% url 'dashboard:graphs' %}"
-                class="{% if request.resolver_match.url_name == 'graphs' %}active{% endif %}">
-                <i class="fas fa-chart-line"></i> Graphs
-            </a>
-
-            {% if access.view.edcs_tblis %}
-            <!-- EDCS / TBLIS -->
-            <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"
-                class="{% if request.resolver_match.url_name == 'edcs-tblis-laboratory-list' %}active{% endif %}">
-                <i class="fas fa-database"></i> EDCS / TBLIS Data
-            </a>
-
-            {% endif %}
-
-        </div>
-
-    </div>
-
-    {% if access.snapshots %}
-
-    <!-- Snapshots -->
-    <div class="menu-group">
-
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-database"></i> Snapshots</span>
-            <i class="fas fa-chevron-down"></i>
-        </a>
-
-        <div class="submenu">
-
-            <a href="{% url 'reports:form-specific-snapshots' %}"
-                class="{% if request.resolver_match.url_name == 'form-specific-snapshots' %}active{% endif %}">
-                <i class="fas fa-file-alt"></i> Specific Forms
-            </a>
-
-            <a href="{% url 'reports:missing_forms_dashboard' %}"
-                class="{% if request.resolver_match.url_name == 'missing_forms_dashboard' %}active{% endif %}">
-                <i class="fas fa-chart-pie"></i> Missing Forms Dashboard
-            </a>
-
-            <a href="{% url 'reports:missing-forms-trends' %}"
-                class="{% if request.resolver_match.url_name == 'missing-forms-trends' %}active{% endif %}">
-                <i class="fas fa-chart-line"></i> Missing Forms Trends
-            </a>
-
-        </div>
-    </div>
-
-    {% endif %}
-
-    {% if user.is_superuser %}
-    <a href="{% url 'users:staff_list' %}">
-        <i class="fas fa-user-shield"></i><span> Users</span>
-    </a>
-    <a href="{% url 'clinical:disease-list' %}">
-        <i class="fas fa-virus"></i><span> Diseases</span>
-    </a>
-    <a href="{% url 'nanopore:form-status-list' %}">
-        <i class="fas fa-calendar-check"></i><span> Visits</span>
-    </a>
-    {% endif %}
-
-    {% if access.reports %}
-    <!-- Reports -->
-    <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-chart-line"></i> Reports</span>
-            <i class="fas fa-chevron-down"></i>
-        </a>
-        <div class="submenu">
-            <a href="{% url 'reports:summary' %}"><i class="fas fa-file-alt"></i> Summary</a>
-            <a href="{% url 'reports:forms' %}"><i class="fas fa-clipboard-list"></i> Forms</a>
-            <a href="{% url 'reports:enrollment-summary' %}"><i class="fas fa-user-plus"></i> Enrollment</a>
-            <a href="{% url 'reports:completed_study_summary' %}"><i class="fas fa-check-circle"></i> Completed</a>
-            <a href="{% url 'reports:eligibility_summary' %}"><i class="fas fa-clipboard-check"></i> Eligibility</a>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Forms -->
-    <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-clipboard-list"></i> Forms</span>
-            <i class="fas fa-chevron-down"></i>
-        </a>
-        <div class="submenu">
-            {% if access.view.screening %}
-            <a href="{% url 'nanopore:screening-list' %}"><i class="fas fa-user-check"></i> Screening</a>
-            {% endif %}
-            {% if access.view.enrollment %}
-            <a href="{% url 'nanopore:enrollment-list' %}"><i class="fas fa-user-plus"></i> Enrollment</a>
-            {% endif %}
-            {% if access.view.clinic_lab %}
-            <a href="{% url 'nanopore:clinic-laboratory-list' %}"><i class="fas fa-vial"></i> Clinic Laboratory</a>
-            {% endif %}
-            {% if access.view.zonal_lab %}
-            <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i> Zonal Laboratory</a>
-            {% endif %}
-            {% if access.view.edcs_tblis %}
-            <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"><i class="fas fa-database"></i> EDCS / TBLIS</a>
-            {% endif %}
-            {% if access.view.diagnosis %}
-            <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
-            {% endif %}
-            {% if access.view.regimen %}
-            <a href="{% url 'nanopore:regimen-list' %}"><i class="fas fa-exchange-alt"></i> Regimen Changes</a>
-            {% endif %}
-            {% if access.delete_records %}
-            <a href="{% url 'nanopore:recycle-bin' %}"><i class="fas fa-trash-restore"></i> Recycle Bin</a>
-            {% endif %}
-        </div>
-    </div>
-
-
-    {% if access.is_admin %}
-    <!-- Queries Report -->
-    <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-file-excel"></i> QUERIES Report</span>
-            <i class="fas fa-chevron-down"></i>
-        </a>
-        <div class="submenu">
-            <a href="{% url 'reports:substudy_download' 'substudy2' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-download"></i> Substudy 2</span>
-                {% if context_substudy2_count %}
-                <span class="badge bg-danger rounded-pill">{{ context_substudy2_count|intcomma }}</span>
+        <!-- ── Data entry ───────────────────────────────────── -->
+        <div class="sb-section">Data entry</div>
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Forms">
+                <i class="fas fa-clipboard-list"></i><span>Forms</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                {% if access.view.screening %}
+                <a href="{% url 'nanopore:screening-list' %}"><i class="fas fa-user-plus"></i><span>Screening</span></a>
                 {% endif %}
-            </a>
-            <a href="{% url 'reports:substudy_download' 'substudy4' %}" class="d-flex justify-content-between">
-                <span><i class="fas fa-download"></i> Substudy 4</span>
-                {% if context_substudy4_count %}
-                <span class="badge bg-danger rounded-pill">{{ context_substudy4_count|intcomma }}</span>
+                {% if access.view.enrollment %}
+                <a href="{% url 'nanopore:enrollment-list' %}"><i class="fas fa-id-card"></i><span>Enrollment</span></a>
                 {% endif %}
-            </a>
+                {% if access.view.clinic_lab %}
+                <a href="{% url 'nanopore:clinic-laboratory-list' %}"><i class="fas fa-vial"></i><span>Clinic Laboratory</span></a>
+                {% endif %}
+                {% if access.view.zonal_lab %}
+                <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i><span>Zonal Laboratory</span></a>
+                {% endif %}
+                {% if access.view.edcs_tblis %}
+                <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"><i class="fas fa-database"></i><span>EDCS / TBLIS</span></a>
+                {% endif %}
+                {% if access.view.diagnosis %}
+                <a href="{% url 'nanopore:diagnosis-list' %}"><i class="fas fa-stethoscope"></i><span>Diagnosis</span></a>
+                {% endif %}
+                {% if access.view.regimen %}
+                <a href="{% url 'nanopore:regimen-list' %}"><i class="fas fa-pills"></i><span>Regimen Changes</span></a>
+                {% endif %}
+            </div>
         </div>
-    </div>
-    {% endif %}
 
-    {% if context_total_issues %}
-    <!-- Queries / Total Issues -->
-    <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-exclamation-triangle"></i> Queries</span>
-            <span class="d-flex align-items-center">
-                {% if context_total_issues %}
-                <span class="badge bg-danger rounded-pill me-2">{{ context_total_issues|intcomma }}</span>
-                {% endif %}
-                <i class="fas fa-chevron-down"></i>
-            </span>
-        </a>
+        <!-- ── Data quality ─────────────────────────────────── -->
+        {% if context_total_issues or access.is_admin or access.snapshots %}
+        <div class="sb-section">Data quality</div>
+        {% endif %}
 
-        <div class="submenu">
-            {% if context_total_issues_components.missing_forms %}
-            <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-                <span><i class="fas fa-clipboard-list me-2"></i> Missing Forms</span>
-                <span class="d-flex align-items-center">
-                    {% if context_total_issues_components.missing_forms %}
-                    <span class="badge bg-danger rounded-pill">
-                        {{ context_total_issues_components.missing_forms|intcomma }}
-                    </span>
-                    {% endif %}
-                    <i class="fas fa-chevron-down"></i>
-                </span>
-            </a>
-            <div class="submenu">
+        {% if context_total_issues %}
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Queries">
+                <i class="fas fa-triangle-exclamation"></i><span>Queries</span>
+                <span class="sb-badge">{{ context_total_issues|intcomma }}</span>
+                <i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                {% if context_total_issues_components.missing_forms %}
+                <div class="sb-subheading">
+                    Missing forms
+                    <span class="sb-badge sb-badge-sm">{{ context_total_issues_components.missing_forms|intcomma }}</span>
+                </div>
                 {% if access.queries.enrollment and context_forms_report_total.context_missing_enrollment_count %}
-                <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}"
-                    class="d-flex justify-content-between">
-                    <span>Enrollment</span>
-                    <span class="badge bg-danger rounded-pill">
-                        {{ context_forms_report_total.context_missing_enrollment_count|intcomma }}
-                    </span>
-                </a>
+                <a href="{% url 'reports:missing_form_details_queries' 'enrollment' %}"><span>Enrollment</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_forms_report_total.context_missing_enrollment_count|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.clinic_lab and context_forms_report_total.context_missing_clinic_count %}
-                <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}"
-                    class="d-flex justify-content-between">
-                    <span>Clinic</span>
-                    <span class="badge bg-danger rounded-pill">
-                        {{ context_forms_report_total.context_missing_clinic_count|intcomma }}
-                    </span>
-                </a>
+                <a href="{% url 'reports:missing_form_details_queries' 'clinic' %}"><span>Clinic Lab</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_forms_report_total.context_missing_clinic_count|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.diagnosis and context_forms_report_total.context_missing_diagnosis_count %}
-                <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}"
-                    class="d-flex justify-content-between">
-                    <span>Diagnosis</span>
-                    <span class="badge bg-danger rounded-pill">
-                        {{ context_forms_report_total.context_missing_diagnosis_count|intcomma }}
-                    </span>
-                </a>
+                <a href="{% url 'reports:missing_form_details_queries' 'diagnosis' %}"><span>Diagnosis</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_forms_report_total.context_missing_diagnosis_count|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.regimen and context_forms_report_total.context_missing_regimen_count %}
-                <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}"
-                    class="d-flex justify-content-between">
-                    <span>Regimen</span>
-                    <span class="badge bg-danger rounded-pill">
-                        {{ context_forms_report_total.context_missing_regimen_count|intcomma }}
-                    </span>
-                </a>
+                <a href="{% url 'reports:missing_form_details_queries' 'regimen' %}"><span>Regimen</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_forms_report_total.context_missing_regimen_count|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.zonal_lab and context_forms_report_total.context_missing_zonal_count %}
-                <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}"
-                    class="d-flex justify-content-between">
-                    <span>Zonal</span>
-                    <span class="badge bg-danger rounded-pill">
-                        {{ context_forms_report_total.context_missing_zonal_count|intcomma }}
-                    </span>
-                </a>
+                <a href="{% url 'reports:missing_form_details_queries' 'zonal' %}"><span>Zonal Lab</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_forms_report_total.context_missing_zonal_count|intcomma }}</span></a>
                 {% endif %}
-            </div>
-            {% endif %}
+                {% endif %}
 
-            {% if context_specific_queries_total %}
-            <!-- Form Queries -->
-            <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-                <span><i class="fas fa-clipboard-list me-2"></i> Form Queries</span>
-                <span class="d-flex align-items-center">
-                    {% if context_specific_queries_total %}
-                    <span class="badge bg-danger rounded-pill">
-                        {{ context_specific_queries_total|intcomma }}
-                    </span>
-                    {% endif %}
-                    <i class="fas fa-chevron-down"></i>
-                </span>
-            </a>
-            <div class="submenu">
+                {% if context_specific_queries_total %}
+                <div class="sb-subheading">
+                    Form queries
+                    <span class="sb-badge sb-badge-sm">{{ context_specific_queries_total|intcomma }}</span>
+                </div>
                 {% if access.queries.screening and context_screening_report_total %}
-                <a href="{% url 'reports:screening_quality_report' %}" class="d-flex justify-content-between">
-                    <span>Screening</span>
-                    <span class="badge bg-danger rounded-pill">{{ context_screening_report_total|intcomma }}</span>
-                </a>
+                <a href="{% url 'reports:screening_quality_report' %}"><span>Screening</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_screening_report_total|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.enrollment and context_enrollment_report_total %}
-                <a href="{% url 'reports:enrollment_quality_report' %}" class="d-flex justify-content-between">
-                    <span>Enrollment</span>
-                    <span class="badge bg-danger rounded-pill">{{ context_enrollment_report_total|intcomma }}</span>
-                </a>
+                <a href="{% url 'reports:enrollment_quality_report' %}"><span>Enrollment</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_enrollment_report_total|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.clinic_lab and context_clinic_report_total %}
-                <a href="{% url 'reports:clinic_quality_report' %}" class="d-flex justify-content-between">
-                    <span>Clinic</span>
-                    <span class="badge bg-danger rounded-pill">{{ context_clinic_report_total|intcomma }}</span>
-                </a>
+                <a href="{% url 'reports:clinic_quality_report' %}"><span>Clinic Lab</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_clinic_report_total|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.diagnosis and context_diagnosis_report_total %}
-                <a href="{% url 'reports:diagnosis_quality_report' %}" class="d-flex justify-content-between">
-                    <span>Diagnosis</span>
-                    <span class="badge bg-danger rounded-pill">{{ context_diagnosis_report_total|intcomma }}</span>
-                </a>
+                <a href="{% url 'reports:diagnosis_quality_report' %}"><span>Diagnosis</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_diagnosis_report_total|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.regimen and context_regimen_report_total %}
-                <a href="{% url 'reports:regimen_quality_report' %}" class="d-flex justify-content-between">
-                    <span>Regimen</span>
-                    <span class="badge bg-danger rounded-pill">{{ context_regimen_report_total|intcomma }}</span>
-                </a>
+                <a href="{% url 'reports:regimen_quality_report' %}"><span>Regimen</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_regimen_report_total|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.zonal_lab and context_zonal_report_total %}
-                <a href="{% url 'reports:zonal_quality_report' %}" class="d-flex justify-content-between">
-                    <span>Zonal</span>
-                    <span class="badge bg-danger rounded-pill">{{ context_zonal_report_total|intcomma }}</span>
-                </a>
+                <a href="{% url 'reports:zonal_quality_report' %}"><span>Zonal Lab</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_zonal_report_total|intcomma }}</span></a>
                 {% endif %}
                 {% if access.queries.edcs_tblis and context_edcs_tblis_report_total %}
-                <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="d-flex justify-content-between">
-                    <span>Edcs/TBLIS</span>
-                    <span class="badge bg-danger rounded-pill">{{ context_edcs_tblis_report_total|intcomma }}</span>
-                </a>
+                <a href="{% url 'reports:edcs_tblis_quality_report' %}"><span>EDCS / TBLIS</span>
+                    <span class="sb-badge sb-badge-sm">{{ context_edcs_tblis_report_total|intcomma }}</span></a>
+                {% endif %}
                 {% endif %}
             </div>
-            {% endif %}
-
         </div>
-    </div>
-    {% endif %}
+        {% endif %}
 
-    {% if access.tblis_upload %}
-    <!-- Uploads -->
-    <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-upload"></i> Uploads</span>
-            <i class="fas fa-chevron-down"></i>
+        {% if access.is_admin %}
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Substudy downloads">
+                <i class="fas fa-file-excel"></i><span>Substudy downloads</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                <a href="{% url 'reports:substudy_download' 'substudy2' %}"><span>Substudy 2</span>
+                    {% if context_substudy2_count %}<span class="sb-badge sb-badge-sm">{{ context_substudy2_count|intcomma }}</span>{% endif %}</a>
+                <a href="{% url 'reports:substudy_download' 'substudy4' %}"><span>Substudy 4</span>
+                    {% if context_substudy4_count %}<span class="sb-badge sb-badge-sm">{{ context_substudy4_count|intcomma }}</span>{% endif %}</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if access.snapshots %}
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Snapshots">
+                <i class="fas fa-camera-retro"></i><span>Snapshots</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                <a href="{% url 'reports:form-specific-snapshots' %}"><span>Specific forms</span></a>
+                <a href="{% url 'reports:missing_forms_dashboard' %}"><span>Missing forms dashboard</span></a>
+                <a href="{% url 'reports:missing-forms-trends' %}"><span>Missing forms trends</span></a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Reports & data ───────────────────────────────── -->
+        <div class="sb-section">Reports &amp; data</div>
+        {% if access.reports %}
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Reports">
+                <i class="fas fa-chart-pie"></i><span>Reports</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                <a href="{% url 'reports:summary' %}"><span>Summary</span></a>
+                <a href="{% url 'reports:forms' %}"><span>Forms</span></a>
+                <a href="{% url 'reports:enrollment-summary' %}"><span>Enrollment</span></a>
+                <a href="{% url 'reports:completed_study_summary' %}"><span>Completed</span></a>
+                <a href="{% url 'reports:eligibility_summary' %}"><span>Eligibility</span></a>
+            </div>
+        </div>
+        {% endif %}
+        {% if access.exports %}
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Codebook & Export">
+                <i class="fas fa-book"></i><span>Codebook &amp; Export</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                <a href="{% url 'reports:codebook' %}"><i class="fas fa-book-open"></i><span>Codebook</span></a>
+                <a href="{% url 'reports:data-export' %}"><i class="fas fa-file-export"></i><span>Data export</span></a>
+            </div>
+        </div>
+        {% else %}
+        <a href="{% url 'reports:codebook' %}" class="sb-link" title="Codebook">
+            <i class="fas fa-book"></i><span>Codebook</span>
         </a>
-        <div class="submenu">
-            {% if access.bulk_upload %}
-            <a href="{% url 'nanopore:screening-upload-values' %}"><i class="fas fa-user-check"></i> Screenings</a>
-            <a href="{% url 'nanopore:enrollment-upload-csv' %}"><i class="fas fa-user-plus"></i> Enrollments</a>
-            <a href="{% url 'nanopore:clinic-upload-csv' %}"><i class="fas fa-vial"></i> Clinic Lab</a>
-            <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><i class="fas fa-stethoscope"></i> Diagnosis</a>
-            <a href="{% url 'nanopore:zonal-upload-csv' %}"><i class="fas fa-microscope"></i> Zonal Lab</a>
-            <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Regimen
-                Changes</a>
-            <a href="{% url 'nanopore:edcs-tblis-upload-csv' %}"><i class="fas fa-exchange-alt"></i> Edcs-Tblis</a>
-            {% endif %}
-            <a href="{% url 'nanopore:tblis-raw-upload' %}"><i class="fas fa-upload"></i> TBLIS Raw</a>
+        {% endif %}
+        {% if access.tblis_upload %}
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Uploads">
+                <i class="fas fa-cloud-arrow-up"></i><span>Uploads</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                <a href="{% url 'nanopore:tblis-raw-upload' %}"><span>TBLIS raw</span></a>
+                {% if access.bulk_upload %}
+                <div class="sb-subheading">Bulk CSV (superuser)</div>
+                <a href="{% url 'nanopore:screening-upload-values' %}"><span>Screening</span></a>
+                <a href="{% url 'nanopore:enrollment-upload-csv' %}"><span>Enrollment</span></a>
+                <a href="{% url 'nanopore:clinic-upload-csv' %}"><span>Clinic Lab</span></a>
+                <a href="{% url 'nanopore:zonal-upload-csv' %}"><span>Zonal Lab</span></a>
+                <a href="{% url 'nanopore:diagnosis-upload-csv' %}"><span>Diagnosis</span></a>
+                <a href="{% url 'nanopore:regimen-changes-upload-csv' %}"><span>Regimen Changes</span></a>
+                <a href="{% url 'nanopore:edcs-tblis-upload-csv' %}"><span>EDCS / TBLIS</span></a>
+                {% endif %}
+            </div>
         </div>
+        {% endif %}
+
+        <!-- ── Administration ───────────────────────────────── -->
+        {% if user.is_superuser or access.system_admin or access.delete_records or access.is_admin %}
+        <div class="sb-section">Administration</div>
+        {% if user.is_superuser %}
+        <a href="{% url 'users:staff_list' %}" class="sb-link" title="Users">
+            <i class="fas fa-users-gear"></i><span>Users</span>
+        </a>
+        {% endif %}
+        {% if access.system_admin %}
+        <a href="{% url 'nanopore:system-controls' %}" class="sb-link" title="System Controls">
+            <i class="fas fa-sliders"></i><span>System Controls</span>
+        </a>
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Locations & targets">
+                <i class="fas fa-map-location-dot"></i><span>Locations &amp; targets</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                <a href="{% url 'locations:country-list' %}"><span>Countries</span></a>
+                <a href="{% url 'locations:all-sites' %}"><span>Sites</span></a>
+                <a href="{% url 'dashboard:site-targets' %}"><span>Targets</span></a>
+            </div>
+        </div>
+        {% endif %}
+        {% if user.is_superuser %}
+        <a href="{% url 'clinical:disease-list' %}" class="sb-link" title="Diseases">
+            <i class="fas fa-virus"></i><span>Diseases</span>
+        </a>
+        {% endif %}
+        {% if access.delete_records %}
+        <a href="{% url 'nanopore:recycle-bin' %}" class="sb-link" title="Recycle Bin">
+            <i class="fas fa-trash-can-arrow-up"></i><span>Recycle Bin</span>
+        </a>
+        {% endif %}
+        {% if access.is_admin %}
+        <a href="{% url 'admin:index' %}" class="sb-link" title="Admin site">
+            <i class="fas fa-user-shield"></i><span>Admin site</span>
+        </a>
+        {% endif %}
+        {% endif %}
     </div>
-    {% endif %}
+</nav>
 
-    {% if access.is_admin %}
-    <a href="{% url 'admin:index' %}">
-        <i class="fas fa-user-shield"></i><span> Admin Dashboard</span>
-    </a>
-    {% endif %}
-</div>
-
-<!-- Sidebar toggle script -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".menu-toggle").forEach(toggle => {
-            toggle.addEventListener("click", function () {
-                const submenu = this.nextElementSibling;
-                if (!submenu) return;
-                submenu.classList.toggle("open");
+        const sidebar = document.getElementById("sidebar");
 
-                const chevron = this.querySelector(".fa-chevron-down");
-                if (chevron) chevron.classList.toggle("rotate");
+        // Highlight the link for the current page and open its group.
+        const here = window.location.pathname;
+        sidebar.querySelectorAll(".sb-scroll a[href]").forEach(link => {
+            const path = new URL(link.href, window.location.origin).pathname;
+            if (path === here) {
+                link.classList.add("active");
+                const group = link.closest(".sb-group");
+                if (group) group.classList.add("open");
+            }
+        });
+
+        // Open / close groups. When the sidebar is collapsed, expand it first.
+        sidebar.querySelectorAll(".sb-toggle").forEach(toggle => {
+            toggle.addEventListener("click", function () {
+                if (sidebar.classList.contains("collapsed")) {
+                    sidebar.classList.remove("collapsed");
+                    this.closest(".sb-group").classList.add("open");
+                    return;
+                }
+                this.closest(".sb-group").classList.toggle("open");
             });
         });
     });
 </script>
 
 <style>
-    .sidebar {
-        background-color: #1e1e2d;
-        color: #fff;
+    #sidebar {
+        --sb-bg: #0b2545;
+        --sb-bg-2: #0f2f57;
+        --sb-text: #c9d6e8;
+        --sb-muted: #7f95b3;
+        --sb-hover: rgba(255, 255, 255, 0.07);
+        --sb-active: #1d6fd6;
         width: 250px;
-        min-height: 100vh;
-        padding: 15px;
+        flex-shrink: 0;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        background: linear-gradient(180deg, var(--sb-bg) 0%, var(--sb-bg-2) 100%);
+        color: var(--sb-text);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+        transition: width 0.25s ease;
+        z-index: 1020;
     }
 
-    .sidebar h2 {
-        font-size: 1.1rem;
-        margin-bottom: 1.5rem;
-        text-align: center;
-        color: #f0f0f0;
-    }
-
-    .sidebar a {
+    /* Brand */
+    #sidebar .sb-brand {
         display: flex;
         align-items: center;
-        padding: 10px 12px;
-        color: #ccc;
+        gap: 12px;
+        padding: 18px 18px 16px;
+        margin: 0;
+        color: #fff;
         text-decoration: none;
-        border-radius: 6px;
-        transition: background 0.2s;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0;
     }
-
-    .sidebar a.active,
-    .sidebar a:hover {
-        background: #2b2b3d;
+    #sidebar .sb-brand:hover { background: none; }
+    #sidebar .sb-brand-icon {
+        flex: 0 0 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #2f8bff, #12c2a5);
+        font-size: 1.1rem;
         color: #fff;
     }
+    #sidebar .sb-brand-text { display: flex; flex-direction: column; line-height: 1.15; white-space: nowrap; overflow: hidden; }
+    #sidebar .sb-brand-name { font-weight: 700; letter-spacing: 0.06em; font-size: 0.98rem; }
+    #sidebar .sb-brand-sub { font-size: 0.72rem; color: var(--sb-muted); }
 
-    .sidebar a i {
-        margin-right: 10px;
-        font-size: 1rem;
+    /* Scrollable menu */
+    #sidebar .sb-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 6px 10px 24px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     }
 
-    .menu-group {
-        margin-top: 10px;
+    #sidebar .sb-section {
+        margin: 18px 10px 6px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--sb-muted);
+        white-space: nowrap;
     }
 
-    .menu-toggle {
+    /* Top-level links and group toggles */
+    #sidebar .sb-link {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 12px;
+        margin: 1px 0;
+        border: 0;
+        border-radius: 8px;
+        background: none;
+        color: var(--sb-text);
+        font-size: 0.92rem;
+        text-align: left;
+        text-decoration: none;
         cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    #sidebar .sb-link > i:first-child { width: 20px; text-align: center; font-size: 0.98rem; opacity: 0.9; }
+    #sidebar .sb-link > span:not(.sb-badge) { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    #sidebar .sb-link:hover { background: var(--sb-hover); color: #fff; }
+    #sidebar .sb-link.active {
+        background: var(--sb-active);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(29, 111, 214, 0.35);
+    }
+
+    #sidebar .sb-chevron { margin-left: auto; font-size: 0.7rem; opacity: 0.7; transition: transform 0.2s ease; }
+    #sidebar .sb-group.open > .sb-toggle { color: #fff; }
+    #sidebar .sb-group.open > .sb-toggle .sb-chevron { transform: rotate(90deg); }
+
+    /* Submenus */
+    #sidebar .sb-submenu {
+        display: none;
+        flex-direction: column;
+        margin: 2px 0 6px 22px;
+        padding-left: 12px;
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    #sidebar .sb-group.open > .sb-submenu { display: flex; }
+    #sidebar .sb-submenu a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 10px;
+        margin: 1px 0;
+        border-radius: 6px;
+        color: var(--sb-text);
+        font-size: 0.86rem;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    #sidebar .sb-submenu a > i { width: 16px; text-align: center; font-size: 0.8rem; opacity: 0.75; }
+    #sidebar .sb-submenu a > span:not(.sb-badge) { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    #sidebar .sb-submenu a:hover { background: var(--sb-hover); color: #fff; }
+    #sidebar .sb-submenu a.active { background: rgba(29, 111, 214, 0.35); color: #fff; font-weight: 600; }
+    #sidebar .sb-subheading {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin: 8px 10px 2px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--sb-muted);
     }
 
-    .submenu {
-        display: none;
-        flex-direction: column;
-        padding-left: 15px;
-        transition: max-height 0.3s ease-in-out;
-    }
-
-    .submenu.open {
-        display: flex;
-    }
-
-    .submenu a {
-        padding: 8px 0;
-        color: #bbb;
-    }
-
-    .submenu a:hover {
-        color: #fff;
-    }
-
-    .fa-chevron-down {
+    /* Count badges */
+    #sidebar .sb-badge {
         margin-left: auto;
-        transition: transform 0.3s ease;
+        min-width: 22px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #e5484d;
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1.4;
+        text-align: center;
     }
+    #sidebar .sb-badge-sm { padding: 1px 6px; font-size: 0.66rem; background: rgba(229, 72, 77, 0.85); }
+    #sidebar .sb-toggle .sb-badge + .sb-chevron { margin-left: 6px; }
 
-    .fa-chevron-down.rotate {
-        transform: rotate(180deg);
-    }
+    /* Collapsed (hamburger in the top bar): icons only */
+    #sidebar.collapsed { width: 70px; }
+    #sidebar.collapsed .sb-brand { justify-content: center; padding: 18px 0 16px; }
+    #sidebar.collapsed .sb-brand-text,
+    #sidebar.collapsed .sb-section,
+    #sidebar.collapsed .sb-link > span,
+    #sidebar.collapsed .sb-chevron,
+    #sidebar.collapsed .sb-submenu { display: none !important; }
+    #sidebar.collapsed .sb-link { justify-content: center; padding: 11px 0; }
+    #sidebar.collapsed .sb-link > i:first-child { font-size: 1.1rem; }
+    #sidebar.collapsed .sb-scroll { padding: 10px 8px; }
 </style>
