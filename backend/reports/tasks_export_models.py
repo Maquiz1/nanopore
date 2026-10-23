@@ -13,12 +13,12 @@ def sanitize_text(val):
 def _scope_for_user(model, qs, user_id):
     """Limit an export to the records the requesting user may see (utils/access.py)."""
     from django.contrib.auth import get_user_model
-    from utils.access import is_unscoped, scope_queryset
+    from utils.access import exports_all_sites, scope_queryset
 
     user = get_user_model().objects.filter(pk=user_id).first() if user_id else None
     if user is None:
         return qs.none()
-    if is_unscoped(user):
+    if exports_all_sites(user):
         return qs
     field_names = {f.name for f in model._meta.get_fields()}
     if "site" in field_names:
@@ -182,11 +182,11 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
 REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 
 @shared_task(bind=True)
-def export_all_models_combined_task(self, mode="zonal", filename=None):
+def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=None):
     if not filename:
         from datetime import datetime
         date_str = datetime.now().strftime("%Y%m%d")
-        filename = f"all_models_combined_{mode}_{date_str}.csv"
+        filename = f"all_models_combined_{mode}_{date_str}_u{user_id}.csv"
 
     export_dir = str(settings.PRIVATE_EXPORTS_DIR)
     os.makedirs(export_dir, exist_ok=True)
@@ -268,7 +268,8 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
     for f in REGIMEN_FIELDS:
         headers.append(f"regimen_{f}")
 
-    total = Screening.objects.count()
+    screenings = _scope_for_user(Screening, Screening.objects.all(), user_id)
+    total = screenings.count()
     if total == 0:
         with open(filepath, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
@@ -276,7 +277,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None):
         return {"state": "SUCCESS", "file": filename, "total": 0}
 
     # Pre-select based on mode
-    qs = Screening.objects.all().select_related(
+    qs = screenings.select_related(
         'enrollment', 'diagnosis', 'clinic_laboratory'
     ).prefetch_related('regimen_changes')
     

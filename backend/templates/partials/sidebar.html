@@ -21,7 +21,7 @@
     </a>
     <a href="{% url 'reports:codebook' %}"
         class="{% if request.resolver_match.url_name == 'codebook' %}active{% endif %}">
-        <i class="fas fa-book"></i><span> Codebook</span>
+        <i class="fas fa-book"></i><span> Codebook{% if access.exports %} &amp; Export{% endif %}</span>
     </a>
     {% if access.system_admin %}
     <!-- System Controls -->
@@ -183,21 +183,6 @@
         </div>
     </div>
 
-    {% if access.exports %}
-    <!-- Exports -->
-    <div class="menu-group">
-        <a href="javascript:void(0);" class="menu-toggle d-flex align-items-center justify-content-between">
-            <span><i class="fas fa-file-export"></i> Exports</span>
-            <i class="fas fa-chevron-down"></i>
-        </a>
-        <div class="submenu">
-            <a href="{% url 'reports:list_models' %}"><i class="fas fa-file-csv"></i> Download</a>
-            {% if access.model_export %}
-            <a href="{% url 'reports:list_models_view' %}"><i class="fas fa-file-csv"></i> Export</a>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
 
     {% if access.is_admin %}
     <!-- Queries Report -->

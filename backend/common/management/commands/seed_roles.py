@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"Created SiteLevel: {name}"))
 
         # 3. Create Groups
-        groups = ["NURSE", "CLINICIAN", "LABORATORY_TECHNICIAN", "DATA_SPECIALIST", "ADMIN", "REVIEWER"]
+        groups = ["NURSE", "CLINICIAN", "LABORATORY_TECHNICIAN", "DATA_SPECIALIST", "DATA_MANAGER", "STATISTICIAN", "ADMIN", "REVIEWER"]
         for g in groups:
             group, created = Group.objects.get_or_create(name=g)
             if created:
@@ -65,8 +65,12 @@ class Command(BaseCommand):
 
         all_models = [Screening, Enrollment, ClinicLaboratory, ZonalLaboratory, EdcsTblisZonal, Diagnosis, RegimenChanges]
 
-        # DATA_SPECIALIST -> All forms (full perms), limited to their assignment
+        # DATA_SPECIALIST / DATA_MANAGER -> All forms (full perms), limited to their assignment
         assign_full_perms("DATA_SPECIALIST", all_models)
+        assign_full_perms("DATA_MANAGER", all_models)
+
+        # STATISTICIAN -> All models (view only); exports cover all sites
+        assign_view_only_perms("STATISTICIAN", all_models)
 
         # ADMIN -> All models (full perms)
         assign_full_perms("ADMIN", all_models)

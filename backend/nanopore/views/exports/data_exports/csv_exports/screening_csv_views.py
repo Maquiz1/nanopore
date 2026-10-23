@@ -1,5 +1,5 @@
 from utils import access
-from utils.access import scope_queryset
+from utils.access import export_queryset
 from utils.access_mixins import FeatureAccessMixin
 import csv
 from django.views import View
@@ -28,7 +28,7 @@ class ScreeningCsvDownloadView(FeatureAccessMixin, View):
         user = request.user
 
         screenings = Screening.objects.all()
-        screenings = scope_queryset(request.user, screenings, "site")
+        screenings = export_queryset(request.user, screenings, "site")
 
         # Optional filtering by allowed sites/zones if user has these attributes
         if hasattr(user, 'sites') and user.sites.exists():

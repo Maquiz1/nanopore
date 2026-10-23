@@ -3,6 +3,10 @@ from django.http import Http404, HttpResponse
 from django.views import View
 from django.views.generic import TemplateView
 
+from django.apps import apps
+
+from utils import access
+from utils.access import export_queryset, exports_all_sites, has_feature
 from reports.codebook import CODEBOOK_FORMS, build_codebook, codebook_version, to_excel, to_pdf
 
 CONTENT_TYPES = {
@@ -11,14 +15,37 @@ CONTENT_TYPES = {
 }
 
 
+# Forms offered in the data export: (model name, title).
+EXPORT_FORMS = [
+    ("Screening", "Screening (with Regimen Changes)"),
+    ("Enrollment", "Enrollment"),
+    ("ClinicLaboratory", "Clinic Laboratory"),
+    ("ZonalLaboratory", "Zonal Laboratory"),
+    ("Diagnosis", "Diagnosis"),
+]
+
+
 class CodebookView(LoginRequiredMixin, TemplateView):
-    """Lists the forms with Excel / PDF codebook downloads. A codebook holds no participant data."""
+    """
+    Codebook (everyone; no participant data) and data export (data specialists,
+    data managers, statisticians, admins) on one page.
+    """
     template_name = "reports/codebook/codebook.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
         context["forms"] = [(key, title) for key, (title, _) in CODEBOOK_FORMS.items()]
         context["version"] = codebook_version()
+        context["can_export"] = has_feature(user, access.EXPORTS)
+        if context["can_export"]:
+            context["exports_all_sites"] = exports_all_sites(user)
+            context["export_forms"] = []
+            for model_name, title in EXPORT_FORMS:
+                model = apps.get_model("nanopore", model_name)
+                site_field = "site" if model_name == "Screening" else "screening__site"
+                count = export_queryset(user, model.objects.all(), site_field).count()
+                context["export_forms"].append((model_name, title, count))
         return context
 
 

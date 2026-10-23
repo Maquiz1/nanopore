@@ -1,4 +1,5 @@
 from utils import access
+from utils.access import export_queryset
 from utils.access_mixins import FeatureAccessMixin
 import logging
 
@@ -19,7 +20,7 @@ PRIORITY_FIELDS = ["pid", "pid1", "pid2"]
 
 
 class ExportModelDataView(FeatureAccessMixin, View):
-    access_feature = access.MODEL_EXPORT
+    access_feature = access.EXPORTS
     exclude_fields = [
         'id', 'created_at', 'updated_at', 'created_by', 'updated_by',
         'screening', 'enrollment', 'clinic_laboratory', 'zonal_laboratory',
@@ -75,7 +76,9 @@ class ExportModelDataView(FeatureAccessMixin, View):
                 # ── Rows ────────────────────────────────────────────────────
                 # select_related prevents N+1: ZonalLab has 30+ FK fields —
                 # without this, each row fires 30+ extra DB queries → timeout.
-                qs = model.objects.select_related(*related_fields).iterator(chunk_size=200)
+                site_field = "site" if model._meta.model_name == "screening" else "screening__site"
+                records = export_queryset(request.user, model.objects.all(), site_field)
+                qs = records.select_related(*related_fields).iterator(chunk_size=200)
 
                 for obj in qs:
                     row = []
@@ -136,8 +139,10 @@ from django.http import JsonResponse
 from reports.tasks_export_models import export_all_models_combined_task
 
 class ExportAllModelsCombinedView(FeatureAccessMixin, View):
-    access_feature = access.MODEL_EXPORT
+    """Queues the combined export (all forms in one row per participant) and returns the task id."""
+    access_feature = access.EXPORTS
+
     def get(self, request):
-        mode = request.GET.get("with", "zonal")
-        task = export_all_models_combined_task.delay(mode=mode)
+        mode = "edcs" if request.GET.get("with") == "edcs" else "zonal"
+        task = export_all_models_combined_task.delay(mode=mode, user_id=request.user.id)
         return JsonResponse({"task_id": task.id})

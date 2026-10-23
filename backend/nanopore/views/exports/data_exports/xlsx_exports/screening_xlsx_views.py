@@ -1,5 +1,5 @@
 from utils import access
-from utils.access import scope_queryset
+from utils.access import export_queryset
 from utils.access_mixins import FeatureAccessMixin
 from django.views import View
 from django.http import HttpResponse
@@ -36,7 +36,7 @@ class ScreeningXlsxDownloadView(FeatureAccessMixin, View):
 
         user = request.user
         screenings = Screening.objects.all()
-        screenings = scope_queryset(request.user, screenings, "site")
+        screenings = export_queryset(request.user, screenings, "site")
 
         # Filter by user's allowed sites/zones if applicable
         if hasattr(user, 'sites') and user.sites.exists():

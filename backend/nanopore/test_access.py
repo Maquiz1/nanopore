@@ -270,3 +270,48 @@ class MissingFormsTests(AccessTestBase):
         )
         self.assertGreater(zonal_report_total(request)["context_zonal_report_total"], 0)
         self.assertEqual(specific_queries_total(request)["context_specific_queries_total"], expected)
+
+
+class ExportRolesTests(AccessTestBase):
+    def test_who_can_export(self):
+        from utils.access import has_feature
+        exporters = [access.DATA_SPECIALIST, access.DATA_MANAGER, access.STATISTICIAN, access.ADMIN]
+        for role in access.ALL_ROLES:
+            user = self.make_user(f"u_{role.lower()}", [role], sites=[self.a1])
+            self.assertEqual(has_feature(user, access.EXPORTS), role in exporters, role)
+
+    def test_statistician_is_view_only(self):
+        stat = self.make_user("stat", [access.STATISTICIAN], sites=[self.a1])
+        for form in access.ALL_FORMS:
+            self.assertTrue(can_view(stat, form))
+            self.assertFalse(can_edit(stat, form))
+
+    def test_data_manager_edits_like_data_specialist(self):
+        dm = self.make_user("dm", [access.DATA_MANAGER], sites=[self.a1])
+        for form in access.ALL_FORMS:
+            self.assertTrue(can_edit(dm, form))
+
+    def test_export_scope(self):
+        from utils.access import export_queryset
+        everyone = set(Screening.objects.values_list("pid", flat=True))
+        for role in (access.DATA_MANAGER, access.STATISTICIAN):
+            user = self.make_user(f"x_{role.lower()}", [role], sites=[self.a1])
+            self.assertEqual(set(export_queryset(user, Screening.objects.all()).values_list("pid", flat=True)), everyone, role)
+            # their pages still follow their assignment
+            self.assertEqual(self.visible_pids(user), {self.pid("A1")})
+        ds = self.make_user("x_ds", [access.DATA_SPECIALIST], sites=[self.a1])
+        self.assertEqual(set(export_queryset(ds, Screening.objects.all()).values_list("pid", flat=True)), {self.pid("A1")})
+
+    def test_export_page_and_downloads(self):
+        self.client.force_login(self.make_user("rev", [access.REVIEWER]))
+        page = self.client.get(reverse("reports:codebook"))
+        self.assertNotContains(page, "Data export")
+        self.assertEqual(self.client.get(reverse("reports:export_data") + "?model=Screening").status_code, 403)
+
+        self.client.force_login(self.make_user("ds2", [access.DATA_SPECIALIST], sites=[self.a1]))
+        page = self.client.get(reverse("reports:codebook"))
+        self.assertContains(page, "Data export")
+        response = self.client.get(reverse("reports:export_data") + "?model=Screening&mode=full")
+        body = b"".join(response.streaming_content).decode()
+        self.assertIn(self.pid("A1"), body)
+        self.assertNotIn(self.pid("B1"), body)

@@ -1,5 +1,5 @@
 from utils import access
-from utils.access import scope_queryset
+from utils.access import export_queryset
 from utils.access_mixins import FeatureAccessMixin
 import csv
 from django.views import View
@@ -27,7 +27,7 @@ class EnrollmentXlsxDownloadView(FeatureAccessMixin, View):
 
         user = request.user
         enrollments = Enrollment.objects.select_related('screening').all()
-        enrollments = scope_queryset(request.user, enrollments, "screening__site")
+        enrollments = export_queryset(request.user, enrollments, "screening__site")
 
         # Filter based on allowed sites/zones if user is not superuser
         if not user.is_superuser:

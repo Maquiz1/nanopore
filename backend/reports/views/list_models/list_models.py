@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.urls import reverse
 from utils import access
-from utils.access import scope_queryset
+from utils.access import export_queryset
 from utils.access_mixins import require_feature
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -20,7 +20,7 @@ from nanopore.models.edcs_tblis_zonal import EdcsTblisZonal
 # @staff_member_required
 def _scoped(request, model):
     site_field = "site" if model is Screening else "screening__site"
-    return scope_queryset(request.user, model.objects.all(), site_field)
+    return export_queryset(request.user, model.objects.all(), site_field)
 
 
 @require_feature(access.EXPORTS)

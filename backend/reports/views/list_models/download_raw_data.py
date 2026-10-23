@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.apps import apps
 from reports.tasks_export_models import export_model_raw_data_task
 from utils import access
-from utils.access import is_unscoped
+from utils.access import exports_all_sites
 from utils.access_mixins import FeatureAccessMixin
 
 def staff_required(view_func):
@@ -34,7 +34,7 @@ class ServeModelExportView(FeatureAccessMixin, View):
     """
     def get(self, request, filename, *args, **kwargs):
         # Scoped users may only fetch the files generated for them.
-        if not is_unscoped(request.user) and not filename.endswith(f"_u{request.user.id}.csv"):
+        if not exports_all_sites(request.user) and not filename.endswith(f"_u{request.user.id}.csv"):
             raise Http404("Export file not found.")
         filename = os.path.basename(filename)
         filepath = os.path.join(settings.PRIVATE_EXPORTS_DIR, os.path.basename(filename))

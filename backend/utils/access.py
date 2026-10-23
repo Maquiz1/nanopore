@@ -26,9 +26,11 @@ NURSE = "NURSE"
 CLINICIAN = "CLINICIAN"
 LABORATORY_TECHNICIAN = "LABORATORY_TECHNICIAN"
 DATA_SPECIALIST = "DATA_SPECIALIST"
+DATA_MANAGER = "DATA_MANAGER"
+STATISTICIAN = "STATISTICIAN"
 REVIEWER = "REVIEWER"
 ADMIN = "ADMIN"
-ALL_ROLES = [NURSE, CLINICIAN, LABORATORY_TECHNICIAN, DATA_SPECIALIST, REVIEWER, ADMIN]
+ALL_ROLES = [NURSE, CLINICIAN, LABORATORY_TECHNICIAN, DATA_SPECIALIST, DATA_MANAGER, STATISTICIAN, REVIEWER, ADMIN]
 
 # --- Forms ---
 SCREENING = "screening"
@@ -44,7 +46,7 @@ LAB_FORMS = frozenset([ZONAL_LAB, EDCS_TBLIS])
 
 # --- Features (pages that are not a single form) ---
 REPORTS = "reports"            # summary reports, records lists, substudy pages
-EXPORTS = "exports"            # CSV / XLSX downloads of form data
+EXPORTS = "exports"            # data exports (CSV / XLSX of form data): data specialists, data managers, statisticians, admins
 MODEL_EXPORT = "model_export"  # raw "export all models" tools
 SNAPSHOTS = "snapshots"        # data-quality snapshot dashboards
 SYSTEM_ADMIN = "system_admin"  # system controls, locations, targets, admin site
@@ -57,6 +59,7 @@ ROLE_FORMS_EDIT = {
     CLINICIAN: CLINICAL_FORMS,
     LABORATORY_TECHNICIAN: LAB_FORMS,
     DATA_SPECIALIST: ALL_FORMS,
+    DATA_MANAGER: ALL_FORMS,
     REVIEWER: frozenset(),
     ADMIN: ALL_FORMS,
 }
@@ -64,13 +67,19 @@ ROLE_FORMS_EDIT = {
 ROLE_FORMS_VIEW = {
     LABORATORY_TECHNICIAN: frozenset([SCREENING]),  # look up a participant / PID
     REVIEWER: ALL_FORMS,
+    STATISTICIAN: ALL_FORMS,
 }
 ROLE_FEATURES = {
     DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD]),
-    REVIEWER: frozenset([REPORTS, EXPORTS]),
+    DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD]),
+    STATISTICIAN: frozenset([REPORTS, EXPORTS]),
+    REVIEWER: frozenset([REPORTS]),
     ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, DELETE_RECORDS]),
 }
 UNSCOPED_ROLES = frozenset([ADMIN, REVIEWER])
+# Data managers and statisticians export every site, whatever their assignment
+# (their pages still follow their assignment).
+ALL_SITES_EXPORT_ROLES = frozenset([DATA_MANAGER, STATISTICIAN])
 
 
 def _cache(user):
@@ -176,6 +185,15 @@ def scope_queryset(user, qs, site_field="site"):
     return qs.filter(**{f"{site_field}__in": sites})
 
 
+def exports_all_sites(user):
+    return is_unscoped(user) or has_role(user, *ALL_SITES_EXPORT_ROLES)
+
+
+def export_queryset(user, qs, site_field="site"):
+    """Records a data export may contain: every site for admins, data managers and statisticians."""
+    return qs if exports_all_sites(user) else scope_queryset(user, qs, site_field)
+
+
 def get_accessible_zones(user):
     sites = get_accessible_sites(user)
     if sites is None:
@@ -185,11 +203,12 @@ def get_accessible_zones(user):
 
 def legacy_role_flags(user):
     """Template flags used by the form-status and master-data lists."""
-    is_admin_only = bool(getattr(user, "is_superuser", False)) or has_role(user, ADMIN, DATA_SPECIALIST)
+    is_admin_only = bool(getattr(user, "is_superuser", False)) or has_role(user, ADMIN, DATA_SPECIALIST, DATA_MANAGER)
+    is_reviewer = has_role(user, REVIEWER, STATISTICIAN)
     return {
-        "is_admin_or_reviewer": is_admin_only or has_role(user, REVIEWER),
+        "is_admin_or_reviewer": is_admin_only or is_reviewer,
         "is_admin_only": is_admin_only,
-        "is_reviewer_only": has_role(user, REVIEWER) and not is_admin_only,
+        "is_reviewer_only": is_reviewer and not is_admin_only,
         "is_lab_tech": has_role(user, LABORATORY_TECHNICIAN),
         "is_nurse_clinician": has_role(user, NURSE, CLINICIAN),
     }
