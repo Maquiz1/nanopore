@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load humanize %}
 
-{% block title %}Date issues · Dream Fund - Nanopore{% endblock %}
+{% block title %}{{ title }} · Dream Fund - Nanopore{% endblock %}
 
 {% block content %}
 <div class="dq">
 
     <section class="dq-hero">
         <div class="dq-eyebrow">Data quality</div>
-        <h1 class="dq-title">Date issues</h1>
-        <div class="dq-meta">Dates that are impossible inside a form, or that conflict with a date on another form of the same participant.
+        <h1 class="dq-title">{{ title }}</h1>
+        <div class="dq-meta">{{ intro }}
             {{ total|intcomma }} to fix.</div>
     </section>
 
@@ -34,13 +34,13 @@
         </div>
         <div class="dq-filter-actions">
             <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-            <a href="{% url 'reports:date_issues' selected.key %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+            <a href="{% url url_name selected.key %}" class="btn btn-outline-secondary btn-sm">Reset</a>
         </div>
     </form>
 
     <div class="di-layout">
         <!-- Checks, grouped by form -->
-        <nav class="di-checks" id="di-checks" aria-label="Date checks">
+        <nav class="di-checks" id="di-checks" aria-label="Checks">
             <button type="button" class="di-toggle" onclick="this.parentElement.classList.toggle('show-all'); this.textContent = this.parentElement.classList.contains('show-all') ? 'Hide checks with no issues' : 'Show all checks';">Show all checks</button>
             {% for group in groups %}
             <details class="di-group" {% if group.label == selected_form_label or group.total %}open{% endif %}>
@@ -49,7 +49,7 @@
                     <span class="di-count {% if not group.total %}zero{% endif %}">{{ group.total|intcomma }}</span>
                 </summary>
                 {% for check, count in group.checks %}
-                <a href="{% url 'reports:date_issues' check.key %}{% if filter_query %}?{{ filter_query }}{% endif %}"
+                <a href="{% url url_name check.key %}{% if filter_query %}?{{ filter_query }}{% endif %}"
                    class="di-check {% if check.key == selected.key %}active{% endif %} {% if not count %}is-zero{% endif %}">
                     <span>{{ check.label }}{% if check.between_forms %} <i class="fas fa-link di-between" title="Compares two forms"></i>{% endif %}</span>
                     <span class="di-count {% if not count %}zero{% endif %}">{{ count|intcomma }}</span>
@@ -67,15 +67,15 @@
             </div>
             <p class="dq-muted mt-1 mb-3">
                 {% if selected.fields %}Dates outside today and the study start; correct the date on the form.
-                {% elif selected.between_forms %}<span class="dq-pill">Between forms</span> One of the two dates is wrong; open either form to correct it.
-                {% else %}<span class="dq-pill">Within the form</span> Correct one of the two dates on the form.{% endif %}
+                {% elif selected.between_forms %}<span class="dq-pill">Between forms</span> One of the two {% if is_dates %}dates{% else %}answers{% endif %} is wrong; open either form to correct it.
+                {% else %}<span class="dq-pill">Within the form</span> Correct one of the two {% if is_dates %}dates{% else %}answers{% endif %} on the form.{% endif %}
             </p>
 
             {% if rows %}
             <div class="table-responsive">
                 <table class="table table-sm align-middle dq-table dq-stack">
                     <thead>
-                        <tr><th>PID</th><th>Site</th><th>Dates</th><th class="text-end">Fix</th></tr>
+                        <tr><th>PID</th><th>Site</th><th>{% if is_dates %}Dates{% else %}Answers{% endif %}</th><th class="text-end">Fix</th></tr>
                     </thead>
                     <tbody>
                     {% for row in rows %}
@@ -84,13 +84,13 @@
                             <td class="dq-nowrap">{{ row.screening.site.name }}</td>
                             <td>
                                 {% for label, value in row.dates %}
-                                <div class="di-date"><span class="dq-muted">{{ label }}</span> <strong>{{ value|date:"d M Y"|default:value }}</strong></div>
+                                <div class="di-date{% if not is_dates %} di-wrap{% endif %}"><span class="dq-muted">{{ label }}</span> <strong>{% if is_dates %}{{ value|date:"d M Y"|default:value }}{% else %}{{ value|default:"Blank" }}{% endif %}</strong></div>
                                 {% endfor %}
                             </td>
                             <td class="dq-actions">
                                 {% for link in row.links %}
                                 <a class="btn btn-sm {% if link.edit %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}"
-                                   href="{% url link.url_name link.pk %}">{% if link.edit %}<i class="fas fa-pen"></i> {% endif %}{{ link.label }}</a>
+                                   href="{% url link.url_name link.pk %}{{ link.anchor }}">{% if link.edit %}<i class="fas fa-pen"></i> {% endif %}{{ link.label }}</a>
                                 {% endfor %}
                             </td>
                         </tr>
@@ -108,7 +108,7 @@
             </nav>
             {% endif %}
             {% else %}
-            <div class="dq-empty"><i class="fas fa-circle-check"></i> No date issues here.</div>
+            <div class="dq-empty"><i class="fas fa-circle-check"></i> {{ empty }}</div>
             {% endif %}
         </div>
     </div>
@@ -138,6 +138,7 @@
     .di-count { min-width: 30px; text-align: right; font-weight: 700; color: var(--warn); font-variant-numeric: tabular-nums; }
     .di-count.zero { color: var(--good); font-weight: 500; }
     .di-date { white-space: nowrap; line-height: 1.5; }
+    .di-date.di-wrap { white-space: normal; }
     @media (max-width: 991.98px) {
         .di-layout { grid-template-columns: 1fr; }
         .di-checks { position: static; max-height: 360px; }

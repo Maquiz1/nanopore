@@ -212,8 +212,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     const input = document.getElementById(`id_${key}`);
                     if(input) input.value = data.fields[key];
                 });
+                toggleRegimenSpecify();
                 regimenModal.show();
-            });
+            })
+            .catch(() => alert("Could not load this regimen change. Please reload the page and try again."));
     }
 
     function deleteHandler() {

@@ -68,7 +68,7 @@
                     <td>{{ rc.specify|default:"-" }}</td>
                     <td class="text-nowrap">
                         {% if rc.screening.diagnosis %}
-                        <a href="{% url 'nanopore:diagnosis-update' rc.screening.diagnosis.pk %}" class="btn btn-sm btn-primary">Open Diagnosis</a>
+                        <a href="{% url 'nanopore:diagnosis-update' rc.screening.diagnosis.pk %}#regimen-change-section" class="btn btn-sm btn-primary">Open Diagnosis</a>
                         {% endif %}
                         {% if access.delete_records %}
                         <a href="{% url 'nanopore:regimen-record-delete' rc.pk %}" class="btn btn-sm btn-danger">Delete</a>

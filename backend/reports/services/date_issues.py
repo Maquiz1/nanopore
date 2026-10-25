@@ -172,8 +172,9 @@ def build_checks():
     ]
 
 
-def visible_checks(user):
-    return [check for check in build_checks() if can_see_queries(user, check.form)]
+def visible_checks(user, builder=None):
+    """Checks of the forms the user works on; builder gives another list of checks (DS / DR)."""
+    return [check for check in (builder or build_checks)() if can_see_queries(user, check.form)]
 
 
 def check_queryset(user, check, zone_id=None, site_id=None):
@@ -190,8 +191,8 @@ def check_queryset(user, check, zone_id=None, site_id=None):
     return qs.select_related(*related).order_by("pk")
 
 
-def date_issue_counts(user, zone_id=None, site_id=None):
-    return {check.key: check_queryset(user, check, zone_id, site_id).count() for check in visible_checks(user)}
+def date_issue_counts(user, zone_id=None, site_id=None, builder=None):
+    return {check.key: check_queryset(user, check, zone_id, site_id).count() for check in visible_checks(user, builder)}
 
 
 # ── Row helpers for the list page ───────────────────────────────────────────

@@ -43,18 +43,16 @@ class RegimenChangesFormView(FormAccessMixin, View):
             regimen.updated_by = request.user
             regimen.save()
             
-            messages.success(request, "Enrollment saved successfully.")
-
             # Return all relevant data for JS to update modal/table
             return JsonResponse({
                 "success": True,
                 "message": "Regimen saved!" if not obj else "Regimen updated!",
                 "regimen_id": regimen.id,
                 "date": regimen.date.strftime("%Y-%m-%d") if regimen.date else "",
-                "drug": regimen.drug,
-                "changes": str(regimen.changes),
-                "reason": str(regimen.reason),
-                "specify": str(regimen.specify),
+                "drug": regimen.drug or "",
+                "changes": str(regimen.changes or ""),
+                "reason": str(regimen.reason or ""),
+                "specify": regimen.specify or "",
             })
 
         return JsonResponse({"success": False, "errors": form.errors}, status=400)
@@ -74,9 +72,10 @@ class RegimenChangesEditView(FormAccessMixin, View):
             "fields": {
                 "date": regimen.date.strftime("%Y-%m-%d") if regimen.date else "",
                 "drug": regimen.drug,
-                "changes": regimen.changes,
-                "reason": regimen.reason,
-                "specify": regimen.specify,
+                # dropdowns take the option id
+                "changes": regimen.changes_id or "",
+                "reason": regimen.reason_id or "",
+                "specify": regimen.specify or "",
             }
         }
         return JsonResponse(data)

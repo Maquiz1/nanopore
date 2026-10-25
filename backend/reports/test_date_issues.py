@@ -72,3 +72,39 @@ class DateIssuesTests(AccessTestBase):
         page = self.client.get(reverse("reports:outcome_without_treatment"))
         self.assertEqual(page.context["counts"]["Substudy 2"], 1)
         self.assertContains(page, "To District hospital")
+
+    def test_dsdr_checks(self):
+        from nanopore.models import Diagnosis, Enrollment
+        from options.models import DrDsTB, RegimenPrescribed, TreatmentRegimen
+        from reports.services import dsdr_checks
+        a2 = self.screenings["A2"]
+        dr = DrDsTB.objects.create(value=1, name="DR")
+        Enrollment.objects.create(screening=a2, **{
+            **test_dashboard.SubstudyTwoOutcomesTests.required_answers(Enrollment),
+            "enrollment_date": datetime.date(2025, 3, 1), "dr_ds": dr,
+            "tb_regimen": TreatmentRegimen.objects.create(value=1, name="DS TB regimen (2RHZE and 4RH)"),
+        })
+        Diagnosis.objects.filter(screening=a2).update(
+            tb_regimen=RegimenPrescribed.objects.create(value=1, name="DS TB regimen (2RHZE and 4RH)"))
+        counts = date_issue_counts(self.admin, builder=dsdr_checks.build_checks)
+        self.assertEqual({k for k, n in counts.items() if n},
+                         {"enrollment_dr_on_ds_regimen", "diagnosis_previous_dr_ds_regimen"})
+        page = self.client.get(reverse("reports:dsdr_checks", args=["diagnosis_previous_dr_ds_regimen"]))
+        self.assertContains(page, "Previously DR, now DS regimen")
+        self.assertContains(page, reverse("nanopore:enrollment-update", args=[a2.enrollment.pk]))
+        self.assertContains(page, reverse("nanopore:diagnosis-update", args=[a2.diagnosis.pk]))
+
+    def test_regimen_change_can_be_edited(self):
+        from nanopore.models import RegimenChanges
+        from options.models import RegimenReasonForChange, RegimenTypeOfChange
+        a2 = self.screenings["A2"]
+        regimen = RegimenChanges.objects.create(
+            screening=a2, date=datetime.date(2025, 3, 5), drug="H",
+            changes=RegimenTypeOfChange.objects.create(value=1, name="Stopped"),
+            reason=RegimenReasonForChange.objects.create(value=1, name="Side effects"))
+        # The Diagnosis form's Edit button loads the record; dropdowns get option ids
+        data = self.client.get(reverse("nanopore:regimen-edit", args=[regimen.pk])).json()["fields"]
+        self.assertEqual((data["changes"], data["reason"]), (regimen.changes_id, regimen.reason_id))
+        # Date issues send regimen changes to the regimen table on the Diagnosis form
+        page = self.client.get(reverse("reports:date_issues", args=["regimen_before_treatment"]))
+        self.assertContains(page, reverse("nanopore:diagnosis-update", args=[a2.diagnosis.pk]) + "#regimen-change-section")

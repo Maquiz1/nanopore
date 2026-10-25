@@ -62,7 +62,7 @@
         </div>
 
         <!-- ── Data quality ─────────────────────────────────── -->
-        {% if context_total_issues or access.is_admin or access.snapshots or context_substudy_queries_visible or context_date_issues_visible %}
+        {% if context_total_issues or access.is_admin or access.snapshots or context_substudy_queries_visible or context_date_issues_visible or context_dsdr_visible %}
         <div class="sb-section">Data quality</div>
         {% endif %}
 
@@ -151,6 +151,12 @@
         <a href="{% url 'reports:date_issues' %}" class="sb-link" title="Date issues">
             <i class="fas fa-calendar-xmark"></i><span>Date issues</span>
             {% if context_date_issues_total %}<span class="sb-badge sb-badge-sm">{{ context_date_issues_total|intcomma }}</span>{% endif %}
+        </a>
+        {% endif %}
+        {% if context_dsdr_visible %}
+        <a href="{% url 'reports:dsdr_checks' %}" class="sb-link" title="DS / DR checks">
+            <i class="fas fa-pills"></i><span>DS / DR checks</span>
+            {% if context_dsdr_total %}<span class="sb-badge sb-badge-sm">{{ context_dsdr_total|intcomma }}</span>{% endif %}
         </a>
         {% endif %}
         {% if context_outcome_no_treatment_visible %}
