@@ -15,15 +15,14 @@ Card-type → column mapping:
 import os
 from celery import shared_task
 from django.conf import settings
-from django.apps import apps
-from django.db.models import Q
 
-from nanopore.substudy import SUBSTUDY_2, SUBSTUDY_4, UNCATEGORIZED, substudy_q
+from nanopore.edcs_tblis_cards import CARDS, card_queryset
+from nanopore.substudy import SUBSTUDIES
 
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
-TBLIS_CARD_TYPES = {"total_tblis", "tblis_not_in_edcs"}
+TBLIS_CARD_TYPES = {key for key, card in CARDS.items() if card.source == "tblis"}
 
 TBLIS_COLUMNS = [
     "labno", "studycode", "tbno", "name", "gender", "age",
@@ -42,276 +41,33 @@ EDCS_COLUMNS = [
     "zone",
 ]
 
-CTRL_PREFIXES = [
-    "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
-    "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19",
-]
-
-# Lookup path from Zonal Lab / EDCS rows to the Clinic Lab (see nanopore.substudy).
-TO_CLINIC_LAB = "screening__clinic_laboratory__"
-
-
-def _ctrl_prefix_q():
-    q = Q()
-    for p in CTRL_PREFIXES:
-        q |= Q(screening__pid__startswith=p)
-    return q
-
-
 def _build_edcs_qs(filters):
-    """Return an EdcsTblisZonal or ZonalLaboratory queryset filtered by filters dict."""
-    card_type = (filters or {}).get("card_type", "")
-
-    # Cards that target ZonalLaboratory directly
-    if card_type in {"total_edcs", "ctrl"} or card_type.startswith("other_zones"):
-        ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
-        qs = ZonalLaboratory.objects.select_related(
-            "screening",
-            "screening__site",
-            "screening__site__district__region__zone",
-            "screening__clinic_laboratory",
-            "culture_performed",
-        )
-    else:
-        # All other EDCS cards source from EdcsTblisZonal
-        EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
-        qs = EdcsTblisZonal.objects.select_related(
-            "screening",
-            "screening__site",
-            "screening__site__district__region__zone",
-            "screening__clinic_laboratory",
-            "culture_performed",
-        )
-
-    # Card-type-specific base filtering
-    if card_type == "total_edcs":
-        pass  # All ZonalLaboratory records without prefix filtering
-
-    elif card_type == "ctrl":
-        qs = qs.filter(_ctrl_prefix_q())
-
-    elif card_type == "other_zones":
-        qs = qs.exclude(_ctrl_prefix_q())
-
-    elif card_type == "other_zones_substudy2":
-        qs = qs.exclude(_ctrl_prefix_q()).filter(substudy_q(SUBSTUDY_2, TO_CLINIC_LAB))
-
-    elif card_type == "other_zones_substudy4":
-        qs = qs.exclude(_ctrl_prefix_q()).filter(substudy_q(SUBSTUDY_4, TO_CLINIC_LAB))
-
-    elif card_type == "other_zones_uncategorized":
-        qs = qs.exclude(_ctrl_prefix_q()).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
-
-    elif card_type == "other_zones_missing_culture":
-        qs = qs.exclude(_ctrl_prefix_q()).filter(culture_performed__isnull=True)
-
-    elif card_type == "edcs_not_in_tblis":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        tblis_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(_ctrl_prefix_q()).exclude(unique_lab_no__in=tblis_labnos)
-
-
-    elif card_type == "merged":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, is_merged=True
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(_ctrl_prefix_q(), unique_lab_no__in=merged_labnos)
-
-    elif card_type == "merged_substudy2":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, is_merged=True
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
-            _ctrl_prefix_q(),
-            unique_lab_no__in=merged_labnos,
-        )
-
-    elif card_type == "merged_substudy4":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, is_merged=True
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
-            _ctrl_prefix_q(),
-            unique_lab_no__in=merged_labnos,
-        )
-
-    elif card_type == "merged_uncategorized":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, is_merged=True
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            _ctrl_prefix_q(),
-            unique_lab_no__in=merged_labnos,
-        ).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
-
-    elif card_type == "merged_missing_culture_substudy2":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, is_merged=True
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
-            _ctrl_prefix_q(),
-            unique_lab_no__in=merged_labnos,
-            culture_performed__isnull=True,
-        )
-
-    elif card_type == "merged_missing_culture_substudy4":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, is_merged=True
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
-            _ctrl_prefix_q(),
-            unique_lab_no__in=merged_labnos,
-            culture_performed__isnull=True,
-        )
-
-    elif card_type == "merged_missing_culture_uncategorized":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, is_merged=True
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            _ctrl_prefix_q(),
-            unique_lab_no__in=merged_labnos,
-            culture_performed__isnull=True,
-        ).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
-
-    elif card_type == "edcs_not_in_tblis_substudy2":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        tblis_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
-            _ctrl_prefix_q(),
-        ).exclude(unique_lab_no__in=tblis_labnos)
-
-    elif card_type == "edcs_not_in_tblis_substudy4":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        tblis_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
-            _ctrl_prefix_q(),
-        ).exclude(unique_lab_no__in=tblis_labnos)
-
-    elif card_type == "edcs_not_in_tblis_uncategorized":
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        tblis_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(_ctrl_prefix_q()).exclude(
-            unique_lab_no__in=tblis_labnos
-        ).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
-
-    elif card_type == "missing_culture_substudy2":
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
-            culture_performed__isnull=True,
-        )
-
-    elif card_type == "missing_culture_substudy4":
-        qs = qs.filter(
-            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
-            culture_performed__isnull=True,
-        )
-
-    elif card_type == "missing_culture":
-        qs = qs.filter(culture_performed__isnull=True)
-
-    elif card_type == "coverage":
-        # Coverage is a percentage – export the CTRL records that ARE in TBLIS (merged)
-        TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-        TblisRawData = apps.get_model("nanopore", "TblisRawData")
-        latest_batch = TblisUploadBatch.objects.first()
-        tblis_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch
-        ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
-        qs = qs.filter(_ctrl_prefix_q(), unique_lab_no__in=tblis_labnos)
-
-    else:
-        # Fallback: all CTRL records
-        qs = qs.filter(_ctrl_prefix_q())
-
-    # General additional filters from URL params
-    zone_id = (filters or {}).get("zone")
-    site_id = (filters or {}).get("site")
-    pid = (filters or {}).get("pid")
-    substudy = (filters or {}).get("substudy")
-
-    if zone_id:
-        qs = qs.filter(screening__site__district__region__zone_id=zone_id)
-    if site_id:
-        qs = qs.filter(screening__site_id=site_id)
-    if pid:
-        qs = qs.filter(screening__pid__icontains=pid)
-    if substudy == SUBSTUDY_2:
-        qs = qs.filter(substudy_q(SUBSTUDY_2, TO_CLINIC_LAB))
-    elif substudy == SUBSTUDY_4:
-        qs = qs.filter(substudy_q(SUBSTUDY_4, TO_CLINIC_LAB))
-
-    # Always sort by zone → site → pid
-    qs = qs.order_by(
-        "screening__site__district__region__zone__name",
-        "screening__site__name",
-        "screening__pid",
-    )
-
+    """Records behind the card (nanopore/edcs_tblis_cards.py), narrowed by the list filters."""
+    filters = filters or {}
+    qs = card_queryset(filters.get("card_type", ""))
+    if filters.get("zone"):
+        qs = qs.filter(screening__site__district__region__zone_id=filters["zone"])
+    if filters.get("site"):
+        qs = qs.filter(screening__site_id=filters["site"])
+    if filters.get("pid"):
+        qs = qs.filter(screening__pid__icontains=filters["pid"])
+    if filters.get("unique_lab_no"):
+        qs = qs.filter(unique_lab_no__icontains=filters["unique_lab_no"])
+    if filters.get("substudy") in SUBSTUDIES:
+        qs = qs.filter(substudy_group=filters["substudy"])
+    if filters.get("start_date"):
+        qs = qs.filter(date_sputum_received__gte=filters["start_date"])
+    if filters.get("end_date"):
+        qs = qs.filter(date_sputum_received__lte=filters["end_date"])
     return qs
 
 
 def _build_tblis_qs(filters):
-    """Return a TblisRawData queryset filtered by filters dict."""
-    TblisRawData = apps.get_model("nanopore", "TblisRawData")
-    TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
-
-    latest_batch = TblisUploadBatch.objects.first()
-    qs = TblisRawData.objects.filter(upload_batch=latest_batch) if latest_batch else TblisRawData.objects.none()
-
-    card_type = (filters or {}).get("card_type", "")
-
-    if card_type == "tblis_not_in_edcs":
-        ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
-        zonal_labnos = ZonalLaboratory.objects.values("unique_lab_no")
-        qs = qs.exclude(labno__in=zonal_labnos)
-
-    # Sort TBLIS records by labno
-    qs = qs.order_by("labno")
-
+    """Raw TB-LIS rows behind the card."""
+    filters = filters or {}
+    qs = card_queryset(filters.get("card_type", ""))
+    if filters.get("unique_lab_no"):
+        qs = qs.filter(labno__icontains=filters["unique_lab_no"])
     return qs
 
 

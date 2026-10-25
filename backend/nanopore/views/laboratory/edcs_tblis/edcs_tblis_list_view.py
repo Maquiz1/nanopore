@@ -1,405 +1,112 @@
+from django.db.models import Max, Min
 from django.views.generic import ListView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import F, Max, Min
-from django.utils import timezone
-from locations.models import Zone, Site
-from nanopore.models import (
-    EdcsTblisMergeSummary,
-    EdcsTblisZonal,
-    TblisRawData,
-    TblisUploadBatch,
-    ZonalLaboratory,
-)
-from utils.permissions import filter_queryset_by_user_role
-from nanopore.substudy import SUBSTUDIES, SUBSTUDY_2, SUBSTUDY_4, UNCATEGORIZED, substudy_case
+
+from nanopore.edcs_tblis_cards import CARDS, DEFAULT_CARD, SECTIONS, card_queryset, latest_batch
+from nanopore.models import EdcsTblisMergeSummary, EdcsTblisZonal
+from nanopore.substudy import SUBSTUDIES
 from utils import access
 from utils.access import is_unscoped
 from utils.access_mixins import FormAccessMixin
 from utils.roles import get_role_context
 
 
-TO_CLINIC_LAB = "screening__clinic_laboratory__"  # Zonal Lab / EDCS -> Clinic Lab (nanopore/substudy.py)
-
-
 class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
+    """EDCS / TB-LIS records: summary cards (nanopore/edcs_tblis_cards.py) and the list behind the chosen card."""
     access_form = access.EDCS_TBLIS
     model = EdcsTblisZonal
     template_name = "nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_list.html"
     context_object_name = "object_list"
     paginate_by = 30
 
-    def _get_latest_batch(self):
-        """Cache latest batch on the instance to avoid repeated DB hits."""
-        if not hasattr(self, "_latest_batch"):
-            self._latest_batch = TblisUploadBatch.objects.first()
-        return self._latest_batch
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.batch = latest_batch()
+        card = request.GET.get("card_type") or request.GET.get("view_type")
+        self.card = CARDS.get(card) or CARDS[DEFAULT_CARD]
 
-    def raw_tblis_rows(self, batch, visible_only=True):
-        """
-        Raw TBLIS rows carry no site, so only unscoped users (admin/reviewer) may
-        list or count them. visible_only=False is for matching lab numbers only.
-        """
-        if not batch or (visible_only and not is_unscoped(self.request.user)):
-            return TblisRawData.objects.none()
-        return TblisRawData.objects.filter(upload_batch=batch)
+    def card_records(self, key):
+        """A card's records within the user's sites. Raw TB-LIS rows have no site: unscoped users only."""
+        qs = card_queryset(key, self.batch)
+        if CARDS[key].source == "tblis":
+            return qs if is_unscoped(self.request.user) else qs.none()
+        return self.scope(qs)
 
     def get_queryset(self):
-        card_type = self.request.GET.get("card_type") or self.request.GET.get("view_type")
-
-        # 1. Cards based on TblisRawData
-        if card_type in {"total_tblis", "tblis_not_in_edcs"}:
-            latest_batch = self._get_latest_batch()
-            if not latest_batch:
-                return TblisRawData.objects.none()
-            
-            qs = self.raw_tblis_rows(latest_batch).order_by("labno")
-            if card_type == "tblis_not_in_edcs":
-                zonal_lab_numbers = ZonalLaboratory.objects.values("unique_lab_no")
-                qs = qs.exclude(labno__in=zonal_lab_numbers)
-            
-            labno = self.request.GET.get("unique_lab_no") or self.request.GET.get("labno")
-            if labno:
-                qs = qs.filter(labno__icontains=labno)
-            return qs.order_by("labno")
-
-        # 2. Cards based on ZonalLaboratory
-        ctrl_prefixes = [
-            "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
-            "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
-        ]
-        from django.db.models import Q
-        prefix_q = Q()
-        for p in ctrl_prefixes:
-            prefix_q |= Q(screening__pid__startswith=p)
-
-        if card_type in {"total_edcs", "ctrl"} or (card_type and card_type.startswith("other_zones")):
-            qs = ZonalLaboratory.objects.select_related(
-                "screening__site",
-                "screening__sex",
-                "screening__clinic_laboratory__xpert_mtb_rif_conducted",
-                "screening__clinic_laboratory__xpert_mtb",
-                "culture_performed",
-            )
-            qs = filter_queryset_by_user_role(self.request.user, qs, site_field="screening__site")
-            qs = qs.annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
-            if card_type == "ctrl":
-                qs = qs.filter(prefix_q)
-            elif card_type.startswith("other_zones"):
-                qs = qs.exclude(prefix_q)
-                if card_type == "other_zones_substudy2":
-                    qs = qs.filter(substudy_group=SUBSTUDY_2)
-                elif card_type == "other_zones_substudy4":
-                    qs = qs.filter(substudy_group=SUBSTUDY_4)
-                elif card_type == "other_zones_missing_culture":
-                    qs = qs.filter(culture_performed__isnull=True)
-                elif card_type == "other_zones_uncategorized":
-                    qs = qs.filter(substudy_group=UNCATEGORIZED)
-            return qs.order_by(
-                "screening__site__district__region__zone__name",
-                "screening__site__name",
-                "screening__pid",
-            )
-
-        # 3. All other cards (or default reset view) based on EdcsTblisZonal
-        qs = EdcsTblisZonal.objects.select_related(
-            "screening__site",
-            "screening__sex",
-            "screening__clinic_laboratory__xpert_mtb_rif_conducted",
-            "screening__clinic_laboratory__xpert_mtb",
-            "culture_performed",
-        )
-        qs = filter_queryset_by_user_role(self.request.user, qs, site_field="screening__site")
-        qs = qs.annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
-
-        # Latest upload batch labnos for merged / not in TBLIS logic
-        latest_batch = self._get_latest_batch()
-        latest_tblis_rows = self.raw_tblis_rows(latest_batch, visible_only=False)
-        tblis_lab_numbers = latest_tblis_rows.values("labno")
-        merged_lab_numbers = latest_tblis_rows.filter(is_merged=True).values("labno")
-
-        if not card_type:
-            # Default view: show only records merged from the latest upload batch
-            qs = qs.filter(unique_lab_no__in=merged_lab_numbers)
-
-        if card_type == "missing_culture":
-            qs = qs.filter(culture_performed__isnull=True)
-        elif card_type == "merged_uncategorized":
-            qs = qs.filter(prefix_q, unique_lab_no__in=merged_lab_numbers).filter(substudy_group=UNCATEGORIZED)
-        elif card_type == "merged":
-            qs = qs.filter(prefix_q, unique_lab_no__in=merged_lab_numbers)
-        elif card_type == "merged_substudy2":
-            qs = qs.filter(
-                prefix_q,
-                unique_lab_no__in=merged_lab_numbers,
-                substudy_group=SUBSTUDY_2
-            )
-        elif card_type == "merged_missing_culture_substudy2":
-            qs = qs.filter(
-                prefix_q,
-                unique_lab_no__in=merged_lab_numbers,
-                substudy_group=SUBSTUDY_2,
-                culture_performed__isnull=True
-            )
-        elif card_type == "merged_substudy4":
-            qs = qs.filter(
-                prefix_q,
-                unique_lab_no__in=merged_lab_numbers,
-                substudy_group=SUBSTUDY_4
-            )
-        elif card_type == "merged_missing_culture_substudy4":
-            qs = qs.filter(
-                prefix_q,
-                unique_lab_no__in=merged_lab_numbers,
-                substudy_group=SUBSTUDY_4,
-                culture_performed__isnull=True
-            )
-        elif card_type == "merged_missing_culture_uncategorized":
-            qs = qs.filter(
-                prefix_q,
-                unique_lab_no__in=merged_lab_numbers,
-                culture_performed__isnull=True
-            ).filter(substudy_group=UNCATEGORIZED)
-        elif card_type == "edcs_not_in_tblis":
-            qs = qs.filter(prefix_q).exclude(unique_lab_no__in=tblis_lab_numbers)
-        elif card_type == "edcs_not_in_tblis_substudy2":
-            qs = qs.filter(prefix_q, substudy_group=SUBSTUDY_2).exclude(
-                unique_lab_no__in=tblis_lab_numbers
-            )
-        elif card_type == "missing_culture_substudy2":
-            qs = qs.filter(
-                substudy_group=SUBSTUDY_2,
-                culture_performed__isnull=True
-            )
-        elif card_type == "edcs_not_in_tblis_substudy4":
-            qs = qs.filter(prefix_q, substudy_group=SUBSTUDY_4).exclude(
-                unique_lab_no__in=tblis_lab_numbers
-            )
-        elif card_type == "missing_culture_substudy4":
-            qs = qs.filter(
-                substudy_group=SUBSTUDY_4,
-                culture_performed__isnull=True
-            )
-        elif card_type == "edcs_not_in_tblis_uncategorized":
-            qs = qs.filter(prefix_q).exclude(unique_lab_no__in=tblis_lab_numbers).filter(substudy_group=UNCATEGORIZED)
-
-        # Filters from form / params
-        zone_id = self.request.GET.get("zone")
-        site_id = self.request.GET.get("site")
-        pid = self.request.GET.get("pid")
-        unique_lab_no = self.request.GET.get("unique_lab_no")
-        substudy = self.request.GET.get("substudy")
-        if zone_id:
-            qs = qs.filter(screening__site__district__region__zone_id=zone_id)
-        if site_id:
-            qs = qs.filter(screening__site_id=site_id)
-        if pid:
-            qs = qs.filter(screening__pid__icontains=pid)
-        if unique_lab_no:
-            qs = qs.filter(unique_lab_no__icontains=unique_lab_no)
-        if substudy:
-            if substudy in SUBSTUDIES:
-                qs = qs.filter(substudy_group=substudy)
-        # Sort: zone → site → pid
-        qs = qs.order_by(
-            "screening__site__district__region__zone__name",
-            "screening__site__name",
-            "screening__pid",
-        )
+        qs = self.card_records(self.card.key)
+        params = self.request.GET
+        if self.card.source == "tblis":
+            if params.get("unique_lab_no"):
+                qs = qs.filter(labno__icontains=params["unique_lab_no"])
+            return qs
+        if params.get("zone"):
+            qs = qs.filter(screening__site__district__region__zone_id=params["zone"])
+        if params.get("site"):
+            qs = qs.filter(screening__site_id=params["site"])
+        if params.get("pid"):
+            qs = qs.filter(screening__pid__icontains=params["pid"])
+        if params.get("unique_lab_no"):
+            qs = qs.filter(unique_lab_no__icontains=params["unique_lab_no"])
+        if params.get("substudy") in SUBSTUDIES:
+            qs = qs.filter(substudy_group=params["substudy"])
+        if params.get("start_date"):
+            qs = qs.filter(date_sputum_received__gte=params["start_date"])
+        if params.get("end_date"):
+            qs = qs.filter(date_sputum_received__lte=params["end_date"])
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        active_card = self.request.GET.get("card_type") or self.request.GET.get("view_type", "")
-        context["view_type"] = active_card
-        context["active_card_type"] = active_card
         context.update(get_role_context(self.request.user))
-        context["request"] = self.request
-        zonal_labs = self.scope(ZonalLaboratory.objects.all()).annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
-        edcs_labs = self.scope(EdcsTblisZonal.objects.all()).annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
+        unscoped = is_unscoped(self.request.user)
 
-        # Upload stats
-        total_edcs_records = zonal_labs.count()
-        
-        # Other zonal (non-CTRL) records
-        from django.db.models import Q as _Q
-        _ctrl_prefixes = [
-            "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
-            "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
-        ]
-        _other_q = _Q()
-        for _p in _ctrl_prefixes:
-            _other_q |= _Q(screening__pid__startswith=_p)
-        other_qs = zonal_labs.exclude(_other_q)
-        total_other_zonal_records = other_qs.count()
-        other_zonal_substudy2 = other_qs.filter(substudy_group=SUBSTUDY_2).count()
-        other_zonal_substudy4 = other_qs.filter(substudy_group=SUBSTUDY_4).count()
-        other_zonal_uncategorized = other_qs.filter(substudy_group=UNCATEGORIZED).count()
-        other_zonal_missing_culture = other_qs.filter(culture_performed__isnull=True).count()
-
-        other_zonal_percentages = {
-            'substudy2': round((other_zonal_substudy2 / total_other_zonal_records) * 100, 2) if total_other_zonal_records else 0,
-            'substudy4': round((other_zonal_substudy4 / total_other_zonal_records) * 100, 2) if total_other_zonal_records else 0,
-            'uncategorized': round((other_zonal_uncategorized / total_other_zonal_records) * 100, 2) if total_other_zonal_records else 0,
+        counts = {
+            key: self.card_records(key).count()
+            for key, card in CARDS.items()
+            if card.source != "tblis" or unscoped
         }
+        sections = []
+        for title, note, cards in SECTIONS:
+            items = []
+            for card in cards:
+                if card.key not in counts:
+                    continue
+                total = counts.get(card.share_of)
+                items.append({
+                    "card": card,
+                    "count": counts[card.key],
+                    "share": round(counts[card.key] / total * 100, 1) if card.share_of and total else None,
+                })
+            if items:
+                sections.append({"title": title, "note": note, "cards": items})
 
-        # CTRL laboratory records are the Dar es Salaam records that receive TBLIS transformations.
-        from django.db.models import Q
-        ctrl_prefixes = [
-            "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
-            "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
-        ]
-        prefix_query = Q()
-        for prefix in ctrl_prefixes:
-            prefix_query |= Q(screening__pid__startswith=prefix)
-        ctrl_laboratories = zonal_labs.filter(prefix_query)
-        zonal_lab_numbers = ZonalLaboratory.objects.values("unique_lab_no")
-        latest_upload_batch = self._get_latest_batch()
         merge_summary = (
-            EdcsTblisMergeSummary.objects.filter(upload_batch=latest_upload_batch).first()
-            if latest_upload_batch
-            else EdcsTblisMergeSummary.objects.first()
+            EdcsTblisMergeSummary.objects.filter(upload_batch=self.batch).first()
+            if self.batch else EdcsTblisMergeSummary.objects.first()
         )
-        latest_tblis_rows = self.raw_tblis_rows(latest_upload_batch)
-        all_tblis_rows = self.raw_tblis_rows(latest_upload_batch, visible_only=False)
-        tblis_lab_numbers = all_tblis_rows.values("labno")
-
-        total_zonal_edcs = zonal_labs.count()
-        total_ctrl_records = ctrl_laboratories.count()
-        total_raw_tblis_records = latest_tblis_rows.count()
-        total_merged_records = latest_tblis_rows.filter(is_merged=True).count()
-        total_edcs_not_in_tblis_qs = ctrl_laboratories.exclude(
-            unique_lab_no__in=tblis_lab_numbers
-        )
-        total_edcs_not_in_tblis = total_edcs_not_in_tblis_qs.count()
-
-        # Breakdown by substudy for EDCS Not in TBLIS
-        from django.db.models import Case, When, CharField, Count, Value
-        substudy_breakdown_qs = total_edcs_not_in_tblis_qs.annotate(
-            substudy=F("substudy_group")
-        ).values('substudy').annotate(cnt=Count('id'))
-
-        # Breakdown by substudy for Total EDCS CTRL Merged Records
-        merged_qs = ctrl_laboratories.filter(unique_lab_no__in=all_tblis_rows.filter(is_merged=True).values("labno"))
-        if not is_unscoped(self.request.user):
-            total_merged_records = merged_qs.count()
-        merged_substudy_breakdown_qs = merged_qs.annotate(
-            substudy=F("substudy_group")
-        ).values('substudy').annotate(cnt=Count('id'))
-
-        # Convert to dict with space‑free keys for template access
-        key_map = {
-            'Substudy 2': 'substudy2',
-            'Substudy 4': 'substudy4',
-            'Uncategorized': 'uncategorized',
-        }
-        edcs_not_in_tblis_breakdown = {v: 0 for v in key_map.values()}
-        for item in substudy_breakdown_qs:
-            mapped_key = key_map.get(item['substudy'])
-            if mapped_key:
-                edcs_not_in_tblis_breakdown[mapped_key] = item['cnt']
-        total_tblis_not_in_edcs = latest_tblis_rows.exclude(
-            labno__in=zonal_lab_numbers
-        ).count()
-        
-        total_tblis_records = merge_summary.matched_records if merge_summary else 0
-        percentage_uploaded = (
-            round((total_tblis_records / total_ctrl_records) * 100, 2)
-            if total_ctrl_records else 0
+        ctrl, merged = counts["ctrl"], counts["merged"]
+        dates = self.scope(EdcsTblisZonal.objects.all()).aggregate(
+            date_from=Min("date_sputum_received"), date_to=Max("date_sputum_received"),
         )
 
-        edcs_not_in_tblis_percentages = {}
-        for key, cnt in edcs_not_in_tblis_breakdown.items():
-            edcs_not_in_tblis_percentages[key] = (
-                round((cnt / total_edcs_not_in_tblis) * 100, 2) if total_edcs_not_in_tblis else 0
-            )
-
-        merged_breakdown = {v: 0 for v in key_map.values()}
-        for item in merged_substudy_breakdown_qs:
-            mapped_key = key_map.get(item['substudy'])
-            if mapped_key:
-                merged_breakdown[mapped_key] = item['cnt']
-
-        merged_percentages = {}
-        for key, cnt in merged_breakdown.items():
-            merged_percentages[key] = (
-                round((cnt / total_merged_records) * 100, 2) if total_merged_records else 0
-            )
-
-        merged_missing_culture_substudy2 = edcs_labs.filter(
-            substudy_group=SUBSTUDY_2,
-            culture_performed__isnull=True
-        ).count()
-        merged_missing_culture_substudy4 = edcs_labs.filter(
-            substudy_group=SUBSTUDY_4,
-            culture_performed__isnull=True
-        ).count()
-        merged_missing_culture_uncategorized = edcs_labs.filter(
-            culture_performed__isnull=True
-        ).filter(substudy_group=UNCATEGORIZED).count()
-
-        missing_culture_substudy2 = edcs_labs.filter(
-            substudy_group=SUBSTUDY_2,
-            culture_performed__isnull=True
-        ).count()
-        missing_culture_substudy4 = edcs_labs.filter(
-            substudy_group=SUBSTUDY_4,
-            culture_performed__isnull=True
-        ).count()
-        missing_culture_uncategorized = edcs_labs.filter(
-            culture_performed__isnull=True
-        ).filter(substudy_group=UNCATEGORIZED).count()
-        total_missing_culture_performed = edcs_labs.filter(
-            culture_performed__isnull=True
-        ).count()
-
-        missing_culture_breakdown = {
-            'substudy2': missing_culture_substudy2,
-            'substudy4': missing_culture_substudy4,
-            'uncategorized': missing_culture_uncategorized,
-        }
-
-        last_upload = edcs_labs.order_by("-updated_at").first()
-
+        params = self.request.GET.copy()
+        params.pop("page", None)
+        filters = params.copy()
+        filters.pop("card_type", None)
+        filters.pop("view_type", None)
         context.update({
-            "total_edcs_records": total_edcs_records,
-            "total_other_zonal_records": total_other_zonal_records,
-            "other_zonal_substudy2": other_zonal_substudy2,
-            "other_zonal_substudy4": other_zonal_substudy4,
-            "other_zonal_uncategorized": other_zonal_uncategorized,
-            "other_zonal_percentages": other_zonal_percentages,
-            "other_zonal_missing_culture": other_zonal_missing_culture,
-            "total_zonal_edcs": total_zonal_edcs,
-            "total_tblis_records": total_tblis_records,
-            "total_ctrl_records": total_ctrl_records,
-            "total_raw_tblis_records": total_raw_tblis_records,
-            "total_merged_records": total_merged_records,
-            "total_edcs_not_in_tblis": total_edcs_not_in_tblis,
-            "total_tblis_not_in_edcs": total_tblis_not_in_edcs,
-            "edcs_not_in_tblis_breakdown": edcs_not_in_tblis_breakdown,
-            "edcs_not_in_tblis_percentages": edcs_not_in_tblis_percentages,
-            "merged_breakdown": merged_breakdown,
-            "merged_percentages": merged_percentages,
-            "merged_missing_culture_substudy2": merged_missing_culture_substudy2,
-            "merged_missing_culture_substudy4": merged_missing_culture_substudy4,
-            "merged_missing_culture_uncategorized": merged_missing_culture_uncategorized,
-            "missing_culture_substudy2": missing_culture_substudy2,
-            "missing_culture_substudy4": missing_culture_substudy4,
-            "missing_culture_uncategorized": missing_culture_uncategorized,
-            "missing_culture_breakdown": missing_culture_breakdown,
-            "total_missing_culture_performed": total_missing_culture_performed,
-            "latest_upload_batch": latest_upload_batch,
-            "percentage_uploaded": percentage_uploaded,
-            "last_upload": merge_summary.created_at if merge_summary else (last_upload.updated_at if last_upload else None),
-            "last_upload_by": merge_summary.uploaded_by if merge_summary else None,
+            "sections": sections,
+            "active_card": self.card,
+            "is_tblis_list": self.card.source == "tblis",
+            "coverage": round(merged / ctrl * 100, 1) if ctrl else 0,
+            "merged_count": merged,
+            "ctrl_count": ctrl,
+            "latest_upload_batch": self.batch,
             "merge_summary": merge_summary,
+            "edcs_date_from": dates["date_from"],
+            "edcs_date_to": dates["date_to"],
+            "query_params": params.urlencode(),       # pagination keeps card + filters
+            "filter_params": filters.urlencode(),      # card links keep the filters
+            "substudies": SUBSTUDIES,
+            "has_filters": any(filters.get(k) for k in ("zone", "site", "pid", "unique_lab_no", "substudy", "start_date", "end_date")),
         })
-
-        # TBLIS date range from DB
-        date_agg = edcs_labs.aggregate(
-            date_from=Min("date_sputum_received"),
-            date_to=Max("date_sputum_received"),
-        )
-        context["tblis_date_from"] = date_agg["date_from"]
-        context["tblis_date_to"]   = date_agg["date_to"]
-
         return context

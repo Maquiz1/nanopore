@@ -1,515 +1,324 @@
 {% extends "base.html" %}
 {% load humanize %}
 
+{% block title %}EDCS / TB-LIS · Dream Fund - Nanopore{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
-        </a>
-        <h2>Edcs / TBLIS Laboratory Records</h2>
-        <div class="d-flex gap-2">
-            <span class="text-muted small align-self-center">TBLIS mapping:</span>
-            <a href="{% url 'nanopore:tblis-mapping-download' 'excel' %}" class="btn btn-sm btn-outline-success">⬇ Excel</a>
-            <a href="{% url 'nanopore:tblis-mapping-download' 'pdf' %}" class="btn btn-sm btn-outline-danger">⬇ PDF</a>
+<div class="et">
+
+    <section class="et-hero">
+        <div>
+            <div class="et-eyebrow">Laboratory</div>
+            <h1 class="et-title">EDCS / TB-LIS records</h1>
+            <div class="et-meta">
+                {% if latest_upload_batch %}
+                <span><i class="fas fa-file-arrow-up"></i> {{ latest_upload_batch.source_file_name }}</span>
+                {% endif %}
+                {% if merge_summary %}
+                <span><i class="fas fa-clock"></i> {{ merge_summary.created_at|date:"d M Y, H:i" }}{% if merge_summary.uploaded_by %} · {{ merge_summary.uploaded_by }}{% endif %}</span>
+                {% if merge_summary.tblis_date_from %}<span><i class="fas fa-calendar"></i> TB-LIS {{ merge_summary.tblis_date_from }} → {{ merge_summary.tblis_date_to }}</span>{% endif %}
+                {% elif not latest_upload_batch %}
+                <span>No TB-LIS upload yet</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="et-hero-actions">
+            <span class="et-hero-label">TB-LIS mapping</span>
+            <a href="{% url 'nanopore:tblis-mapping-download' 'excel' %}" class="et-hero-btn"><i class="fas fa-file-excel"></i> Excel</a>
+            <a href="{% url 'nanopore:tblis-mapping-download' 'pdf' %}" class="et-hero-btn"><i class="fas fa-file-pdf"></i> PDF</a>
+        </div>
+    </section>
+
+    <!-- Coverage -->
+    <div class="et-card et-coverage">
+        <div class="et-coverage-head">
+            <div>
+                <div class="et-label">Dar es Salaam records merged with TB-LIS</div>
+                <div class="et-coverage-value">{{ coverage }}%</div>
+                <div class="et-sub">{{ merged_count|intcomma }} of {{ ctrl_count|intcomma }} CTRL records</div>
+            </div>
+            {% if merge_summary %}
+            <div class="et-flags">
+                <a href="{% url 'nanopore:tblis-raw-discrepancies' 'edcs_not_in_tblis' %}" class="et-flag">
+                    <strong>{{ merge_summary.edcs_not_in_tblis|intcomma }}</strong> EDCS not in TB-LIS</a>
+                <a href="{% url 'nanopore:tblis-raw-discrepancies' 'tblis_not_in_edcs' %}" class="et-flag">
+                    <strong>{{ merge_summary.tblis_not_in_edcs|intcomma }}</strong> TB-LIS not in EDCS</a>
+                <a href="{% url 'nanopore:tblis-raw-discrepancies' 'mismatches' %}" class="et-flag">
+                    <strong>{{ merge_summary.total_mismatch_records|intcomma }}</strong> mismatched values</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="et-track" role="progressbar" aria-valuenow="{{ coverage }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="et-fill" style="width: {{ coverage }}%"></div>
         </div>
     </div>
 
-    <!-- Filters -->
-    {% include "partials/filter_form.html" %}
+    <!-- Cards: click to list the records, ⬇ to export them -->
+    {% for section in sections %}
+    <div class="et-section">
+        <div class="et-section-head">
+            <h2>{{ section.title }}</h2>
+            <span class="et-sub">{{ section.note }}</span>
+        </div>
+        <div class="et-cards">
+            {% for item in section.cards %}
+            <div class="et-stat tone-{{ item.card.tone }} {% if item.card.key == active_card.key %}active{% endif %}">
+                <a class="et-stat-link" href="?card_type={{ item.card.key }}{% if filter_params %}&{{ filter_params }}{% endif %}#records"
+                   aria-label="List {{ item.card.label }}"></a>
+                <button type="button" class="et-export" title="Export to Excel"
+                        onclick="startCardExport('{{ item.card.key }}', this)"><i class="fas fa-download"></i></button>
+                <div class="et-stat-value">{{ item.count|intcomma }}</div>
+                <div class="et-stat-label">{{ item.card.label }}</div>
+                {% if item.share is not None %}<div class="et-stat-share">{{ item.share }}%</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
 
-    <!-- Export Progress Toast (shared, hidden by default) -->
-    <div id="exportToast" class="position-fixed bottom-0 end-0 m-3 p-3 bg-white border rounded shadow" style="min-width:280px;display:none;z-index:9999">
+    <!-- Records -->
+    <div class="et-card" id="records">
+        <div class="et-records-head">
+            <div>
+                <h2>{{ active_card.label }}</h2>
+                <span class="et-sub">{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}{% if has_filters %} matching the filters{% endif %}</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="startCardExport('{{ active_card.key }}', this)">
+                <i class="fas fa-file-excel"></i> Export list
+            </button>
+        </div>
+
+        <form method="get" class="et-filters" action="#records">
+            <input type="hidden" name="card_type" value="{{ active_card.key }}">
+            {% if not is_tblis_list %}
+            <div>
+                <label class="form-label">Zone</label>
+                <select name="zone" class="form-select form-select-sm">
+                    <option value="">All zones</option>
+                    {% for z in zones %}
+                    <option value="{{ z.id }}" {% if request.GET.zone == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Site</label>
+                <select name="site" class="form-select form-select-sm">
+                    <option value="">All sites</option>
+                    {% for s in sites %}
+                    <option value="{{ s.id }}" {% if request.GET.site == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Substudy</label>
+                <select name="substudy" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for s in substudies %}
+                    <option value="{{ s }}" {% if request.GET.substudy == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">PID</label>
+                <input type="text" name="pid" value="{{ request.GET.pid }}" class="form-control form-control-sm" placeholder="PID">
+            </div>
+            {% endif %}
+            <div>
+                <label class="form-label">Lab no.</label>
+                <input type="text" name="unique_lab_no" value="{{ request.GET.unique_lab_no }}" class="form-control form-control-sm" placeholder="Lab number">
+            </div>
+            {% if not is_tblis_list %}
+            <div>
+                <label class="form-label">Sputum received from</label>
+                <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control form-control-sm">
+            </div>
+            <div>
+                <label class="form-label">Sputum received to</label>
+                <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control form-control-sm">
+            </div>
+            {% endif %}
+            <div class="et-filter-actions">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="?card_type={{ active_card.key }}#records" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            {% if is_tblis_list %}
+            <table class="table table-sm align-middle et-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Lab no.</th><th>Study code</th><th>TB no.</th><th>Sex</th><th>Age</th>
+                        <th>Health facility</th><th>District</th><th>Region</th><th>Category</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in object_list %}
+                    <tr>
+                        <td class="et-muted">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                        <td class="fw-semibold">{% firstof row.labno row.raw_data.labno "—" %}</td>
+                        <td>{{ row.raw_data.studycode|default:"—" }}</td>
+                        <td>{{ row.raw_data.tbno|default:"—" }}</td>
+                        <td>{{ row.raw_data.gender|default:"—" }}</td>
+                        <td>{{ row.raw_data.age|default:"—" }}</td>
+                        <td>{% firstof row.raw_data.hfacility row.raw_data.hfacilitycode "—" %}</td>
+                        <td>{{ row.raw_data.hfacilitydistrict|default:"—" }}</td>
+                        <td>{{ row.raw_data.tbregion|default:"—" }}</td>
+                        <td>{{ row.raw_data.patcategory|default:"—" }}</td>
+                        <td>{% if row.is_merged %}<span class="et-pill good">Merged</span>{% else %}<span class="et-pill warn">Not merged</span>{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="11" class="et-empty">No TB-LIS rows here.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <table class="table table-sm align-middle et-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>PID</th><th>Site</th><th>Lab no.</th><th>Sputum received</th><th>Appearance</th>
+                        <th>Xpert</th><th>Substudy</th><th>Culture performed</th><th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for lab in object_list %}
+                    <tr>
+                        <td class="et-muted">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                        <td class="fw-semibold et-nowrap">{{ lab.screening.pid }}</td>
+                        <td class="et-nowrap">{{ lab.screening.site.name }}<div class="et-muted">{{ lab.screening.site.district.region.zone.name }}</div></td>
+                        <td>{{ lab.unique_lab_no|default:"—" }}</td>
+                        <td class="et-nowrap">{{ lab.date_sputum_received|date:"d M Y"|default:"—" }}</td>
+                        <td>{{ lab.appearance|default:"—" }}</td>
+                        <td>{{ lab.screening.clinic_laboratory.xpert_mtb|default:"—" }}
+                            {% if lab.screening.clinic_laboratory.xpert_mtb_rif_conducted %}<div class="et-muted">Done: {{ lab.screening.clinic_laboratory.xpert_mtb_rif_conducted }}</div>{% endif %}</td>
+                        <td><span class="et-pill">{{ lab.substudy_group }}</span></td>
+                        <td>{% if lab.culture_performed %}{{ lab.culture_performed }}{% else %}<span class="et-pill warn">Missing</span>{% endif %}</td>
+                        <td class="text-end">
+                            {% if active_card.source == "zonal" %}
+                            <a href="{% url 'nanopore:zonal-laboratory-detail' lab.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                            {% else %}
+                            <a href="{% url 'nanopore:edcs-tblis-laboratory-view' lab.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="10" class="et-empty">No records here.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+
+        {% if is_paginated %}
+        <nav class="et-pager" aria-label="Pages">
+            <span class="et-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="btn-group">
+                {% if page_obj.has_previous %}
+                <a class="btn btn-sm btn-outline-secondary" href="?page=1&{{ query_params }}#records">« First</a>
+                <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}&{{ query_params }}#records">‹ Previous</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}&{{ query_params }}#records">Next ›</a>
+                <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.paginator.num_pages }}&{{ query_params }}#records">Last »</a>
+                {% endif %}
+            </div>
+        </nav>
+        {% endif %}
+    </div>
+
+    <!-- Export progress -->
+    <div id="exportToast" class="et-toast" style="display:none">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <span class="fw-bold small" id="toastTitle">Exporting…</span>
-            <button class="btn btn-sm btn-link p-0 text-muted" onclick="document.getElementById('exportToast').style.display='none'">✕</button>
+            <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="document.getElementById('exportToast').style.display='none'">✕</button>
         </div>
         <div class="progress" style="height:8px">
             <div id="toastBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:0%"></div>
         </div>
         <div class="small text-muted mt-1" id="toastLabel">Preparing…</div>
     </div>
-
-    <!-- Upload Summary Card -->
-    <div class="mb-3">
-        <div class="card shadow-sm">
-            <div class="card-header fw-bold">📊 EDCS / TBLIS Integration Summary</div>
-            <div class="card-body">
-
-                <!-- Row 1: EDCS CTRL + TBLIS + Last Upload -->
-                <div class="row text-center g-3 mb-3">
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'total_edcs' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'total_edcs' %}card_type=total_edcs{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('total_edcs', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-primary">{{ total_edcs_records|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Total EDCS Zonal Records</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'ctrl' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'ctrl' %}card_type=ctrl{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('ctrl', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-primary">{{ total_ctrl_records|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Total EDCS CTRL Records</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones' %}card_type=other_zones{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('other_zones', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-info">{{ total_other_zonal_records|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Total EDCS Other Zonal Records</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100 bg-light">
-                            <div class="fs-6 fw-bold text-muted mt-1">
-                                {% if last_upload %}
-                                {{ last_upload|date:"M d, Y" }}
-                                <br><small class="fw-normal">{{ last_upload|date:"H:i" }} {% if last_upload_by %}· {{ last_upload_by }}{% endif %}</small>
-                                {% else %}
-                                N/A
-                                {% endif %}
-                            </div>
-                            <div class="text-muted small mt-1">Last Upload</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 2: Coverage + Missing culture + Uncategorized Merged + TBLIS not in EDCS -->
-                <div class="row text-center g-3 mb-3">
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100">
-                            <div class="fs-3 fw-bold text-success">{{ percentage_uploaded }}%</div>
-                            <div class="text-muted small">Coverage</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'missing_culture' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'missing_culture' %}card_type=missing_culture{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('missing_culture', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-warning">{{ total_missing_culture_performed|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Missing culture performed</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'total_tblis' %}border-secondary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'total_tblis' %}card_type=total_tblis{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('total_tblis', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-secondary">{{ total_raw_tblis_records|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Total TBLIS Records</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'tblis_not_in_edcs' %}border-danger bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'tblis_not_in_edcs' %}card_type=tblis_not_in_edcs{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('tblis_not_in_edcs', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-danger">{{ total_tblis_not_in_edcs|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">TBLIS Records Not in EDCS</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 3: Total EDCS CTRL Merged Records breakdown (6 cards) -->
-                <div class="row text-center g-3 mb-3">
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged' %}border-success bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged' %}card_type=merged{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('merged', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-success">{{ total_merged_records|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Total EDCS CTRL Merged Records</div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_substudy2' %}border-success bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_substudy2' %}card_type=merged_substudy2{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('merged_substudy2', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy2|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Substudy 2 – Merged Records ({{ merged_percentages.substudy2|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_missing_culture_substudy2' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_missing_culture_substudy2' %}card_type=merged_missing_culture_substudy2{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('merged_missing_culture_substudy2', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy2|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Missing culture performed (Substudy 2)</div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_substudy4' %}border-success bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_substudy4' %}card_type=merged_substudy4{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('merged_substudy4', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-success">{{ merged_breakdown.substudy4|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Substudy 4 – Merged Records ({{ merged_percentages.substudy4|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'merged_missing_culture_substudy4' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'merged_missing_culture_substudy4' %}card_type=merged_missing_culture_substudy4{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('merged_missing_culture_substudy4', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-warning">{{ merged_missing_culture_substudy4|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Missing culture performed (Substudy 4)</div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_uncategorized' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_uncategorized' %}card_type=edcs_not_in_tblis_uncategorized{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('edcs_not_in_tblis_uncategorized', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.uncategorized|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Uncategorized – Not in TBLIS ({{ edcs_not_in_tblis_percentages.uncategorized|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- Row 4: EDCS Records Not in TBLIS breakdown (6 cards) -->
-                <div class="row text-center g-3 mb-3">
-                    <!-- 0. EDCS Records Not in TBLIS Summary Card -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis' %}card_type=edcs_not_in_tblis{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('edcs_not_in_tblis', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-warning">{{ total_edcs_not_in_tblis|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">EDCS Records Not in TBLIS</div>
-                        </div>
-                    </div>
-                    <!-- 1. Substudy 2 – Not in TBLIS -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_substudy2' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_substudy2' %}card_type=edcs_not_in_tblis_substudy2{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('edcs_not_in_tblis_substudy2', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy2|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Substudy 2 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy2|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                    <!-- 2. Missing culture performed – Substudy 2 -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'missing_culture_substudy2' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'missing_culture_substudy2' %}card_type=missing_culture_substudy2{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('missing_culture_substudy2', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy2|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Missing culture performed (Substudy 2)</div>
-                        </div>
-                    </div>
-                    <!-- 3. Substudy 4 – Not in TBLIS -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_substudy4' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_substudy4' %}card_type=edcs_not_in_tblis_substudy4{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('edcs_not_in_tblis_substudy4', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.substudy4|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Substudy 4 – Not in TBLIS ({{ edcs_not_in_tblis_percentages.substudy4|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                    <!-- 4. Missing culture performed – Substudy 4 -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'missing_culture_substudy4' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'missing_culture_substudy4' %}card_type=missing_culture_substudy4{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('missing_culture_substudy4', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-warning">{{ missing_culture_substudy4|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Missing culture performed (Substudy 4)</div>
-                        </div>
-                    </div>
-                    <!-- 5. Uncategorized – Not in TBLIS -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'edcs_not_in_tblis_uncategorized' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'edcs_not_in_tblis_uncategorized' %}card_type=edcs_not_in_tblis_uncategorized{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('edcs_not_in_tblis_uncategorized', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-primary">{{ edcs_not_in_tblis_breakdown.uncategorized|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Uncategorized – Not in TBLIS ({{ edcs_not_in_tblis_percentages.uncategorized|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 5: Total EDCS Other Zonal Records breakdown (5 cards) -->
-                <div class="row text-center row-cols-1 row-cols-md-3 row-cols-lg-5 g-3 mb-3">
-                    <!-- 1. Total EDCS Other Zonal Records -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones' %}card_type=other_zones{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('other_zones', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-info">{{ total_other_zonal_records|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Total EDCS Other Zonal Records</div>
-                        </div>
-                    </div>
-                    <!-- 2. Substudy 2 -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_substudy2' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_substudy2' %}card_type=other_zones_substudy2{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('other_zones_substudy2', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-info">{{ other_zonal_substudy2|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Substudy 2 Other Zonal ({{ other_zonal_percentages.substudy2|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                    <!-- 3. Substudy 4 -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_substudy4' %}border-info bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_substudy4' %}card_type=other_zones_substudy4{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('other_zones_substudy4', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-info">{{ other_zonal_substudy4|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Substudy 4 Other Zonal ({{ other_zonal_percentages.substudy4|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                    <!-- 4. Missing culture performed -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_missing_culture' %}border-warning bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_missing_culture' %}card_type=other_zones_missing_culture{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('other_zones_missing_culture', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-warning">{{ other_zonal_missing_culture|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Missing culture performed (Other Zonal)</div>
-                        </div>
-                    </div>
-                    <!-- 5. Uncategorized -->
-                    <div class="col">
-                        <div class="border rounded p-3 h-100 position-relative {% if active_card_type == 'other_zones_uncategorized' %}border-primary bg-light shadow-sm{% endif %}" style="cursor: pointer;" onclick="if (!event.target.closest('button')) window.location.href='?{% if active_card_type != 'other_zones_uncategorized' %}card_type=other_zones_uncategorized{% endif %}'">
-                            <button class="btn btn-link btn-sm p-0 position-absolute top-0 end-0 me-1 mt-1 text-muted"
-                                    title="Export Excel"
-                                    onclick="startCardExport('other_zones_uncategorized', this)">⬇️</button>
-                            <div class="fs-3 fw-bold text-primary">{{ other_zonal_uncategorized|default:"0"|intcomma }}</div>
-                            <div class="text-muted small">Uncategorized – Other Zonal ({{ other_zonal_percentages.uncategorized|default:"0" }}%)</div>
-                        </div>
-                    </div>
-                </div>
-
-                {% if latest_upload_batch %}
-                <div class="text-muted small mb-3">
-                    Counts above are from the latest TBLIS upload: <strong>{{ latest_upload_batch.source_file_name }}</strong>.
-                </div>
-                {% else %}
-                <div class="text-muted small mb-3">No batched TBLIS upload has been processed yet.</div>
-                {% endif %}
-
-                <!-- Progress bar -->
-                <div class="progress" style="height: 14px;" title="{{ percentage_uploaded }}% merged">
-                    <div class="progress-bar bg-success progress-bar-striped" role="progressbar"
-                        style="width: {{ percentage_uploaded }}%" aria-valuenow="{{ percentage_uploaded }}"
-                        aria-valuemin="0" aria-valuemax="100">
-                        {{ percentage_uploaded }}%
-                    </div>
-                </div>
-                <div class="text-muted small mt-1">
-                    {{ total_tblis_records|intcomma }} of {{ total_ctrl_records|intcomma }} EDCS CTRL records successfully merged
-                </div>
-
-                {% if merge_summary.tblis_date_from and merge_summary.tblis_date_to %}
-                <div class="mt-2 p-2 bg-light rounded border small">
-                    📅 <strong>TBLIS Data Range:</strong>
-                    {{ merge_summary.tblis_date_from }} → {{ merge_summary.tblis_date_to }}
-                    &nbsp;|&nbsp;
-                    <strong>{{ merge_summary.total_tblis_rows|intcomma }}</strong> records in TBLIS file
-                </div>
-                {% endif %}
-
-                {% if merge_summary %}
-                <div class="mt-2 d-flex gap-3 flex-wrap small">
-                    <a href="{% url 'nanopore:tblis-raw-discrepancies' 'edcs_not_in_tblis' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
-                        ⚠️ EDCS records NOT in TBLIS: <strong>{{ merge_summary.edcs_not_in_tblis|intcomma }}</strong>
-                    </a>
-                    <a href="{% url 'nanopore:tblis-raw-discrepancies' 'tblis_not_in_edcs' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
-                        ⚠️ TBLIS records NOT in EDCS: <strong>{{ merge_summary.tblis_not_in_edcs|intcomma }}</strong>
-                    </a>
-                    <a href="{% url 'nanopore:tblis-raw-discrepancies' 'mismatches' %}" class="badge bg-warning text-dark p-2 text-decoration-none">
-                        ⚠️ Mismatched values: <strong>{{ merge_summary.total_mismatch_records|intcomma }}</strong>
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <hr class="my-3">
-
-
-    {% if view_type == 'total_tblis' or view_type == 'tblis_not_in_edcs' %}
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">Latest Upload Batch Records ({{ latest_upload_batch.uploaded_at|date:"M d, Y H:i"|default:"Latest Upload" }})</h5>
-        <div>
-            <span class="badge bg-primary fs-6 me-2">Total Records: {{ page_obj.paginator.count|intcomma }}</span>
-            <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">Reset View</a>
-        </div>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Lab No</th>
-                    <th>Study Code</th>
-                    <th>TB No</th>
-                    <th>Name</th>
-                    <th>Gender</th>
-                    <th>Age</th>
-                    <th>Health Facility</th>
-                    <th>District</th>
-                    <th>Region</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in object_list %}
-                <tr>
-                    <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
-                    <td><strong>{{ row.labno|default:row.raw_data.labno }}</strong></td>
-                    <td>{{ row.raw_data.studycode|default:"-" }}</td>
-                    <td>{{ row.raw_data.tbno|default:"-" }}</td>
-                    <td>{{ row.raw_data.name|default:"-" }}</td>
-                    <td>{{ row.raw_data.gender|default:"-" }}</td>
-                    <td>{{ row.raw_data.age|default:"-" }}</td>
-                    <td>{{ row.raw_data.hfacility|default:row.raw_data.hfacilitycode|default:"-" }}</td>
-                    <td>{{ row.raw_data.hfacilitydistrict|default:"-" }}</td>
-                    <td>{{ row.raw_data.tbregion|default:"-" }}</td>
-                    <td>{{ row.raw_data.patcategory|default:"-" }}</td>
-                    <td>
-                        {% if row.is_merged %}
-                        <span class="badge bg-success">Merged</span>
-                        {% else %}
-                        <span class="badge bg-warning text-dark">Unmerged</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="12" class="text-center">No TBLIS records found in latest upload batch.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div>
-            Total Records: <strong>{{ page_obj.paginator.count|intcomma }}</strong>
-            {% if active_card_type %}
-            <span class="badge bg-info text-dark ms-2">Card Filter: {{ active_card_type }}</span>
-            {% endif %}
-        </div>
-        {% if active_card_type %}
-        <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">Reset View</a>
-        {% endif %}
-    </div>
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Zone</th>
-                    <th>Site</th>
-                    <th>PID</th>
-                    <th>Date Sputum Received</th>
-                    <th>Appearence</th>
-                    <th>Lab Number</th>
-                    <th>Xpert MTB/RIF Conducted</th>
-                    <th>Xpert MTB</th>
-                    <th>Culture Performed</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for lab in object_list %}
-                <tr>
-                    <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
-                    <td>{{ lab.screening.site.district.region.zone.name }}</td>
-                    <td>{{ lab.screening.site.name }}</td>
-                    <td>{{ lab.screening.pid }}</td>
-                    <td>{{ lab.date_sputum_received|date:"M d, Y" }}</td>
-                    <td>{{ lab.appearance }}</td>
-                    <td>{{ lab.unique_lab_no }}</td>
-                    <td>{{ lab.screening.clinic_laboratory.xpert_mtb_rif_conducted|default:"-" }}</td>
-                    <td>{{ lab.screening.clinic_laboratory.xpert_mtb|default:"-" }}</td>
-                    <td>{{ lab.culture_performed|default:"-" }}</td>
-                    <td>
-                        <a href="{% url 'nanopore:edcs-tblis-laboratory-view' lab.pk %}"
-                            class="btn btn-sm btn-primary">View</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="11" class="text-center">No Edcs-Tblis zonal lab records found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    <!-- {% include "partials/pagination.html" %} -->
-    {% if is_paginated %}
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-
-            {# Previous Page #}
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ query_params }}">Previous</a>
-            </li>
-            {% endif %}
-
-            {# First Page #}
-            {% if page_obj.number > 3 %}
-            <li class="page-item">
-                <a class="page-link" href="?page=1&{{ query_params }}">1</a>
-            </li>
-            {% if page_obj.number > 4 %}
-            <li class="page-item disabled"><span class="page-link">…</span></li>
-            {% endif %}
-            {% endif %}
-
-            {# Pages around current page (two before and after) #}
-            {% for i in page_obj.paginator.page_range %}
-            {% if i >= page_obj.number|add:"-2" and i <= page_obj.number|add:"2" %} {% if i == page_obj.number %} <li
-                class="page-item active"><span class="page-link">{{ i }}</span></li>
-                {% else %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ i }}&{{ query_params }}">{{ i }}</a>
-                </li>
-                {% endif %}
-                {% endif %}
-                {% endfor %}
-
-                {# Last Page #}
-                {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
-                    {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
-                        <li class="page-item disabled"><span class="page-link">…</span></li>
-                    {% endif %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ query_params }}">{{ page_obj.paginator.num_pages }}</a>
-                    </li>
-                {% endif %}
-
-                    {# Next Page #}
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ query_params }}">Next</a>
-                    </li>
-                    {% endif %}
-
-        </ul>
-    </nav>
-    {% endif %}
 </div>
+
+<style>
+    .et {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff;
+        --accent: #1d6fd6; --accent-soft: #e8f1fc; --track: #edf1f7;
+        --good: #1f8a4c; --good-soft: #e7f5ec; --warn: #a15c00; --warn-soft: #fff4e5; --bad: #b42318; --bad-soft: #fdecea;
+        max-width: 1180px; margin: 24px auto 40px; color: var(--ink);
+    }
+    .et-hero {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        padding: 22px 26px; margin-bottom: 14px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%);
+        box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .et-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .et-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 8px; }
+    .et-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .86rem; opacity: .9; }
+    .et-meta i { margin-right: 6px; opacity: .8; }
+    .et-hero-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .et-hero-label { font-size: .78rem; opacity: .8; }
+    .et-hero-btn {
+        padding: 6px 12px; border-radius: 10px; font-size: .84rem; color: #fff; text-decoration: none;
+        background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .25);
+    }
+    .et-hero-btn:hover { background: rgba(255, 255, 255, .22); color: #fff; }
+    .et-card { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); margin-bottom: 14px; min-width: 0; }
+    .et-label { font-size: .76rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .et-sub, .et-muted { color: var(--muted); font-size: .8rem; }
+    .et-coverage-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+    .et-coverage-value { font-size: 2rem; font-weight: 700; line-height: 1.1; color: var(--good); font-variant-numeric: tabular-nums; }
+    .et-flags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .et-flag {
+        padding: 6px 12px; border-radius: 10px; font-size: .82rem; text-decoration: none;
+        background: var(--warn-soft); color: var(--warn); border: 1px solid #f6dcb4;
+    }
+    .et-flag:hover { color: var(--warn); box-shadow: 0 4px 12px rgba(161, 92, 0, .12); }
+    .et-track { height: 10px; border-radius: 999px; background: var(--track); overflow: hidden; }
+    .et-fill { height: 100%; border-radius: 999px; background: var(--good); }
+    .et-section { margin-bottom: 16px; }
+    .et-section-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 4px 2px 8px; }
+    .et-section-head h2 { font-size: .95rem; font-weight: 700; margin: 0; }
+    .et-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .et-stat {
+        position: relative; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+        transition: box-shadow .15s, transform .15s, border-color .15s;
+    }
+    .et-stat:hover { box-shadow: 0 8px 20px rgba(20, 33, 61, .08); transform: translateY(-1px); }
+    .et-stat.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+    .et-stat-link { position: absolute; inset: 0; z-index: 1; border-radius: 12px; }
+    .et-export {
+        position: absolute; top: 8px; right: 8px; z-index: 2; border: 0; background: none; padding: 2px 6px;
+        color: var(--muted); border-radius: 6px; font-size: .8rem;
+    }
+    .et-export:hover { color: var(--accent); background: var(--accent-soft); }
+    .et-stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+    .et-stat-label { font-size: .84rem; color: var(--ink-2); margin-top: 2px; padding-right: 14px; }
+    .et-stat-share { font-size: .76rem; color: var(--muted); margin-top: 2px; }
+    .tone-good .et-stat-value { color: var(--good); }
+    .tone-warn .et-stat-value { color: var(--warn); }
+    .tone-bad .et-stat-value { color: var(--bad); }
+    .et-records-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .et-records-head h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .et-filters {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-items: end; gap: 10px;
+        padding: 12px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fafbfd;
+    }
+    .et-filters .form-label { font-size: .72rem; color: var(--muted); margin-bottom: 2px; }
+    .et-filter-actions { display: flex; gap: 6px; }
+    .et-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .et-table td { font-size: .87rem; }
+    .et-nowrap { white-space: nowrap; }
+    .et-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: .74rem; font-weight: 600; white-space: nowrap; }
+    .et-pill.good { background: var(--good-soft); color: var(--good); }
+    .et-pill.warn { background: var(--warn-soft); color: var(--warn); }
+    .et-empty { text-align: center; color: var(--muted); padding: 24px !important; }
+    .et-pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .et-toast {
+        position: fixed; right: 16px; bottom: 16px; z-index: 9999; min-width: 280px; padding: 14px;
+        background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgba(20, 33, 61, .15);
+    }
+</style>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -522,67 +331,47 @@
     const toastBar   = document.getElementById("toastBar");
     const toastLabel = document.getElementById("toastLabel");
     const toastTitle = document.getElementById("toastTitle");
-
     let activeInterval = null;
 
-    /**
-     * Kick off export for a given card_type, also forwarding current URL filter params.
-     * @param {string} cardType - e.g. 'ctrl', 'merged', 'tblis_not_in_edcs', etc.
-     * @param {HTMLElement} btn  - the clicked button (to show spinner)
-     */
+    function setBusy(btn, busy) {
+        if (!btn) return;
+        btn.disabled = busy;
+        if (busy) { btn.dataset.html = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+        else if (btn.dataset.html) { btn.innerHTML = btn.dataset.html; }
+    }
+
+    // Export a card's records to Excel, with the current list filters
     function startCardExport(cardType, btn) {
-        if (btn) { btn.disabled = true; btn.innerText = "⏳"; }
-
-        // Collect current URL filters
+        setBusy(btn, true);
         const sp = new URLSearchParams(window.location.search);
-        const filters = {
-            card_type: cardType,
-            zone: sp.get("zone") || "",
-            site: sp.get("site") || "",
-            pid: sp.get("pid") || "",
-            unique_lab_no: sp.get("unique_lab_no") || "",
-            substudy: sp.get("substudy") || "",
-            missing_culture_substudy: sp.get("missing_culture_substudy") || "",
-            missing_culture: sp.get("missing_culture") || "",
-        };
+        const filters = { card_type: cardType };
+        ["zone", "site", "pid", "unique_lab_no", "substudy", "start_date", "end_date"].forEach((k) => { filters[k] = sp.get(k) || ""; });
 
-        // Show progress toast
         toast.style.display = "block";
-        toastTitle.innerText = `Exporting: ${cardType}…`;
+        toastTitle.innerText = "Exporting…";
         toastBar.style.width = "5%";
         toastLabel.innerText = "Queuing task…";
-
         if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
 
         fetch(TRIGGER_URL, {
             method: "POST",
-            headers: {
-                "X-CSRFToken": getCsrf(),
-                "Content-Type": "application/json",
-            },
+            headers: { "X-CSRFToken": getCsrf(), "Content-Type": "application/json" },
             body: JSON.stringify(filters),
         })
-        .then(r => r.json())
-        .then(data => {
-            if (!data.task_id) {
-                toastLabel.innerText = "❌ Failed to start export.";
-                if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
-                return;
-            }
+        .then((r) => r.json())
+        .then((data) => {
+            if (!data.task_id) { toastLabel.innerText = "❌ Failed to start export."; setBusy(btn, false); return; }
             pollExport(data.task_id, data.filename, btn);
         })
-        .catch(() => {
-            toastLabel.innerText = "❌ Network error.";
-            if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
-        });
+        .catch(() => { toastLabel.innerText = "❌ Network error."; setBusy(btn, false); });
     }
 
     function pollExport(taskId, filename, btn) {
         const url = STATUS_BASE.replace("TASKID", taskId);
         activeInterval = setInterval(() => {
             fetch(url)
-                .then(r => r.json())
-                .then(data => {
+                .then((r) => r.json())
+                .then((data) => {
                     if (data.state === "PROGRESS") {
                         const pct = data.total ? Math.round((data.current / data.total) * 100) : 10;
                         toastBar.style.width = pct + "%";
@@ -591,32 +380,26 @@
                         clearInterval(activeInterval); activeInterval = null;
                         toastBar.style.width = "100%";
                         toastLabel.innerText = "✅ Ready! Downloading…";
-
                         const fname = data.file || filename;
-                        const dlUrl = SERVE_BASE.replace("FILENAME", fname);
                         const a = document.createElement("a");
-                        a.href = dlUrl; a.download = fname; a.click();
-
-                        setTimeout(() => {
-                            toast.style.display = "none";
-                            if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
-                        }, 2500);
+                        a.href = SERVE_BASE.replace("FILENAME", fname); a.download = fname; a.click();
+                        setTimeout(() => { toast.style.display = "none"; setBusy(btn, false); }, 2500);
                     } else if (data.state === "FAILURE") {
                         clearInterval(activeInterval); activeInterval = null;
                         toastLabel.innerText = "❌ Export failed: " + (data.error || "unknown error");
-                        if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
+                        setBusy(btn, false);
                     }
                 })
                 .catch(() => {
                     clearInterval(activeInterval); activeInterval = null;
                     toastLabel.innerText = "❌ Poll error.";
-                    if (btn) { btn.disabled = false; btn.innerText = "⬇️"; }
+                    setBusy(btn, false);
                 });
         }, 1500);
     }
 
     function getCsrf() {
-        return document.cookie.split(";").find(c => c.trim().startsWith("csrftoken="))?.split("=")[1] || "";
+        return document.cookie.split(";").find((c) => c.trim().startsWith("csrftoken="))?.split("=")[1] || "";
     }
 </script>
 {% endblock %}

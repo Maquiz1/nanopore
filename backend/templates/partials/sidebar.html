@@ -18,9 +18,6 @@
         <a href="{% url 'dashboard:dashboard' %}" class="sb-link" title="Dashboard">
             <i class="fas fa-gauge-high"></i><span>Dashboard</span>
         </a>
-        <a href="{% url 'dashboard:graphs' %}" class="sb-link" title="Graphs">
-            <i class="fas fa-chart-line"></i><span>Graphs</span>
-        </a>
         <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled" class="sb-link" title="Enrolled">
             <i class="fas fa-user-check"></i><span>Enrolled</span>
         </a>
@@ -171,8 +168,11 @@
         {% endif %}
 
         <!-- ── Reports ──────────────────────────────────────── -->
-        {% if access.reports %}
         <div class="sb-section">Reports</div>
+        <a href="{% url 'dashboard:graphs' %}" class="sb-link" title="Graphs">
+            <i class="fas fa-chart-column"></i><span>Graphs</span>
+        </a>
+        {% if access.reports %}
         <div class="sb-group">
             <button type="button" class="sb-link sb-toggle" title="Reports">
                 <i class="fas fa-chart-pie"></i><span>Reports</span><i class="fas fa-chevron-right sb-chevron"></i>
