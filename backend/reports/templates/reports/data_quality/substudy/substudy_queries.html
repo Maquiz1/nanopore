@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Substudy queries · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="sq">
+
+    <section class="sq-hero">
+        <div>
+            <div class="sq-eyebrow">Queries</div>
+            <h1 class="sq-title">Substudy queries</h1>
+            <div class="sq-meta">Participants whose Zonal Lab or Diagnosis forms don't fit their substudy.
+                The substudy comes from the Clinic Lab Xpert result.</div>
+        </div>
+    </section>
+
+    <form method="get" class="sq-filters">
+        <div>
+            <label class="form-label">Zone</label>
+            <select name="zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}
+                <option value="{{ id }}" {% if selected_zone == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Site</label>
+            <select name="site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if selected_site == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="sq-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{% url 'reports:substudy_queries' selected.key %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+
+    <nav class="sq-tabs">
+        {% for query, count in tabs %}
+        <a href="{% url 'reports:substudy_queries' query.key %}{% if filter_query %}?{{ filter_query }}{% endif %}"
+           class="sq-tab {% if query.key == selected.key %}active{% endif %}">
+            <span class="sq-tab-count {% if not count %}zero{% endif %}">{{ count|intcomma }}</span>
+            <span>{{ query.title }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <div class="sq-card">
+        <div class="sq-card-head">
+            <h2>{{ selected.title }}</h2>
+            <span class="sq-muted">{{ page_obj.paginator.count|intcomma }} participant{{ page_obj.paginator.count|pluralize }}</span>
+        </div>
+        <p class="sq-help">{{ selected.help }}</p>
+        {% if selected.key == "ss2_no_zonal" %}
+        <p class="sq-note">These are the same participants as Queries → Missing forms → Zonal Lab.</p>
+        {% endif %}
+
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle sq-table">
+                <thead>
+                    <tr>
+                        <th>PID</th>
+                        <th>Site</th>
+                        <th>Xpert done</th>
+                        <th>Xpert result</th>
+                        <th>Substudy</th>
+                        <th>Zonal Lab</th>
+                        <th>Outcome</th>
+                        <th class="text-end">Fix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for r in page_obj %}
+                    {% with clinic=r.clinic_laboratory zonal=r.zonal_laboratory diagnosis=r.diagnosis %}
+                    <tr>
+                        <td class="fw-semibold">{{ r.pid }}</td>
+                        <td class="sq-site">{{ r.site.name }}<div class="sq-muted">{{ r.site.district.region.zone.name }}</div></td>
+                        <td>{% if clinic %}{{ clinic.xpert_mtb_rif_conducted|default:"—" }}{% else %}<span class="sq-muted">No Clinic Lab</span>{% endif %}</td>
+                        <td>{% if clinic %}{{ clinic.xpert_mtb|default:"—" }}{% else %}—{% endif %}</td>
+                        <td><span class="sq-pill">{{ r.substudy }}</span></td>
+                        <td>{% if zonal %}{{ zonal.unique_lab_no|default:"Yes" }}{% else %}—{% endif %}</td>
+                        <td>{{ diagnosis.tb_outcome2|default:"—" }}</td>
+                        <td class="text-end sq-actions">
+                            {% if clinic %}
+                                {% if access.edit.clinic_lab %}
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'nanopore:clinic-laboratory-update' clinic.pk %}">Clinic Lab</a>
+                                {% else %}
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:clinic-laboratory-detail' clinic.pk %}">Clinic Lab</a>
+                                {% endif %}
+                            {% elif access.edit.clinic_lab %}
+                                <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ r.pk }}">+ Clinic Lab</a>
+                            {% endif %}
+
+                            {% if selected.key == "ss2_no_zonal" and access.edit.zonal_lab %}
+                                <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ r.pk }}">+ Zonal Lab</a>
+                            {% elif zonal %}
+                                {% if access.edit.zonal_lab %}
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'nanopore:zonal-laboratory-update' zonal.pk %}">Zonal Lab</a>
+                                {% elif access.view.zonal_lab %}
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:zonal-laboratory-detail' zonal.pk %}">Zonal Lab</a>
+                                {% endif %}
+                                {% if selected.key == "ss4_with_zonal" and access.delete_records %}
+                                <a class="btn btn-sm btn-outline-danger" title="Move the Zonal Lab form (and its EDCS/TBLIS) to the Recycle Bin"
+                                   href="{% url 'nanopore:zonal-laboratory-delete' zonal.pk %}?next={{ request.get_full_path|urlencode }}">Delete Zonal Lab</a>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if diagnosis %}
+                                {% if access.edit.diagnosis %}
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'nanopore:diagnosis-update' diagnosis.pk %}">Diagnosis</a>
+                                {% elif access.view.diagnosis %}
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:diagnosis-detail' diagnosis.pk %}">Diagnosis</a>
+                                {% endif %}
+                            {% elif selected.key == "ss2_no_outcome" and access.edit.diagnosis %}
+                                <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:diagnosis-create' %}?screening={{ r.pk }}">+ Diagnosis</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav class="d-flex justify-content-between align-items-center mt-2">
+            <span class="sq-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="btn-group">
+                {% if page_obj.has_previous %}
+                <a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}">← Previous</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.next_page_number }}">Next →</a>
+                {% endif %}
+            </div>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="sq-empty"><i class="fas fa-circle-check"></i> Nothing to fix here.</div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .sq {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff;
+        --accent: #1d6fd6; --accent-soft: #e8f1fc; --good: #1f8a4c; --warn-bg: #fff4e5; --warn: #a15c00;
+        max-width: 1180px; margin: 24px auto 40px; color: var(--ink);
+    }
+    .sq-hero {
+        padding: 22px 26px; margin-bottom: 16px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%);
+        box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .sq-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .sq-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; }
+    .sq-meta { font-size: .9rem; opacity: .9; }
+    .sq-filters {
+        display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px 16px; margin-bottom: 14px;
+        border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    }
+    .sq-filters > div { min-width: 180px; }
+    .sq-filters .form-label { font-size: .75rem; color: var(--muted); margin-bottom: 3px; }
+    .sq-filter-actions { display: flex; gap: 8px; margin-left: auto; min-width: 0 !important; }
+    .sq-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .sq-tab {
+        display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--line);
+        border-radius: 12px; background: var(--surface); color: var(--ink-2); text-decoration: none; font-size: .86rem;
+        transition: box-shadow .15s, border-color .15s;
+    }
+    .sq-tab:hover { box-shadow: 0 6px 18px rgba(20, 33, 61, .08); color: var(--ink); }
+    .sq-tab.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); color: var(--ink); background: var(--accent-soft); }
+    .sq-tab-count { font-size: 1.5rem; font-weight: 700; color: var(--warn); font-variant-numeric: tabular-nums; }
+    .sq-tab-count.zero { color: var(--good); }
+    .sq-card { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .sq-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .sq-card-head h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .sq-help { color: var(--ink-2); font-size: .9rem; margin: 6px 0 10px; }
+    .sq-note { background: var(--warn-bg); color: var(--warn); font-size: .82rem; padding: 6px 10px; border-radius: 8px; }
+    .sq-muted { color: var(--muted); font-size: .8rem; }
+    .sq-table th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+    .sq-table td { font-size: .88rem; }
+    .sq-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: .76rem; font-weight: 600; white-space: nowrap; }
+    .sq-site, .sq-table td:first-child { white-space: nowrap; }
+    .sq-actions { white-space: nowrap; }
+    .sq-actions .btn { margin-left: 4px; }
+    .sq-empty { padding: 28px; text-align: center; color: var(--good); font-weight: 600; }
+    @media (max-width: 700px) { .sq-filter-actions { margin-left: 0; } }
+</style>
+{% endblock %}

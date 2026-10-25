@@ -29,8 +29,9 @@ DATA_SPECIALIST = "DATA_SPECIALIST"
 DATA_MANAGER = "DATA_MANAGER"
 STATISTICIAN = "STATISTICIAN"
 REVIEWER = "REVIEWER"
+COORDINATOR = "COORDINATOR"
 ADMIN = "ADMIN"
-ALL_ROLES = [NURSE, CLINICIAN, LABORATORY_TECHNICIAN, DATA_SPECIALIST, DATA_MANAGER, STATISTICIAN, REVIEWER, ADMIN]
+ALL_ROLES = [NURSE, CLINICIAN, LABORATORY_TECHNICIAN, DATA_SPECIALIST, DATA_MANAGER, STATISTICIAN, REVIEWER, COORDINATOR, ADMIN]
 
 # --- Forms ---
 SCREENING = "screening"
@@ -70,8 +71,9 @@ ROLE_FORMS_VIEW = {
     STATISTICIAN: ALL_FORMS,
 }
 ROLE_FEATURES = {
-    DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD]),
-    DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD]),
+    DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, SNAPSHOTS]),
+    DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, SNAPSHOTS]),
+    COORDINATOR: frozenset([SNAPSHOTS]),  # query trends of the zones/sites they are assigned
     STATISTICIAN: frozenset([REPORTS, EXPORTS]),
     REVIEWER: frozenset([REPORTS]),
     ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, DELETE_RECORDS]),
@@ -100,10 +102,13 @@ def get_user_roles(user):
     cache = _cache(user)
     if "roles" not in cache:
         roles = {name.upper() for name in user.groups.values_list("name", flat=True)}
-        # Legacy: data specialists used to be identified by Profile.position.
+        # Data specialists used to be identified by Profile.position; coordinators still are.
         profile = getattr(user, "profile", None)
-        if profile and profile.position and profile.position.name.strip().lower() == "data specialist":
+        position = profile.position.name.strip().lower() if profile and profile.position else ""
+        if position == "data specialist":
             roles.add(DATA_SPECIALIST)
+        elif position == "coordinator":
+            roles.add(COORDINATOR)
         cache["roles"] = frozenset(roles)
     return cache["roles"]
 

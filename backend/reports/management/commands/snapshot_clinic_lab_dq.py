@@ -106,6 +106,7 @@ from django.apps import apps
 from django.db.models import Count, Q
 
 from reports.models import DataQualitySnapshot, ClinicDQSnapshot
+from nanopore.substudy import XPERT_DETECTED, XPERT_ERROR
 
 
 class Command(BaseCommand):
@@ -143,12 +144,9 @@ class Command(BaseCommand):
         afb_yes_q = Q(afb_microscopy_conducted__name__iexact="yes")
         xpert_yes_q = Q(xpert_mtb_rif_conducted__name__iexact="yes")
 
-        xpert_in_2_6_q = (
-            Q(xpert_mtb__value__in=[2, 3, 4, 5, 6]) |
-            Q(xpert_mtb__name__in=["2", "3", "4", "5", "6"])
-        )
+        xpert_in_2_6_q = Q(xpert_mtb__in=XPERT_DETECTED)
 
-        xpert_is_8_q = Q(xpert_mtb__value=8) | Q(xpert_mtb__name__iexact="8")
+        xpert_is_8_q = Q(xpert_mtb=XPERT_ERROR)
 
         grouped = qs.values(
             "screening__site__district__region__zone_id",

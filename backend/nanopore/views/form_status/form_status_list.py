@@ -1,4 +1,5 @@
 # nanopore/views/status.py
+from nanopore.substudy import OUTCOMES, SUBSTUDY_2, SUBSTUDY_KEYS, substudy_case, substudy_q
 from django.views.generic import ListView
 from nanopore.models import Screening,Enrollment,Diagnosis,ClinicLaboratory,ZonalLaboratory,RegimenChanges
 from utils.permissions import filter_queryset_by_user_role
@@ -70,52 +71,19 @@ class FormStatusListView(AnyFormAccessMixin, ListView):
             enrolled_screenings = Enrollment.objects.values_list("screening_id", flat=True)
             qs = qs.filter(id__in=enrolled_screenings)
         elif list_type == "completed":
-            qs = qs.filter(diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6])
+            # Completed = Substudy 2 enrolled with a treatment outcome (nanopore/substudy.py)
+            qs = qs.filter(substudy_q(SUBSTUDY_2), enrollment__isnull=False, diagnosis__tb_outcome2__in=OUTCOMES)
         
             
             
-        # 🔹 Annotate substudy
-        qs = qs.annotate(
-            substudy_case=Case(
-                When(
-                    clinic_laboratory__xpert_mtb_rif_conducted=1,
-                    clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
-                    then=Value("Substudy 2")
-                ),
-                When(
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]) |
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=2),
-                    then=Value("Substudy 4")
-                ),
-                When(
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__isnull=True) |
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted__isnull=True),
-                    then=Value("Uncategorized")
-                ),
-                default=Value("Uncategorized"),
-                output_field=CharField(),
-            )
-        )
-        
+        # 🔹 Annotate substudy (one definition: nanopore/substudy.py)
+        qs = qs.annotate(substudy_case=substudy_case())
+
         # 🔹 Substudy filter
-        if substudy:
-            if substudy == "substudy2":
-                qs = qs.filter(
-                    clinic_laboratory__xpert_mtb_rif_conducted=1,
-                    clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]
-                )
-            elif substudy == "substudy4":
-                qs = qs.filter(
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__in=[1,7,8,9]) |
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=2)
-                )
-            elif substudy == "uncategorized":
-                qs = qs.filter(
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__isnull=True) |
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted__isnull=True)
-                )
-        
-        
+        if substudy in SUBSTUDY_KEYS:
+            qs = qs.filter(substudy_q(SUBSTUDY_KEYS[substudy]))
+
+
         # # Substudy filter using property logic
         # if substudy:
         #     filtered_ids = []

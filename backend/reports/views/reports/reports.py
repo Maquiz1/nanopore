@@ -48,14 +48,31 @@ from django.views.generic import ListView
 from django.core.paginator import Paginator
 from django.urls import reverse
 
+from nanopore.substudy import OUTCOMES, SUBSTUDY_2, SUBSTUDY_4, UNCATEGORIZED, clinic_lab_of, substudy_of, substudy_q
 from utils import access
 from utils.access import get_accessible_sites, get_accessible_zones, scope_queryset
 from utils.access_mixins import FeatureAccessMixin, require_feature
 
 
+# Report URLs use "2" / "4" / "uncategorized"; one definition in nanopore/substudy.py.
+REPORT_SUBSTUDIES = {"2": SUBSTUDY_2, "4": SUBSTUDY_4, "uncategorized": UNCATEGORIZED}
+ENROLLED = "screening__clinic_laboratory__"  # from Enrollment / Diagnosis to the Clinic Lab
+
+
 def _scoped(request, model, site_field="screening__site"):
     """model.objects limited to the sites the user is assigned to (utils/access.py)."""
     return scope_queryset(request.user, model.objects.all(), site_field)
+
+
+def _by_status(diagnoses, status):
+    """Completed = Substudy 2 enrolled with a treatment outcome (1-6); in progress = without one.
+    Only Substudy 2 is followed to an outcome (nanopore/substudy.py)."""
+    diagnoses = diagnoses.filter(substudy_q(SUBSTUDY_2, ENROLLED), screening__enrollment__isnull=False)
+    if status == "completed":
+        return diagnoses.filter(tb_outcome2__in=OUTCOMES)
+    if status == "in-progress":
+        return diagnoses.exclude(tb_outcome2__in=OUTCOMES)
+    return diagnoses
 
 
 def _scoped_sites(request, sites):
@@ -74,17 +91,7 @@ def annotate_months_and_substudy(qs, months_filter=None, substudy_filter=None):
             obj.months_since_screening = None
 
         # --- Determine Substudy from ClinicLaboratory ---
-        lab = getattr(obj.screening, "clinic_laboratory", None)  # Safe access to one-to-one relation
-        if lab and lab.xpert_mtb:
-            xpert_id = lab.xpert_mtb.id if hasattr(lab.xpert_mtb, 'id') else lab.xpert_mtb
-            if xpert_id in [2, 3, 4, 5, 6]:
-                obj.substudy = "Substudy 2"
-            elif xpert_id in [1, 7, 8, 9]:
-                obj.substudy = "Substudy 4"
-            else:
-                obj.substudy = "Uncategorized"
-        else:
-            obj.substudy = "Uncategorized"
+        obj.substudy = substudy_of(clinic_lab_of(obj))
 
         # --- Apply filters ---
         if months_filter and (obj.months_since_screening is None or obj.months_since_screening < months_filter):
@@ -108,17 +115,7 @@ def annotate_months_and_substudy_for_export(qs, months_filter=None, substudy_fil
             obj.months_since_treatment = None
 
         # --- Determine Substudy from ClinicLaboratory ---
-        lab = getattr(obj.screening, "clinic_laboratory", None)
-        if lab and lab.xpert_mtb:
-            xpert_id = lab.xpert_mtb.id if hasattr(lab.xpert_mtb, 'id') else lab.xpert_mtb
-            if xpert_id in [2, 3, 4, 5, 6]:
-                obj.substudy = "Substudy 2"
-            elif xpert_id in [1, 7, 8, 9]:
-                obj.substudy = "Substudy 4"
-            else:
-                obj.substudy = "Uncategorized"
-        else:
-            obj.substudy = "Uncategorized"
+        obj.substudy = substudy_of(clinic_lab_of(obj))
 
         # --- Apply filters ---
         if months_filter and (obj.months_since_treatment is None or obj.months_since_treatment < months_filter):
@@ -136,8 +133,7 @@ class BaseRecordsListView(FeatureAccessMixin, ListView):
     context_object_name = "records"
     model = Diagnosis
     paginate_by = 25
-    outcome_filter = None
-    exclude_filter = None
+    status = None  # "completed" / "in-progress"; RecordsByZone/Site take it from the URL
 
     def get_queryset(self):
         qs = _scoped(self.request, Diagnosis).select_related("screening__site__district__region__zone")
@@ -158,11 +154,10 @@ class BaseRecordsListView(FeatureAccessMixin, ListView):
         if start_date and end_date:
             qs = qs.filter(tb_treatment_date__range=[start_date, end_date])
 
-        # --- Outcome filters ---
-        if self.outcome_filter:
-            qs = qs.filter(tb_outcome2__in=self.outcome_filter).exclude(tb_outcome2__isnull=True)
-        elif self.exclude_filter:
-            qs = qs.exclude(tb_outcome2__in=self.exclude_filter)
+        # --- Completed / in progress ---
+        status = self.status or self.kwargs.get("status")
+        if status in ("completed", "in-progress"):
+            qs = _by_status(qs, status)
 
         return annotate_months_and_substudy(qs, months_filter, substudy_filter)
 
@@ -529,9 +524,9 @@ class EnrollmentSummaryView(FeatureAccessMixin, TemplateView):
 
         # --- Aggregations ---
         total_enrolled = enrollments.count()
-        substudy2_count = labs.filter(xpert_mtb__in=[2,3,4,5,6]).count()
-        substudy4_count = labs.filter(xpert_mtb__in=[1,7,8,9]).count()
-        uncategorized_count = labs.exclude(xpert_mtb__in=[1,2,3,4,5,6,7,8,9]).count()
+        substudy2_count = labs.filter(substudy_q(SUBSTUDY_2, "")).count()
+        substudy4_count = labs.filter(substudy_q(SUBSTUDY_4, "")).count()
+        uncategorized_count = labs.filter(substudy_q(UNCATEGORIZED, "")).count()
 
         # --- By Zone ---
         zone_summary = (
@@ -539,18 +534,18 @@ class EnrollmentSummaryView(FeatureAccessMixin, TemplateView):
             .annotate(
                 enrolled=Count("id", distinct=True),
                 substudy2=Count(
-                    "screening__clinic_laboratory",
-                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]),
+                    "screening",
+                    filter=substudy_q(SUBSTUDY_2, ENROLLED),
                     distinct=True,
                 ),
                 substudy4=Count(
-                    "screening__clinic_laboratory",
-                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9]),
+                    "screening",
+                    filter=substudy_q(SUBSTUDY_4, ENROLLED),
                     distinct=True,
                 ),
                 uncategorized=Count(
-                    "screening__clinic_laboratory",
-                    filter=~Q(screening__clinic_laboratory__xpert_mtb__in=[1,2,3,4,5,6,7,8,9]),
+                    "screening",
+                    filter=substudy_q(UNCATEGORIZED, ENROLLED),
                     distinct=True,
                 )
             )
@@ -566,18 +561,18 @@ class EnrollmentSummaryView(FeatureAccessMixin, TemplateView):
             .annotate(
                 enrolled=Count("id", distinct=True),
                 substudy2=Count(
-                    "screening__clinic_laboratory",
-                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]),
+                    "screening",
+                    filter=substudy_q(SUBSTUDY_2, ENROLLED),
                     distinct=True,
                 ),
                 substudy4=Count(
-                    "screening__clinic_laboratory",
-                    filter=Q(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9]),
+                    "screening",
+                    filter=substudy_q(SUBSTUDY_4, ENROLLED),
                     distinct=True,
                 ),
                 uncategorized=Count(
-                    "screening__clinic_laboratory",
-                    filter=~Q(screening__clinic_laboratory__xpert_mtb__in=[1,2,3,4,5,6,7,8,9]),
+                    "screening",
+                    filter=substudy_q(UNCATEGORIZED, ENROLLED),
                     distinct=True,
                 )
             )
@@ -605,16 +600,12 @@ class SubstudyDetailView(FeatureAccessMixin, TemplateView):
 
         # --- Determine filter and title ---
         if substudy == "2":
-            xpert_filter = [2, 3, 4, 5, 6]
             context["title"] = "Substudy 2 – Detailed List"
         elif substudy == "4":
-            xpert_filter = [1, 7, 8, 9]
             context["title"] = "Substudy 4 – Detailed List"
         elif substudy == "uncategorized":
-            xpert_filter = None  # Will filter for values NOT in 1-9
             context["title"] = "Uncategorized – Detailed List"
         else:
-            xpert_filter = None
             context["title"] = "Detailed List"
 
         # --- Base query ---
@@ -622,10 +613,8 @@ class SubstudyDetailView(FeatureAccessMixin, TemplateView):
             "screening__patient", "screening__site__district__region__zone"
         )
 
-        if xpert_filter is not None:
-            labs = labs.filter(xpert_mtb__in=xpert_filter)
-        elif substudy == "uncategorized":
-            labs = labs.exclude(xpert_mtb__in=[1,2,3,4,5,6,7,8,9])
+        if substudy in REPORT_SUBSTUDIES:
+            labs = labs.filter(substudy_q(REPORT_SUBSTUDIES[substudy], ""))
 
         # --- Apply filters from GET parameters ---
         zone_name = self.request.GET.get("zone")
@@ -657,9 +646,9 @@ class SubstudySummaryView(FeatureAccessMixin, TemplateView):
                 "screening__site__name"
             )
             .annotate(
-                substudy2=Count("id", filter=Q(xpert_mtb__in=[2,3,4,5,6])),
-                substudy4=Count("id", filter=Q(xpert_mtb__in=[1,7,8,9])),
-                uncategorized=Count("id", filter=~Q(xpert_mtb__in=[1,2,3,4,5,6,7,8,9]))
+                substudy2=Count("id", filter=substudy_q(SUBSTUDY_2, "")),
+                substudy4=Count("id", filter=substudy_q(SUBSTUDY_4, "")),
+                uncategorized=Count("id", filter=substudy_q(UNCATEGORIZED, ""))
             )
             .order_by("screening__site__district__region__zone__name", "screening__site__name")
         )
@@ -676,17 +665,9 @@ class SubstudyDetailView(FeatureAccessMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         # --- Which substudy filter ---
-        if substudy == "2":
-            labs = ClinicLaboratory.objects.filter(xpert_mtb__in=[2, 3, 4, 5, 6])
-            context["title"] = "Substudy 2 – Detailed List"
-
-        elif substudy == "4":
-            labs = ClinicLaboratory.objects.filter(xpert_mtb__in=[1, 7, 8, 9])
-            context["title"] = "Substudy 4 – Detailed List"
-
-        elif substudy == "uncategorized":
-            labs = ClinicLaboratory.objects.exclude(xpert_mtb__in=[1,2,3,4,5,6,7,8,9])
-            context["title"] = "Uncategorized – Detailed List"
+        if substudy in REPORT_SUBSTUDIES:
+            labs = ClinicLaboratory.objects.filter(substudy_q(REPORT_SUBSTUDIES[substudy], ""))
+            context["title"] = f"{REPORT_SUBSTUDIES[substudy]} – Detailed List"
 
         else:
             labs = ClinicLaboratory.objects.none()
@@ -717,9 +698,12 @@ class CompletedStudySummaryView(FeatureAccessMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        diagnoses = _scoped(self.request, Diagnosis).select_related(
+        # Substudy 2 enrolled participants; completed = a treatment outcome is recorded
+        diagnoses = _by_status(_scoped(self.request, Diagnosis), None).select_related(
             "screening__site__district__region__zone"
         )
+        completed_q = Q(tb_outcome2__in=OUTCOMES)
+        in_progress_q = ~completed_q | Q(tb_outcome2__isnull=True)
 
         # Optional filters
         zone_id = self.request.GET.get("zone")
@@ -742,8 +726,8 @@ class CompletedStudySummaryView(FeatureAccessMixin, TemplateView):
                 "screening__site__district__region__zone__name"
             )
             .annotate(
-                completed=Count("id", filter=Q(tb_outcome2__in=[1, 2])),
-                in_progress=Count("id", filter=~Q(tb_outcome2__in=[1, 2]))
+                completed=Count("id", filter=completed_q),
+                in_progress=Count("id", filter=in_progress_q)
             )
             .order_by("screening__site__district__region__zone__name")
         )
@@ -769,8 +753,8 @@ class CompletedStudySummaryView(FeatureAccessMixin, TemplateView):
                 "screening__site__district__region__zone__name",
             )
             .annotate(
-                completed=Count("id", filter=Q(tb_outcome2__in=[1, 2])),
-                in_progress=Count("id", filter=~Q(tb_outcome2__in=[1, 2]))
+                completed=Count("id", filter=completed_q),
+                in_progress=Count("id", filter=in_progress_q)
             )
             .order_by(
                 "screening__site__district__region__zone__name",
@@ -792,8 +776,8 @@ class CompletedStudySummaryView(FeatureAccessMixin, TemplateView):
         ]
 
         # --- Totals ---
-        total_completed = diagnoses.filter(tb_outcome2__in=[1, 2]).exclude(tb_outcome2__isnull=True).count()
-        total_in_progress = diagnoses.exclude(tb_outcome2__in=[1, 2]).count()
+        total_completed = diagnoses.filter(completed_q).count()
+        total_in_progress = diagnoses.filter(in_progress_q).count()
 
         context.update({
             "zone_summary": zone_summary,
@@ -949,14 +933,14 @@ class CompletedStudySummaryView(FeatureAccessMixin, TemplateView):
 # --- All Completed Records ---
 class CompletedRecordsView(BaseRecordsListView):
     title = "All Completed Records"
-    outcome_filter = [1, 2]   # TB outcomes considered completed
+    status = "completed"
     export_url_name = "reports:export_records"
 
 
 # --- All In-Progress Records ---
 class InProgressRecordsView(BaseRecordsListView):
     title = "All In Progress Records"
-    exclude_filter = [1, 2]   # Exclude completed
+    status = "in-progress"
     export_url_name = "reports:export_records"
 
 
@@ -968,14 +952,7 @@ class RecordsByZoneView(BaseRecordsListView):
     def get_queryset(self):
         qs = super().get_queryset()
         zone_id = self.kwargs.get("zone_id")
-        status = self.kwargs.get("status")
-
         qs = [obj for obj in qs if obj.screening.site.district.region.zone.id == int(zone_id)]
-
-        if status == "completed":
-            qs = [obj for obj in qs if obj.tb_outcome2 in [1, 2]]
-        elif status == "in-progress":
-            qs = [obj for obj in qs if obj.tb_outcome2 not in [1, 2]]
 
         return qs
 
@@ -988,14 +965,7 @@ class RecordsBySiteView(BaseRecordsListView):
     def get_queryset(self):
         qs = super().get_queryset()
         site_id = self.kwargs.get("site_id")
-        status = self.kwargs.get("status")
-
         qs = [obj for obj in qs if obj.screening.site.id == int(site_id)]
-
-        if status == "completed":
-            qs = [obj for obj in qs if obj.tb_outcome2 in [1, 2]]
-        elif status == "in-progress":
-            qs = [obj for obj in qs if obj.tb_outcome2 not in [1, 2]]
 
         return qs
 
@@ -1024,10 +994,8 @@ class ExportRecordsView(FeatureAccessMixin, View):
             qs = qs.filter(tb_treatment_date__range=[start_date, end_date])
 
         # --- Status filters ---
-        if status == "completed":
-            qs = qs.filter(tb_outcome2__in=[1, 2]).exclude(tb_outcome2__isnull=True)
-        elif status == "in-progress":
-            qs = qs.exclude(tb_outcome2__in=[1, 2])
+        if status in ("completed", "in-progress"):
+            qs = _by_status(qs, status)
 
         # --- Annotate months and substudy ---
         qs = annotate_months_and_substudy_for_export(qs, months_filter, substudy_filter)
@@ -1335,13 +1303,10 @@ class SubstudyExportView(FeatureAccessMixin, View):
 
         # --- Determine filter and title ---
         if export_type == "2":
-            xpert_filter = [2, 3, 4, 5, 6]
             title = "Substudy 2 Records"
         elif export_type == "4":
-            xpert_filter = [1, 7, 8, 9]
             title = "Substudy 4 Records"
         elif export_type == "uncategorized":
-            xpert_filter = None  # will exclude Substudy 2 and 4
             title = "Uncategorized Records"
         else:
             return HttpResponse("Invalid type", status=400)
@@ -1352,10 +1317,7 @@ class SubstudyExportView(FeatureAccessMixin, View):
         )
 
         # --- Filter by type ---
-        if xpert_filter is not None:
-            labs = labs.filter(xpert_mtb__in=xpert_filter)
-        else:
-            labs = labs.exclude(xpert_mtb__in=[1,2,3,4,5,6,7,8,9])
+        labs = labs.filter(substudy_q(REPORT_SUBSTUDIES[export_type], ""))
 
         # --- Optional filters from GET ---
         zone_name = request.GET.get("zone")

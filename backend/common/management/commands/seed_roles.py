@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"Created SiteLevel: {name}"))
 
         # 3. Create Groups
-        groups = ["NURSE", "CLINICIAN", "LABORATORY_TECHNICIAN", "DATA_SPECIALIST", "DATA_MANAGER", "STATISTICIAN", "ADMIN", "REVIEWER"]
+        groups = ["NURSE", "CLINICIAN", "LABORATORY_TECHNICIAN", "DATA_SPECIALIST", "DATA_MANAGER", "STATISTICIAN", "ADMIN", "REVIEWER", "COORDINATOR"]
         for g in groups:
             group, created = Group.objects.get_or_create(name=g)
             if created:

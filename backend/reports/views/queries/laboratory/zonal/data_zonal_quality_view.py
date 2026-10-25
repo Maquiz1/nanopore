@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.apps import apps
 
 from reports.services.zonal_dq import get_zonal_dq
+from reports.services.substudy_queries import substudy_query_qs, visible_queries
 
 from utils.roles import get_role_context
 
@@ -64,6 +65,11 @@ class ZonalDataQualityView(AnyFormAccessMixin, View):
             **{f"count_{k}": v for k, v in stats.items()},
             "total_issues": total_issues,
             **problem_lists,
+            "substudy_checks": [
+                (query, substudy_query_qs(request.user, query, zone_id, site_id).count())
+                for query in visible_queries(request.user)
+                if query.key in ("ss2_no_zonal", "ss4_with_zonal")
+            ],
         }
 
         return render(request, self.template_name, context)

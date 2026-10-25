@@ -1,5 +1,6 @@
 # reports/context_processors/forms_context.py
 
+from nanopore.substudy import SUBSTUDY_2, substudy_q
 from utils import access
 from utils.access import can_view, visible_missing_total
 from django.apps import apps
@@ -100,8 +101,7 @@ def forms_report_total(request):
     missing_zonal_count = 0
     if can_view(request.user, access.ZONAL_LAB):
         missing_zonal_count = eligible_screenings.filter(
-            clinic_laboratory__xpert_mtb_rif_conducted=1,
-            clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+            substudy_q(SUBSTUDY_2),
             zonal_laboratory__isnull=True
         ).count()
 

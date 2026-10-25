@@ -111,6 +111,27 @@
         </div>
     </div>
 
+    <!-- Substudy checks (reports/services/substudy_queries.py) -->
+    {% if substudy_checks %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-1">Substudy checks</h5>
+            <p class="text-muted small mb-3">Every Substudy 2 participant needs a Zonal Lab form; Substudy 4 participants should not have one.</p>
+            <div class="row g-3">
+                {% for query, count in substudy_checks %}
+                <div class="col-md-6">
+                    <a href="{% url 'reports:substudy_queries' query.key %}{% if selected_zone or selected_site %}?{% if selected_zone %}zone={{ selected_zone }}{% endif %}{% if selected_site %}&site={{ selected_site }}{% endif %}{% endif %}"
+                       class="d-flex justify-content-between align-items-center border rounded-3 p-3 text-decoration-none {% if count %}border-warning{% else %}border-success{% endif %}">
+                        <span class="text-dark">{{ query.title }}</span>
+                        <span class="fs-4 fw-bold {% if count %}text-warning{% else %}text-success{% endif %}">{{ count|intcomma }}</span>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if total_issues %}
     <div class="accordion" id="zonalIssuesAccordion">
 

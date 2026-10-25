@@ -1,0 +1,1 @@
+{% load humanize %}{% if value is None %}<span class="qt-flat">—</span>{% elif value < 0 %}<span class="qt-down" title="fewer open queries">▼ {{ value|stringformat:"d"|slice:"1:" }}</span>{% elif value > 0 %}<span class="qt-up" title="more open queries">▲ {{ value|intcomma }}</span>{% else %}<span class="qt-flat">0</span>{% endif %}

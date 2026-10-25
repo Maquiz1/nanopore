@@ -1,3 +1,4 @@
+from nanopore.substudy import SUBSTUDY_2, substudy_q
 from django.apps import apps
 from django.db.models import Exists, OuterRef
 from utils.permissions import filter_queryset_by_user_role
@@ -70,8 +71,7 @@ def get_missing_forms_dq(user, zone_id=None, site_id=None, role=None):
 
     # ── Zonal ──
     missing_zonal_count = qs.filter(
-        clinic_laboratory__xpert_mtb_rif_conducted=1,
-        clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+        substudy_q(SUBSTUDY_2),
         zonal_laboratory__isnull=True,
     ).count()
 

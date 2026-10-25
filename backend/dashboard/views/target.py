@@ -1,3 +1,4 @@
+from nanopore.substudy import SUBSTUDY_2, SUBSTUDY_4, substudy_q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Sum, F
@@ -49,12 +50,8 @@ class SiteTargetsView(LoginRequiredMixin, ListView):
             if start_date and end_date:
                 enrollments = enrollments.filter(screening__screening_date__range=[start_date, end_date])
             site.actual_total = enrollments.count()
-            site.actual_substudy2 = enrollments.filter(
-                screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]
-            ).count()
-            site.actual_substudy4 = enrollments.filter(
-                screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9]
-            ).count()
+            site.actual_substudy2 = enrollments.filter(substudy_q(SUBSTUDY_2, "screening__clinic_laboratory__")).count()
+            site.actual_substudy4 = enrollments.filter(substudy_q(SUBSTUDY_4, "screening__clinic_laboratory__")).count()
 
         return qs
 

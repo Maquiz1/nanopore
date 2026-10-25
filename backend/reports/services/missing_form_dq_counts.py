@@ -1,3 +1,4 @@
+from nanopore.substudy import SUBSTUDY_2, substudy_q
 from utils import access
 from utils.access import can_view, visible_missing_total
 from django.apps import apps
@@ -56,8 +57,7 @@ def get_missing_forms_counts(user, zone_id=None, site_id=None):
     missing_zonal_count = 0
     if can_view(user, access.ZONAL_LAB):
         missing_zonal_count = qs.filter(
-            clinic_laboratory__xpert_mtb_rif_conducted=1,
-            clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+            substudy_q(SUBSTUDY_2),
             zonal_laboratory__isnull=True,
         ).count()
 

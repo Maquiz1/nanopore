@@ -3,6 +3,13 @@ from django.core.management import call_command
 from .tasks_export_models import export_model_raw_data_task, export_all_models_combined_task
 
 
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, max_retries=3)
+def create_query_snapshot(self):
+    """Save today's open query counts for the Query trends page (reports/services/query_snapshot.py)."""
+    call_command("snapshot_queries")
+    return "Query snapshot created"
+
+
 @shared_task
 def create_screening_dq_snapshot():
     """

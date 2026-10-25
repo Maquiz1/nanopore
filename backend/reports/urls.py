@@ -1,4 +1,7 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from reports.views.snapshots.query_trends_view import query_trends
+from reports.views.queries.substudy_queries_view import SubstudyQueriesView
 from . import views
 
 from reports.views import (
@@ -69,9 +72,6 @@ from reports.views import (
     
     DreamFundQueriesPDFView,
     
-    missing_forms_dashboard,
-    missing_forms_trends,
-    specific_form_snapshot_view,
     SubstudyDownloadView
     )
 
@@ -173,22 +173,14 @@ urlpatterns = [
     path('notifications/', TotalDataQualityDashboardView.as_view(), name='notifications-list'),
     path('alerts/', TotalDataQualityDashboardView.as_view(), name='alerts-list'),
     
-    path(
-    "dq/missing-forms/",
-    missing_forms_dashboard,
-    name="missing_forms_dashboard"
-    ),
-    path(
-    "dq/missing-forms-trends/",
-    missing_forms_trends,
-    name="missing-forms-trends"
-    ),
-    
-    path(
-    "dq/specific-form-snapshots/",
-    specific_form_snapshot_view,
-    name="form-specific-snapshots"
-    ),
+    # Query trends (daily snapshots); the old per-form snapshot pages showed wrong counts
+    path("dq/query-trends/", query_trends, name="query_trends"),
+    path("dq/missing-forms/", RedirectView.as_view(pattern_name="reports:query_trends"), name="missing_forms_dashboard"),
+    path("dq/missing-forms-trends/", RedirectView.as_view(pattern_name="reports:query_trends"), name="missing-forms-trends"),
+    path("dq/specific-form-snapshots/", RedirectView.as_view(pattern_name="reports:query_trends"), name="form-specific-snapshots"),
+
+    path("substudy-queries/", SubstudyQueriesView.as_view(), name="substudy_queries"),
+    path("substudy-queries/<slug:key>/", SubstudyQueriesView.as_view(), name="substudy_queries"),
 
     path(
     "queries-report/download/<str:query_type>/",

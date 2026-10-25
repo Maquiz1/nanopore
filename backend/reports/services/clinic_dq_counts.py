@@ -2,6 +2,7 @@
 from django.apps import apps
 from django.db.models import Q, Count
 from utils.permissions import filter_queryset_by_user_role
+from nanopore.substudy import XPERT_DETECTED, XPERT_ERROR
 
 def get_clinic_dq_counts(user, zone_id=None, site_id=None):
     Clinic = apps.get_model("nanopore", "ClinicLaboratory")
@@ -37,8 +38,8 @@ def get_clinic_dq_counts(user, zone_id=None, site_id=None):
     afb_xpert_required_q = sample_received_is_1_q | (sample_received_is_2_q & new_sample_is_1_q)
     afb_yes_q = Q(afb_microscopy_conducted__name__iexact="yes")
     xpert_yes_q = Q(xpert_mtb_rif_conducted__name__iexact="yes")
-    xpert_in_2_6_q = Q(xpert_mtb__value__in=[2,3,4,5,6]) | Q(xpert_mtb__name__in=["2","3","4","5","6"])
-    xpert_is_8_q = Q(xpert_mtb__value=8) | Q(xpert_mtb__name__iexact="8")
+    xpert_in_2_6_q = Q(xpert_mtb__in=XPERT_DETECTED)
+    xpert_is_8_q = Q(xpert_mtb=XPERT_ERROR)
 
     invalid_sample1_volume_qs = qs.filter(
             sample1_volume__isnull=False

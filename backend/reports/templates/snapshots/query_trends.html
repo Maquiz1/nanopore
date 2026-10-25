@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Query trends · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="qt">
+
+    <section class="qt-hero">
+        <div class="qt-eyebrow">Data quality</div>
+        <h1 class="qt-title">Query trends</h1>
+        <div class="qt-meta">Open queries counted every night at 23:30, with the same rules as the query pages.
+            {% if latest %}Last count: {{ latest|date:"d M Y" }}.{% endif %}</div>
+    </section>
+
+    <form method="get" class="qt-filters">
+        <input type="hidden" name="group" value="{{ selected_group }}">
+        <div>
+            <label class="form-label">From</label>
+            <input type="date" name="start" value="{{ start|date:'Y-m-d' }}" class="form-control form-control-sm">
+        </div>
+        <div>
+            <label class="form-label">To</label>
+            <input type="date" name="end" value="{{ end|date:'Y-m-d' }}" class="form-control form-control-sm">
+        </div>
+        <div>
+            <label class="form-label">Query type</label>
+            <select name="type" class="form-select form-select-sm">
+                <option value="">All queries</option>
+                {% for key, label in query_types.items %}
+                <option value="{{ key }}" {% if selected_type == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Form</label>
+            <select name="form" class="form-select form-select-sm">
+                <option value="">All forms</option>
+                {% for key, label in forms.items %}
+                <option value="{{ key }}" {% if selected_form == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Zone</label>
+            <select name="zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}
+                <option value="{{ id }}" {% if selected_zone == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Site</label>
+            <select name="site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if selected_site == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="qt-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="{% url 'reports:query_trends' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+
+    {% if not runs %}
+    <div class="qt-card qt-empty">
+        No counts between {{ start|date:"d M Y" }} and {{ end|date:"d M Y" }}. Counts are saved every night;
+        an admin can save one now with <code>python manage.py snapshot_queries</code>.
+    </div>
+    {% else %}
+
+    <div class="qt-kpis">
+        <div class="qt-kpi">
+            <div class="qt-kpi-label">Open queries</div>
+            <div class="qt-kpi-value">{{ kpis.latest|intcomma }}</div>
+            <div class="qt-kpi-sub">on {{ latest|date:"d M Y" }}</div>
+        </div>
+        {% include "snapshots/_trend_change.html" with label="Since previous day" value=kpis.since_previous day=previous %}
+        {% include "snapshots/_trend_change.html" with label="Over the date range" value=kpis.since_start day=first %}
+        <div class="qt-kpi">
+            <div class="qt-kpi-label">Highest in range</div>
+            <div class="qt-kpi-value">{{ kpis.peak|intcomma }}</div>
+            <div class="qt-kpi-sub">{{ runs|length }} daily count{{ runs|length|pluralize }}</div>
+        </div>
+    </div>
+
+    <div class="qt-card">
+        <div class="qt-card-head">
+            <h2>Open queries per day</h2>
+            <span class="qt-muted">Going down = queries being resolved faster than new ones appear</span>
+        </div>
+        <div class="qt-chart"><canvas id="qt-total" aria-label="Open queries per day" role="img"></canvas></div>
+    </div>
+
+    <div class="qt-card">
+        <div class="qt-card-head">
+            <h2>Per {{ group_label|lower }}</h2>
+            <div class="qt-form-pills">
+                <span class="qt-muted me-1">Show per</span>
+                {% for key, label in groups.items %}
+                <a href="?{% for k, v in request.GET.items %}{% if k != 'group' %}{{ k }}={{ v|urlencode }}&{% endif %}{% endfor %}group={{ key }}"
+                   class="qt-pill {% if key == selected_group %}active{% endif %}">{{ label }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% if table %}
+        <div class="table-responsive qt-scroll">
+            <table class="table table-sm align-middle qt-table qt-days">
+                <thead>
+                    <tr>
+                        <th>{{ group_label }}</th>
+                        {% if previous %}<th class="text-end">Change</th>{% endif %}
+                        {% for d in days %}<th class="text-end">{{ d|date:"d M" }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in table %}
+                <tr>
+                    <td>{{ row.label }}</td>
+                    {% if previous %}<td class="text-end">{% include "snapshots/_delta.html" with value=row.change %}</td>{% endif %}
+                    {% for n in row.days %}<td class="text-end {% if forloop.first %}fw-semibold{% endif %}">{% if n %}{{ n|intcomma }}{% else %}<span class="qt-flat">0</span>{% endif %}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+                </tbody>
+                {% if table|length > 1 %}
+                <tfoot>
+                    <tr>
+                        <th>Total</th>
+                        {% if previous %}<th></th>{% endif %}
+                        {% for n in table_total %}<th class="text-end">{{ n|intcomma }}</th>{% endfor %}
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+        <p class="qt-muted mt-2 mb-0">Latest day first. Change = latest day compared with the first day in the range.</p>
+        {% else %}
+        <p class="qt-muted mb-0">No open queries for these filters.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{{ chart|json_script:"qt-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+// Runs after load so the colour tokens in the <style> below are available
+document.addEventListener("DOMContentLoaded", function () {
+    const data = JSON.parse(document.getElementById("qt-data").textContent);
+    const css = getComputedStyle(document.querySelector(".qt"));
+    const accent = css.getPropertyValue("--series").trim();
+    const muted = css.getPropertyValue("--muted").trim();
+    const line = css.getPropertyValue("--line").trim();
+
+    const canvas = document.getElementById("qt-total");
+    if (!canvas || !window.Chart || !data.labels.length) return;
+    new Chart(canvas, {
+        type: "line",
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: "Open queries", data: data.total, borderColor: accent, borderWidth: 2,
+                backgroundColor: accent + "1f", fill: true, tension: 0.25,
+                pointRadius: data.labels.length > 40 ? 0 : 3, pointHoverRadius: 5, pointBackgroundColor: accent,
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (c) => ` ${c.parsed.y.toLocaleString()} open queries` } },
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: muted, maxTicksLimit: 8, maxRotation: 0 } },
+                y: { beginAtZero: true, grid: { color: line }, border: { display: false },
+                     ticks: { color: muted, precision: 0 } },
+            },
+        },
+    });
+});
+</script>
+
+<style>
+    .qt {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff;
+        --accent: #1d6fd6; --series: #2a78d6; --good: #1f8a4c; --bad: #b42318;
+        max-width: 1180px; min-width: 0; margin: 24px auto 40px; color: var(--ink);
+    }
+    .qt-hero {
+        padding: 22px 26px; margin-bottom: 16px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%);
+        box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .qt-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .qt-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; }
+    .qt-meta { font-size: .9rem; opacity: .9; }
+    .qt-filters {
+        display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px 16px; margin-bottom: 14px;
+        border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    }
+    .qt-filters > div { min-width: 140px; flex: 1 1 140px; }
+    .qt-filters .form-label { font-size: .75rem; color: var(--muted); margin-bottom: 3px; }
+    .qt-filter-actions { display: flex; gap: 8px; flex: 0 0 auto !important; min-width: 0 !important; }
+    .qt-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+    .qt-kpi { padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .qt-kpi-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .qt-kpi-value { font-size: 1.9rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+    .qt-kpi-sub { font-size: .8rem; color: var(--ink-2); }
+    .qt-card { min-width: 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); margin-bottom: 14px; }
+    .qt-card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .qt-card-head h2 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+    .qt-chart { position: relative; height: 280px; contain: inline-size; }
+    .qt-chart canvas { max-width: 100%; }
+    .qt-muted { color: var(--muted); font-size: .8rem; }
+    .qt-table th { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+    .qt-table td { font-size: .88rem; font-variant-numeric: tabular-nums; }
+    .qt-table tfoot th { color: var(--ink); font-size: .85rem; border-top: 2px solid var(--line); }
+    .qt-days th, .qt-days td { white-space: nowrap; }
+    .qt-days td:first-child, .qt-days th:first-child { position: sticky; left: 0; background: var(--surface); min-width: 200px; white-space: normal; }
+    .qt-scroll { max-height: 560px; overflow: auto; contain: inline-size; }
+    .qt-form-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .qt-pill { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: .82rem; color: var(--ink-2); text-decoration: none; }
+    .qt-pill:hover { color: var(--accent); border-color: var(--accent); }
+    .qt-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .qt-down { color: var(--good); font-weight: 600; white-space: nowrap; }
+    .qt-up { color: var(--bad); font-weight: 600; white-space: nowrap; }
+    .qt-flat { color: var(--muted); }
+    .qt-empty { text-align: center; color: var(--ink-2); padding: 32px; }
+    @media (max-width: 900px) { .qt-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+{% endblock %}

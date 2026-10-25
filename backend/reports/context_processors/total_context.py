@@ -4,6 +4,7 @@ from nanopore.models import Screening
 from django.db.models import Q
 from utils.roles import get_role_context
 from utils.permissions import filter_queryset_by_user_role
+from nanopore.substudy import SUBSTUDY_2, SUBSTUDY_4, substudy_q
 
 def global_total_issues(request):
     if not request.user.is_authenticated:
@@ -51,8 +52,8 @@ def global_total_issues(request):
         Q(tblis_laboratory__culture_performed__name__icontains='No') |
         Q(tblis_laboratory__culture_performed__name__exact='')
     )
-    substudy2_count = base_qs.filter(clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6]).count()
-    substudy4_count = base_qs.exclude(clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6]).count()
+    substudy2_count = base_qs.filter(substudy_q(SUBSTUDY_2)).count()
+    substudy4_count = base_qs.filter(substudy_q(SUBSTUDY_4)).count()
 
     return {
         'context_total_issues': grand_total,

@@ -7,6 +7,7 @@ from django.views import View
 from django.db.models import Q
 from nanopore.models import Screening
 from django.contrib.auth.mixins import LoginRequiredMixin
+from nanopore.substudy import SUBSTUDY_2, SUBSTUDY_4, substudy_q
 
 class SubstudyDownloadView(FeatureAccessMixin, View):
     access_feature = access.REPORTS
@@ -24,10 +25,10 @@ class SubstudyDownloadView(FeatureAccessMixin, View):
         )
 
         if query_type == 'substudy2':
-            qs = base_qs.filter(clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6])
+            qs = base_qs.filter(substudy_q(SUBSTUDY_2))
             filename = "substudy2_not_having_culture_results.xlsx"
         elif query_type == 'substudy4':
-            qs = base_qs.exclude(clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6])
+            qs = base_qs.filter(substudy_q(SUBSTUDY_4))
             filename = "substudy4_not_having_culture_results.xlsx"
         else:
             return HttpResponse("Invalid query type", status=400)

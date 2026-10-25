@@ -1,4 +1,5 @@
 # reports/management/commands/snapshot_missing_forms_dq.py
+from nanopore.substudy import SUBSTUDY_2, substudy_of
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.apps import apps
@@ -70,15 +71,13 @@ class Command(BaseCommand):
 
             # --- Missing zonal lab (only if clinic lab exists and conditions met) ---
             missing_zonal = False
-            if clinic_lab:
-                if getattr(clinic_lab.xpert_mtb_rif_conducted, "name", "").strip().lower() == "yes":
-                    if getattr(clinic_lab.xpert_mtb, "id", None) in [2, 3, 4, 5, 6]:
-                        try:
-                            zonal_lab = s.zonal_laboratory
-                            if zonal_lab is None:
-                                missing_zonal = True
-                        except Screening.zonal_laboratory.RelatedObjectDoesNotExist:
-                            missing_zonal = True
+            if clinic_lab and substudy_of(clinic_lab) == SUBSTUDY_2:
+                try:
+                    zonal_lab = s.zonal_laboratory
+                    if zonal_lab is None:
+                        missing_zonal = True
+                except Screening.zonal_laboratory.RelatedObjectDoesNotExist:
+                    missing_zonal = True
 
             # --- Aggregate counts ---
             site_data[key]["missing_enrollment"] += int(missing_enrollment)

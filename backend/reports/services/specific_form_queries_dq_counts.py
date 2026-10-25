@@ -37,7 +37,7 @@ def get_specific_form_dq_counts(user, zone_id=None, site_id=None,role=None):
     if site_id:
         qs = qs.filter(screening__site_id=site_id)
 
-    zonal_total = get_zonal_dq_counts(qs)
+    zonal_total = get_zonal_dq_counts(qs)["total_issues"]
 
 
     # ── Role-based combined total ──

@@ -141,6 +141,14 @@ class SoftDeleteMixin(FormAccessMixin):
         context["cancel_url"] = self.request.META.get("HTTP_REFERER") or self.get_success_url()
         return context
 
+    def get_success_url(self):
+        # ?next= sends the user back to the page they deleted from (e.g. a query list)
+        from django.utils.http import url_has_allowed_host_and_scheme
+        next_url = self.request.GET.get("next")
+        if next_url and url_has_allowed_host_and_scheme(next_url, {self.request.get_host()}, self.request.is_secure()):
+            return next_url
+        return super().get_success_url()
+
     def form_valid(self, form):
         from django.contrib import messages
         from django.http import HttpResponseRedirect

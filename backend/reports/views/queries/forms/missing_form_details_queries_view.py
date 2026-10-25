@@ -1,3 +1,4 @@
+from nanopore.substudy import SUBSTUDY_2, substudy_q
 from django.core.exceptions import PermissionDenied
 from utils import access
 from utils.access import can_view, visible_missing_total
@@ -102,8 +103,7 @@ class MissingFormDetailsQueriesView(AnyFormAccessMixin, View):
         missing_zonal_count = 0
         if can_view(request.user, access.ZONAL_LAB):
             missing_zonal_count = eligible_screenings.filter(
-                clinic_laboratory__xpert_mtb_rif_conducted=1,
-                clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+                substudy_q(SUBSTUDY_2),
                 zonal_laboratory__isnull=True
             ).count()
 
@@ -128,8 +128,7 @@ class MissingFormDetailsQueriesView(AnyFormAccessMixin, View):
             selected_qs = eligible_screenings.filter(diagnosis__isnull=True)
         elif form_type == "zonal" and can_view(request.user, access.ZONAL_LAB):
             selected_qs = eligible_screenings.filter(
-                clinic_laboratory__xpert_mtb_rif_conducted=1,
-                clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
+                substudy_q(SUBSTUDY_2),
                 zonal_laboratory__isnull=True
             )
         elif form_type == "regimen":

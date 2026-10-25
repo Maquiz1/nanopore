@@ -8,3 +8,4 @@ from .zonal_snapshot_model import ZonalLaboratoryDQSnapshot
 from .missing_forms_snapshot_model import MissingFormsDQSnapshot
 
 
+from .query_snapshot_model import QueryCount, QuerySnapshotRun

@@ -1,3 +1,4 @@
+from nanopore.substudy import OUTCOMES, SUBSTUDY_2, SUBSTUDY_4, substudy_q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Count
@@ -72,13 +73,13 @@ class GraphsHomeView(LoginRequiredMixin, ListView):
             enrolled_progress = 0
         
         # ---- Substudy 2 ----
+        # Outcomes of Substudy 2 participants only (compared with the Substudy 2 count).
         completed_count = qs.filter(
-            diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5, 6]
+            substudy_q(SUBSTUDY_2),
+            diagnosis__tb_outcome2__in=OUTCOMES,
         ).count()
         
-        substudy2_count = qs.filter(
-            clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]
-        ).count()
+        substudy2_count = qs.filter(substudy_q(SUBSTUDY_2)).count()
         
         if substudy2_count > 0:
             substudy2_progress = round(completed_count / substudy2_count * 100, 1)
@@ -90,8 +91,8 @@ class GraphsHomeView(LoginRequiredMixin, ListView):
         # Substudy 2 (ENROLLED ONLY)
         # =========================
         substudy2_enrolled_qs = Enrollment.objects.filter(
+            substudy_q(SUBSTUDY_2, "screening__clinic_laboratory__"),
             screening__in=qs,
-            screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]
         )
 
         substudy2_enrolled_count = substudy2_enrolled_qs.count()
@@ -109,8 +110,8 @@ class GraphsHomeView(LoginRequiredMixin, ListView):
         # Substudy 4 (ENROLLED ONLY)
         # =========================
         substudy4_enrolled_qs = Enrollment.objects.filter(
+            substudy_q(SUBSTUDY_4, "screening__clinic_laboratory__"),
             screening__in=qs,
-            screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]
         )
 
         substudy4_enrolled_count = substudy4_enrolled_qs.count()
@@ -243,10 +244,10 @@ class GraphsHomeView(LoginRequiredMixin, ListView):
                         screening__screening_date__range=[start_date, end_date]
                     )
                 sub2_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[2, 3, 4, 5, 6]).count())
+                    int(lab_qs.filter(substudy_q(SUBSTUDY_2, "")).count())
                 )
                 sub4_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[1, 7, 8, 9]).count())
+                    int(lab_qs.filter(substudy_q(SUBSTUDY_4, "")).count())
                 )
                 sub_labels.append(site["site__name"])
         else:
@@ -259,10 +260,10 @@ class GraphsHomeView(LoginRequiredMixin, ListView):
                         screening__screening_date__range=[start_date, end_date]
                     )
                 sub2_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[2, 3, 4, 5, 6]).count())
+                    int(lab_qs.filter(substudy_q(SUBSTUDY_2, "")).count())
                 )
                 sub4_values.append(
-                    int(lab_qs.filter(xpert_mtb__in=[1, 7, 8, 9]).count())
+                    int(lab_qs.filter(substudy_q(SUBSTUDY_4, "")).count())
                 )
                 sub_labels.append(zone.name)
 

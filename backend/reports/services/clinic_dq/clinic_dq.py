@@ -3,6 +3,7 @@
 from django.apps import apps
 from django.db.models import Q
 from utils.permissions import filter_queryset_by_user_role
+from nanopore.substudy import XPERT_DETECTED, XPERT_ERROR, XPERT_NOT_DETECTED
 
 
 def get_clinic_queryset(user, zone_id=None, site_id=None):
@@ -105,8 +106,8 @@ def get_clinic_dq(qs):
     xpert_yes_q = Q(xpert_mtb_rif_conducted__name__iexact="yes")
 
     # EXPERT MTB
-    xpert_in_2_6_q = Q(xpert_mtb__value__in=[2,3,4,5,6]) | Q(xpert_mtb__name__in=["2","3","4","5","6"])
-    xpert_is_8_q = Q(xpert_mtb__value=8) | Q(xpert_mtb__name__iexact="8")
+    xpert_in_2_6_q = Q(xpert_mtb__in=XPERT_DETECTED)
+    xpert_is_8_q = Q(xpert_mtb=XPERT_ERROR)
     
     # xpert_mtb_rif_conducted = 2 → fields (xpert_date,xpert_mtb) must be EMPTY
     xpert_mtb_rif_conducted_2_q = (
@@ -123,15 +124,12 @@ def get_clinic_dq(qs):
         )
     )
 
-    # xpert_mtb = 1,7,8,9 → fields (tb_regimen_other) must be EMPTY
-    xpert_mtb_condition_q = (
-        Q(xpert_mtb__in=[1,7,8,9]) |
-        Q(xpert_mtb__value__in=[1,7,8,9]) |
-        Q(xpert_mtb__name__in=["1","7","8","9"])
-    )
-    
+    # MTB not detected / invalid / error / no result → RIF and Ct must be EMPTY,
+    # and the error code too unless the result is "error" (which needs one).
+    xpert_mtb_condition_q = Q(xpert_mtb__in=XPERT_NOT_DETECTED)
+
     case_invalid_xpert_mtb_q = (
-        is_filled_non_char("error_code") |
+        (is_filled_non_char("error_code") & ~Q(xpert_mtb=XPERT_ERROR)) |
         is_filled_non_char("xpert_rif") |
         is_filled_non_char("ct_value") |
         is_true("ct_na")

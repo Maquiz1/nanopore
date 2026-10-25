@@ -7,6 +7,7 @@ from django.db.models import Q
 
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
+from nanopore.substudy import XPERT_DETECTED, XPERT_ERROR
 
 
 class ClinicDataQualityReportView(View):
@@ -185,8 +186,8 @@ class ClinicDataQualityReportView(View):
         missing_xpert_date_qs = clinics.filter(xpert_yes_q, xpert_date__isnull=True)
         missing_xpert_mtb_qs = clinics.filter(xpert_yes_q, xpert_mtb__isnull=True)
 
-        xpert_in_2_6_q = Q(xpert_mtb__value__in=[2, 3, 4, 5, 6]) | Q(xpert_mtb__name__in=["2", "3", "4", "5", "6"])
-        xpert_is_8_q = Q(xpert_mtb__value=8) | Q(xpert_mtb__name__iexact="8")
+        xpert_in_2_6_q = Q(xpert_mtb__in=XPERT_DETECTED)
+        xpert_is_8_q = Q(xpert_mtb=XPERT_ERROR)
 
         missing_error_code_qs = clinics.filter(xpert_is_8_q, error_code__isnull=True)
         missing_xpert_rif_qs = clinics.filter(xpert_in_2_6_q, xpert_rif__isnull=True)

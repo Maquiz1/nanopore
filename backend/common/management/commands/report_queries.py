@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from nanopore.models import Screening
 
 from django.db.models import Q
+from nanopore.substudy import SUBSTUDY_2, SUBSTUDY_4, substudy_q
 
 class Command(BaseCommand):
     help = "Generate Excel reports for substudy2 and substudy4 without culture results"
@@ -20,16 +21,10 @@ class Command(BaseCommand):
             Q(tblis_laboratory__culture_performed__name__exact='')
         )
         
-        # Substudy 2: xpert_mtb in [2, 3, 4, 5, 6]
-        # XpertMTB is a ForeignKey, checking IDs
-        substudy2_qs = base_qs.filter(
-            clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6]
-        )
+        # Substudy 2 / 4: see nanopore.substudy
+        substudy2_qs = base_qs.filter(substudy_q(SUBSTUDY_2))
         
-        # Substudy 4: xpert_mtb NOT in [2, 3, 4, 5, 6]
-        substudy4_qs = base_qs.exclude(
-            clinic_laboratory__xpert_mtb_id__in=[2, 3, 4, 5, 6]
-        )
+        substudy4_qs = base_qs.filter(substudy_q(SUBSTUDY_4))
         
         # Helper to export qs to excel
         def export_to_excel(qs, filename):

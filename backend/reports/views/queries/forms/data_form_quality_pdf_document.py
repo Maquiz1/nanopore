@@ -1,3 +1,4 @@
+from nanopore.substudy import SUBSTUDY_2, substudy_q
 from utils import access
 from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
@@ -79,8 +80,7 @@ class DreamFundQueriesPDFView(AnyFormAccessMixin, View):
         if is_zonal_lab or is_admin or is_superuser or is_reviewer:
             context["enrolled_substudy2_missing_zonal_lab"] = [
                 serialize_screening(s) for s in screenings.filter(
-                    clinic_laboratory__xpert_mtb_rif_conducted=1,
-                    clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
+                    substudy_q(SUBSTUDY_2),
                     zonal_laboratory__isnull=True
                 )
             ]

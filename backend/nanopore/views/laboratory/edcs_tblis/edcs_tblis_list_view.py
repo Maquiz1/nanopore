@@ -1,6 +1,6 @@
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Min, Max
+from django.db.models import F, Max, Min
 from django.utils import timezone
 from locations.models import Zone, Site
 from nanopore.models import (
@@ -11,10 +11,14 @@ from nanopore.models import (
     ZonalLaboratory,
 )
 from utils.permissions import filter_queryset_by_user_role
+from nanopore.substudy import SUBSTUDIES, SUBSTUDY_2, SUBSTUDY_4, UNCATEGORIZED, substudy_case
 from utils import access
 from utils.access import is_unscoped
 from utils.access_mixins import FormAccessMixin
 from utils.roles import get_role_context
+
+
+TO_CLINIC_LAB = "screening__clinic_laboratory__"  # Zonal Lab / EDCS -> Clinic Lab (nanopore/substudy.py)
 
 
 class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
@@ -77,18 +81,19 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
                 "culture_performed",
             )
             qs = filter_queryset_by_user_role(self.request.user, qs, site_field="screening__site")
+            qs = qs.annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
             if card_type == "ctrl":
                 qs = qs.filter(prefix_q)
             elif card_type.startswith("other_zones"):
                 qs = qs.exclude(prefix_q)
                 if card_type == "other_zones_substudy2":
-                    qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6])
+                    qs = qs.filter(substudy_group=SUBSTUDY_2)
                 elif card_type == "other_zones_substudy4":
-                    qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9])
+                    qs = qs.filter(substudy_group=SUBSTUDY_4)
                 elif card_type == "other_zones_missing_culture":
                     qs = qs.filter(culture_performed__isnull=True)
                 elif card_type == "other_zones_uncategorized":
-                    qs = qs.exclude(screening__clinic_laboratory__xpert_mtb__in=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+                    qs = qs.filter(substudy_group=UNCATEGORIZED)
             return qs.order_by(
                 "screening__site__district__region__zone__name",
                 "screening__site__name",
@@ -104,6 +109,7 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
             "culture_performed",
         )
         qs = filter_queryset_by_user_role(self.request.user, qs, site_field="screening__site")
+        qs = qs.annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
 
         # Latest upload batch labnos for merged / not in TBLIS logic
         latest_batch = self._get_latest_batch()
@@ -115,41 +121,36 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
             # Default view: show only records merged from the latest upload batch
             qs = qs.filter(unique_lab_no__in=merged_lab_numbers)
 
-        ss2_xpert = [2, 3, 4, 5, 6]
-        ss4_xpert = [1, 7, 8, 9]
-
         if card_type == "missing_culture":
             qs = qs.filter(culture_performed__isnull=True)
         elif card_type == "merged_uncategorized":
-            qs = qs.filter(prefix_q, unique_lab_no__in=merged_lab_numbers).exclude(
-                screening__clinic_laboratory__xpert_mtb__in=ss2_xpert + ss4_xpert
-            )
+            qs = qs.filter(prefix_q, unique_lab_no__in=merged_lab_numbers).filter(substudy_group=UNCATEGORIZED)
         elif card_type == "merged":
             qs = qs.filter(prefix_q, unique_lab_no__in=merged_lab_numbers)
         elif card_type == "merged_substudy2":
             qs = qs.filter(
                 prefix_q,
                 unique_lab_no__in=merged_lab_numbers,
-                screening__clinic_laboratory__xpert_mtb__in=ss2_xpert
+                substudy_group=SUBSTUDY_2
             )
         elif card_type == "merged_missing_culture_substudy2":
             qs = qs.filter(
                 prefix_q,
                 unique_lab_no__in=merged_lab_numbers,
-                screening__clinic_laboratory__xpert_mtb__in=ss2_xpert,
+                substudy_group=SUBSTUDY_2,
                 culture_performed__isnull=True
             )
         elif card_type == "merged_substudy4":
             qs = qs.filter(
                 prefix_q,
                 unique_lab_no__in=merged_lab_numbers,
-                screening__clinic_laboratory__xpert_mtb__in=ss4_xpert
+                substudy_group=SUBSTUDY_4
             )
         elif card_type == "merged_missing_culture_substudy4":
             qs = qs.filter(
                 prefix_q,
                 unique_lab_no__in=merged_lab_numbers,
-                screening__clinic_laboratory__xpert_mtb__in=ss4_xpert,
+                substudy_group=SUBSTUDY_4,
                 culture_performed__isnull=True
             )
         elif card_type == "merged_missing_culture_uncategorized":
@@ -157,33 +158,29 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
                 prefix_q,
                 unique_lab_no__in=merged_lab_numbers,
                 culture_performed__isnull=True
-            ).exclude(
-                screening__clinic_laboratory__xpert_mtb__in=ss2_xpert + ss4_xpert
-            )
+            ).filter(substudy_group=UNCATEGORIZED)
         elif card_type == "edcs_not_in_tblis":
             qs = qs.filter(prefix_q).exclude(unique_lab_no__in=tblis_lab_numbers)
         elif card_type == "edcs_not_in_tblis_substudy2":
-            qs = qs.filter(prefix_q, screening__clinic_laboratory__xpert_mtb__in=ss2_xpert).exclude(
+            qs = qs.filter(prefix_q, substudy_group=SUBSTUDY_2).exclude(
                 unique_lab_no__in=tblis_lab_numbers
             )
         elif card_type == "missing_culture_substudy2":
             qs = qs.filter(
-                screening__clinic_laboratory__xpert_mtb__in=ss2_xpert,
+                substudy_group=SUBSTUDY_2,
                 culture_performed__isnull=True
             )
         elif card_type == "edcs_not_in_tblis_substudy4":
-            qs = qs.filter(prefix_q, screening__clinic_laboratory__xpert_mtb__in=ss4_xpert).exclude(
+            qs = qs.filter(prefix_q, substudy_group=SUBSTUDY_4).exclude(
                 unique_lab_no__in=tblis_lab_numbers
             )
         elif card_type == "missing_culture_substudy4":
             qs = qs.filter(
-                screening__clinic_laboratory__xpert_mtb__in=ss4_xpert,
+                substudy_group=SUBSTUDY_4,
                 culture_performed__isnull=True
             )
         elif card_type == "edcs_not_in_tblis_uncategorized":
-            qs = qs.filter(prefix_q).exclude(unique_lab_no__in=tblis_lab_numbers).exclude(
-                screening__clinic_laboratory__xpert_mtb__in=ss2_xpert + ss4_xpert
-            )
+            qs = qs.filter(prefix_q).exclude(unique_lab_no__in=tblis_lab_numbers).filter(substudy_group=UNCATEGORIZED)
 
         # Filters from form / params
         zone_id = self.request.GET.get("zone")
@@ -200,10 +197,8 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
         if unique_lab_no:
             qs = qs.filter(unique_lab_no__icontains=unique_lab_no)
         if substudy:
-            if substudy == 'Substudy 2':
-                qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=ss2_xpert)
-            elif substudy == 'Substudy 4':
-                qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=ss4_xpert)
+            if substudy in SUBSTUDIES:
+                qs = qs.filter(substudy_group=substudy)
         # Sort: zone → site → pid
         qs = qs.order_by(
             "screening__site__district__region__zone__name",
@@ -219,8 +214,8 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
         context["active_card_type"] = active_card
         context.update(get_role_context(self.request.user))
         context["request"] = self.request
-        zonal_labs = self.scope(ZonalLaboratory.objects.all())
-        edcs_labs = self.scope(EdcsTblisZonal.objects.all())
+        zonal_labs = self.scope(ZonalLaboratory.objects.all()).annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
+        edcs_labs = self.scope(EdcsTblisZonal.objects.all()).annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
 
         # Upload stats
         total_edcs_records = zonal_labs.count()
@@ -236,9 +231,9 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
             _other_q |= _Q(screening__pid__startswith=_p)
         other_qs = zonal_labs.exclude(_other_q)
         total_other_zonal_records = other_qs.count()
-        other_zonal_substudy2 = other_qs.filter(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6]).count()
-        other_zonal_substudy4 = other_qs.filter(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9]).count()
-        other_zonal_uncategorized = other_qs.exclude(screening__clinic_laboratory__xpert_mtb__in=[1,2,3,4,5,6,7,8,9]).count()
+        other_zonal_substudy2 = other_qs.filter(substudy_group=SUBSTUDY_2).count()
+        other_zonal_substudy4 = other_qs.filter(substudy_group=SUBSTUDY_4).count()
+        other_zonal_uncategorized = other_qs.filter(substudy_group=UNCATEGORIZED).count()
         other_zonal_missing_culture = other_qs.filter(culture_performed__isnull=True).count()
 
         other_zonal_percentages = {
@@ -280,12 +275,7 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
         # Breakdown by substudy for EDCS Not in TBLIS
         from django.db.models import Case, When, CharField, Count, Value
         substudy_breakdown_qs = total_edcs_not_in_tblis_qs.annotate(
-            substudy=Case(
-                When(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6], then=Value('Substudy 2')),
-                When(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9], then=Value('Substudy 4')),
-                default=Value('Uncategorized'),
-                output_field=CharField(),
-            )
+            substudy=F("substudy_group")
         ).values('substudy').annotate(cnt=Count('id'))
 
         # Breakdown by substudy for Total EDCS CTRL Merged Records
@@ -293,12 +283,7 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
         if not is_unscoped(self.request.user):
             total_merged_records = merged_qs.count()
         merged_substudy_breakdown_qs = merged_qs.annotate(
-            substudy=Case(
-                When(screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6], then=Value('Substudy 2')),
-                When(screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9], then=Value('Substudy 4')),
-                default=Value('Uncategorized'),
-                output_field=CharField(),
-            )
+            substudy=F("substudy_group")
         ).values('substudy').annotate(cnt=Count('id'))
 
         # Convert to dict with space‑free keys for template access
@@ -341,32 +326,28 @@ class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
             )
 
         merged_missing_culture_substudy2 = edcs_labs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
+            substudy_group=SUBSTUDY_2,
             culture_performed__isnull=True
         ).count()
         merged_missing_culture_substudy4 = edcs_labs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9],
+            substudy_group=SUBSTUDY_4,
             culture_performed__isnull=True
         ).count()
         merged_missing_culture_uncategorized = edcs_labs.filter(
             culture_performed__isnull=True
-        ).exclude(
-            screening__clinic_laboratory__xpert_mtb__in=[1,2,3,4,5,6,7,8,9]
-        ).count()
+        ).filter(substudy_group=UNCATEGORIZED).count()
 
         missing_culture_substudy2 = edcs_labs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=[2,3,4,5,6],
+            substudy_group=SUBSTUDY_2,
             culture_performed__isnull=True
         ).count()
         missing_culture_substudy4 = edcs_labs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=[1,7,8,9],
+            substudy_group=SUBSTUDY_4,
             culture_performed__isnull=True
         ).count()
         missing_culture_uncategorized = edcs_labs.filter(
             culture_performed__isnull=True
-        ).exclude(
-            screening__clinic_laboratory__xpert_mtb__in=[1,2,3,4,5,6,7,8,9]
-        ).count()
+        ).filter(substudy_group=UNCATEGORIZED).count()
         total_missing_culture_performed = edcs_labs.filter(
             culture_performed__isnull=True
         ).count()

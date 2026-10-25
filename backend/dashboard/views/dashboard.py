@@ -1,3 +1,4 @@
+from nanopore.substudy import OUTCOMES, SUBSTUDY_2, SUBSTUDY_4, substudy_q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Count, Q, F, IntegerField, ExpressionWrapper, Sum
@@ -117,11 +118,11 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
             enrolled_count=Count("id"),
             substudy2_count=Count(
                 "id",
-                filter=Q(screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]),
+                filter=substudy_q(SUBSTUDY_2, "screening__clinic_laboratory__"),
             ),
             substudy4_count=Count(
                 "id",
-                filter=Q(screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]),
+                filter=substudy_q(SUBSTUDY_4, "screening__clinic_laboratory__"),
             ),
         )
         enrolled_count       = enrolled_counts["enrolled_count"]
@@ -160,7 +161,7 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         # ==================================================
         diagnosis_outcome_count = Diagnosis.objects.filter(
             screening__in=qs,
-            screening__diagnosis__tb_outcome2__in=[1, 2, 3, 4, 5],
+            screening__diagnosis__tb_outcome2__in=OUTCOMES,
         ).count()
 
         diagnosis_outcome_progress = round(
@@ -386,12 +387,8 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         # ==================================================
         # SUBSTUDY 2 + 4 (ENROLLED ONLY)
         # ==================================================
-        substudy2_enrolled_qs = enrolled_qs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6]
-        )
-        substudy4_enrolled_qs = enrolled_qs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]
-        )
+        substudy2_enrolled_qs = enrolled_qs.filter(substudy_q(SUBSTUDY_2, "screening__clinic_laboratory__"))
+        substudy4_enrolled_qs = enrolled_qs.filter(substudy_q(SUBSTUDY_4, "screening__clinic_laboratory__"))
 
         substudy2_enrolled_count = substudy2_enrolled_qs.count()
         substudy4_enrolled_count = substudy4_enrolled_qs.count()
@@ -409,8 +406,12 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         diagnosis_qs = Diagnosis.objects.filter(screening__in=qs)
         # diagnosis_count = diagnosis_qs.count()
         
+        # Substudy 2 outcomes are compared with the Substudy 2 enrolled count, so
+        # only Substudy 2 enrolled participants count (Substudy 4 outcomes used to be
+        # included, pushing the progress above 100%).
         diagnosis_outcome_qs = diagnosis_qs.filter(
-            screening__diagnosis__tb_outcome2__in=[1,2, 3, 4, 5]
+            tb_outcome2__in=OUTCOMES,
+            screening__enrollment__in=substudy2_enrolled_qs,
         )
 
         diagnosis_outcome_count = diagnosis_outcome_qs.count()

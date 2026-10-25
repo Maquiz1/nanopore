@@ -1,0 +1,5 @@
+<div class="qt-kpi">
+    <div class="qt-kpi-label">{{ label }}</div>
+    <div class="qt-kpi-value">{% include "snapshots/_delta.html" with value=value %}</div>
+    <div class="qt-kpi-sub">{% if day %}compared with {{ day|date:"d M" }}{% else %}not enough counts yet{% endif %}</div>
+</div>

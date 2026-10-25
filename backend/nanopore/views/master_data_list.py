@@ -1,3 +1,4 @@
+from nanopore.substudy import substudy_case
 from django.views.generic import ListView
 from utils import access
 from utils.access import assigned_locations, legacy_role_flags, scope_queryset
@@ -29,25 +30,7 @@ class MasterDataListView(AnyFormAccessMixin, ListView):
         ).prefetch_related("regimen_changes")
 
         qs = qs.annotate(
-            substudy_case=Case(
-                When(
-                    clinic_laboratory__xpert_mtb_rif_conducted=1,
-                    clinic_laboratory__xpert_mtb__in=[2, 3, 4, 5, 6],
-                    then=Value("Substudy 2")
-                ),
-                When(
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__in=[1, 7, 8, 9]) |
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=2),
-                    then=Value("Substudy 4")
-                ),
-                When(
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted=1, clinic_laboratory__xpert_mtb__isnull=True) |
-                    Q(clinic_laboratory__xpert_mtb_rif_conducted__isnull=True),
-                    then=Value("Uncategorized")
-                ),
-                default=Value("Uncategorized"),
-                output_field=CharField(),
-            ),
+            substudy_case=substudy_case(),  # one definition: nanopore/substudy.py
             has_tblis_raw=Exists(
                 TblisRawData.objects.filter(labno=OuterRef('zonal_laboratory__unique_lab_no'))
             )

@@ -65,7 +65,7 @@
         </div>
 
         <!-- ── Data quality ─────────────────────────────────── -->
-        {% if context_total_issues or access.is_admin or access.snapshots %}
+        {% if context_total_issues or access.is_admin or access.snapshots or context_substudy_queries_visible %}
         <div class="sb-section">Data quality</div>
         {% endif %}
 
@@ -138,8 +138,16 @@
                     <span class="sb-badge sb-badge-sm">{{ context_edcs_tblis_report_total|intcomma }}</span></a>
                 {% endif %}
                 {% endif %}
+
             </div>
         </div>
+        {% endif %}
+
+        {% if context_substudy_queries_visible %}
+        <a href="{% url 'reports:substudy_queries' %}" class="sb-link" title="Substudy queries">
+            <i class="fas fa-code-compare"></i><span>Substudy queries</span>
+            {% if context_substudy_queries_total %}<span class="sb-badge sb-badge-sm">{{ context_substudy_queries_total|intcomma }}</span>{% endif %}
+        </a>
         {% endif %}
 
         {% if access.is_admin %}
@@ -157,21 +165,14 @@
         {% endif %}
 
         {% if access.snapshots %}
-        <div class="sb-group">
-            <button type="button" class="sb-link sb-toggle" title="Snapshots">
-                <i class="fas fa-camera-retro"></i><span>Snapshots</span><i class="fas fa-chevron-right sb-chevron"></i>
-            </button>
-            <div class="sb-submenu">
-                <a href="{% url 'reports:form-specific-snapshots' %}"><span>Specific forms</span></a>
-                <a href="{% url 'reports:missing_forms_dashboard' %}"><span>Missing forms dashboard</span></a>
-                <a href="{% url 'reports:missing-forms-trends' %}"><span>Missing forms trends</span></a>
-            </div>
-        </div>
+        <a href="{% url 'reports:query_trends' %}" class="sb-link" title="Query trends">
+            <i class="fas fa-chart-line"></i><span>Query trends</span>
+        </a>
         {% endif %}
 
-        <!-- ── Reports & data ───────────────────────────────── -->
-        <div class="sb-section">Reports &amp; data</div>
+        <!-- ── Reports ──────────────────────────────────────── -->
         {% if access.reports %}
+        <div class="sb-section">Reports</div>
         <div class="sb-group">
             <button type="button" class="sb-link sb-toggle" title="Reports">
                 <i class="fas fa-chart-pie"></i><span>Reports</span><i class="fas fa-chevron-right sb-chevron"></i>
@@ -185,6 +186,9 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- ── Export ───────────────────────────────────────── -->
+        <div class="sb-section">Export</div>
         {% if access.exports %}
         <div class="sb-group">
             <button type="button" class="sb-link sb-toggle" title="Codebook & Export">
@@ -200,7 +204,10 @@
             <i class="fas fa-book"></i><span>Codebook</span>
         </a>
         {% endif %}
+
+        <!-- ── Uploads ──────────────────────────────────────── -->
         {% if access.tblis_upload %}
+        <div class="sb-section">Uploads</div>
         <div class="sb-group">
             <button type="button" class="sb-link sb-toggle" title="Uploads">
                 <i class="fas fa-cloud-arrow-up"></i><span>Uploads</span><i class="fas fa-chevron-right sb-chevron"></i>
@@ -381,7 +388,7 @@
         white-space: nowrap;
         transition: background 0.15s ease, color 0.15s ease;
     }
-    #sidebar .sb-link > i:first-child { width: 20px; text-align: center; font-size: 0.98rem; opacity: 0.9; }
+    #sidebar .sb-link > i:first-child { width: 20px; margin-right: 0; text-align: center; font-size: 0.98rem; opacity: 0.9; }
     #sidebar .sb-link > span:not(.sb-badge) { flex: 1; overflow: hidden; text-overflow: ellipsis; }
     #sidebar .sb-link:hover { background: var(--sb-hover); color: #fff; }
     #sidebar .sb-link.active {

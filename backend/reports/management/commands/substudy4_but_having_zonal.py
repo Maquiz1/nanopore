@@ -1,3 +1,4 @@
+from nanopore.substudy import SUBSTUDY_4, substudy_of
 from django.core.management.base import BaseCommand
 from django.apps import apps
 from django.utils import timezone
@@ -31,9 +32,8 @@ class Command(BaseCommand):
             xpert_mtb_id = getattr(getattr(clinic, "xpert_mtb", None), "id", None)
             rif_id = getattr(getattr(clinic, "xpert_mtb_rif_conducted", None), "id", None)
 
-            # --- CONDITION WHERE ZONAL SHOULD NOT EXIST ---
-            condition_met = xpert_mtb_id in [1, 7, 8, 9] or rif_id == 2
-            if not condition_met:
+            # --- CONDITION WHERE ZONAL SHOULD NOT EXIST: Substudy 4 ---
+            if substudy_of(clinic) != SUBSTUDY_4:
                 continue
 
             # --- Check if zonal laboratory exists (the actual problem) ---

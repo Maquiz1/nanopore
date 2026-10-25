@@ -18,6 +18,8 @@ from django.conf import settings
 from django.apps import apps
 from django.db.models import Q
 
+from nanopore.substudy import SUBSTUDY_2, SUBSTUDY_4, UNCATEGORIZED, substudy_q
+
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,8 +47,8 @@ CTRL_PREFIXES = [
     "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19",
 ]
 
-SS2_XPERT = [2, 3, 4, 5, 6]
-SS4_XPERT = [1, 7, 8, 9]
+# Lookup path from Zonal Lab / EDCS rows to the Clinic Lab (see nanopore.substudy).
+TO_CLINIC_LAB = "screening__clinic_laboratory__"
 
 
 def _ctrl_prefix_q():
@@ -92,13 +94,13 @@ def _build_edcs_qs(filters):
         qs = qs.exclude(_ctrl_prefix_q())
 
     elif card_type == "other_zones_substudy2":
-        qs = qs.exclude(_ctrl_prefix_q()).filter(screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT)
+        qs = qs.exclude(_ctrl_prefix_q()).filter(substudy_q(SUBSTUDY_2, TO_CLINIC_LAB))
 
     elif card_type == "other_zones_substudy4":
-        qs = qs.exclude(_ctrl_prefix_q()).filter(screening__clinic_laboratory__xpert_mtb__in=SS4_XPERT)
+        qs = qs.exclude(_ctrl_prefix_q()).filter(substudy_q(SUBSTUDY_4, TO_CLINIC_LAB))
 
     elif card_type == "other_zones_uncategorized":
-        qs = qs.exclude(_ctrl_prefix_q()).exclude(screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT + SS4_XPERT)
+        qs = qs.exclude(_ctrl_prefix_q()).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
 
     elif card_type == "other_zones_missing_culture":
         qs = qs.exclude(_ctrl_prefix_q()).filter(culture_performed__isnull=True)
@@ -130,9 +132,9 @@ def _build_edcs_qs(filters):
             upload_batch=latest_batch, is_merged=True
         ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
         qs = qs.filter(
+            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
             _ctrl_prefix_q(),
             unique_lab_no__in=merged_labnos,
-            screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT,
         )
 
     elif card_type == "merged_substudy4":
@@ -143,9 +145,9 @@ def _build_edcs_qs(filters):
             upload_batch=latest_batch, is_merged=True
         ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
         qs = qs.filter(
+            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
             _ctrl_prefix_q(),
             unique_lab_no__in=merged_labnos,
-            screening__clinic_laboratory__xpert_mtb__in=SS4_XPERT,
         )
 
     elif card_type == "merged_uncategorized":
@@ -158,9 +160,7 @@ def _build_edcs_qs(filters):
         qs = qs.filter(
             _ctrl_prefix_q(),
             unique_lab_no__in=merged_labnos,
-        ).exclude(
-            screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT + SS4_XPERT
-        )
+        ).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
 
     elif card_type == "merged_missing_culture_substudy2":
         TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
@@ -170,9 +170,9 @@ def _build_edcs_qs(filters):
             upload_batch=latest_batch, is_merged=True
         ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
         qs = qs.filter(
+            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
             _ctrl_prefix_q(),
             unique_lab_no__in=merged_labnos,
-            screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT,
             culture_performed__isnull=True,
         )
 
@@ -184,9 +184,9 @@ def _build_edcs_qs(filters):
             upload_batch=latest_batch, is_merged=True
         ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
         qs = qs.filter(
+            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
             _ctrl_prefix_q(),
             unique_lab_no__in=merged_labnos,
-            screening__clinic_laboratory__xpert_mtb__in=SS4_XPERT,
             culture_performed__isnull=True,
         )
 
@@ -201,9 +201,7 @@ def _build_edcs_qs(filters):
             _ctrl_prefix_q(),
             unique_lab_no__in=merged_labnos,
             culture_performed__isnull=True,
-        ).exclude(
-            screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT + SS4_XPERT
-        )
+        ).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
 
     elif card_type == "edcs_not_in_tblis_substudy2":
         TblisUploadBatch = apps.get_model("nanopore", "TblisUploadBatch")
@@ -213,8 +211,8 @@ def _build_edcs_qs(filters):
             upload_batch=latest_batch
         ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
         qs = qs.filter(
+            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
             _ctrl_prefix_q(),
-            screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT,
         ).exclude(unique_lab_no__in=tblis_labnos)
 
     elif card_type == "edcs_not_in_tblis_substudy4":
@@ -225,8 +223,8 @@ def _build_edcs_qs(filters):
             upload_batch=latest_batch
         ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
         qs = qs.filter(
+            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
             _ctrl_prefix_q(),
-            screening__clinic_laboratory__xpert_mtb__in=SS4_XPERT,
         ).exclude(unique_lab_no__in=tblis_labnos)
 
     elif card_type == "edcs_not_in_tblis_uncategorized":
@@ -238,19 +236,17 @@ def _build_edcs_qs(filters):
         ).values("labno") if latest_batch else TblisRawData.objects.none().values("labno")
         qs = qs.filter(_ctrl_prefix_q()).exclude(
             unique_lab_no__in=tblis_labnos
-        ).exclude(
-            screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT + SS4_XPERT
-        )
+        ).filter(substudy_q(UNCATEGORIZED, TO_CLINIC_LAB))
 
     elif card_type == "missing_culture_substudy2":
         qs = qs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT,
+            substudy_q(SUBSTUDY_2, TO_CLINIC_LAB),
             culture_performed__isnull=True,
         )
 
     elif card_type == "missing_culture_substudy4":
         qs = qs.filter(
-            screening__clinic_laboratory__xpert_mtb__in=SS4_XPERT,
+            substudy_q(SUBSTUDY_4, TO_CLINIC_LAB),
             culture_performed__isnull=True,
         )
 
@@ -283,10 +279,10 @@ def _build_edcs_qs(filters):
         qs = qs.filter(screening__site_id=site_id)
     if pid:
         qs = qs.filter(screening__pid__icontains=pid)
-    if substudy == "Substudy 2":
-        qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=SS2_XPERT)
-    elif substudy == "Substudy 4":
-        qs = qs.filter(screening__clinic_laboratory__xpert_mtb__in=SS4_XPERT)
+    if substudy == SUBSTUDY_2:
+        qs = qs.filter(substudy_q(SUBSTUDY_2, TO_CLINIC_LAB))
+    elif substudy == SUBSTUDY_4:
+        qs = qs.filter(substudy_q(SUBSTUDY_4, TO_CLINIC_LAB))
 
     # Always sort by zone → site → pid
     qs = qs.order_by(
