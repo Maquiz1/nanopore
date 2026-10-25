@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}Dream Fund - Nanopore Sequencing{% endblock %}</title>
 
     <!-- Bootstrap CSS -->
@@ -23,6 +24,7 @@
     <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
 
     {% include "partials/sidebar.html" %}
+    <div class="sb-backdrop" onclick="toggleSidebar()"></div>
 
     <div class="main">
 
@@ -48,9 +50,14 @@
 
     <!-- Sidebar Toggle -->
     <script>
+        // Desktop: collapse to icons. Phones/tablets: slide the sidebar in over the page.
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
+            if (window.matchMedia('(max-width: 991.98px)').matches) {
+                document.body.classList.toggle('sb-open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
         }
     </script>
 

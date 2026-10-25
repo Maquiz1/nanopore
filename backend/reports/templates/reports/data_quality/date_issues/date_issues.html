@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Date issues · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="dq">
+
+    <section class="dq-hero">
+        <div class="dq-eyebrow">Data quality</div>
+        <h1 class="dq-title">Date issues</h1>
+        <div class="dq-meta">Dates that are impossible inside a form, or that conflict with a date on another form of the same participant.
+            {{ total|intcomma }} to fix.</div>
+    </section>
+
+    <form method="get" class="dq-filters">
+        <div>
+            <label class="form-label">Zone</label>
+            <select name="zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}
+                <option value="{{ id }}" {% if selected_zone == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Site</label>
+            <select name="site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if selected_site == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="dq-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{% url 'reports:date_issues' selected.key %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+
+    <div class="di-layout">
+        <!-- Checks, grouped by form -->
+        <nav class="di-checks" id="di-checks" aria-label="Date checks">
+            <button type="button" class="di-toggle" onclick="this.parentElement.classList.toggle('show-all'); this.textContent = this.parentElement.classList.contains('show-all') ? 'Hide checks with no issues' : 'Show all checks';">Show all checks</button>
+            {% for group in groups %}
+            <details class="di-group" {% if group.label == selected_form_label or group.total %}open{% endif %}>
+                <summary>
+                    <span>{{ group.label }}</span>
+                    <span class="di-count {% if not group.total %}zero{% endif %}">{{ group.total|intcomma }}</span>
+                </summary>
+                {% for check, count in group.checks %}
+                <a href="{% url 'reports:date_issues' check.key %}{% if filter_query %}?{{ filter_query }}{% endif %}"
+                   class="di-check {% if check.key == selected.key %}active{% endif %} {% if not count %}is-zero{% endif %}">
+                    <span>{{ check.label }}{% if check.between_forms %} <i class="fas fa-link di-between" title="Compares two forms"></i>{% endif %}</span>
+                    <span class="di-count {% if not count %}zero{% endif %}">{{ count|intcomma }}</span>
+                </a>
+                {% endfor %}
+            </details>
+            {% endfor %}
+        </nav>
+
+        <!-- Records failing the selected check -->
+        <div class="dq-card">
+            <div class="dq-card-head">
+                <h2>{{ selected_form_label }}: {{ selected.label }}</h2>
+                <span class="dq-muted">{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}</span>
+            </div>
+            <p class="dq-muted mt-1 mb-3">
+                {% if selected.fields %}Dates outside today and the study start; correct the date on the form.
+                {% elif selected.between_forms %}<span class="dq-pill">Between forms</span> One of the two dates is wrong; open either form to correct it.
+                {% else %}<span class="dq-pill">Within the form</span> Correct one of the two dates on the form.{% endif %}
+            </p>
+
+            {% if rows %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle dq-table dq-stack">
+                    <thead>
+                        <tr><th>PID</th><th>Site</th><th>Dates</th><th class="text-end">Fix</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <td class="fw-semibold dq-nowrap">{{ row.screening.pid }}</td>
+                            <td class="dq-nowrap">{{ row.screening.site.name }}</td>
+                            <td>
+                                {% for label, value in row.dates %}
+                                <div class="di-date"><span class="dq-muted">{{ label }}</span> <strong>{{ value|date:"d M Y"|default:value }}</strong></div>
+                                {% endfor %}
+                            </td>
+                            <td class="dq-actions">
+                                {% for link in row.links %}
+                                <a class="btn btn-sm {% if link.edit %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}"
+                                   href="{% url link.url_name link.pk %}">{% if link.edit %}<i class="fas fa-pen"></i> {% endif %}{{ link.label }}</a>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if page_obj.has_other_pages %}
+            <nav class="dq-pager">
+                <span class="dq-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                <div class="btn-group">
+                    {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}">‹ Previous</a>{% endif %}
+                    {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.next_page_number }}">Next ›</a>{% endif %}
+                </div>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="dq-empty"><i class="fas fa-circle-check"></i> No date issues here.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% include "reports/data_quality/date_issues/_styles.html" %}
+<style>
+    .di-layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 14px; align-items: start; }
+    .di-checks { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 6px; }
+    .di-group summary {
+        display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; cursor: pointer;
+        font-weight: 700; font-size: .9rem; list-style: none; border-radius: 8px;
+    }
+    .di-group summary::-webkit-details-marker { display: none; }
+    .di-group summary:hover { background: #f4f7fb; }
+    .di-check {
+        display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px 6px 18px;
+        border-radius: 8px; font-size: .83rem; color: var(--ink-2); text-decoration: none;
+    }
+    .di-check:hover { background: #f4f7fb; color: var(--ink); }
+    .di-check.active { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+    .di-check.is-zero { color: var(--muted); }
+    .di-checks:not(.show-all) .di-check.is-zero:not(.active) { display: none; }
+    .di-toggle { width: 100%; margin-bottom: 4px; padding: 6px 10px; border: 0; border-radius: 8px; background: #f4f7fb; color: var(--accent); font-size: .8rem; text-align: left; }
+    .di-toggle:hover { background: var(--accent-soft); }
+    .di-between { font-size: .7rem; color: var(--accent); }
+    .di-count { min-width: 30px; text-align: right; font-weight: 700; color: var(--warn); font-variant-numeric: tabular-nums; }
+    .di-count.zero { color: var(--good); font-weight: 500; }
+    .di-date { white-space: nowrap; line-height: 1.5; }
+    @media (max-width: 991.98px) {
+        .di-layout { grid-template-columns: 1fr; }
+        .di-checks { position: static; max-height: 360px; }
+    }
+</style>
+{% endblock %}

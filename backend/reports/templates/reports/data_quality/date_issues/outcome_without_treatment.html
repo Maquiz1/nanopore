@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Outcome without treatment · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="dq">
+
+    <section class="dq-hero">
+        <div class="dq-eyebrow">Data quality</div>
+        <h1 class="dq-title">Outcome without treatment</h1>
+        <div class="dq-meta">Participants with a treatment outcome whose Diagnosis form says treatment was not started, was referred elsewhere, or leaves it blank.
+            Record the treatment start or correct the outcome; for referred participants, confirm the outcome with the facility they went to.</div>
+    </section>
+
+    <form method="get" class="dq-filters">
+        {% if selected_substudy %}<input type="hidden" name="substudy" value="{{ selected_substudy }}">{% endif %}
+        <div>
+            <label class="form-label">Zone</label>
+            <select name="zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}
+                <option value="{{ id }}" {% if selected_zone == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Site</label>
+            <select name="site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}
+                <option value="{{ id }}" {% if selected_site == id %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="dq-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{% url 'reports:outcome_without_treatment' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+
+    <nav class="dq-tabs">
+        <a href="?{% if selected_zone %}zone={{ selected_zone }}&{% endif %}{% if selected_site %}site={{ selected_site }}{% endif %}"
+           class="dq-tab {% if not selected_substudy %}active{% endif %}">
+            <span class="dq-tab-count {% if not total %}zero{% endif %}">{{ total|intcomma }}</span><span>All</span>
+        </a>
+        {% for name, count in counts.items %}
+        <a href="?substudy={{ name|urlencode }}{% if selected_zone %}&zone={{ selected_zone }}{% endif %}{% if selected_site %}&site={{ selected_site }}{% endif %}"
+           class="dq-tab {% if selected_substudy == name %}active{% endif %}">
+            <span class="dq-tab-count {% if not count %}zero{% endif %}">{{ count|intcomma }}</span><span>{{ name }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <div class="dq-card">
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle dq-table dq-stack">
+                <thead>
+                    <tr><th>PID</th><th>Site</th><th>Substudy</th><th>Xpert result</th><th>Treatment started</th><th>Outcome</th><th class="text-end">Fix</th></tr>
+                </thead>
+                <tbody>
+                {% for r in page_obj %}
+                    <tr>
+                        <td class="fw-semibold dq-nowrap">{{ r.pid }}</td>
+                        <td class="dq-nowrap">{{ r.site.name }}<div class="dq-muted">{{ r.site.district.region.zone.name }}</div></td>
+                        <td><span class="dq-pill">{{ r.substudy }}</span></td>
+                        <td>{{ r.clinic_laboratory.xpert_mtb|default:"—" }}</td>
+                        <td>{% if not r.diagnosis.tb_treatment %}<span class="dq-pill warn">Blank</span>
+                            {% elif r.diagnosis.tb_treatment_id == 2 %}<span class="dq-pill">Referred</span>
+                                <div class="dq-muted">{% if r.diagnosis.tb_facility %}To {{ r.diagnosis.tb_facility }}{% else %}Facility not recorded{% endif %}</div>
+                            {% else %}{{ r.diagnosis.tb_treatment }}{% endif %}</td>
+                        <td>{{ r.diagnosis.tb_outcome2 }}{% if r.diagnosis.tb_outcome2_date %}<div class="dq-muted">{{ r.diagnosis.tb_outcome2_date }}</div>{% endif %}</td>
+                        <td class="dq-actions">
+                            {% if access.edit.diagnosis %}
+                            <a class="btn btn-sm btn-outline-primary" href="{% url 'nanopore:diagnosis-update' r.diagnosis.pk %}"><i class="fas fa-pen"></i> Diagnosis</a>
+                            {% else %}
+                            <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:diagnosis-detail' r.diagnosis.pk %}">Diagnosis</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if page_obj.has_other_pages %}
+        <nav class="dq-pager">
+            <span class="dq-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="btn-group">
+                {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}">‹ Previous</a>{% endif %}
+                {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.next_page_number }}">Next ›</a>{% endif %}
+            </div>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="dq-empty"><i class="fas fa-circle-check"></i> Nobody here.</div>
+        {% endif %}
+    </div>
+</div>
+{% include "reports/data_quality/date_issues/_styles.html" %}
+{% endblock %}

@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 from reports.views.snapshots.query_trends_view import query_trends
 from reports.views.queries.substudy_queries_view import SubstudyQueriesView
+from reports.views.queries.date_issues_view import DateIssuesView, OutcomeWithoutTreatmentView
 from . import views
 
 from reports.views import (
@@ -179,6 +180,9 @@ urlpatterns = [
     path("dq/missing-forms-trends/", RedirectView.as_view(pattern_name="reports:query_trends"), name="missing-forms-trends"),
     path("dq/specific-form-snapshots/", RedirectView.as_view(pattern_name="reports:query_trends"), name="form-specific-snapshots"),
 
+    path("date-issues/", DateIssuesView.as_view(), name="date_issues"),
+    path("date-issues/<slug:key>/", DateIssuesView.as_view(), name="date_issues"),
+    path("outcome-without-treatment/", OutcomeWithoutTreatmentView.as_view(), name="outcome_without_treatment"),
     path("substudy-queries/", SubstudyQueriesView.as_view(), name="substudy_queries"),
     path("substudy-queries/<slug:key>/", SubstudyQueriesView.as_view(), name="substudy_queries"),
 

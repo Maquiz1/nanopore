@@ -62,7 +62,7 @@
         </div>
 
         <!-- ── Data quality ─────────────────────────────────── -->
-        {% if context_total_issues or access.is_admin or access.snapshots or context_substudy_queries_visible %}
+        {% if context_total_issues or access.is_admin or access.snapshots or context_substudy_queries_visible or context_date_issues_visible %}
         <div class="sb-section">Data quality</div>
         {% endif %}
 
@@ -144,6 +144,19 @@
         <a href="{% url 'reports:substudy_queries' %}" class="sb-link" title="Substudy queries">
             <i class="fas fa-code-compare"></i><span>Substudy queries</span>
             {% if context_substudy_queries_total %}<span class="sb-badge sb-badge-sm">{{ context_substudy_queries_total|intcomma }}</span>{% endif %}
+        </a>
+        {% endif %}
+
+        {% if context_date_issues_visible %}
+        <a href="{% url 'reports:date_issues' %}" class="sb-link" title="Date issues">
+            <i class="fas fa-calendar-xmark"></i><span>Date issues</span>
+            {% if context_date_issues_total %}<span class="sb-badge sb-badge-sm">{{ context_date_issues_total|intcomma }}</span>{% endif %}
+        </a>
+        {% endif %}
+        {% if context_outcome_no_treatment_visible %}
+        <a href="{% url 'reports:outcome_without_treatment' %}" class="sb-link" title="Outcome recorded but treatment not started">
+            <i class="fas fa-notes-medical"></i><span style="white-space: normal; line-height: 1.2;">Untreated outcomes</span>
+            {% if context_outcome_no_treatment_total %}<span class="sb-badge sb-badge-sm">{{ context_outcome_no_treatment_total|intcomma }}</span>{% endif %}
         </a>
         {% endif %}
 
@@ -465,4 +478,27 @@
     #sidebar.collapsed .sb-link { justify-content: center; padding: 11px 0; }
     #sidebar.collapsed .sb-link > i:first-child { font-size: 1.1rem; }
     #sidebar.collapsed .sb-scroll { padding: 10px 8px; }
+
+    /* Phones and tablets: the sidebar slides in over the page (hamburger / backdrop toggle it) */
+    .sb-backdrop { display: none; }
+    .nav-title-short { display: none; }
+    .main { min-width: 0; }
+    @media (max-width: 991.98px) {
+        #sidebar {
+            position: fixed; left: 0; top: 0; z-index: 1050; width: 270px;
+            transform: translateX(-100%); transition: transform .2s ease;
+        }
+        #sidebar.collapsed { width: 270px; }
+        #sidebar.collapsed .sb-brand-text, #sidebar.collapsed .sb-section,
+        #sidebar.collapsed .sb-link > span, #sidebar.collapsed .sb-chevron { display: revert !important; }
+        body.sb-open #sidebar { transform: none; }
+        body.sb-open .sb-backdrop {
+            display: block; position: fixed; inset: 0; z-index: 1040; background: rgba(11, 37, 69, .45);
+        }
+        .main { width: 100%; }
+        .main > .navbar { padding: 10px 14px !important; }
+        .nav-title-full { display: none; }
+        .nav-title-short { display: inline; }
+        .main > .container { padding-left: 12px; padding-right: 12px; }
+    }
 </style>

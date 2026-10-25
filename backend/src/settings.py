@@ -104,6 +104,7 @@ TEMPLATES = [
                 "reports.context_processors.form_queries.regimen_context_processor.regimen_report_total",
                 "reports.context_processors.specific_queries_total.specific_queries_total",
                 "reports.context_processors.substudy_queries_context.substudy_queries",
+                "reports.context_processors.date_issues_context.date_issues",
                 'reports.context_processors.total_context.global_total_issues',
                 'nanopore.context_processors.system_controls',
                 'utils.context_processors.access',

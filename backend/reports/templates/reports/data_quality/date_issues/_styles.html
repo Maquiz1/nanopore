@@ -1,0 +1,60 @@
+<style>
+    .dq {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff;
+        --accent: #1d6fd6; --accent-soft: #e8f1fc; --good: #1f8a4c; --warn: #a15c00; --warn-soft: #fff4e5; --bad: #b42318;
+        max-width: 1180px; margin: 24px auto 40px; color: var(--ink);
+    }
+    .dq-hero {
+        padding: 22px 26px; margin-bottom: 14px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%);
+        box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .dq-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .dq-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; }
+    .dq-meta { font-size: .9rem; opacity: .9; }
+    .dq-filters {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); align-items: end; gap: 10px;
+        padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    }
+    .dq-filters .form-label { font-size: .74rem; color: var(--muted); margin-bottom: 2px; }
+    .dq-filter-actions { display: flex; gap: 6px; }
+    .dq-card { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); min-width: 0; }
+    .dq-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .dq-card-head h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .dq-muted { color: var(--muted); font-size: .8rem; }
+    .dq-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .dq-table td { font-size: .87rem; }
+    .dq-nowrap { white-space: nowrap; }
+    .dq-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: .74rem; font-weight: 600; white-space: nowrap; }
+    .dq-pill.warn { background: var(--warn-soft); color: var(--warn); }
+    .dq-actions { white-space: nowrap; text-align: right; }
+    .dq-actions .btn { margin-left: 4px; }
+    .dq-empty { padding: 28px; text-align: center; color: var(--good); font-weight: 600; }
+    .dq-pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .dq-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .dq-tab {
+        display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--line);
+        border-radius: 12px; background: var(--surface); color: var(--ink-2); text-decoration: none; font-size: .86rem;
+    }
+    .dq-tab:hover { box-shadow: 0 6px 18px rgba(20, 33, 61, .08); color: var(--ink); }
+    .dq-tab.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); color: var(--ink); }
+    .dq-tab-count { font-size: 1.5rem; font-weight: 700; color: var(--warn); font-variant-numeric: tabular-nums; }
+    .dq-tab-count.zero { color: var(--good); }
+    @media (max-width: 767.98px) {
+        .dq { margin-top: 14px; }
+        .dq-hero { padding: 16px 18px; }
+        .dq-title { font-size: 1.25rem; }
+        .dq-card { padding: 14px; }
+        .dq-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dq-filter-actions { grid-column: 1 / -1; }
+        .dq-filter-actions .btn { flex: 1; }
+        .dq-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        /* Rows become small cards so the dates and Fix buttons stay on screen */
+        .dq-stack thead { display: none; }
+        .dq-stack, .dq-stack tbody, .dq-stack tr, .dq-stack td { display: block; width: 100%; }
+        .dq-stack tr { padding: 10px 0; border-bottom: 1px solid var(--line); }
+        .dq-stack td { border: 0; padding: 2px 0; }
+        .dq-stack .dq-actions { text-align: left; margin-top: 6px; white-space: normal; }
+        .dq-stack .dq-actions .btn { margin: 0 4px 4px 0; }
+    }
+</style>
