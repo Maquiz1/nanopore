@@ -1,0 +1,25 @@
+{% extends "emails/_base.html" %}
+{% block title %}Treatment without an outcome{% endblock %}
+{% block heading %}Substudy 2 · treatment without an outcome{% endblock %}
+{% block body %}
+<p>Hello {{ name }},</p>
+<p><strong>{{ total }}</strong> Substudy 2 participant{{ total|pluralize }} started TB treatment but {{ total|pluralize:"has,have" }} no treatment outcome on the Diagnosis form yet.
+{% if due %}<strong style="color:#b42318;">{{ due }}</strong> {{ due|pluralize:"has,have" }} been on treatment for {{ due_months }} months or more, so the outcome should be due.{% endif %}</p>
+<p>Please record the outcome (cured, completed, failed, died, lost to follow-up or not evaluated) as soon as it is known.</p>
+{% for group in sites %}
+<div style="margin:18px 0 6px; font-weight:bold; font-size:15px;">{{ group.site }} <span style="color:#7d8aa3; font-weight:normal; font-size:13px;">· {{ group.rows|length }} participant{{ group.rows|length|pluralize }}{% if group.due %}, {{ group.due }} due{% endif %}</span></div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:13px;">
+  <tr style="background:#f6f8fb; color:#4a5872;">
+    <th align="left" style="padding:7px 8px;">PID</th><th align="left" style="padding:7px 8px;">Treatment started</th><th align="right" style="padding:7px 8px;">Months on treatment</th>
+  </tr>
+  {% for r in group.rows %}
+  <tr>
+    <td style="padding:6px 8px; border-bottom:1px solid #eef1f6; font-weight:bold;">{{ r.pid }}</td>
+    <td style="padding:6px 8px; border-bottom:1px solid #eef1f6;">{{ r.started|date:"d M Y"|default:"Not recorded" }}</td>
+    <td align="right" style="padding:6px 8px; border-bottom:1px solid #eef1f6;{% if r.due %} color:#b42318; font-weight:bold;{% endif %}">{{ r.months|default_if_none:"—" }}{% if r.due %} · due{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endfor %}
+{% include "emails/_button.html" with url=link label="Open the database" %}
+{% endblock %}

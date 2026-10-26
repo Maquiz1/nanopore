@@ -1,0 +1,10 @@
+Hello {{ name }},
+
+{{ total }} Substudy 2 participant{{ total|pluralize }} started TB treatment but {{ total|pluralize:"has,have" }} no treatment outcome yet.{% if due %}
+{{ due }} {{ due|pluralize:"has,have" }} been on treatment for {{ due_months }} months or more, so the outcome should be due.{% endif %}
+Please record the outcome on the Diagnosis form as soon as it is known.
+{% for group in sites %}
+{{ group.site }} ({{ group.rows|length }}):
+{% for r in group.rows %}  {{ r.pid }}  started {{ r.started|date:"d M Y"|default:"not recorded" }}  {{ r.months|default_if_none:"-" }} months{% if r.due %}  DUE{% endif %}
+{% endfor %}{% endfor %}
+Open the database: {{ link }}

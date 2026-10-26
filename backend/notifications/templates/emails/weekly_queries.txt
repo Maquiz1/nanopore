@@ -1,0 +1,10 @@
+{% load humanize %}Hello {{ name }},
+
+Open queries on {{ date|date:"d M Y" }}: {{ totals.total|intcomma }} in your {{ rows|length }} site{{ rows|length|pluralize }}.
+"Missing forms" are forms not filled yet; the other numbers are queries on filled forms.
+{% for row in rows %}
+{{ row.site }} ({{ row.zone }}): {{ row.total|intcomma }}
+{% for form, n in row.named %}  - {{ form }}: {{ n|intcomma }}
+{% endfor %}{% if row.missing %}  - {{ missing_label }}: {{ row.missing|intcomma }}
+{% endif %}{% endfor %}
+Open the database to fix them (Data quality > Queries): {{ link }}

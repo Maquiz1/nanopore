@@ -1,0 +1,13 @@
+{# One input with a leading icon; password fields get a show/hide button. Use: include with field=form.x icon="fa-user" #}
+<div class="auth-field">
+    <label class="auth-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    <div class="auth-input{% if field.errors %} has-error{% endif %}">
+        <i class="fas {{ icon }} lead"></i>
+        {{ field }}
+        {% if field.field.widget.input_type == "password" %}
+        <button type="button" class="auth-eye" aria-label="Show password" tabindex="-1"><i class="fas fa-eye"></i></button>
+        {% endif %}
+    </div>
+    {% for error in field.errors %}<div class="auth-error">{{ error }}</div>{% endfor %}
+    {% if field.help_text and show_help %}<div class="auth-help">{{ field.help_text|safe }}</div>{% endif %}
+</div>

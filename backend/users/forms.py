@@ -36,60 +36,56 @@ class ProfileForm(forms.ModelForm):
 
 
 class CustomLoginForm(AuthenticationForm):
+    """Log in with username or email (users/backends.py)."""
     username = forms.CharField(
+        label="Username or email",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Username',
+            'placeholder': 'Username or email',
+            'autocomplete': 'username',
+            'autofocus': True,
         })
     )
     password = forms.CharField(
+        label="Password",
+        strip=False,
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'placeholder': 'Password',
+            'autocomplete': 'current-password',
         })
     )
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        'invalid_login': "Wrong username/email or password.",
+    }
 
     def clean(self):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
-
         if username and password:
-            UserModel = get_user_model()
-            try:
-                user = UserModel.objects.get(username=username)
-
-                if not user.is_active:
-                    resend_url = reverse_lazy('users:resend_activation')
+            self.user_cache = authenticate(self.request, username=username, password=password)
+            if self.user_cache is None:
+                # Tell the person their account is not active only once the password is right
+                inactive = self._inactive_account(username)
+                if inactive is not None and inactive.check_password(password):
                     raise forms.ValidationError(
-                        format_html(
-                            'Your account is inactive. <a href="{}">Resend activation email</a>',
-                            resend_url
-                        ),
-                        code='inactive'
+                        format_html('Your account is not activated yet. Use the link in your activation email, '
+                                    'or <a href="{}">send a new one</a>.', reverse('users:resend_activation')),
+                        code='inactive',
                     )
-
-                # Only authenticate if user is active
-                user = authenticate(self.request, username=username, password=password)
-                if user is None:
-                    raise forms.ValidationError(
-                        "Invalid username or password.",
-                        code='invalid_login'
-                    )
-
-                # ✅ Required: Store the user in self.user_cache (what AuthenticationForm expects)
-                self.user_cache = user
-
-            except UserModel.DoesNotExist:
-                raise forms.ValidationError(
-                    "Invalid username or password.",
-                    code='invalid_login'
-                )
-
+                raise self.get_invalid_login_error()
         return self.cleaned_data
 
-    def get_user(self):
-        return getattr(self, 'user_cache', None)
-    
+    @staticmethod
+    def _inactive_account(username):
+        username = username.strip()
+        user = User.objects.filter(username=username, is_active=False).first()
+        if user is None and "@" in username:
+            matches = list(User.objects.filter(email__iexact=username)[:2])
+            user = matches[0] if len(matches) == 1 and not matches[0].is_active else None
+        return user
+
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
     phone_number = forms.CharField(max_length=15)
@@ -115,10 +111,27 @@ class ResendActivationEmailForm(forms.Form):
     )
     
 class CustomPasswordResetForm(PasswordResetForm):
+    """Forgot password: the link uses the Site URL from Administration, and the email is logged."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({
+            'class': 'form-control', 'placeholder': 'you@example.com', 'autocomplete': 'email', 'autofocus': True,
+        })
+
+    def save(self, domain_override=None, use_https=False, **kwargs):
+        from urllib.parse import urlsplit
+        from notifications.mail import site_url
+        url = urlsplit(site_url())
+        return super().save(domain_override=url.netloc, use_https=url.scheme == "https", **kwargs)
+
+    def send_mail(self, subject_template_name, email_template_name, context, from_email, to_email,
+                  html_email_template_name=None):
+        from django.template.loader import render_to_string
+        from notifications.mail import send_email
+        # send_email renders <template>.txt and .html; context carries protocol/domain/uid/token
+        subject = "".join(render_to_string(subject_template_name, context).splitlines())
+        send_email(to_email, subject, "registration/password_reset_email", context, "password_reset")
         
 
 class PhoneVerificationForm(forms.Form):
@@ -133,11 +146,6 @@ class StaffForm(forms.Form):
         required=True,
         label="Username",
         widget=forms.TextInput(attrs={"class": "form-control"})
-    )
-    password = forms.CharField(
-        required=False,  # Only required for new user in view
-        label="Password",
-        widget=forms.PasswordInput(attrs={"class": "form-control"})
     )
     email = forms.EmailField(
         required=False,

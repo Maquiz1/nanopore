@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Email recipients · Dream Fund - Nanopore{% endblock %}
+{% block content %}
+<div class="dq">
+    <section class="dq-hero">
+        <div class="dq-eyebrow">Administration</div>
+        <h1 class="dq-title">Email recipients</h1>
+        <div class="dq-meta">People who also receive the all-sites copy of the Sunday emails (open queries, and Substudy 2 on treatment without an outcome).
+            Staff already get their own sites' version automatically, based on their role and assigned zones or sites.</div>
+    </section>
+    {% include "notifications/admin/_tabs.html" with active="recipients" %}
+    <div class="dq-card">
+        <div class="dq-card-head mb-2">
+            <h2>{{ recipients|length }} recipient{{ recipients|length|pluralize }}</h2>
+            <a href="{% url 'notifications:recipient_add' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add recipient</a>
+        </div>
+        {% if recipients %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle dq-table dq-stack">
+                <thead><tr><th>Email</th><th>Name</th><th>Copy</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                {% for r in recipients %}
+                <tr>
+                    <td class="fw-semibold">{{ r.email }}</td>
+                    <td>{{ r.name|default:"—" }}</td>
+                    <td><span class="dq-pill">{{ r.get_type_display }}</span></td>
+                    <td>{% if r.is_active %}<span class="em-status sent">Active</span>{% else %}<span class="em-status off">Off</span>{% endif %}</td>
+                    <td class="dq-actions">
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'notifications:recipient_edit' r.pk %}"><i class="fas fa-pen"></i> Edit</a>
+                        <a class="btn btn-sm btn-outline-danger" href="{% url 'notifications:recipient_delete' r.pk %}"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="dq-muted p-3 text-center">No extra recipients yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

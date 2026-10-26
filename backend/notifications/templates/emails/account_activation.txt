@@ -1,0 +1,12 @@
+Hello {{ name }},
+
+An account has been created for you on the DREAM Nanopore database.
+
+Username: {{ username }}
+Email: {{ user.email }}
+
+Open this link to choose your password. This also activates your account:
+{{ activation_url }}
+
+The link works once and expires in 7 days. If it has expired, ask the administrator
+to send a new one, or use "Resend activation" on the login page: {{ login_url }}

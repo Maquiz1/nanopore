@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Site URLs · Dream Fund - Nanopore{% endblock %}
+{% block content %}
+<div class="dq">
+    <section class="dq-hero">
+        <div class="dq-eyebrow">Administration</div>
+        <h1 class="dq-title">Site URLs</h1>
+        <div class="dq-meta">The address used in email links (activation, password reset, weekly emails) and the sender shown in emails.</div>
+    </section>
+    {% include "notifications/admin/_tabs.html" with active="site_urls" %}
+    <div class="dq-card mb-3">
+        <div class="dq-muted">Emails currently use</div>
+        <div class="mt-1"><i class="fas fa-link text-primary"></i> <strong>{{ current_url }}</strong></div>
+        <div class="mt-1"><i class="fas fa-paper-plane text-primary"></i> From <strong>{{ current_from }}</strong></div>
+        {% if not configs %}<div class="dq-muted mt-2">No site URL is set, so these come from SITE_URL and DEFAULT_FROM_EMAIL in the server's .env.</div>{% endif %}
+    </div>
+    <div class="dq-card">
+        <div class="dq-card-head mb-2">
+            <h2>{{ configs|length }} site URL{{ configs|length|pluralize }}</h2>
+            <a href="{% url 'notifications:site_url_add' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add site URL</a>
+        </div>
+        {% if configs %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle dq-table dq-stack">
+                <thead><tr><th>Name</th><th>Site URL</th><th>Sender</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                {% for c in configs %}
+                <tr>
+                    <td class="fw-semibold">{{ c.name }}</td>
+                    <td><a href="{{ c.site_url }}" target="_blank" rel="noopener">{{ c.site_url }}</a></td>
+                    <td>{{ c.from_name|default:"" }} {% if c.from_email %}&lt;{{ c.from_email }}&gt;{% elif not c.from_name %}<span class="dq-muted">Default</span>{% endif %}</td>
+                    <td>{% if c.is_active %}<span class="em-status sent">In use</span>{% else %}<span class="em-status off">Off</span>{% endif %}</td>
+                    <td class="dq-actions">
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'notifications:site_url_edit' c.pk %}"><i class="fas fa-pen"></i> Edit</a>
+                        <a class="btn btn-sm btn-outline-danger" href="{% url 'notifications:site_url_delete' c.pk %}"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

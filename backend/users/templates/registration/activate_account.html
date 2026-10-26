@@ -1,0 +1,22 @@
+{% extends "registration/_auth_base.html" %}
+{% block title %}Activate account{% endblock %}
+{% block card %}
+{% if invalid %}
+<div class="auth-icon-big bad"><i class="fas fa-link-slash"></i></div>
+<h2>This activation link no longer works</h2>
+<p class="auth-sub">It was already used or has expired. If you already chose a password, sign in. Otherwise send yourself a new link.</p>
+<a class="auth-btn d-flex align-items-center justify-content-center text-decoration-none mb-2" href="{% url 'users:resend_activation' %}">Send a new activation link</a>
+<p class="auth-alt"><a class="auth-link" href="{% url 'users:login' %}">Back to sign in</a></p>
+{% else %}
+<div class="auth-icon-big ok"><i class="fas fa-user-check"></i></div>
+<h2>Activate your account</h2>
+<p class="auth-sub">Hello {{ account.get_full_name|default:account.username }}. Choose your password to finish. Your username is <strong>{{ account.username }}</strong>.</p>
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% include "registration/_auth_errors.html" %}
+    {% include "registration/_auth_field.html" with field=form.new_password1 icon="fa-lock" show_help=True %}
+    {% include "registration/_auth_field.html" with field=form.new_password2 icon="fa-lock" %}
+    <button type="submit" class="auth-btn">Activate account</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Email logs · Dream Fund - Nanopore{% endblock %}
+{% block content %}
+<div class="dq">
+    <section class="dq-hero">
+        <div class="dq-eyebrow">Administration</div>
+        <h1 class="dq-title">Email logs</h1>
+        <div class="dq-meta">Every email the system sent or failed to send: account activations, password resets and the Sunday emails.</div>
+    </section>
+    {% include "notifications/admin/_tabs.html" with active="logs" %}
+
+    <nav class="dq-tabs">
+        <a href="?{% if filters.q %}q={{ filters.q|urlencode }}&{% endif %}" class="dq-tab {% if not filters.status %}active{% endif %}">
+            <span class="dq-tab-count" style="color: var(--ink);">{{ total|intcomma }}</span><span>All</span></a>
+        <a href="?status=sent" class="dq-tab {% if filters.status == 'sent' %}active{% endif %}">
+            <span class="dq-tab-count zero">{{ sent|intcomma }}</span><span>Sent</span></a>
+        <a href="?status=failed" class="dq-tab {% if filters.status == 'failed' %}active{% endif %}">
+            <span class="dq-tab-count {% if not failed %}zero{% endif %}" {% if failed %}style="color: var(--bad);"{% endif %}>{{ failed|intcomma }}</span><span>Failed</span></a>
+    </nav>
+
+    <form method="get" class="dq-filters">
+        {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+        <div><label class="form-label">Search</label>
+            <input type="search" name="q" value="{{ filters.q|default:'' }}" class="form-control form-control-sm" placeholder="Email or subject"></div>
+        <div><label class="form-label">Email type</label>
+            <select name="task" class="form-select form-select-sm">
+                <option value="">All types</option>
+                {% for key, label in tasks.items %}<option value="{{ key }}" {% if filters.task == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select></div>
+        <div><label class="form-label">From</label><input type="date" name="start" value="{{ filters.start|default:'' }}" class="form-control form-control-sm"></div>
+        <div><label class="form-label">To</label><input type="date" name="end" value="{{ filters.end|default:'' }}" class="form-control form-control-sm"></div>
+        <div class="dq-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{% url 'notifications:logs' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+
+    <div class="dq-card">
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle dq-table dq-stack">
+                <thead><tr><th>When</th><th>To</th><th>Subject</th><th>Type</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for log in page_obj %}
+                <tr>
+                    <td class="dq-nowrap">{{ log.created_at|date:"d M Y H:i" }}</td>
+                    <td class="fw-semibold">{{ log.recipient }}</td>
+                    <td>{{ log.subject }}{% if log.error_message %}<div class="em-error">{{ log.error_message|truncatechars:300 }}</div>{% endif %}</td>
+                    <td class="dq-muted">{{ log.task_label }}</td>
+                    <td><span class="em-status {{ log.status }}">{{ log.get_status_display }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if page_obj.has_other_pages %}
+        <nav class="dq-pager">
+            <span class="dq-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="btn-group">
+                {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}">‹ Previous</a>{% endif %}
+                {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_obj.next_page_number }}">Next ›</a>{% endif %}
+            </div>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="dq-muted p-3 text-center">No emails match.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

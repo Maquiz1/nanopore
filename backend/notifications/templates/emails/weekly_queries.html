@@ -1,0 +1,35 @@
+{% extends "emails/_base.html" %}
+{% load humanize %}
+{% block title %}Open queries{% endblock %}
+{% block heading %}Open queries · {{ date|date:"d M Y" }}{% endblock %}
+{% block body %}
+<p>Hello {{ name }},</p>
+<p>These queries are still open in your {{ rows|length }} site{{ rows|length|pluralize }}: <strong>{{ totals.total|intcomma }}</strong> in total.
+"Missing forms" are forms not filled yet; the other columns are queries on filled forms.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:12px; margin:12px 0;">
+  <tr style="background:#f6f8fb; color:#4a5872;">
+    <th align="left" style="padding:8px 6px; border-bottom:1px solid #e6eaf2;">Site</th>
+    {% for form in forms %}<th align="right" style="padding:8px 6px; border-bottom:1px solid #e6eaf2;">{{ form }}</th>{% endfor %}
+    <th align="right" style="padding:8px 6px; border-bottom:1px solid #e6eaf2;">{{ missing_label }}</th>
+    <th align="right" style="padding:8px 6px; border-bottom:1px solid #e6eaf2;">Total</th>
+  </tr>
+  {% for row in rows %}
+  <tr>
+    <td style="padding:7px 6px; border-bottom:1px solid #eef1f6;"><strong>{{ row.site }}</strong><br><span style="color:#7d8aa3;">{{ row.zone }}</span></td>
+    {% for n in row.forms %}<td align="right" style="padding:7px 6px; border-bottom:1px solid #eef1f6; color:{% if n %}#14213d{% else %}#b8c1d1{% endif %};">{{ n|intcomma }}</td>{% endfor %}
+    <td align="right" style="padding:7px 6px; border-bottom:1px solid #eef1f6; color:{% if row.missing %}#14213d{% else %}#b8c1d1{% endif %};">{{ row.missing|intcomma }}</td>
+    <td align="right" style="padding:7px 6px; border-bottom:1px solid #eef1f6; font-weight:bold; color:#a15c00;">{{ row.total|intcomma }}</td>
+  </tr>
+  {% endfor %}
+  {% if rows|length > 1 %}
+  <tr style="background:#f6f8fb; font-weight:bold;">
+    <td style="padding:8px 6px;">Total</td>
+    {% for n in totals.forms %}<td align="right" style="padding:8px 6px;">{{ n|intcomma }}</td>{% endfor %}
+    <td align="right" style="padding:8px 6px;">{{ totals.missing|intcomma }}</td>
+    <td align="right" style="padding:8px 6px; color:#a15c00;">{{ totals.total|intcomma }}</td>
+  </tr>
+  {% endif %}
+</table>
+<p>Open the database to see each query and fix it (Data quality &gt; Queries).</p>
+{% include "emails/_button.html" with url=link label="Open the database" %}
+{% endblock %}

@@ -10,6 +10,10 @@ from users.views import (
     SignUpView,
     # ActivateAccount,
     ResendActivationEmailView,
+    ActivateAccountView,
+    StaffResendActivationView,
+    StaffResetPasswordView,
+    ChangeOwnPasswordView,
     StaffDetailView,
     StaffListView,
     StaffCreateUpdateView,
@@ -35,11 +39,16 @@ urlpatterns = [
     path("staff/<int:pk>/", StaffDetailView.as_view(), name="staff_detail"),
     
     # # Registration and Activation
-    path('sign_up/', SignUpView.as_view(), name='sign_up'),
+    # Accounts are created by admins (Users > Add), who send the activation link; no public sign-up
+    # path('sign_up/', SignUpView.as_view(), name='sign_up'),
     # path('activate/<uidb64>/<token>/', ActivateAccount.as_view(), name='activate_account'),
     # path('email_confirmation_sent/', TemplateView.as_view(
     #     template_name='registration/email_confirmation_sent.html'), name='email_confirmation_sent'),
     path('resend-activation/', ResendActivationEmailView.as_view(), name='resend_activation'),
+    path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate_account'),
+    path('staff/<int:pk>/send-activation/', StaffResendActivationView.as_view(), name='staff_send_activation'),
+    path('staff/<int:pk>/reset-password/', StaffResetPasswordView.as_view(), name='staff_reset_password'),
+    path('password/change/', ChangeOwnPasswordView.as_view(), name='password_change'),
 
     # # Login and Logout
     path('login/', CustomLoginView.as_view(), name='login'),

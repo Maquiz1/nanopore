@@ -37,6 +37,11 @@
   </div>
 </div>
 
+{% if staff_member.pk == user.pk %}
+  <a href="{% url 'users:password_change' %}" class="btn btn-primary mt-3"><i class="fas fa-key"></i> Change password</a>
+{% elif user.is_superuser %}
+  <a href="{% url 'users:staff_reset_password' staff_member.pk %}" class="btn btn-outline-primary mt-3"><i class="fas fa-key"></i> Reset password</a>
+{% endif %}
 {% if user.is_superuser %}
   <a href="{% url 'users:staff_list' %}" class="btn btn-secondary mt-3">Back to Staff List</a>
 {% else %}

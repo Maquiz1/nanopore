@@ -1,11 +1,12 @@
 from utils.access_mixins import SuperuserRequiredMixin
 from django.views.generic import FormView, ListView, DetailView
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
 from users.models import Profile, Prefix, Position
 from users.forms import StaffForm
+from users.emails import random_password, send_activation_email
 from locations.models import Site
 
 User = get_user_model()
@@ -63,7 +64,6 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
     def form_valid(self, form):
         data = form.cleaned_data
         username = data["username"]
-        password = data.get("password")
         email = data.get("email")
         first_name = data.get("first_name")
         middle_name = data.get("middle_name")
@@ -87,8 +87,6 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
             user.last_name = last_name
             user.is_staff = is_staff
             user.is_active = is_active
-            if password:
-                user.set_password(password)
             user.save()
 
             profile, _ = Profile.objects.get_or_create(user=user)
@@ -117,10 +115,6 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
 
         # Create new user
         else:
-            if not password:
-                form.add_error("password", "Password is required for new user.")
-                return self.form_invalid(form)
-
             if User.objects.filter(username=username).exists():
                 form.add_error("username", "Username already exists.")
                 return self.form_invalid(form)
@@ -129,6 +123,9 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
                 form.add_error("email", "This email address is already registered.")
                 return self.form_invalid(form)
 
+            # The password is generated. With an email the person chooses their own from the
+            # activation link (inactive until then); without one the admin sees it once.
+            password = random_password()
             user = User.objects.create_user(
                 username=username,
                 password=password,
@@ -136,7 +133,7 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
                 first_name=first_name,
                 last_name=last_name,
                 is_staff=is_staff,
-                is_active=is_active
+                is_active=is_active if not email else False,
             )
 
             profile = Profile.objects.create(
@@ -157,6 +154,14 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
             if groups:
                 user.groups.set(groups)
 
-            messages.success(self.request, f"Staff member '{username}' created successfully!")
+            if not email:
+                # Shown on the page itself (never stored in a message or cookie)
+                return render(self.request, "users/staff/temporary_password.html",
+                              {"staff_member": user, "password": password, "created": True})
+            elif send_activation_email(user):
+                messages.success(self.request, f"Staff member '{username}' created. Activation link sent to {email}.")
+            else:
+                messages.warning(self.request, f"Staff member '{username}' created, but the activation email to {email} "
+                                               "failed. Use Send activation on the Users list to try again.")
 
         return super().form_valid(form)

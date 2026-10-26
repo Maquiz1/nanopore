@@ -269,6 +269,16 @@
                 <a href="{% url 'dashboard:site-targets' %}"><span>Targets</span></a>
             </div>
         </div>
+        <div class="sb-group">
+            <button type="button" class="sb-link sb-toggle" title="Emails">
+                <i class="fas fa-envelope"></i><span>Emails</span><i class="fas fa-chevron-right sb-chevron"></i>
+            </button>
+            <div class="sb-submenu">
+                <a href="{% url 'notifications:logs' %}"><span>Email logs</span></a>
+                <a href="{% url 'notifications:recipients' %}"><span>Email recipients</span></a>
+                <a href="{% url 'notifications:site_urls' %}"><span>Site URLs</span></a>
+            </div>
+        </div>
         {% endif %}
         {% if user.is_superuser %}
         <a href="{% url 'clinical:disease-list' %}" class="sb-link" title="Diseases">

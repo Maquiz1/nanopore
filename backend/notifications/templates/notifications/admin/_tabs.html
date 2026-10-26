@@ -1,0 +1,16 @@
+<nav class="em-tabs">
+    <a href="{% url 'notifications:logs' %}" class="{% if active == 'logs' %}active{% endif %}"><i class="fas fa-envelope-open-text"></i> Email logs</a>
+    <a href="{% url 'notifications:recipients' %}" class="{% if active == 'recipients' %}active{% endif %}"><i class="fas fa-at"></i> Email recipients</a>
+    <a href="{% url 'notifications:site_urls' %}" class="{% if active == 'site_urls' %}active{% endif %}"><i class="fas fa-globe"></i> Site URLs</a>
+</nav>
+{% include "reports/data_quality/date_issues/_styles.html" %}
+<style>
+    .em-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .em-tabs a { padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink-2); text-decoration: none; font-size: .86rem; }
+    .em-tabs a.active { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+    .em-status { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 600; }
+    .em-status.sent { background: #e7f6ee; color: var(--good); }
+    .em-status.failed { background: #fdecea; color: var(--bad); }
+    .em-status.off { background: #eef1f6; color: var(--muted); }
+    .em-error { color: var(--bad); font-size: .78rem; max-width: 380px; white-space: normal; }
+</style>

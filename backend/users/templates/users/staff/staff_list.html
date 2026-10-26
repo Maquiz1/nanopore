@@ -107,17 +107,27 @@
         {% else %}-{% endif %}
       </td>
       <td>{% if user.groups.all %}{{ user.groups.all|join:", " }}{% else %}-{% endif %}</td>
-      <td>{% if staff_member.last_login %}{{ staff_member.last_login|date:"F j, Y, g:i a" }}{% else %}-{% endif %}</td>
+      <td>{% if user.last_login %}{{ user.last_login|date:"F j, Y, g:i a" }}{% else %}Never{% endif %}</td>
       <td>
         {% if user.is_active %}
           <span class="badge bg-success">Active</span>
         {% else %}
-          <span class="badge bg-secondary">Inactive</span>
+          <span class="badge bg-secondary">{% if user.last_login %}Inactive{% else %}Not activated{% endif %}</span>
         {% endif %}
       </td>
       <td>
         <a href="{% url 'users:staff_detail' user.id %}" class="btn btn-sm btn-primary">View</a><br><hr>
         <a href="{% url 'users:staff_update' user.id %}" class="btn btn-sm btn-warning">Update</a>
+        <a href="{% url 'users:staff_reset_password' user.id %}" class="btn btn-sm btn-outline-primary mt-2" title="Reset password"><i class="fas fa-key"></i> Reset password</a>
+        {% if not user.is_active and user.email %}
+        <form method="post" action="{% url 'users:staff_send_activation' user.id %}" class="mt-2">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="btn btn-sm btn-outline-success" title="Email {{ user.email }} a new activation link">
+            <i class="fas fa-paper-plane"></i> Send activation
+          </button>
+        </form>
+        {% endif %}
       </td>
     </tr>
     {% empty %}

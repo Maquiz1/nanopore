@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{% block title %}DREAM Nanopore{% endblock %}</title></head>
+<body style="margin:0; padding:0; background:#eef2f7; font-family:Arial, Helvetica, sans-serif; color:#14213d;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f7; padding:24px 12px;">
+  <tr><td align="center">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; background:#ffffff; border-radius:12px; overflow:hidden;">
+      <tr><td style="background:#0b2545; padding:20px 28px; color:#ffffff;">
+        <div style="font-size:12px; letter-spacing:2px; text-transform:uppercase; opacity:.75;">DREAM Fund · Nanopore TB Sequencing</div>
+        <div style="font-size:20px; font-weight:bold; margin-top:4px;">{% block heading %}{% endblock %}</div>
+      </td></tr>
+      <tr><td style="padding:24px 28px; font-size:14px; line-height:1.6;">
+        {% block body %}{% endblock %}
+      </td></tr>
+      <tr><td style="padding:14px 28px; background:#f6f8fb; color:#7d8aa3; font-size:12px;">
+        This is an automatic email from the DREAM Nanopore database ({{ site_url }}). Please do not reply.
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

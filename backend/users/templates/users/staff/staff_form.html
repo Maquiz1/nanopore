@@ -31,19 +31,16 @@
           {% endfor %}
         </div>
 
-        <!-- Password -->
+        <!-- Password: generated, never typed here -->
         <div class="col-md-3">
-          <label class="form-label">
+          <label class="form-label">Password</label>
+          <div class="form-text mt-0">
             {% if view.user_instance %}
-              New Password (leave blank to keep current)
+              Use <a href="{% url 'users:staff_reset_password' view.user_instance.pk %}">Reset password</a> to send a reset link or make a temporary password.
             {% else %}
-              Password <span class="text-danger">*</span>
+              Generated automatically. With an email, the person gets a link to choose their own; without one, you'll see a temporary password once.
             {% endif %}
-          </label>
-          {{ form.password }}
-          {% for error in form.password.errors %}
-            <div class="text-danger small">{{ error }}</div>
-          {% endfor %}
+          </div>
         </div>
 
         <!-- Phone Number -->

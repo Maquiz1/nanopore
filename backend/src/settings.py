@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "locations.apps.LocationsConfig",
     # "mentorship.apps.MentorshipConfig",
     "users.apps.UsersConfig",
+    "notifications",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -167,7 +168,17 @@ LOGOUT_REDIRECT_URL = "users:login"  # Redirect here after logout
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 
+# Log in with username or email
+AUTHENTICATION_BACKENDS = ["users.backends.UsernameOrEmailBackend"]
+
+# Activation and password-reset links stay valid for 7 days
+PASSWORD_RESET_TIMEOUT = 7 * 24 * 60 * 60
+
+# Address used in email links when no Site URL is set under Administration > Site URLs
+SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
+
 # Email settings
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="DREAM Nanopore <no-reply@localhost>")
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
     EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
@@ -284,6 +295,16 @@ CELERY_BEAT_SCHEDULE = {
     "daily_query_snapshot": {
         "task": "reports.tasks.create_query_snapshot",
         "schedule": crontab(hour=23, minute=30),
+    },
+    # Sunday night emails (Africa/Dar_es_Salaam): open queries per site, and Substudy 2
+    # participants on treatment without an outcome (notifications/tasks.py)
+    "weekly_query_emails": {
+        "task": "notifications.tasks.send_weekly_query_emails",
+        "schedule": crontab(hour=20, minute=0, day_of_week=0),
+    },
+    "weekly_treatment_outcome_emails": {
+        "task": "notifications.tasks.send_weekly_outcome_emails",
+        "schedule": crontab(hour=20, minute=30, day_of_week=0),
     },
     "daily_zonal_laboratory_sync": {
         "task": "nanopore.tasks_tblis_raw.sync_zonal_laboratory_daily",
