@@ -171,3 +171,20 @@ class WeeklyEmailTests(test_access.AccessTestBase):
         self.assertIn(self.pid("A1"), sent["nurse@example.org"].body)
         self.assertNotIn(self.pid("B1"), sent["nurse@example.org"].body)
         self.assertIn("DUE", sent["clin@example.org"].body)  # 7 months on treatment
+
+
+class ScheduleTests(test_access.AccessTestBase):
+    def test_jobs_are_created_once_and_admin_changes_are_kept(self):
+        from django.core.management import call_command
+        from django_celery_beat.models import CrontabSchedule, PeriodicTask
+        call_command("setup_email_schedules", stdout=open("/dev/null", "w"))
+        job = PeriodicTask.objects.get(name="weekly_query_emails")
+        self.assertEqual((job.crontab.hour, job.crontab.day_of_week), ("20", "0"))
+        # An admin moves it to Monday 07:00 and pauses the other one
+        job.crontab = CrontabSchedule.objects.create(minute="0", hour="7", day_of_week="1", timezone="Africa/Dar_es_Salaam")
+        job.save()
+        PeriodicTask.objects.filter(name="weekly_treatment_outcome_emails").update(enabled=False)
+        call_command("setup_email_schedules", stdout=open("/dev/null", "w"))
+        self.assertEqual(PeriodicTask.objects.get(name="weekly_query_emails").crontab.hour, "7")
+        self.assertFalse(PeriodicTask.objects.get(name="weekly_treatment_outcome_emails").enabled)
+        self.assertEqual(PeriodicTask.objects.filter(name__startswith="weekly_").count(), 2)

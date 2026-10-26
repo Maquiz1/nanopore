@@ -296,16 +296,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "reports.tasks.create_query_snapshot",
         "schedule": crontab(hour=23, minute=30),
     },
-    # Sunday night emails (Africa/Dar_es_Salaam): open queries per site, and Substudy 2
-    # participants on treatment without an outcome (notifications/tasks.py)
-    "weekly_query_emails": {
-        "task": "notifications.tasks.send_weekly_query_emails",
-        "schedule": crontab(hour=20, minute=0, day_of_week=0),
-    },
-    "weekly_treatment_outcome_emails": {
-        "task": "notifications.tasks.send_weekly_outcome_emails",
-        "schedule": crontab(hour=20, minute=30, day_of_week=0),
-    },
+    # The Sunday emails are not here: they live in Django admin > Periodic Tasks so their
+    # time can be changed there (notifications/schedules.py).
     "daily_zonal_laboratory_sync": {
         "task": "nanopore.tasks_tblis_raw.sync_zonal_laboratory_daily",
         "schedule": crontab(hour=0, minute=0),
