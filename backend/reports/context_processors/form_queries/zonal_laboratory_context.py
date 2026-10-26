@@ -1,6 +1,6 @@
 # reports/context_processors/form_queries/zonal_laboratory_context.py
 from django.apps import apps
-from reports.services.zonal_dq import get_zonal_dq
+from reports.services.zonal_dq import get_zonal_counts
 from reports.context_processors.cache_helpers import cached_context
 
 @cached_context(ttl=300)
@@ -10,7 +10,7 @@ def zonal_report_total(request):
 
     Zonal = apps.get_model("nanopore", "ZonalLaboratory")
 
-    _, stats, total_issues, _ = get_zonal_dq(request.user, Zonal)
+    stats, total_issues = get_zonal_counts(request.user, Zonal)
 
     return {
         "context_zonal_report_total": total_issues,  # just total issues

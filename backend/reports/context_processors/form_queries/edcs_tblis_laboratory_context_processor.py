@@ -1,4 +1,4 @@
-from reports.services.zonal_dq import get_zonal_dq
+from reports.services.zonal_dq import get_zonal_counts
 from django.apps import apps
 from reports.context_processors.cache_helpers import cached_context
 
@@ -10,6 +10,6 @@ def edcs_tblis_report_total(request):
 
     Zonal = apps.get_model("nanopore", "EdcsTblisZonal")
 
-    _, _, total, _ = get_zonal_dq(request.user, Zonal)
+    _, total = get_zonal_counts(request.user, Zonal)
 
     return {"context_edcs_tblis_report_total": total}

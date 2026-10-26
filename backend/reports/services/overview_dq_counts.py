@@ -84,9 +84,9 @@ def get_data_quality_overview(user, zone_id=None, site_id=None):
     edcs_tblis_total = 0
     if show_edcs:
         from django.apps import apps
-        from reports.services.zonal_dq import get_zonal_dq
+        from reports.services.zonal_dq import get_zonal_counts
         EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
-        _, _, edcs_tblis_total, _ = get_zonal_dq(user, EdcsTblisZonal, zone_id, site_id)
+        _, edcs_tblis_total = get_zonal_counts(user, EdcsTblisZonal, zone_id, site_id)
 
     total_issues = (
         screening_counts.get("total_issues", 0) +

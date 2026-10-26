@@ -5,7 +5,9 @@ from django.db.models import Q
 from utils.roles import get_role_context
 from utils.permissions import filter_queryset_by_user_role
 from nanopore.substudy import SUBSTUDY_2, SUBSTUDY_4, substudy_q
+from reports.context_processors.cache_helpers import cached_context
 
+@cached_context(ttl=300)
 def global_total_issues(request):
     if not request.user.is_authenticated:
         return {
