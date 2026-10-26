@@ -1,125 +1,131 @@
 {% load humanize %}
-<div class="navbar"
-    style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #003366; color: white; border-bottom: 2px solid #002244;">
-    <!-- Left side: toggle + title -->
-    <div style="display: flex; align-items: center;">
-        <button class="toggle-btn" onclick="toggleSidebar()"
-            style="margin-right: 15px; background: none; border: none; color: white; cursor: pointer; font-size: 1.4rem;">
+<header class="topbar">
+    <!-- Left: menu toggle + title -->
+    <div class="tb-left">
+        <button class="tb-toggle" onclick="toggleSidebar()" aria-label="Show or hide the menu">
             <i class="fas fa-bars"></i>
         </button>
-
-        <strong class="nav-title" style="font-size: 1.25rem; letter-spacing: 0.5px;">
-            <span class="nav-title-full">DREAM FUND - NANOPORE TB SEQUENCING DATABASE (TANZANIA)</span>
-            <span class="nav-title-short">DREAM FUND</span>
-        </strong>
+        <div class="tb-title">
+            <span class="tb-eyebrow">DREAM Fund <span class="tb-dot"></span> Tanzania</span>
+            <strong class="tb-name">Nanopore TB Sequencing <span class="tb-name-extra">Database</span></strong>
+        </div>
     </div>
 
-    <!-- Right side: icons + profile dropdown -->
-    <div style="display: flex; align-items: center; gap: 20px; position: relative;">
-
-        <!-- Notifications / Messages Icon -->
-        <a href="{% url 'reports:all_queries_overview' %}" class="icon-btn">
+    <!-- Right: queries + profile -->
+    <div class="tb-right">
+        <a href="{% url 'reports:all_queries_overview' %}" class="tb-icon" title="Open queries">
             <i class="fas fa-envelope"></i>
-            {% if context_total_issues %}
-            <span class="badge">
-                {{ context_total_issues   | intcomma }}
-            </span>
-            {% endif %}
+            {% if context_total_issues %}<span class="tb-badge">{{ context_total_issues|intcomma }}</span>{% endif %}
         </a>
 
-        <!-- Alerts Icon -->
-        <!-- <a href="{% url 'reports:all_queries_overview' %}" class="icon-btn">
-            <i class="fas fa-bell"></i>
-            {% if total_issues %}
-            <span class="badge">
-                {{ total_issues   | intcomma }}
-            </span>
-            {% endif %}
-         </a> -->
-
-        <!-- Profile Dropdown -->
         {% if user.is_authenticated %}
-        <div class="dropdown">
-            <button class="btn-profile">
-                <i class="fas fa-user-circle"></i>
-                <i class="fas fa-chevron-down"></i>
+        <div class="tb-profile" id="tb-profile">
+            <button type="button" class="tb-profile-btn" aria-haspopup="true" aria-expanded="false"
+                    onclick="this.parentElement.classList.toggle('open'); this.setAttribute('aria-expanded', this.parentElement.classList.contains('open'));">
+                <span class="tb-avatar">{% if user.first_name %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% else %}{{ user.username|first|upper }}{% endif %}</span>
+                <span class="tb-who">
+                    <strong>{{ user.get_full_name|default:user.username }}</strong>
+                    <small>{% if user.profile.position %}{{ user.profile.position.name }}{% elif user.is_superuser %}Administrator{% else %}{{ user.username }}{% endif %}</small>
+                </span>
+                <i class="fas fa-chevron-down tb-chevron"></i>
             </button>
-            <div class="dropdown-menu">
-                <a href="{% url 'users:profile' user.id %}">Profile</a>
-                <a href="{% url 'users:password_change' %}">Change password</a>
-                <a href="{% url 'users:logout' %}">Logout</a>
+            <div class="tb-menu" role="menu">
+                <div class="tb-menu-head">
+                    <strong>{{ user.get_full_name|default:user.username }}</strong>
+                    <span>{{ user.email|default:user.username }}</span>
+                </div>
+                <a href="{% url 'users:profile' user.id %}" role="menuitem"><i class="fas fa-user"></i> Profile</a>
+                <a href="{% url 'users:password_change' %}" role="menuitem"><i class="fas fa-key"></i> Change password</a>
+                <a href="{% url 'users:logout' %}" role="menuitem" class="tb-logout"><i class="fas fa-right-from-bracket"></i> Log out</a>
             </div>
         </div>
         {% endif %}
     </div>
-</div>
+</header>
 
-<!-- CSS -->
 <style>
-    .icon-btn {
-        position: relative;
-        color: white;
-        font-size: 1.2rem;
-        text-decoration: none;
+    .topbar {
+        position: sticky; top: 0; z-index: 1030;
+        display: flex; justify-content: space-between; align-items: center; gap: 12px;
+        min-height: 64px; padding: 8px 22px; color: #fff;
+        background: linear-gradient(100deg, #0b2545 0%, #134074 70%, #1d5fb8 100%);
+        box-shadow: 0 2px 14px rgba(11, 37, 69, .25);
+    }
+    .tb-left, .tb-right { display: flex; align-items: center; min-width: 0; }
+    .tb-left { gap: 14px; }
+    .tb-right { gap: 18px; flex-shrink: 0; }
+    .tb-toggle {
+        width: 40px; height: 40px; flex-shrink: 0; border: 0; border-radius: 10px; color: #fff; font-size: 1.15rem;
+        background: rgba(255, 255, 255, .08); transition: background .15s;
+    }
+    .tb-toggle:hover { background: rgba(255, 255, 255, .18); }
+    .tb-title { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+    .tb-eyebrow { font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; opacity: .7; white-space: nowrap; }
+    .tb-dot { display: inline-block; width: 4px; height: 4px; margin: 0 6px 2px; border-radius: 50%; background: #2bd1c4; vertical-align: middle; }
+    .tb-name { font-size: 1.12rem; font-weight: 700; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tb-name-extra { font-weight: 400; opacity: .8; }
+
+    .tb-icon {
+        position: relative; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px;
+        color: #fff; font-size: 1.05rem; text-decoration: none; background: rgba(255, 255, 255, .08);
+    }
+    .tb-icon:hover { color: #fff; background: rgba(255, 255, 255, .18); }
+    .tb-badge {
+        position: absolute; top: -6px; right: -10px; min-width: 20px; padding: 2px 6px; border-radius: 999px;
+        background: #e5484d; color: #fff; font-size: .68rem; font-weight: 700; line-height: 1.3; text-align: center;
+        box-shadow: 0 0 0 2px #0f3460;
     }
 
-    .icon-btn .badge {
-        position: absolute;
-        top: -5px;
-        right: -10px;
-        background: red;
-        color: white;
-        border-radius: 50%;
-        font-size: 0.7rem;
-        padding: 2px 5px;
+    .tb-profile { position: relative; }
+    .tb-profile-btn {
+        display: flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border: 0; border-radius: 999px;
+        color: #fff; background: rgba(255, 255, 255, .08); transition: background .15s;
     }
+    .tb-profile-btn:hover, .tb-profile.open .tb-profile-btn { background: rgba(255, 255, 255, .18); }
+    .tb-avatar {
+        width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+        background: linear-gradient(135deg, #2bd1c4, #1d6fd6); font-size: .8rem; font-weight: 700; letter-spacing: .02em;
+    }
+    .tb-who { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; max-width: 180px; }
+    .tb-who strong { font-size: .84rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .tb-who small { font-size: .7rem; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .tb-chevron { font-size: .7rem; opacity: .8; transition: transform .15s; }
+    .tb-profile.open .tb-chevron { transform: rotate(180deg); }
+    .tb-menu {
+        position: absolute; right: 0; top: calc(100% + 8px); min-width: 230px; padding: 6px; border-radius: 12px;
+        background: #fff; color: #14213d; box-shadow: 0 12px 32px rgba(11, 37, 69, .22);
+        opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .15s, transform .15s, visibility .15s;
+    }
+    .tb-profile.open .tb-menu { opacity: 1; visibility: visible; transform: none; }
+    .tb-menu-head { display: flex; flex-direction: column; padding: 8px 10px 10px; margin-bottom: 4px; border-bottom: 1px solid #e6eaf2; }
+    .tb-menu-head strong { font-size: .9rem; }
+    .tb-menu-head span { font-size: .78rem; color: #7d8aa3; word-break: break-all; }
+    .tb-menu a {
+        display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
+        color: #14213d; font-size: .88rem; text-decoration: none;
+    }
+    .tb-menu a i { width: 16px; text-align: center; color: #7d8aa3; }
+    .tb-menu a:hover { background: #f1f5fb; }
+    .tb-menu a.tb-logout { color: #b42318; }
+    .tb-menu a.tb-logout i { color: #b42318; }
 
-    /* Profile dropdown */
-    .dropdown {
-        position: relative;
+    @media (max-width: 1199.98px) { .tb-name-extra { display: none; } }
+    @media (max-width: 767.98px) {
+        .topbar { padding: 8px 12px; min-height: 58px; }
+        .tb-who, .tb-chevron { display: none; }
+        .tb-profile-btn { padding: 3px; }
+        .tb-name { font-size: 1rem; }
+        .tb-right { gap: 14px; }
     }
-
-    .btn-profile {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 1.2rem;
-    }
-
-    .dropdown-menu {
-        display: none;
-        position: absolute;
-        right: 0;
-        background: white;
-        color: black;
-        border-radius: 5px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        min-width: 150px;
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .dropdown-menu a {
-        display: block;
-        padding: 10px 15px;
-        text-decoration: none;
-        color: black;
-    }
-
-    .dropdown-menu a:hover {
-        background-color: #f0f0f0;
-    }
-
-    /* Show dropdown on hover */
-    .dropdown:hover .dropdown-menu {
-        display: block;
-        opacity: 1;
-        transform: translateY(0);
-    }
+    @media (max-width: 400px) { .tb-eyebrow { display: none; } }
 </style>
+<script>
+    // Close the profile menu when clicking elsewhere or pressing Escape
+    document.addEventListener("click", function (e) {
+        var profile = document.getElementById("tb-profile");
+        if (profile && !profile.contains(e.target)) profile.classList.remove("open");
+    });
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") { var p = document.getElementById("tb-profile"); if (p) p.classList.remove("open"); }
+    });
+</script>
