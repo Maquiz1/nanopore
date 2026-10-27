@@ -1,0 +1,81 @@
+{# Shared look of the participant lists (Participants, Master Data). Wrap the page in <div class="fs">. #}
+<style>
+    .fs {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff; --soft: #f6f8fc;
+        --accent: #1d6fd6; --accent-soft: #e8f1fc; --good: #1f8a4c; --good-soft: #edf8f1; --warn: #a15c00; --warn-soft: #fff4e5; --bad: #b42318; --bad-soft: #fdecea;
+        max-width: 1240px; margin: 24px auto 40px; padding: 0 4px; color: var(--ink);
+    }
+    .fs-hero {
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+        padding: 22px 26px; margin-bottom: 14px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%); box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .fs-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .fs-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; }
+    .fs-meta { font-size: .9rem; opacity: .9; }
+    .fs-hero-actions { display: flex; gap: 8px; }
+
+    .fs-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .fs-tab {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid var(--line);
+        border-radius: 12px; background: var(--surface); color: var(--ink-2); text-decoration: none;
+    }
+    .fs-tab:hover { box-shadow: 0 6px 18px rgba(20, 33, 61, .08); color: var(--ink); }
+    .fs-tab.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); color: var(--ink); }
+    .fs-tab-label { font-weight: 600; font-size: .88rem; }
+    .fs-tab-num { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .fs-filters {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); align-items: end; gap: 10px;
+        padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    }
+    .fs-filters .form-label { font-size: .74rem; color: var(--muted); margin-bottom: 2px; }
+    .fs-filter-actions { display: flex; gap: 6px; }
+    .fs-filter-wrap > summary { display: none; }
+
+    .fs-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+    .fs-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .fs-muted { font-size: .76rem; color: var(--muted); }
+    .fs-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; white-space: nowrap; background: var(--soft); }
+    .fs-table td { font-size: .87rem; vertical-align: middle; }
+    .fs-table tbody tr:hover { background: #fafcff; }
+    .fs-pid a { font-weight: 600; text-decoration: none; white-space: nowrap; }
+
+    .fs-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .74rem; font-weight: 600; white-space: nowrap; }
+    .fs-pill.s2 { background: var(--accent-soft); color: var(--accent); }
+    .fs-pill.s4 { background: #f1ecfb; color: #6a3fb5; }
+    .fs-pill.un { background: var(--warn-soft); color: var(--warn); }
+    .fs-chip {
+        display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 8px; font-size: .78rem; font-weight: 600;
+        white-space: nowrap; text-decoration: none; border: 1px solid transparent;
+    }
+    .fs-chip.ok { background: var(--good-soft); color: var(--good); }
+    a.fs-chip.ok:hover { border-color: var(--good); color: var(--good); }
+    .fs-chip.no { background: var(--bad-soft); color: var(--bad); }
+    .fs-chip.miss { background: var(--bad-soft); color: var(--bad); }
+    .fs-chip.add { background: var(--surface); color: var(--accent); border-color: var(--accent); }
+    .fs-chip.add:hover { background: var(--accent); color: #fff; }
+    .fs-chip.na { background: var(--soft); color: var(--muted); }
+    .fs-chip.wait { background: var(--warn-soft); color: var(--warn); }
+    .fs-chip.extra { background: var(--warn-soft); color: var(--warn); }
+    a.fs-chip.extra:hover, a.fs-chip.na:hover { border-color: currentColor; }
+    .fs-empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+    .fs-empty i { font-size: 1.6rem; margin-bottom: 8px; }
+    .fs-pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); }
+
+    @media (max-width: 767.98px) {
+        .fs { margin-top: 12px; }
+        .fs-hero { padding: 18px; }
+        .fs-tabs { grid-template-columns: 1fr 1fr; gap: 6px; }
+        .fs-tab { flex-direction: column; padding: 10px; gap: 0; }
+        .fs-tab-num { font-size: 1.15rem; }
+        .fs-filter-wrap > summary { display: inline-block; margin-bottom: 10px; list-style: none; }
+        /* One card per participant */
+        .fs-table thead { display: none; }
+        .fs-table tr { display: block; padding: 10px 14px; border-top: 1px solid var(--line); }
+        .fs-table td { display: flex; align-items: center; gap: 10px; padding: 3px 0; border: 0; }
+        .fs-table td::before { content: attr(data-label); flex: 0 0 88px; font-size: .74rem; color: var(--muted); }
+        .fs-table td.fs-pid { font-size: 1rem; padding-bottom: 6px; }
+        .fs-table td.fs-pid::before { display: none; }
+    }
+</style>

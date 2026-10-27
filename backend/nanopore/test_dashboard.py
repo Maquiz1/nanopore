@@ -155,3 +155,24 @@ class FormStatusListTests(AccessTestBase):
         self.assertEqual(tabs["screened"], dashboard.context["screened_count"])
         self.assertEqual(tabs["eligible"], dashboard.context["eligible_count"])
         self.assertEqual(tabs["enrolled"], dashboard.context["enrolled_count"])
+
+
+class MasterDataTests(AccessTestBase):
+    def test_status_filters_split_everyone_and_lab_tech_sees_lab_columns(self):
+        from django.contrib.auth.models import User
+        from nanopore.views.master_data_list import COLUMNS
+        self.client.force_login(User.objects.create_superuser("root", "root@example.org", "pw"))
+        url = reverse("nanopore:master-data-list")
+        page = self.client.get(url)
+        total = page.context["paginator"].count
+        self.assertEqual(total, 3)
+        for key, *_ in COLUMNS:
+            statuses = ["Yes", "No", "N/F"] if key == "tblis_raw" else ["Yes", "No", "N/R", "N/A", "WAIT"]
+            split = sum(self.client.get(url, {"form": key, "hint": s}).context["paginator"].count for s in statuses)
+            self.assertEqual(split, total, key)
+        # Filters stay in the pager links (encoded)
+        self.assertEqual(self.client.get(url, {"substudy": "Substudy 4"}).context["query_params"], "substudy=Substudy+4")
+        lab = self.make_user("lab", [access.LABORATORY_TECHNICIAN], sites=[self.a1])
+        self.client.force_login(lab)
+        labels = [c["label"] for c in self.client.get(url).context["columns"]]
+        self.assertEqual(labels, ["Zonal Lab", "EDCS TB-LIS", "TB-LIS raw"])

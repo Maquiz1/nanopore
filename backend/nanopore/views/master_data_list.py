@@ -1,151 +1,178 @@
-from nanopore.substudy import substudy_case
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count, Exists, OuterRef, Q
+from django.urls import reverse
+from django.utils.http import urlencode
 from django.views.generic import ListView
+
+from nanopore.models import Screening, TblisRawData
+from nanopore.substudy import SUBSTUDY_2, SUBSTUDIES, UNCATEGORIZED, substudy_case
 from utils import access
-from utils.access import assigned_locations, legacy_role_flags, scope_queryset
+from utils.access import assigned_locations, scope_queryset
 from utils.access_mixins import AnyFormAccessMixin
-from nanopore.models import Screening
-from dashboard.views.dashboard import get_role_context
+from utils.roles import get_role_context
+
+# Status of one form for one participant (the "hint" filter values)
+DONE, MISSING, NOT_NEEDED, EXTRA, WAITING, NOT_FOUND = "Yes", "No", "N/A", "N/R", "WAIT", "N/F"
+STATUS_LABELS = {
+    DONE: ("Done", "ok"),
+    MISSING: ("Missing", "miss"),
+    NOT_NEEDED: ("N/A", "na"),
+    EXTRA: ("Not required", "extra"),
+    WAITING: ("Waiting", "wait"),
+    NOT_FOUND: ("No lab no.", "na"),  # no Zonal Lab form, so nothing to look up in TB-LIS
+}
+
+# column key -> (header, form whose view right shows it, related record attr, detail URL name)
+COLUMNS = [
+    ("enrollment", "Enrollment", access.ENROLLMENT, "enrollment", "nanopore:enrollment-detail"),
+    ("clinic", "Clinic Lab", access.CLINIC_LAB, "clinic_laboratory", "nanopore:clinic-laboratory-detail"),
+    ("zonal", "Zonal Lab", access.ZONAL_LAB, "zonal_laboratory", "nanopore:zonal-laboratory-detail"),
+    ("diagnosis", "Diagnosis", access.DIAGNOSIS, "diagnosis", "nanopore:diagnosis-detail"),
+    ("regimen", "Regimen", access.REGIMEN, None, "nanopore:diagnosis-detail"),
+    ("edcs_tblis", "EDCS TB-LIS", access.EDCS_TBLIS, "tblis_laboratory", "nanopore:edcs-tblis-laboratory-view"),
+    ("tblis_raw", "TB-LIS raw", access.EDCS_TBLIS, None, None),
+]
+FORM_RELATION = {key: rel for key, _, _, rel, _ in COLUMNS if rel}
+
+
+def expected_q(form):
+    """Participants who should have this form."""
+    if form in ("zonal", "edcs_tblis"):
+        return Q(eligible=True, substudy_case=SUBSTUDY_2)  # only Substudy 2 goes to the zonal lab
+    if form == "regimen":
+        return Q(eligible=True, diagnosis__regimen_changed__value=1)  # 10(a) = Yes
+    return Q(eligible=True)
+
+
+def has_q(form):
+    if form == "regimen":
+        return Q(regimen_count__gt=0)
+    if form == "tblis_raw":
+        return Q(has_tblis_raw=True)
+    return Q(**{f"{FORM_RELATION[form]}__isnull": False})
+
+
+def status_filter(form, status):
+    """Q for one form + status, the same rules as cell_status()."""
+    if form == "tblis_raw":
+        return {DONE: Q(zonal_laboratory__isnull=False, has_tblis_raw=True),
+                MISSING: Q(zonal_laboratory__isnull=False, has_tblis_raw=False),
+                NOT_FOUND: Q(zonal_laboratory__isnull=True)}.get(status)
+    expected, has = expected_q(form), has_q(form)
+    waiting = Q(eligible=True, substudy_case=UNCATEGORIZED) if form in ("zonal", "edcs_tblis") else Q(pk__in=[])
+    return {DONE: expected & has,
+            MISSING: expected & ~has,
+            EXTRA: ~expected & has,
+            WAITING: waiting & ~has,
+            NOT_NEEDED: ~expected & ~has & ~waiting}.get(status)
+
+
+def related(s, name):
+    """The participant's form of that kind, or None (a missing one-to-one raises otherwise)."""
+    try:
+        return getattr(s, name)
+    except ObjectDoesNotExist:
+        return None
+
+
+def cell_status(s, form):
+    if form == "tblis_raw":
+        if related(s, "zonal_laboratory") is None:
+            return NOT_FOUND
+        return DONE if s.has_tblis_raw else MISSING  # lab no. not in the uploaded TB-LIS files
+    if form == "regimen":
+        diagnosis = related(s, "diagnosis")
+        expected = bool(s.eligible and diagnosis and diagnosis.regimen_changed_id and diagnosis.regimen_changed.value == 1)
+        has = s.regimen_count > 0
+    else:
+        has = related(s, FORM_RELATION[form]) is not None
+        if form in ("zonal", "edcs_tblis"):
+            if s.eligible and s.substudy_case == UNCATEGORIZED and not has:
+                return WAITING
+            expected = s.eligible and s.substudy_case == SUBSTUDY_2
+        else:
+            expected = s.eligible
+    if expected:
+        return DONE if has else MISSING
+    return EXTRA if has else NOT_NEEDED
+
 
 class MasterDataListView(AnyFormAccessMixin, ListView):
     access_forms = access.ALL_FORMS
     model = Screening
     template_name = "nanopore/master_data_list.html"
     context_object_name = "screenings"
-    paginate_by = 10
+    paginate_by = 25
+
+    def visible_columns(self):
+        user = self.request.user
+        return [c for c in COLUMNS if access.can_view(user, c[2])]
 
     def get_queryset(self):
-        # Base QuerySet with optimizations
-        from django.db.models import Case, When, Value, Q, CharField, Exists, OuterRef
-        from nanopore.models import TblisRawData
         qs = Screening.objects.select_related(
-            "site", 
-            "site__district", 
-            "site__district__region", 
             "site__district__region__zone",
             "enrollment",
             "clinic_laboratory",
             "zonal_laboratory",
-            "diagnosis",
-            "tblis_laboratory"
-        ).prefetch_related("regimen_changes")
-
-        qs = qs.annotate(
+            "diagnosis__regimen_changed",
+            "tblis_laboratory",
+        ).annotate(
             substudy_case=substudy_case(),  # one definition: nanopore/substudy.py
-            has_tblis_raw=Exists(
-                TblisRawData.objects.filter(labno=OuterRef('zonal_laboratory__unique_lab_no'))
-            )
+            regimen_count=Count("regimen_changes", distinct=True),
+            has_tblis_raw=Exists(TblisRawData.objects.filter(labno=OuterRef("zonal_laboratory__unique_lab_no"))),
         )
-
-        # Apply role-based filtering (same as dashboard/form_status)
         qs = scope_queryset(self.request.user, qs, "site")
 
-        # Handle basic GET filters
-        pid_query = self.request.GET.get("pid_labno", "").strip()
-        if pid_query:
-            qs = qs.filter(
-                Q(pid__icontains=pid_query) | 
-                Q(zonal_laboratory__unique_lab_no__icontains=pid_query)
-            )
-            
-        zone_query = self.request.GET.get("zone", "").strip()
-        if zone_query:
-            qs = qs.filter(site__district__region__zone__id=zone_query)
-            
-        site_query = self.request.GET.get("site", "").strip()
-        if site_query:
-            qs = qs.filter(site__id=site_query)
-            
-        substudy_query = self.request.GET.get("substudy", "").strip()
-        if substudy_query:
-            qs = qs.filter(substudy_case=substudy_query)
-            
-        eligibility_query = self.request.GET.get("eligibility", "").strip()
-        if eligibility_query == "Yes":
+        get = lambda key: self.request.GET.get(key, "").strip()
+        if get("pid_labno"):
+            qs = qs.filter(Q(pid__icontains=get("pid_labno")) | Q(zonal_laboratory__unique_lab_no__icontains=get("pid_labno")))
+        if get("zone"):
+            qs = qs.filter(site__district__region__zone_id=get("zone"))
+        if get("site"):
+            qs = qs.filter(site_id=get("site"))
+        if get("substudy") in SUBSTUDIES:
+            qs = qs.filter(substudy_case=get("substudy"))
+        if get("eligibility") == "Yes":
             qs = qs.filter(eligible=True)
-        elif eligibility_query == "No":
+        elif get("eligibility") == "No":
             qs = qs.filter(eligible=False)
-            
-        # Handle complex Form + Hint filtering
-        form_query = self.request.GET.get("form", "").strip()
-        hint_query = self.request.GET.get("hint", "").strip()
-        
-        if form_query and hint_query:
-            if form_query in ["enrollment", "clinic", "diagnosis"]:
-                rel = {
-                    "enrollment": "enrollment",
-                    "clinic": "clinic_laboratory",
-                    "diagnosis": "diagnosis"
-                }[form_query]
-                
-                if hint_query == "Yes":
-                    qs = qs.filter(eligible=True, **{f"{rel}__isnull": False})
-                elif hint_query == "No":
-                    qs = qs.filter(eligible=True, **{f"{rel}__isnull": True})
-                elif hint_query == "N/A":
-                    qs = qs.filter(eligible=False, **{f"{rel}__isnull": True})
-                elif hint_query == "N/R":
-                    qs = qs.filter(eligible=False, **{f"{rel}__isnull": False})
-                    
-            elif form_query in ["zonal", "edcs_tblis"]:
-                rel = "zonal_laboratory" if form_query == "zonal" else "tblis_laboratory"
-                if hint_query == "Yes":
-                    qs = qs.filter(eligible=True).exclude(substudy_case="Substudy 4").filter(**{f"{rel}__isnull": False})
-                elif hint_query == "No":
-                    qs = qs.filter(eligible=True).exclude(substudy_case="Substudy 4").filter(**{f"{rel}__isnull": True})
-                elif hint_query == "N/A":
-                    qs = qs.filter(
-                        Q(eligible=False, **{f"{rel}__isnull": True}) | 
-                        Q(eligible=True, substudy_case="Substudy 4", **{f"{rel}__isnull": True})
-                    )
-                elif hint_query == "N/R":
-                    qs = qs.filter(
-                        Q(eligible=False, **{f"{rel}__isnull": False}) | 
-                        Q(eligible=True, substudy_case="Substudy 4", **{f"{rel}__isnull": False})
-                    )
-                    
-            elif form_query == "regimen":
-                if hint_query == "Yes":
-                    qs = qs.filter(eligible=True, diagnosis__regimen_changed__name__iexact="yes", regimen_changes__isnull=False).distinct()
-                elif hint_query == "No":
-                    qs = qs.filter(eligible=True, diagnosis__regimen_changed__name__iexact="yes", regimen_changes__isnull=True).distinct()
-                elif hint_query == "N/A":
-                    qs = qs.filter(
-                        Q(eligible=False, regimen_changes__isnull=True) |
-                        Q(eligible=True, diagnosis__isnull=True, regimen_changes__isnull=True) |
-                        Q(eligible=True, diagnosis__isnull=False, regimen_changes__isnull=True)
-                    ).exclude(eligible=True, diagnosis__regimen_changed__name__iexact="yes", regimen_changes__isnull=True)
-                elif hint_query == "N/R":
-                    qs = qs.filter(
-                        Q(eligible=False, regimen_changes__isnull=False) |
-                        Q(eligible=True, diagnosis__isnull=True, regimen_changes__isnull=False) |
-                        Q(eligible=True, diagnosis__isnull=False, regimen_changes__isnull=False)
-                    ).exclude(eligible=True, diagnosis__regimen_changed__name__iexact="yes", regimen_changes__isnull=False).distinct()
-                    
-            elif form_query == "tblis_raw":
-                if hint_query == "Yes":
-                    qs = qs.filter(zonal_laboratory__isnull=False, has_tblis_raw=True)
-                elif hint_query == "No":
-                    qs = qs.filter(zonal_laboratory__isnull=False, has_tblis_raw=False)
-                elif hint_query == "N/F":
-                    qs = qs.filter(zonal_laboratory__isnull=True)
 
-        return qs.order_by("-screening_date")
+        visible = {c[0] for c in self.visible_columns()}
+        if get("form") in visible and get("hint"):
+            q = status_filter(get("form"), get("hint"))
+            if q is not None:
+                qs = qs.filter(q)
+
+        return qs.order_by("-screening_date", "-pk")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Add zones and sites for filter dropdowns
-        role_context = get_role_context(self.request.user)
-        context.update(role_context)
-        
-        # Explicit Profile Assignments for Header Display
-        assigned_zones, assigned_sites = assigned_locations(self.request.user)
-        context.update({
-            "assigned_zones": assigned_zones,
-            "assigned_sites": assigned_sites,
-        })
+        user = self.request.user
+        context.update(get_role_context(user))
+        assigned_zones, assigned_sites = assigned_locations(user)
+        context.update({"assigned_zones": assigned_zones, "assigned_sites": assigned_sites})
 
-        # User permissions flags for UI rendering
-        context.update(legacy_role_flags(self.request.user))
+        columns = self.visible_columns()
+        context["columns"] = [{"key": c[0], "label": c[1]} for c in columns]
+        rows = []
+        for s in context["screenings"]:
+            cells = []
+            for key, label, form, rel, url_name in columns:
+                status = cell_status(s, key)
+                text, css = STATUS_LABELS[status]
+                if key == "regimen" and s.regimen_count:
+                    text = f"{text} ({s.regimen_count})" if status == DONE else text
+                record = related(s, "diagnosis") if key == "regimen" else (related(s, rel) if rel else None)
+                url = reverse(url_name, args=[record.pk]) if url_name and record is not None else ""
+                cells.append({"label": label, "text": text, "css": css, "url": url, "status": status})
+            rows.append({"s": s, "cells": cells})
+        context["rows"] = rows
 
+        selected = {key: self.request.GET.get(key, "").strip()
+                    for key in ("pid_labno", "zone", "site", "substudy", "eligibility", "form", "hint")}
+        context["selected"] = selected
+        context["filters_active"] = any(selected.values())
+        context["query_params"] = urlencode({k: v for k, v in selected.items() if v})
+        context["show_location_filter"] = (context["sites"].count() if hasattr(context["sites"], "count") else len(context["sites"])) > 1
+        context["substudies"] = SUBSTUDIES
         return context

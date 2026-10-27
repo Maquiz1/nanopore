@@ -1,343 +1,181 @@
 {% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Master data · Dream Fund - Nanopore{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
+<div class="fs">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2><i class="fas fa-database text-primary"></i> Master Data Table</h2>
-    </div>
-
-    <!-- Assigned Sites Info (If Applicable) -->
-    {% if assigned_sites or assigned_zones %}
-        <div class="alert alert-info d-flex justify-content-between align-items-center">
-            <div>
-                {% if assigned_zones %}
-                <strong>Zone(s):</strong> {% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
-                {% endif %}
-                {% if assigned_sites %}
-                <strong>Site(s):</strong> {% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
-                {% endif %}
-                <strong>Position:</strong> {{ request.user.profile.position }}
-            </div>
-            <div>
-                <span class="badge bg-primary">Showing assigned data only</span>
-            </div>
-        </div>
-    {% endif %}
-
-    <div class="d-flex justify-content-between align-items-center mb-2">
+    <section class="fs-hero">
         <div>
-            <strong>Total records:</strong> {{ page_obj.paginator.count|default:object_list|length }}
+            <div class="fs-eyebrow">
+                {% if access.is_unscoped %}All sites
+                {% elif assigned_zones %}{% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% elif assigned_sites %}{% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% else %}No site assigned{% endif %}
+                {% if request.user.profile.position %} · {{ request.user.profile.position }}{% endif %}
+            </div>
+            <h1 class="fs-title">Master data</h1>
+            <div class="fs-meta">Every form of every participant in one row. Click a status to open that form.</div>
+        </div>
+        <div class="fs-hero-actions">
+            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-sm btn-light"><i class="fas fa-users"></i> Participants</a>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-light"><i class="fas fa-house"></i> Dashboard</a>
+        </div>
+    </section>
+
+    <!-- Filters (folded on phones unless one is in use) -->
+    <details class="fs-filter-wrap" id="fs-filter-wrap" open>
+    <summary class="btn btn-sm btn-outline-secondary"><i class="fas fa-filter"></i> Filters{% if filters_active %} · on{% endif %}</summary>
+    <form method="get" class="fs-filters">
+        <div>
+            <label class="form-label" for="md-q">PID or lab no.</label>
+            <input type="search" name="pid_labno" id="md-q" class="form-control form-control-sm" placeholder="e.g. 18_025" value="{{ selected.pid_labno }}">
+        </div>
+        {% if show_location_filter %}
+        <div>
+            <label class="form-label" for="md-zone">Zone</label>
+            <select name="zone" id="md-zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for z in zones %}<option value="{{ z.id }}" {% if selected.zone == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>{% endfor %}
+            </select>
         </div>
         <div>
-            <strong class="text-muted small me-2">HINTS:</strong>
-            <span class="badge bg-secondary">N/A = Not applicable</span>
-            <span class="badge bg-secondary">N/F = Not found</span>
-            <span class="badge bg-secondary">N/R = Not required</span>
+            <label class="form-label" for="md-site">Site</label>
+            <select name="site" id="md-site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for s in sites %}<option value="{{ s.id }}" {% if selected.site == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+            </select>
         </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-body py-2">
-            <form method="GET" class="row g-2 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">PID / Lab No</label>
-                    <input type="text" name="pid_labno" class="form-control form-control-sm" placeholder="Search..." value="{{ request.GET.pid_labno }}">
-                </div>
-                
-                {% if assigned_zones %}
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Zone</label>
-                    <select name="zone" class="form-select form-select-sm">
-                        <option value="">All Zones</option>
-                        {% for z in assigned_zones %}
-                            <option value="{{ z.id }}" {% if request.GET.zone|stringformat:"s" == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-                
-                {% if assigned_sites %}
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Site / Facility</label>
-                    <select name="site" class="form-select form-select-sm">
-                        <option value="">All Sites</option>
-                        {% for s in assigned_sites %}
-                            <option value="{{ s.id }}" {% if request.GET.site|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-                
-                <div class="col-md-1">
-                    <label class="form-label small mb-1">Substudy</label>
-                    <select name="substudy" class="form-select form-select-sm">
-                        <option value="">All</option>
-                        <option value="Substudy 2" {% if request.GET.substudy == 'Substudy 2' %}selected{% endif %}>Sub 2</option>
-                        <option value="Substudy 4" {% if request.GET.substudy == 'Substudy 4' %}selected{% endif %}>Sub 4</option>
-                        <option value="Uncategorized" {% if request.GET.substudy == 'Uncategorized' %}selected{% endif %}>Uncat</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-1">
-                    <label class="form-label small mb-1">Eligible</label>
-                    <select name="eligibility" class="form-select form-select-sm">
-                        <option value="">All</option>
-                        <option value="Yes" {% if request.GET.eligibility == 'Yes' %}selected{% endif %}>Yes</option>
-                        <option value="No" {% if request.GET.eligibility == 'No' %}selected{% endif %}>No</option>
-                    </select>
-                </div>
-                
-                <!-- Advanced Form/Hint Filter -->
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Select Form</label>
-                    <select name="form" class="form-select form-select-sm">
-                        <option value="">None</option>
-                        <option value="enrollment" {% if request.GET.form == 'enrollment' %}selected{% endif %}>Enrollment</option>
-                        <option value="clinic" {% if request.GET.form == 'clinic' %}selected{% endif %}>Clinic Lab</option>
-                        <option value="zonal" {% if request.GET.form == 'zonal' %}selected{% endif %}>Zonal Lab</option>
-                        <option value="diagnosis" {% if request.GET.form == 'diagnosis' %}selected{% endif %}>Diagnosis</option>
-                        <option value="regimen" {% if request.GET.form == 'regimen' %}selected{% endif %}>Regimen</option>
-                        <option value="edcs_tblis" {% if request.GET.form == 'edcs_tblis' %}selected{% endif %}>EDCS TBLIS</option>
-                        <option value="tblis_raw" {% if request.GET.form == 'tblis_raw' %}selected{% endif %}>TBLIS Raw</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label small mb-1">Hint</label>
-                    <select name="hint" class="form-select form-select-sm">
-                        <option value="">Any</option>
-                        <option value="Yes" {% if request.GET.hint == 'Yes' %}selected{% endif %}>Yes</option>
-                        <option value="No" {% if request.GET.hint == 'No' %}selected{% endif %}>No</option>
-                        <option value="N/A" {% if request.GET.hint == 'N/A' %}selected{% endif %}>N/A</option>
-                        <option value="N/R" {% if request.GET.hint == 'N/R' %}selected{% endif %}>N/R</option>
-                        <option value="N/F" {% if request.GET.hint == 'N/F' %}selected{% endif %}>N/F</option>
-                    </select>
-                </div>
-
-                <div class="col-md-1 d-flex gap-1">
-                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-filter"></i></button>
-                    <a href="{% url 'nanopore:master-data-list' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-undo"></i></a>
-                </div>
-            </form>
+        {% endif %}
+        <div>
+            <label class="form-label" for="md-sub">Substudy</label>
+            <select name="substudy" id="md-sub" class="form-select form-select-sm">
+                <option value="">All</option>
+                {% for name in substudies %}<option value="{{ name }}" {% if selected.substudy == name %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
         </div>
+        <div>
+            <label class="form-label" for="md-elig">Eligible</label>
+            <select name="eligibility" id="md-elig" class="form-select form-select-sm">
+                <option value="">All</option>
+                <option value="Yes" {% if selected.eligibility == "Yes" %}selected{% endif %}>Yes</option>
+                <option value="No" {% if selected.eligibility == "No" %}selected{% endif %}>No</option>
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="md-form">Form</label>
+            <select name="form" id="md-form" class="form-select form-select-sm">
+                <option value="">Any form</option>
+                {% for c in columns %}<option value="{{ c.key }}" {% if selected.form == c.key %}selected{% endif %}>{{ c.label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="md-hint">Status of that form</label>
+            <select name="hint" id="md-hint" class="form-select form-select-sm">
+                <option value="">Any status</option>
+                <option value="Yes" {% if selected.hint == "Yes" %}selected{% endif %}>Done</option>
+                <option value="No" {% if selected.hint == "No" %}selected{% endif %}>Missing</option>
+                <option value="N/R" {% if selected.hint == "N/R" %}selected{% endif %}>Not required (filled anyway)</option>
+                <option value="N/A" {% if selected.hint == "N/A" %}selected{% endif %}>N/A</option>
+                <option value="WAIT" {% if selected.hint == "WAIT" %}selected{% endif %}>Waiting (labs)</option>
+                <option value="N/F" {% if selected.hint == "N/F" %}selected{% endif %}>No lab no. (TB-LIS raw)</option>
+            </select>
+        </div>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            {% if filters_active %}<a href="{% url 'nanopore:master-data-list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+        </div>
+    </form>
+    </details>
+
+    <!-- Legend -->
+    <div class="md-legend">
+        <span><span class="fs-chip ok"><i class="fas fa-circle-check"></i> Done</span></span>
+        <span><span class="fs-chip miss">Missing</span> should exist but doesn't</span>
+        <span><span class="fs-chip extra">Not required</span> filled although not needed, worth checking</span>
+        <span><span class="fs-chip wait">Waiting</span> lab forms wait for the Clinic Lab Xpert result</span>
+        <span><span class="fs-chip na">N/A</span> not needed</span>
     </div>
 
     <!-- Table -->
-    <div class="table-responsive bg-white rounded shadow-sm">
-        <table class="table table-striped table-hover table-bordered align-middle mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col" class="text-nowrap">PID</th>
-                    <th scope="col" class="text-nowrap">Site / Facility</th>
-                    <th scope="col" class="text-nowrap">Zone</th>
-                    <th scope="col" class="text-center text-nowrap">Substudy</th>
-                    <th scope="col" class="text-center text-nowrap">Eligible</th>
-                    <th scope="col" class="text-center text-nowrap">Screening</th>
-                    <th scope="col" class="text-center text-nowrap">Enrollment</th>
-                    <th scope="col" class="text-center text-nowrap">Clinic Lab</th>
-                    <th scope="col" class="text-center text-nowrap">Zonal Lab</th>
-                    <th scope="col" class="text-center text-nowrap">Diagnosis</th>
-                    <th scope="col" class="text-center text-nowrap">Regimen</th>
-                    <th scope="col" class="text-center text-nowrap">EDCS TBLIS</th>
-                    <th scope="col" class="text-center text-nowrap">TBLIS (Raw CSV)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for screening in object_list %}
-                <tr>
-                    <!-- Demographics -->
-                    <td class="fw-bold text-nowrap">{{ screening.pid }}</td>
-                    <td class="text-nowrap">{{ screening.site.name|default:"-" }}</td>
-                    <td class="text-nowrap">{{ screening.site.district.region.zone.name|default:"-" }}</td>
-                    
-                    <!-- Substudy -->
-                    <td class="text-center text-nowrap">
-                        <span class="badge bg-secondary">{{ screening.substudy_case|default:"-" }}</span>
-                    </td>
-                    
-                    <!-- Eligibility -->
-                    <td class="text-center">
-                        {% if screening.eligible %}
-                            <span class="badge bg-success">Yes</span>
-                        {% else %}
-                            <span class="badge bg-danger">No</span>
-                        {% endif %}
-                    </td>
-                    
-                    <!-- Screening -->
-                    <td class="text-center">
-                        <a href="{% url 'nanopore:screening-detail' screening.pk %}" class="badge bg-success text-decoration-none">Yes</a>
-                    </td>
-                    
-                    <!-- Enrollment -->
-                    <td class="text-center">
-                        {% if not screening.eligible %}
-                            {% if screening.enrollment %}
-                                <a href="{% url 'nanopore:enrollment-detail' screening.enrollment.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                            {% else %}
-                                <span class="badge bg-secondary">N/A</span>
-                            {% endif %}
-                        {% else %}
-                            {% if screening.enrollment %}
-                                <a href="{% url 'nanopore:enrollment-detail' screening.enrollment.pk %}" class="badge bg-success text-decoration-none">Yes</a>
-                            {% else %}
-                                <span class="badge bg-danger">No</span>
-                            {% endif %}
-                        {% endif %}
-                    </td>
-                    
-                    <!-- Clinic Lab -->
-                    <td class="text-center">
-                        {% if not screening.eligible %}
-                            {% if screening.clinic_laboratory %}
-                                <a href="{% url 'nanopore:clinic-laboratory-detail' screening.clinic_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                            {% else %}
-                                <span class="badge bg-secondary">N/A</span>
-                            {% endif %}
-                        {% else %}
-                            {% if screening.clinic_laboratory %}
-                                <a href="{% url 'nanopore:clinic-laboratory-detail' screening.clinic_laboratory.pk %}" class="badge bg-success text-decoration-none">Yes</a>
-                            {% else %}
-                                <span class="badge bg-danger">No</span>
-                            {% endif %}
-                        {% endif %}
-                    </td>
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ paginator.count|intcomma }} participant{{ paginator.count|pluralize }}</strong>
+            {% if is_paginated %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
 
-                    <!-- Zonal Lab -->
-                    <td class="text-center">
-                        {% if not screening.eligible %}
-                            {% if screening.zonal_laboratory %}
-                                <a href="{% url 'nanopore:zonal-laboratory-detail' screening.zonal_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                            {% else %}
-                                <span class="badge bg-secondary">N/A</span>
-                            {% endif %}
-                        {% else %}
-                            {% if screening.substudy_case == 'Substudy 4' %}
-                                {% if screening.zonal_laboratory %}
-                                    <a href="{% url 'nanopore:zonal-laboratory-detail' screening.zonal_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                                {% else %}
-                                    <span class="badge bg-secondary">N/A</span>
-                                {% endif %}
-                            {% else %}
-                                {% if screening.zonal_laboratory %}
-                                    <a href="{% url 'nanopore:zonal-laboratory-detail' screening.zonal_laboratory.pk %}" class="badge bg-success text-decoration-none">Yes</a>
-                                {% else %}
-                                    <span class="badge bg-danger">No</span>
-                                {% endif %}
-                            {% endif %}
-                        {% endif %}
-                    </td>
-                    
-                    <!-- Diagnosis -->
-                    <td class="text-center">
-                        {% if not screening.eligible %}
-                            {% if screening.diagnosis %}
-                                <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                            {% else %}
-                                <span class="badge bg-secondary">N/A</span>
-                            {% endif %}
-                        {% else %}
-                            {% if screening.diagnosis %}
-                                <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-success text-decoration-none">Yes</a>
-                            {% else %}
-                                <span class="badge bg-danger">No</span>
-                            {% endif %}
-                        {% endif %}
-                    </td>
+        {% if rows %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead>
+                    <tr>
+                        <th>PID</th>
+                        <th>Site</th>
+                        <th>Substudy</th>
+                        <th>Screening</th>
+                        {% for c in columns %}<th>{{ c.label }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    {% with s=row.s %}
+                    <tr>
+                        <td class="fs-pid" data-label="PID">
+                            {% if access.view.screening %}<a href="{% url 'nanopore:screening-detail' s.pk %}">{{ s.pid }}</a>{% else %}{{ s.pid }}{% endif %}
+                            {% if s.zonal_laboratory.unique_lab_no %}<div class="fs-muted">{{ s.zonal_laboratory.unique_lab_no }}</div>{% endif %}
+                        </td>
+                        <td data-label="Site">
+                            {{ s.site.name|default:"—" }}
+                            <div class="fs-muted">{{ s.site.district.region.zone.name }}</div>
+                        </td>
+                        <td data-label="Substudy">
+                            <span class="fs-pill {% if s.substudy_case == 'Substudy 2' %}s2{% elif s.substudy_case == 'Substudy 4' %}s4{% else %}un{% endif %}">{{ s.substudy_case }}</span>
+                        </td>
+                        <td data-label="Screening">
+                            {% if s.eligible %}<span class="fs-chip ok"><i class="fas fa-circle-check"></i> Eligible</span>
+                            {% else %}<span class="fs-chip no"><i class="fas fa-circle-xmark"></i> Not eligible</span>{% endif %}
+                        </td>
+                        {% for cell in row.cells %}
+                        <td data-label="{{ cell.label }}">
+                            {% if cell.url %}<a href="{{ cell.url }}" class="fs-chip {{ cell.css }}">{% if cell.css == "ok" %}<i class="fas fa-circle-check"></i> {% endif %}{{ cell.text }}</a>
+                            {% else %}<span class="fs-chip {{ cell.css }}">{{ cell.text }}</span>{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty">
+            <i class="fas fa-magnifying-glass"></i>
+            <p>No participants match{% if filters_active %} these filters{% endif %}.</p>
+            {% if filters_active %}<a href="{% url 'nanopore:master-data-list' %}" class="btn btn-sm btn-outline-secondary">Clear filters</a>{% endif %}
+        </div>
+        {% endif %}
 
-                    <!-- Regimen -->
-                    <td class="text-center">
-                        {% if not screening.eligible %}
-                            {% if screening.regimen_changes.exists %}
-                                <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                            {% else %}
-                                <span class="badge bg-secondary">N/A</span>
-                            {% endif %}
-                        {% else %}
-                            {% if screening.diagnosis and screening.diagnosis.regimen_changed.name|lower == 'yes' %}
-                                {% if screening.regimen_changes.exists %}
-                                    <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-success text-decoration-none">Yes ({{ screening.regimen_changes.count }})</a>
-                                {% else %}
-                                    <span class="badge bg-danger">No</span>
-                                {% endif %}
-                            {% else %}
-                                {% if screening.regimen_changes.exists %}
-                                    <a href="{% url 'nanopore:diagnosis-detail' screening.diagnosis.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                                {% else %}
-                                    <span class="badge bg-secondary">N/A</span>
-                                {% endif %}
-                            {% endif %}
-                        {% endif %}
-                    </td>
-
-                    <!-- EDCS TBLIS -->
-                    <td class="text-center">
-                        {% if not screening.eligible %}
-                            {% if screening.tblis_laboratory %}
-                                <a href="{% url 'nanopore:edcs-tblis-laboratory-view' screening.tblis_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                            {% else %}
-                                <span class="badge bg-secondary">N/A</span>
-                            {% endif %}
-                        {% else %}
-                            {% if screening.substudy_case == 'Substudy 4' %}
-                                {% if screening.tblis_laboratory %}
-                                    <a href="{% url 'nanopore:edcs-tblis-laboratory-view' screening.tblis_laboratory.pk %}" class="badge bg-secondary text-decoration-none">N/R</a>
-                                {% else %}
-                                    <span class="badge bg-secondary">N/A</span>
-                                {% endif %}
-                            {% else %}
-                                {% if screening.tblis_laboratory %}
-                                    <a href="{% url 'nanopore:edcs-tblis-laboratory-view' screening.tblis_laboratory.pk %}" class="badge bg-success text-decoration-none">Yes</a>
-                                {% else %}
-                                    <span class="badge bg-danger">No</span>
-                                {% endif %}
-                            {% endif %}
-                        {% endif %}
-                    </td>
-
-                    <!-- TBLIS (Raw CSV) -->
-                    <td class="text-center">
-                        {% if screening.zonal_laboratory %}
-                            {% if screening.has_tblis_raw %}
-                                <span class="badge bg-success">Yes</span>
-                            {% else %}
-                                <span class="badge bg-danger">No</span>
-                            {% endif %}
-                        {% else %}
-                            <span class="badge bg-secondary">N/F</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="10" class="text-center py-4 text-muted">
-                        <i class="fas fa-folder-open mb-2 fs-3"></i><br>
-                        No data found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination -->
-    {% if is_paginated %}
-    <nav class="mt-4" aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; First</a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a></li>
-            {% endif %}
-            
-            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
-            
-            {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last &raquo;</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
+        {% if is_paginated %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
 </div>
+
+{% include "nanopore/partials/_list_styles.html" %}
+<style>
+    .md-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-bottom: 12px; font-size: .78rem; color: #7d8aa3; }
+    .md-legend > span { white-space: nowrap; }
+    .md-legend .fs-chip { margin-right: 4px; }
+</style>
+<script>
+    // Phones: start with the filters folded, unless one is in use
+    if (window.matchMedia("(max-width: 767.98px)").matches && !{{ filters_active|yesno:"true,false" }}) {
+        document.getElementById("fs-filter-wrap").open = false;
+    }
+</script>
 {% endblock %}
