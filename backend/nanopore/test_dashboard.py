@@ -176,3 +176,21 @@ class MasterDataTests(AccessTestBase):
         self.client.force_login(lab)
         labels = [c["label"] for c in self.client.get(url).context["columns"]]
         self.assertEqual(labels, ["Zonal Lab", "EDCS TB-LIS", "TB-LIS raw"])
+
+
+class GraphsTests(AccessTestBase):
+    def test_charts_follow_the_users_sites_and_filters(self):
+        nurse = self.make_user("nurse", [access.NURSE], sites=[self.a1])
+        self.client.force_login(nurse)
+        chart = self.client.get(reverse("dashboard:graphs")).context["chart"]
+        # Only A1's one participant, in every chart (the substudy chart used to count the whole zone)
+        self.assertEqual(sum(chart["byGroup"]["data"]), 1)
+        self.assertEqual(sum(sum(s["data"]) for s in chart["substudy"]["series"]), 1)
+        self.assertEqual(sum(sum(s["data"]) for s in chart["monthly"]["series"]), 1)
+
+        from django.contrib.auth.models import User
+        self.client.force_login(User.objects.create_superuser("root", "root@example.org", "pw"))
+        page = self.client.get(reverse("dashboard:graphs"), {"zone": self.zone_a.pk})
+        self.assertEqual(page.context["group_word"], "site")
+        self.assertEqual(page.context["chart"]["byGroup"]["labels"], ["A1", "A2"])
+        self.assertEqual(self.client.get(reverse("dashboard:graphs"), {"start_date": "2025-03-02"}).context["total_screened"], 0)

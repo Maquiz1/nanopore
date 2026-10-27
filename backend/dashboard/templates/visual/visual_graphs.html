@@ -1,530 +1,283 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load custom_tags %}
-{% load static %}
 
-<title>{% block title %}Dream Fund - Nanopore Sequencing{% endblock %}</title>
-
-{% block titlebar %}
-Dashboard — {{ user.get_full_name|default:user.username }}
-{% endblock %}
+{% block title %}Graphs · Dream Fund - Nanopore{% endblock %}
 
 {% block content %}
-
-<style>
-    .fa-hand-wave::before {
-        content: "\f44b";
-        /* custom wave icon if missing */
-    }
-
-    .card-body h2 i {
-        animation: wave 2s infinite ease-in-out;
-    }
-
-    @keyframes wave {
-
-        0%,
-        100% {
-            transform: rotate(0deg);
-        }
-
-        25% {
-            transform: rotate(15deg);
-        }
-
-        75% {
-            transform: rotate(-10deg);
-        }
-    }
-</style>
-
-<style>
-@keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-.blink {
-  animation: blink 3s infinite;
-}
-</style>
-
-<div class="card shadow-sm border-0 mb-4 rounded-4">
-    <div class="card-body bg-light">
-        <h2 class="mb-3 text-primary fw-bold d-flex align-items-center flex-wrap">
-            <i class="fas fa-hand-wave text-warning me-2"></i>
-            Welcome,
-            <span class="ms-1">
-                {% if request.user.profile.prefix %}
-                {{ request.user.profile.prefix|default:"" }}.
-                {% endif %}
-                {{ user.get_full_name|default:user.username }}!
-            </span>
-        </h2>
-        {% if access.is_unscoped %}
-        <div class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm"> 
-            <div>
-                <p class="mb-0 fs-5 text-dark">
-                    <i class="fas fa-user-shield text-primary me-2"></i>
-                    <strong>Position:</strong> {{ request.user.profile.position }}
-                </p>
+<div class="gr">
+    <!-- Header -->
+    <section class="gr-hero">
+        <div>
+            <div class="gr-eyebrow">
+                {% if access.is_unscoped %}All sites
+                {% elif assigned_zones %}{% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% elif assigned_sites %}{% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% else %}No site assigned{% endif %}
             </div>
-
-            {% if total_issues %}
-            <!-- Blinking Badge -->
-            <div>
-                <span class="badge bg-danger blink">
-                    Current Pending Queries: {{ total_issues  | intcomma }}
-                </span>
-            </div>
-            {% endif %}
+            <h1 class="gr-title">Screening graphs</h1>
+            <div class="gr-meta">Screenings by {{ group_word }}{% if selected.start_date or selected.end_date %}, screened {{ selected.start_date|default:"from the start" }} – {{ selected.end_date|default:"today" }}{% endif %}.</div>
         </div>
-        {% else %}
-        {% if request.user.profile.sites.exists %}
-        <div class="p-3 bg-white rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center flex-wrap shadow-sm">      
-            <div>
-                <!-- <p class="mb-1"><i class="fas fa-user-tag text-success me-2"></i><strong>Prefix:</strong> {{ request.user.profile.prefix }}</p> -->
-                <p class="mb-1"><i class="fas fa-globe-africa text-success me-2"></i>
-                    <strong>Zone:</strong>
-                    {{ request.user.profile.sites.first.district.region.zone.name }}</p>
-                <p class="mb-1"><i class="fas fa-hospital text-success me-2"></i>
-                    <strong>Site(s):</strong>
-                    {% for s in request.user.profile.sites.all %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-                <p class="mb-0"><i class="fas fa-briefcase text-success me-2"></i>
-                    <strong>Position:</strong>
-                    {{ request.user.profile.position }}</p>
-            </div>
-            {% if total_issues %}
-            <!-- Blinking Badge -->
-            <div>
-                <span class="badge bg-danger blink">
-                    Current Pending Queries: {{ total_issues  | intcomma }}
-                </span>
-            </div>
-            {% endif %}
+        <div class="gr-hero-actions">
+            <a href="{% url 'dashboard:dashboard' %}{% if filters_active %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-sm btn-outline-light"><i class="fas fa-house"></i> Dashboard</a>
         </div>
-        {% else %}
-        <div class="alert alert-warning mt-3 rounded-3 shadow-sm">
-            ⚠️ Your profile does not have a site assigned. please Login again <br><hr> 
-            <a href="{% url 'users:login' %}">Click here to login</a>
-        </div>
-        {% endif %}
-        {% endif %}
-    </div>
-</div>
+    </section>
 
-<div class="container mt-3">
-    <!-- Selected Site / Zone Info -->
-    <div class="mb-3">
-        {% if request.GET.site or request.GET.zone %}
-        <h5>
-            {% if request.GET.site %}
-            Site: {{ sites|get_item:request.GET.site|default:"N/A" }}
-            {% endif %}
-            {% if request.GET.zone %}
-            {% if request.GET.site %} | {% endif %}
-            Zone: {{ zones|get_item:request.GET.zone|default:"N/A" }}
-            {% endif %}
-        </h5>
-        {% endif %}
-    </div>
-
-    <style>
-        .card-hover:hover {
-            transform: scale(1.03);
-            transition: 0.2s;
-        }
-    </style>
+    {% if not access.is_unscoped and not assigned_zones and not assigned_sites %}
+    <div class="alert alert-warning"><i class="fas fa-triangle-exclamation"></i> Your profile has no site or zone assigned. Ask an administrator to assign one.</div>
+    {% endif %}
 
     <!-- Filters -->
-    <form method="get" class="row g-3 mb-4">
-        {% if is_admin or is_national_lab %}
-        <div class="col-md-3">
-            <select name="zone" class="form-select">
-                <option value="">All Zones</option>
-                {% for id, name in zones.items %}
-                <option value="{{ id }}" {% if request.GET.zone == id|stringformat:"s" %}selected{% endif %}>
-                    {{ name }}
-                </option>
-                {% endfor %}
+    <form method="get" class="gr-filters">
+        {% if show_location_filter %}
+        <div>
+            <label class="form-label" for="gr-zone">Zone</label>
+            <select name="zone" id="gr-zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for z in zones %}<option value="{{ z.id }}" {% if selected.zone == z.id|stringformat:"s" %}selected{% endif %}>{{ z.name }}</option>{% endfor %}
             </select>
         </div>
-        <div class="col-md-3">
-            <select name="site" class="form-select">
-                <option value="">All Sites</option>
-                {% for id, name in sites.items %}
-                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
-                    {{ name }}
-                </option>
-                {% endfor %}
+        <div>
+            <label class="form-label" for="gr-site">Site</label>
+            <select name="site" id="gr-site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for s in sites %}<option value="{{ s.id }}" {% if selected.site == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
             </select>
         </div>
-        {% elif is_zonal_lab %}
-        <div class="col-md-3">
-            <select name="site" class="form-select">
-                <option value="">All Sites</option>
-                {% for id, name in sites.items %}
-                <option value="{{ id }}" {% if request.GET.site == id|stringformat:"s" %}selected{% endif %}>
-                    {{ name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        {% else %}
-        <input type="hidden" name="site" value="{{ sites.keys.0 }}">
         {% endif %}
-
-        <div class="col-md-2">
-            <select name="period" class="form-select">
-                <option value="monthly" {% if request.GET.period == "monthly" or request.GET.period == "" %}selected{% endif %}>Monthly</option>
-            </select>
+        <div>
+            <label class="form-label" for="gr-from">Screened from</label>
+            <input type="date" name="start_date" id="gr-from" class="form-control form-control-sm" value="{{ selected.start_date }}">
         </div>
-        <div class="col-md-2">
-            <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+        <div>
+            <label class="form-label" for="gr-to">Screened to</label>
+            <input type="date" name="end_date" id="gr-to" class="form-control form-control-sm" value="{{ selected.end_date }}">
         </div>
-        <div class="col-md-2">
-            <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
-        </div>
-        <div class="col-md-12 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Reset Filters</a>
+        <div class="gr-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Apply</button>
+            {% if filters_active %}<a href="{% url 'dashboard:graphs' %}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
         </div>
     </form>
 
-    <!-- 7-DAY REPORTS -->
-    <div class="row g-4 mb-4">
-        <!-- 7-Day Bar Chart -->
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Screenings in Last 7 Days (Bar)</h5>
-                    <canvas id="sevenDaysBarChart"></canvas>
-                </div>
-            </div>
+    <!-- Headline numbers -->
+    <section class="gr-stats">
+        <a class="gr-stat" href="{% url 'nanopore:form-status-list' %}{% if filters_active %}?{{ request.GET.urlencode }}{% endif %}">
+            <span class="gr-stat-label">Screened</span>
+            <span class="gr-stat-num">{{ total_screened|intcomma }}</span>
+            <span class="gr-stat-note">with these filters</span>
+        </a>
+        <div class="gr-stat">
+            <span class="gr-stat-label">Last 7 days</span>
+            <span class="gr-stat-num">{{ last7_total|intcomma }}</span>
+            <span class="gr-stat-note">screenings</span>
         </div>
-    </div>
-    <div class="row g-4 mb-4">
-        <!-- 7-Day Trend Line Chart -->
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Screenings in Last 7 Days (Trend)</h5>
-                    <canvas id="sevenDaysLineChart"></canvas>
-                </div>
-            </div>
+        <div class="gr-stat">
+            <span class="gr-stat-label">This month</span>
+            <span class="gr-stat-num">{{ this_month_total|intcomma }}</span>
+            <span class="gr-stat-note">since {{ first_of_month|date:"d M" }}</span>
         </div>
-    </div>
+    </section>
 
-    <!-- ============================= -->
-    <!-- THIS MONTH REPORTS -->
-    <!-- ============================= -->
-    <!-- THIS MONTH REPORTS -->
-    <div class="row g-4 mb-4">
-        <!-- This Month Bar Chart -->
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Screenings This Month by Zone (Bar)</h5>
-                    <canvas id="monthBarChart"></canvas>
-                </div>
-            </div>
-        </div>
+    {% if total_screened %}
+    <section class="gr-card">
+        <header class="gr-card-head"><h2>Screenings per month</h2><span class="gr-muted">by {{ group_word }}</span></header>
+        <div class="gr-canvas gr-canvas-tall"><canvas id="gr-monthly" role="img" aria-label="Line chart of screenings per month"></canvas></div>
+        <details class="gr-table" data-chart="monthly"><summary>Show numbers</summary></details>
+    </section>
+
+    <div class="gr-grid">
+        <section class="gr-card">
+            <header class="gr-card-head"><h2>Total screened</h2><span class="gr-muted">by {{ group_word }}</span></header>
+            <div class="gr-canvas" data-rows="byGroup"><canvas id="gr-bygroup" role="img" aria-label="Bar chart of screenings by {{ group_word }}"></canvas></div>
+            <details class="gr-table" data-chart="byGroup"><summary>Show numbers</summary></details>
+        </section>
+        <section class="gr-card">
+            <header class="gr-card-head"><h2>Substudy</h2><span class="gr-muted">screened, by {{ group_word }}</span></header>
+            <div class="gr-canvas" data-rows="substudy"><canvas id="gr-substudy" role="img" aria-label="Stacked bar chart of substudies by {{ group_word }}"></canvas></div>
+            <details class="gr-table" data-chart="substudy"><summary>Show numbers</summary></details>
+        </section>
+        <section class="gr-card">
+            <header class="gr-card-head"><h2>Last 7 days</h2><span class="gr-muted">screenings per day</span></header>
+            {% if last7_total %}
+            <div class="gr-canvas"><canvas id="gr-last7" role="img" aria-label="Bar chart of screenings in the last 7 days"></canvas></div>
+            <details class="gr-table" data-chart="last7"><summary>Show numbers</summary></details>
+            {% else %}<div class="gr-none">No screenings in the last 7 days.</div>{% endif %}
+        </section>
+        <section class="gr-card">
+            <header class="gr-card-head"><h2>This month</h2><span class="gr-muted">by {{ group_word }}, since {{ first_of_month|date:"d M" }}</span></header>
+            {% if this_month_total %}
+            <div class="gr-canvas" data-rows="thisMonth"><canvas id="gr-thismonth" role="img" aria-label="Bar chart of screenings this month by {{ group_word }}"></canvas></div>
+            <details class="gr-table" data-chart="thisMonth"><summary>Show numbers</summary></details>
+            {% else %}<div class="gr-none">No screenings yet this month.</div>{% endif %}
+        </section>
     </div>
-    <div class="row g-4 mb-4">
-        <!-- This Month Trend Line Chart -->
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Screenings This Month by Zone (Trend)</h5>
-                    <canvas id="monthLineChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================= -->
-    <!-- END THIS MONTH REPORTS -->
-    <!-- ============================= -->
-
-    <!-- CHARTS -->
-    <div class="row g-4">
-        <!-- Bar Chart per Zone / Site -->
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Total Screenings by Zone</h5>
-                    <canvas id="zoneBarChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Time Series Line Chart (monthly only) -->
-        <div class="col-md-12">
-            <div class="card shadow-sm mt-4">
-                <div class="card-body">
-                    <h5 class="card-title">Total Screening Trends (Monthly) by Zone</h5>
-                    <canvas id="zoneTimeChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Substudy Bar Chart -->
-        <div class="col-md-12 mt-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Substudy Distribution</h5>
-                    <canvas id="substudyBarChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% else %}
+    <section class="gr-card gr-empty">
+        <i class="fas fa-chart-column"></i>
+        <p>No screenings{% if filters_active %} match these filters{% endif %}.</p>
+    </section>
+    {% endif %}
 </div>
 
+{{ chart|json_script:"gr-data" }}
 
-            <!-- Quick Actions / Info -->
-            {% if user.is_staff %}
-            <div class="row">
-                <div class="col-12 text-center">
-                    <p class="text-muted">
-                        Use the navigation menu to access patient records, screening logs, enrollment data, and all CRFs.
-                    </p>
-                    <a href="{% url 'admin:index' %}" class="btn btn-outline-dark btn-lg mt-3">
-                        <i class="bi bi-gear me-2"></i> Nanopore Admin Panel
-                    </a>
-                </div>
-            </div>
-            {% endif %}
+<style>
+    .gr {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff; --soft: #f6f8fc; --accent: #1d6fd6;
+        max-width: 1240px; margin: 24px auto 40px; padding: 0 4px; color: var(--ink);
+    }
+    .gr-hero {
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+        padding: 22px 26px; margin-bottom: 14px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%); box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .gr-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .gr-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; }
+    .gr-meta { font-size: .9rem; opacity: .9; }
+    .gr-filters {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); align-items: end; gap: 10px;
+        padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    }
+    .gr-filters .form-label { font-size: .74rem; color: var(--muted); margin-bottom: 2px; }
+    .gr-filter-actions { display: flex; gap: 6px; }
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    .gr-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .gr-stat { display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); text-decoration: none; }
+    a.gr-stat:hover { box-shadow: 0 8px 22px rgba(20, 33, 61, .08); color: var(--ink); }
+    .gr-stat-label { font-size: .8rem; font-weight: 600; color: var(--ink-2); }
+    .gr-stat-num { font-size: 1.9rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .gr-stat-note { font-size: .76rem; color: var(--muted); }
 
+    .gr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .gr-card { padding: 16px 18px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); min-width: 0; }
+    .gr-grid .gr-card { margin-bottom: 0; }
+    .gr-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .gr-card-head h2 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .gr-muted { font-size: .78rem; color: var(--muted); }
+    .gr-canvas { position: relative; height: 260px; }
+    .gr-canvas-tall { height: 320px; }
+    .gr-table { margin-top: 8px; font-size: .82rem; }
+    .gr-table summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: .8rem; }
+    .gr-table table { width: 100%; margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    .gr-table th, .gr-table td { padding: 4px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+    .gr-table th:first-child, .gr-table td:first-child { text-align: left; }
+    .gr-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+    .gr-table-wrap { overflow-x: auto; }
+    .gr-none { display: grid; place-items: center; height: 160px; color: var(--muted); font-size: .88rem; background: #f6f8fc; border-radius: 10px; }
+    .gr-empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+    .gr-empty i { font-size: 1.8rem; margin-bottom: 8px; }
+
+    @media (max-width: 767.98px) {
+        .gr { margin-top: 12px; }
+        .gr-hero { padding: 18px; }
+        .gr-stats { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .gr-stat { padding: 10px; }
+        .gr-stat-num { font-size: 1.3rem; }
+        .gr-grid { grid-template-columns: 1fr; }
+        .gr-canvas-tall { height: 260px; }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-    // --- 7-DAY REPORTS ---
-    const last7DaysLabels = {{ last7days_labels_json| safe }};
-    const last7DaysValues = {{ last7days_values_json| safe }};
+(function () {
+    const data = JSON.parse(document.getElementById("gr-data").textContent);
+    if (!window.Chart || !document.getElementById("gr-monthly")) return;
 
-    // 7-Day Bar Chart
-    new Chart(document.getElementById('sevenDaysBarChart').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: last7DaysLabels,
-            datasets: [{
-                label: 'Screenings',
-                data: last7DaysValues,
-                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
-        }
+    // Fixed categorical order (validated palette); a zone/site keeps its slot by its place in the list
+    const SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
+    const SUBSTUDY = {"Substudy 2": "#2a78d6", "Substudy 4": "#eb6834", "Uncategorized": "#a9b1c0"};
+    const INK = "#4a5872", GRID = "#eef1f6", SURFACE = "#ffffff";
+
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = INK;
+    Chart.defaults.plugins.tooltip.backgroundColor = "#14213d";
+    Chart.defaults.plugins.tooltip.padding = 10;
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
+    Chart.defaults.maintainAspectRatio = false;
+
+    const fmt = n => n.toLocaleString();
+    const valueAxis = {beginAtZero: true, grid: {color: GRID}, border: {display: false}, ticks: {precision: 0, callback: fmt}};
+    const catAxis = {grid: {display: false}, border: {color: "#d5dcea"}};
+
+    // Horizontal bars grow with the number of rows so labels never collide
+    document.querySelectorAll("[data-rows]").forEach(box => {
+        const rows = data[box.dataset.rows].labels.length;
+        box.style.height = Math.max(160, rows * 34 + 60) + "px";
     });
 
-    // 7-Day Trend Line Chart
-    new Chart(document.getElementById('sevenDaysLineChart').getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: last7DaysLabels,
-            datasets: [{
-                label: 'Daily Screenings',
-                data: last7DaysValues,
-                borderColor: 'rgba(255, 99, 132, 0.8)',
-                backgroundColor: 'rgba(255, 99, 132, 0.4)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top' },
-                title: { display: true, text: 'Screening Trend (Last 7 Days)' }
-            },
-            scales: { y: { beginAtZero: true } }
-        }
-    });
-</script>
-
-<script>
-    const monthLabels = JSON.parse('{{ this_month_labels_json|safe }}');
-    const monthValues = JSON.parse('{{ this_month_values_json|safe }}');
-
-    // Generate consistent unique colors per zone
-    function generateColors(labels) {
-        const colors = {};
-        labels.forEach((label, index) => {
-            // generate color from label hash
-            const hash = Array.from(label).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-            const hue = hash % 360;
-            colors[label] = `hsl(${hue}, 65%, 55%)`;
+    function hbar(id, block, color) {
+        if (!document.getElementById(id)) return;
+        new Chart(document.getElementById(id), {
+            type: "bar",
+            data: {labels: block.labels, datasets: [{label: "Screenings", data: block.data, backgroundColor: color,
+                   borderRadius: 4, borderSkipped: "start", maxBarThickness: 22, borderColor: SURFACE, borderWidth: 2}]},
+            options: {indexAxis: "y", plugins: {legend: {display: false},
+                      tooltip: {callbacks: {label: c => " " + fmt(c.parsed.x) + " screened"}}},
+                      scales: {x: valueAxis, y: catAxis}}
         });
-        return colors;
     }
 
-    const zoneColors = generateColors(monthLabels);
-    const backgroundColors = monthLabels.map(l => zoneColors[l]);
-    const borderColors = monthLabels.map(l => zoneColors[l]);
-
-    // --- Bar Chart ---
-    new Chart(document.getElementById('monthBarChart'), {
-        type: 'bar',
-        data: {
-            labels: monthLabels,
-            datasets: [{
-                label: 'Screenings This Month',
-                data: monthValues,
-                backgroundColor: backgroundColors,
-                borderColor: borderColors,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
+    // 1. Monthly trend: one line per zone/site
+    new Chart(document.getElementById("gr-monthly"), {
+        type: "line",
+        data: {labels: data.monthly.labels, datasets: data.monthly.series.map(s => ({
+            label: s.label, data: s.data, borderColor: SERIES[s.slot % SERIES.length], backgroundColor: SERIES[s.slot % SERIES.length],
+            borderWidth: 2, cubicInterpolationMode: "monotone", pointRadius: 0, pointHoverRadius: 5, pointHoverBorderColor: SURFACE, pointHoverBorderWidth: 2}))},
+        options: {interaction: {mode: "index", intersect: false},
+                  plugins: {legend: {display: data.monthly.series.length > 1, position: "top", align: "start",
+                                     labels: {usePointStyle: true, pointStyle: "line", boxWidth: 18}}},
+                  scales: {y: valueAxis, x: {...catAxis, ticks: {maxRotation: 0, autoSkipPadding: 12}}}}
     });
 
-    // --- Line Chart ---
-    new Chart(document.getElementById('monthLineChart'), {
-        type: 'line',
-        data: {
-            labels: monthLabels,
-            datasets: [{
-                label: 'Screenings This Month',
-                data: monthValues,
-                borderColor: '#4e79a7',
-                backgroundColor: '#4e79a7',
-                fill: false,
-                tension: 0.3,
-                pointBackgroundColor: backgroundColors,
-                pointBorderColor: borderColors,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-</script>
+    // 2. Totals and 4. this month: single series, one colour
+    hbar("gr-bygroup", data.byGroup, SERIES[0]);
+    hbar("gr-thismonth", data.thisMonth, SERIES[0]);
 
-<script>
-    const zoneLabels = {{ zone_labels_json| safe }};
-    const zoneValues = {{ zone_values_json| safe }};
-    const timeLabels = {{ time_labels_json| safe }};
-    const timeDatasetsRaw = {{ time_datasets_json| safe }};
-    const substudyLabels = {{ substudy_labels_json| safe }};
-    const sub2Values = {{ sub2_values_json| safe }};
-    const sub4Values = {{ sub4_values_json| safe }};
-
-    // Color palette
-    const colors = [
-        'rgba(54, 162, 235, 0.8)',
-        'rgba(255, 99, 132, 0.8)',
-        'rgba(255, 206, 86, 0.8)',
-        'rgba(75, 192, 192, 0.8)',
-        'rgba(153, 102, 255, 0.8)',
-        'rgba(255, 159, 64, 0.8)',
-        'rgba(199, 199, 199, 0.8)'
-    ];
-    function getColor(index) {
-        return colors[index % colors.length];
-    }
-
-    // --- Bar Chart (Screenings per Zone / Site) ---
-    new Chart(document.getElementById('zoneBarChart').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: zoneLabels,
-            datasets: [{
-                label: 'Screenings',
-                data: zoneValues,
-                backgroundColor: zoneLabels.map((_, idx) => getColor(idx)),
-                borderColor: zoneLabels.map((_, idx) => getColor(idx)),
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
-        }
+    // 3. Substudy: stacked bars, 2px surface gap between segments
+    new Chart(document.getElementById("gr-substudy"), {
+        type: "bar",
+        data: {labels: data.substudy.labels, datasets: data.substudy.series.map(s => ({
+            label: s.label, data: s.data, backgroundColor: SUBSTUDY[s.label], borderColor: SURFACE, borderWidth: 2,
+            borderRadius: 4, borderSkipped: false, maxBarThickness: 22}))},
+        options: {indexAxis: "y", interaction: {mode: "index", axis: "y", intersect: false},
+                  plugins: {legend: {position: "top", align: "start", labels: {usePointStyle: true, pointStyle: "rectRounded", boxWidth: 10}}},
+                  scales: {x: {...valueAxis, stacked: true}, y: {...catAxis, stacked: true}}}
     });
 
-    // --- Line Chart (Monthly Trends) ---
-    const timeDatasets = timeDatasetsRaw.map((dataset, index) => ({
-        label: dataset.label,
-        data: dataset.data,
-        borderColor: getColor(index),
-        backgroundColor: getColor(index),
-        fill: false,
-        tension: 0.3,
-        pointRadius: 4
-    }));
-
-    new Chart(document.getElementById('zoneTimeChart').getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: timeLabels,
-            datasets: timeDatasets
-        },
-        options: {
-            responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            stacked: false,
-            plugins: {
-                legend: { position: 'top' },
-                title: { display: true, text: 'Monthly Screening Trends' },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return context.dataset.label + ": " + context.formattedValue;
-                        }
-                    }
-                }
-            },
-            scales: { y: { beginAtZero: true } }
-        }
+    // 5. Last 7 days
+    if (document.getElementById("gr-last7")) new Chart(document.getElementById("gr-last7"), {
+        type: "bar",
+        data: {labels: data.last7.labels, datasets: [{label: "Screenings", data: data.last7.data, backgroundColor: SERIES[0],
+               borderRadius: 4, borderSkipped: "start", maxBarThickness: 36}]},
+        options: {plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => " " + fmt(c.parsed.y) + " screened"}}},
+                  scales: {y: valueAxis, x: catAxis}}
     });
 
-    // --- Substudy Bar Chart ---
-    new Chart(document.getElementById('substudyBarChart').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: substudyLabels,
-            datasets: [
-                {
-                    label: 'Substudy 2',
-                    data: sub2Values,
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)'
-                },
-                {
-                    label: 'Substudy 4',
-                    data: sub4Values,
-                    backgroundColor: 'rgba(255, 99, 132, 0.8)'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'top' } },
-            scales: { y: { beginAtZero: true } }
-        }
+    // "Show numbers" tables, built from the same data as the charts
+    const tables = {
+        monthly: () => [["Month", ...data.monthly.series.map(s => s.label)],
+                        ...data.monthly.labels.map((m, i) => [m, ...data.monthly.series.map(s => s.data[i])])],
+        byGroup: () => [[data.groupWord, "Screened"], ...data.byGroup.labels.map((l, i) => [l, data.byGroup.data[i]])],
+        substudy: () => [[data.groupWord, ...data.substudy.series.map(s => s.label)],
+                         ...data.substudy.labels.map((l, i) => [l, ...data.substudy.series.map(s => s.data[i])])],
+        last7: () => [["Day", "Screened"], ...data.last7.labels.map((l, i) => [l, data.last7.data[i]])],
+        thisMonth: () => [[data.groupWord, "Screened"], ...data.thisMonth.labels.map((l, i) => [l, data.thisMonth.data[i]])],
+    };
+    document.querySelectorAll(".gr-table").forEach(box => {
+        const rows = tables[box.dataset.chart]();
+        const wrap = document.createElement("div"); wrap.className = "gr-table-wrap";
+        const table = document.createElement("table");
+        rows.forEach((row, r) => {
+            const tr = table.insertRow();
+            row.forEach(cell => {
+                const el = document.createElement(r ? "td" : "th");
+                el.textContent = typeof cell === "number" ? fmt(cell) : cell;
+                tr.appendChild(el);
+            });
+        });
+        wrap.appendChild(table); box.appendChild(wrap);
     });
+})();
 </script>
 {% endblock %}
