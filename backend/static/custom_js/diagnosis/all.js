@@ -159,8 +159,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function toggleRegimenSpecify() {
         if (!regimenReasonField || !regimenSpecifySection) return;
 
-        const value = regimenReasonField.value;
-        regimenSpecifySection.style.display = (value === "3") ? "block" : "none";
+        // "Other, specify" — matched on the label so it does not depend on the option's id
+        const option = regimenReasonField.options[regimenReasonField.selectedIndex];
+        const isOther = !!option && option.value !== "" && /other/i.test(option.text);
+        regimenSpecifySection.style.display = isOther ? "block" : "none";
+        if (!isOther) {
+            const specify = document.getElementById("id_specify");
+            if (specify) specify.value = "";
+        }
     }
 
     // ===========================
@@ -244,6 +250,7 @@ document.addEventListener("DOMContentLoaded", function () {
             regimenScreeningInput.value = this.dataset.screeningId;
             regimenForm.action = this.dataset.saveUrl;
             document.getElementById("regimenModalTitle").textContent = "Add Regimen Change";
+            toggleRegimenSpecify();
             regimenModal.show();
         });
     }
@@ -322,10 +329,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     toggleRegimenSpecify();
 
-    // if (regimenReasonField) {
-    //     regimenReasonField.addEventListener("change", toggleRegimenSpecify);
-    // }
-    // ADD THIS HERE
+    if (regimenReasonField) regimenReasonField.addEventListener("change", toggleRegimenSpecify);
     if (regimenModalEl) {
         regimenModalEl.addEventListener("shown.bs.modal", function () {
             toggleRegimenSpecify();

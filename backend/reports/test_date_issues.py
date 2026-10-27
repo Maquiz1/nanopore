@@ -108,3 +108,18 @@ class DateIssuesTests(AccessTestBase):
         # Date issues send regimen changes to the regimen table on the Diagnosis form
         page = self.client.get(reverse("reports:date_issues", args=["regimen_before_treatment"]))
         self.assertContains(page, reverse("nanopore:diagnosis-update", args=[a2.diagnosis.pk]) + "#regimen-change-section")
+
+    def test_regimen_other_reason_needs_specify(self):
+        from nanopore.forms.regimen.regimenform import RegimenChangesForm
+        from options.models import RegimenReasonForChange, RegimenTypeOfChange
+        changes = RegimenTypeOfChange.objects.create(value=1, name="Stopped")
+        other = RegimenReasonForChange.objects.create(value=96, name="Other, specify")
+        side = RegimenReasonForChange.objects.create(value=1, name="Side effects")
+        data = {"date": "2025-03-05", "drug": "H", "changes": changes.pk, "reason": other.pk, "specify": ""}
+        form = RegimenChangesForm(data)
+        self.assertIn("specify", form.errors)
+        self.assertTrue(RegimenChangesForm({**data, "specify": "Patient travelled"}).is_valid())
+        # A reason other than Other drops leftover text
+        form = RegimenChangesForm({**data, "reason": side.pk, "specify": "old text"})
+        self.assertTrue(form.is_valid())
+        self.assertIsNone(form.cleaned_data["specify"])

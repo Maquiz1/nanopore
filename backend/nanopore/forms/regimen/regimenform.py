@@ -19,3 +19,13 @@ class RegimenChangesForm(forms.ModelForm):
             "reason": forms.Select(attrs={"class": "form-select"}),
             "specify": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        reason = cleaned.get("reason")
+        if reason and "other" in reason.name.lower():
+            if not (cleaned.get("specify") or "").strip():
+                self.add_error("specify", "Please specify the other reason.")
+        else:
+            cleaned["specify"] = None
+        return cleaned
