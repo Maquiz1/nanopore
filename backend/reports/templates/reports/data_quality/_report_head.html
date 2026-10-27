@@ -1,0 +1,55 @@
+{% load humanize %}
+{# Top of each form's query list: title, filter, totals. Include with form_label="Diagnosis" records_label="Diagnosis forms checked". #}
+{% with zone=selected_zone|default:""|stringformat:"s" site=selected_site|default:""|stringformat:"s" %}
+<section class="dq-hero">
+    <div class="dq-eyebrow">Queries · {% if site %}{% for id, name in sites.items %}{% if id|stringformat:"s" == site %}{{ name }}{% endif %}{% endfor %}{% elif zone %}{% for id, name in zones.items %}{% if id|stringformat:"s" == zone %}{{ name }}{% endif %}{% endfor %}{% else %}All your sites{% endif %}</div>
+    <h1 class="dq-title">{{ form_label }}</h1>
+    <div class="dq-meta">Missing or invalid answers on {{ form_label }} forms. Open a check to see the records; click a PID to fix the form. Updated {% now "d M Y H:i" %}.</div>
+</section>
+
+<div class="rh-bar">
+    <a href="{% url 'reports:all_queries_overview' %}{% if zone or site %}?{% if zone %}zone={{ zone }}{% endif %}{% if site %}&site={{ site }}{% endif %}{% endif %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> All queries</a>
+    <div class="rh-actions">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="rhToggleAll(true)"><i class="fas fa-angles-down"></i> Open all</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="rhToggleAll(false)"><i class="fas fa-angles-up"></i> Close all</button>
+        {% if user.is_superuser %}
+        <a href="{% url 'reports:data_quality_pdf' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-pdf"></i> PDF</a>
+        {% endif %}
+    </div>
+</div>
+
+<form method="get" class="dq-filters">
+    <div>
+        <label class="form-label" for="rh-zone">Zone</label>
+        <select id="rh-zone" name="zone" class="form-select form-select-sm">
+            <option value="">All zones</option>
+            {% for id, name in zones.items %}<option value="{{ id }}" {% if id|stringformat:"s" == zone %}selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="form-label" for="rh-site">Site</label>
+        <select id="rh-site" name="site" class="form-select form-select-sm">
+            <option value="">All sites</option>
+            {% for id, name in sites.items %}<option value="{{ id }}" {% if id|stringformat:"s" == site %}selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="dq-filter-actions">
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        <a href="{{ request.path }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+    </div>
+</form>
+
+<div class="rh-kpis">
+    <div class="rh-kpi">
+        <span class="rh-kpi-label">{{ records_label }}</span>
+        <span class="rh-kpi-num">{{ total_records|default:0|intcomma }}</span>
+    </div>
+    <div class="rh-kpi {% if total_issues|add:0 %}bad{% else %}good{% endif %}">
+        <span class="rh-kpi-label">Queries to fix</span>
+        <span class="rh-kpi-num">{{ total_issues|default:0|intcomma }}</span>
+    </div>
+</div>
+{% endwith %}
+
+{% include "reports/data_quality/_report_styles.html" %}

@@ -1,127 +1,59 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="container py-5">
-    <h2 class="m-0 text-center flex-grow-1">
-        🧾 DREAM FUND - FORMS DATA QUALITY<br>
-        <span class="fs-6 fw-normal text-muted">Eligible screenings missing downstream forms</span>
-    </h2>
+<div class="dq dq-report">
+    {% with zone=selected_zone|default:""|stringformat:"s" site=selected_site|default:""|stringformat:"s" %}
+    <section class="dq-hero">
+        <div class="dq-eyebrow">Missing forms · {% if site %}{% for id, name in sites.items %}{% if id|stringformat:"s" == site %}{{ name }}{% endif %}{% endfor %}{% elif zone %}{% for id, name in zones.items %}{% if id|stringformat:"s" == zone %}{{ name }}{% endif %}{% endfor %}{% else %}All your sites{% endif %}</div>
+        <h1 class="dq-title">{% if form_type == "enrollment" %}Enrollment{% elif form_type == "clinic" %}Clinic Lab{% elif form_type == "diagnosis" %}Diagnosis{% elif form_type == "regimen" %}Regimen changes{% elif form_type == "zonal" %}Zonal Lab{% else %}Missing forms{% endif %} not filled yet</h1>
+        <div class="dq-meta">
+            {% if form_type == "zonal" %}Substudy 2 participants without a Zonal Lab form.
+            {% elif form_type == "regimen" %}Diagnosis says the regimen changed, but no regimen change is recorded.
+            {% else %}Eligible participants who should have this form but don't.{% endif %}
+            Click the button on a row to add the form. Updated {% now "d M Y H:i" %}.
+        </div>
+    </section>
 
-    <!-- Navigation Links -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
-            ← Back to Dashboard
-        </a>
-        <a href="{% url 'reports:missing_form_queries' %}" class="btn btn-outline-primary btn-lg px-4">
-            Missing Form Queries Dashboard →
-        </a>
+    <div class="rh-bar">
+        <a href="{% url 'reports:missing_form_queries' %}{% if zone or site %}?{% if zone %}zone={{ zone }}{% endif %}{% if site %}&site={{ site }}{% endif %}{% endif %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> All missing forms</a>
     </div>
 
-    <!-- Filters & Actions -->
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
-            <label class="text-muted">Zone</label>
-            <select name="zone" class="form-select form-select-sm" style="width:220px;">
+    <form method="get" class="dq-filters">
+        <div>
+            <label class="form-label">Zone</label>
+            <select name="zone" class="form-select form-select-sm">
                 <option value="">All zones</option>
-                {% for id, name in zones.items %}
-                    <option value="{{ id }}" {% if selected_zone|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>
-                        {{ name }}
-                    </option>
-                {% endfor %}
+                {% for id, name in zones.items %}<option value="{{ id }}" {% if id|stringformat:"s" == zone %}selected{% endif %}>{{ name }}</option>{% endfor %}
             </select>
-
-            <label class="text-muted">Site</label>
-            <select name="site" class="form-select form-select-sm" style="width:220px;">
+        </div>
+        <div>
+            <label class="form-label">Site</label>
+            <select name="site" class="form-select form-select-sm">
                 <option value="">All sites</option>
-                {% for id, name in sites.items %}
-                    <option value="{{ id }}" {% if selected_site|stringformat:"s" == id|stringformat:"s" %}selected{% endif %}>
-                        {{ name }}
-                    </option>
-                {% endfor %}
+                {% for id, name in sites.items %}<option value="{{ id }}" {% if id|stringformat:"s" == site %}selected{% endif %}>{{ name }}</option>{% endfor %}
             </select>
-
-            <button type="submit" class="btn btn-outline-primary btn-sm">Filter</button>
-        </form>
-
-        <div class="d-flex gap-2">
-            <a href="{% url 'reports:missing_form_details_queries' form_type %}"
-               class="btn btn-outline-secondary btn-sm">Refresh</a>
-
-            {% if is_superuser %}
-            <a href="#" class="btn btn-primary btn-sm">
-                <i class="bi bi-file-earmark-arrow-down"></i> Download PDF
-            </a>
-            {% endif %}
         </div>
-    </div>
-
-    <div class="text-center text-muted lead mb-5">
-        <small>Report generated: {{ report_date|date:"d M Y H:i" }} EAT</small>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <div class="text-muted small">Eligible screenings</div>
-                    <div class="h3 fw-bold">{{ total_screenings|default:"0"  | intcomma  }}</div>
-                </div>
-            </div>
+        <div class="dq-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{{ request.path }}" class="btn btn-outline-secondary btn-sm">Reset</a>
         </div>
+    </form>
+    {% endwith %}
 
-        <div class="col-md-4">
-            <div class="card shadow-sm border-warning text-center">
-                <div class="card-body">
-                    <div class="text-muted small">Total missing form types</div>
-                    <div class="h3 fw-bold text-warning">{{ total_form_missing|default:"0"  | intcomma  }}</div>
-                </div>
-            </div>
+    <div class="rh-kpis">
+        <div class="rh-kpi">
+            <span class="rh-kpi-label">Eligible participants</span>
+            <span class="rh-kpi-num">{{ total_screenings|default:0|intcomma }}</span>
         </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm border-danger text-center">
-                <div class="card-body">
-                    {% if form_type == "enrollment" %}
-                        <div class="text-muted small">Missing Enrollments</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_enrollment_count|default:"0"  | intcomma  }}</div>
-                    {% elif form_type == "clinic" %}
-                        <div class="text-muted small">Missing Clinic Labs</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_clinic_count|default:"0"  | intcomma  }}</div>
-                    {% elif form_type == "diagnosis" %}
-                        <div class="text-muted small">Missing Diagnoses</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_diagnosis_count|default:"0"  | intcomma  }}</div>
-                    {% elif form_type == "regimen" %}
-                        <div class="text-muted small">Missing Regimen Changes</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_regimen_count|default:"0"  | intcomma  }}</div>
-                    {% elif form_type == "zonal" %}
-                        <div class="text-muted small">Missing Zonal Labs</div>
-                        <div class="h3 fw-bold text-danger">{{ missing_zonal_count|default:"0"  | intcomma  }}</div>
-                    {% else %}
-                        <div class="text-muted small">Total Missing Forms</div>
-                        <div class="h3 fw-bold text-danger">{{ total_form_missing|default:"0"  | intcomma  }}</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+        {% if form_type == "enrollment" %}{% with n=missing_enrollment_count %}{% include "reports/data_quality/forms/_missing_kpi.html" %}{% endwith %}
+        {% elif form_type == "clinic" %}{% with n=missing_clinic_count %}{% include "reports/data_quality/forms/_missing_kpi.html" %}{% endwith %}
+        {% elif form_type == "diagnosis" %}{% with n=missing_diagnosis_count %}{% include "reports/data_quality/forms/_missing_kpi.html" %}{% endwith %}
+        {% elif form_type == "regimen" %}{% with n=missing_regimen_count %}{% include "reports/data_quality/forms/_missing_kpi.html" %}{% endwith %}
+        {% elif form_type == "zonal" %}{% with n=missing_zonal_count %}{% include "reports/data_quality/forms/_missing_kpi.html" %}{% endwith %}
+        {% else %}{% with n=total_form_missing %}{% include "reports/data_quality/forms/_missing_kpi.html" %}{% endwith %}{% endif %}
     </div>
 
-    <!-- Report generated date – centered -->
-    <div class="text-center text-muted mb-5">
-        Report generated: {{ report_date|date:"d M Y H:i" }} EAT
-    </div>
-    {% if messages %}
-    <div class="container mt-3">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Detailed Records (Accordion) -->
     <div class="accordion" id="formsQualityAccordion">
 
         <!-- ENROLLMENT -->
@@ -333,4 +265,5 @@
 
     </div>
 </div>
+{% include "reports/data_quality/_report_styles.html" %}
 {% endblock %}

@@ -1,0 +1,45 @@
+{# Shared look of the per-form query lists and missing-form lists #}
+{% include "reports/data_quality/date_issues/_styles.html" %}
+<style>
+    .rh-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .rh-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rh-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .rh-kpi { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .rh-kpi-label { font-size: .85rem; font-weight: 600; color: var(--ink-2); }
+    .rh-kpi-num { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .rh-kpi.bad { border-left: 4px solid var(--warn); } .rh-kpi.bad .rh-kpi-num { color: var(--warn); }
+    .rh-kpi.good { border-left: 4px solid var(--good); } .rh-kpi.good .rh-kpi-num { color: var(--good); }
+
+    /* The check lists below (Bootstrap accordions) in the same look */
+    .dq-report .accordion { --bs-accordion-border-color: var(--line); display: grid; gap: 8px; }
+    .dq-report .accordion-item { border: 1px solid var(--line) !important; border-radius: 12px !important; overflow: hidden; background: var(--surface); }
+    .dq-report .accordion-button {
+        padding: 12px 16px; font-size: .92rem; font-weight: 600; color: var(--ink); background: var(--surface); box-shadow: none;
+        border-left: 4px solid var(--warn);
+    }
+    .dq-report .accordion-button:not(.collapsed) { background: var(--accent-soft); color: var(--ink); border-left-color: var(--accent); }
+    .dq-report .accordion-button:focus { box-shadow: none; }
+    .dq-report .accordion-body { padding: 12px 16px; }
+    .dq-report .accordion-body table { font-size: .85rem; margin-bottom: 0; }
+    .dq-report .accordion-body thead th { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; background: #f6f8fb; white-space: nowrap; }
+    .dq-report .accordion-body td a.fw-bold, .dq-report .accordion-body td a.text-primary { text-decoration: none; }
+    .dq-report > .card, .dq-report .card.shadow-sm { border: 1px solid var(--line); border-radius: 14px; box-shadow: none !important; }
+    @media (max-width: 767.98px) {
+        .rh-kpis { grid-template-columns: 1fr; }
+        .dq-report .accordion-button { font-size: .86rem; }
+    }
+</style>
+<script>
+    // Some headers were written without "collapsed": match each header to its panel
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".dq-report .accordion-button[data-bs-target]").forEach(function (btn) {
+            var panel = document.querySelector(btn.getAttribute("data-bs-target"));
+            if (panel) btn.classList.toggle("collapsed", !panel.classList.contains("show"));
+        });
+    });
+    function rhToggleAll(open) {
+        document.querySelectorAll(".dq-report .accordion-collapse").forEach(function (el) {
+            bootstrap.Collapse.getOrCreateInstance(el, { toggle: false })[open ? "show" : "hide"]();
+        });
+    }
+</script>

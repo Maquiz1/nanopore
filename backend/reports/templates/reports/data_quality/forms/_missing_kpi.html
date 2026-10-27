@@ -1,0 +1,4 @@
+{% load humanize %}<div class="rh-kpi {% if n|add:0 %}bad{% else %}good{% endif %}">
+    <span class="rh-kpi-label">Forms missing</span>
+    <span class="rh-kpi-num">{{ n|default:0|intcomma }}</span>
+</div>

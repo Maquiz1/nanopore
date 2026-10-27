@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 from reports.views.snapshots.query_trends_view import query_trends
 from reports.views.queries.substudy_queries_view import SubstudyQueriesView
+from reports.views.queries.queries_overview_view import QueriesOverviewView
 from reports.views.queries.date_issues_view import DateIssuesView, DsDrChecksView, OutcomeWithoutTreatmentView
 from . import views
 
@@ -134,14 +135,14 @@ urlpatterns = [
     path('enrollments/download/csv/', EnrollmentCsvDownloadView.as_view(), name='download-enrollments-csv'),
 
     # path('data-quality/all-issues/', AllOverviewQueriesDashboardView.as_view(), name='all_queries_overview'),
-    path('data-quality/all-issues/', TotalDataQualityDashboardView.as_view(), name='all_queries_overview'),
+    path('data-quality/all-issues/', QueriesOverviewView.as_view(), name='all_queries_overview'),
 
     # path("queries/", MissingFormQueriesDashboardView.as_view(), name="missing_form_queries"),
-    path("queries/", MissingFormDataQualityDashboardView.as_view(), name="missing_form_queries"),
+    path("queries/", QueriesOverviewView.as_view(section="missing"), name="missing_form_queries"),
 
     
     # path("specific-form-queries/", SpecificFormQueriesDashboardView.as_view(), name="specific_form_queries"),
-    path("specific-form-queries/", SpecificFormDataQualityDashboardView.as_view(), name="specific_form_queries"),
+    path("specific-form-queries/", QueriesOverviewView.as_view(section="queries"), name="specific_form_queries"),
 
     # path("missing-form-details-queries/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),
     path("missing-form-details-queries/<str:form_type>/", MissingFormDetailsQueriesView.as_view(), name="missing_form_details_queries"),

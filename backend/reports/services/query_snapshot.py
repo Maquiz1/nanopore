@@ -37,8 +37,8 @@ def _counts(totals, form):
     }
 
 
-def _missing_forms(user, site_id):
-    counts = get_missing_forms_counts(user, site_id=site_id)
+def _missing_forms(user, site_id, zone_id=None):
+    counts = get_missing_forms_counts(user, zone_id=zone_id, site_id=site_id)
     return {form: counts[f"missing_{name}_count"] for name, form in MISSING_FORMS.items()}
 
 
@@ -51,22 +51,22 @@ MISSING_FORMS = {
     "zonal": access.ZONAL_LAB,
 }
 
-# (form key, label, counter(user, site_id) -> {query: count})
+# (form key, label, counter(user, site_id, zone_id=None) -> {query: count})
 SOURCES = (
     ("screening", "Screening",
-     lambda u, s: _counts(get_screening_dq(get_screening_queryset(u, None, s), u)[1], "screening")),
+     lambda u, s, z=None: _counts(get_screening_dq(get_screening_queryset(u, z, s), u)[1], "screening")),
     ("enrollment", "Enrollment",
-     lambda u, s: _counts(get_enrollment_dq(get_enrollment_queryset(u, None, s))[1], "enrollment")),
+     lambda u, s, z=None: _counts(get_enrollment_dq(get_enrollment_queryset(u, z, s))[1], "enrollment")),
     ("clinic_lab", "Clinic Lab",
-     lambda u, s: _counts(get_clinic_dq(get_clinic_queryset(u, None, s))[1], "clinic_lab")),
+     lambda u, s, z=None: _counts(get_clinic_dq(get_clinic_queryset(u, z, s))[1], "clinic_lab")),
     ("diagnosis", "Diagnosis",
-     lambda u, s: _counts(get_diagnosis_dq(get_diagnosis_queryset(u, None, s))[1], "diagnosis")),
+     lambda u, s, z=None: _counts(get_diagnosis_dq(get_diagnosis_queryset(u, z, s))[1], "diagnosis")),
     ("regimen", "Regimen",
-     lambda u, s: _counts(get_regimen_dq(get_regimen_queryset(u, None, s))[1], "regimen")),
+     lambda u, s, z=None: _counts(get_regimen_dq(get_regimen_queryset(u, z, s))[1], "regimen")),
     ("zonal_lab", "Zonal Lab",
-     lambda u, s: get_zonal_counts(u, apps.get_model("nanopore", "ZonalLaboratory"), None, s)[0]),
+     lambda u, s, z=None: get_zonal_counts(u, apps.get_model("nanopore", "ZonalLaboratory"), z, s)[0]),
     ("edcs_tblis", "EDCS / TBLIS",
-     lambda u, s: get_zonal_counts(u, apps.get_model("nanopore", "EdcsTblisZonal"), None, s)[0]),
+     lambda u, s, z=None: get_zonal_counts(u, apps.get_model("nanopore", "EdcsTblisZonal"), z, s)[0]),
     ("missing_forms", "Missing forms", _missing_forms),
 )
 FORM_LABELS = {form: label for form, label, _ in SOURCES}

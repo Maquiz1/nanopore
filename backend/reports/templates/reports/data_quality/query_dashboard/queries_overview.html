@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Queries · Dream Fund - Nanopore{% endblock %}
+{% block content %}
+<div class="dq">
+    <section class="dq-hero">
+        <div class="dq-eyebrow">Data quality · {{ scope_label }}</div>
+        <h1 class="dq-title">{% if section == "missing" %}Missing forms{% elif section == "queries" %}Form queries{% else %}Queries{% endif %}</h1>
+        <div class="dq-meta">
+            {% if section == "missing" %}Forms that should exist but are not filled yet, for the participants of your sites.
+            {% elif section == "queries" %}Missing or invalid answers on forms that are filled in.
+            {% else %}Everything to fix on the forms you work on: forms not filled yet, and queries on filled forms.{% endif %}
+        </div>
+    </section>
+
+    <!-- Totals: also switch between the three views -->
+    <nav class="qo-kpis">
+        <a href="{% url 'reports:all_queries_overview' %}{% if filter_query %}?{{ filter_query }}{% endif %}" class="qo-kpi {% if section == 'all' %}active{% endif %}">
+            <span class="qo-kpi-label">All queries</span>
+            <span class="qo-kpi-num">{{ grand_total|intcomma }}</span>
+            <span class="qo-kpi-note">Missing forms + form queries</span>
+        </a>
+        <a href="{% url 'reports:specific_form_queries' %}{% if filter_query %}?{{ filter_query }}{% endif %}" class="qo-kpi {% if section == 'queries' %}active{% endif %}">
+            <span class="qo-kpi-label"><i class="fas fa-pen-to-square"></i> Form queries</span>
+            <span class="qo-kpi-num">{{ total_queries|intcomma }}</span>
+            <span class="qo-kpi-note">Answers to fix on filled forms</span>
+        </a>
+        <a href="{% url 'reports:missing_form_queries' %}{% if filter_query %}?{{ filter_query }}{% endif %}" class="qo-kpi {% if section == 'missing' %}active{% endif %}">
+            <span class="qo-kpi-label"><i class="fas fa-file-circle-exclamation"></i> Missing forms</span>
+            <span class="qo-kpi-num">{{ total_missing|intcomma }}</span>
+            <span class="qo-kpi-note">Forms not filled yet</span>
+        </a>
+    </nav>
+
+    <form method="get" class="dq-filters">
+        <div>
+            <label class="form-label">Zone</label>
+            <select name="zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}<option value="{{ id }}" {% if selected_zone == id %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Site</label>
+            <select name="site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}<option value="{{ id }}" {% if selected_site == id %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="dq-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{{ request.path }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+
+    {% if section != "missing" %}
+    <h2 class="qo-h">Form queries <span>by form</span></h2>
+    <div class="qo-grid">
+        {% for f in forms %}
+        <a class="qo-card {% if not f.queries %}is-zero{% endif %}" href="{% url f.report_url %}{% if filter_query %}?{{ filter_query }}{% endif %}">
+            <div class="qo-card-top">
+                <span class="qo-card-name">{{ f.label }}</span>
+                <span class="qo-card-num">{{ f.queries|intcomma }}</span>
+            </div>
+            <div class="qo-card-desc">{{ f.description }}</div>
+            <div class="qo-card-go">{% if f.queries %}Open the list <i class="fas fa-arrow-right"></i>{% else %}<i class="fas fa-circle-check"></i> Nothing to fix{% endif %}</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if section != "queries" and missing_forms %}
+    <h2 class="qo-h">Missing forms <span>eligible participants without the form</span></h2>
+    <div class="qo-grid">
+        {% for f in missing_forms %}
+        <a class="qo-card qo-missing {% if not f.missing %}is-zero{% endif %}" href="{% url 'reports:missing_form_details_queries' f.missing_key %}{% if filter_query %}?{{ filter_query }}{% endif %}">
+            <div class="qo-card-top">
+                <span class="qo-card-name">{{ f.label }}</span>
+                <span class="qo-card-num">{{ f.missing|intcomma }}</span>
+            </div>
+            <div class="qo-card-desc">
+                {% if f.missing_key == "zonal" %}Substudy 2 participants without a Zonal Lab form
+                {% elif f.missing_key == "regimen" %}Diagnosis says the regimen changed, but no change is recorded
+                {% else %}Eligible participants without a {{ f.label }} form{% endif %}
+            </div>
+            <div class="qo-card-go">{% if f.missing %}See who <i class="fas fa-arrow-right"></i>{% else %}<i class="fas fa-circle-check"></i> None missing{% endif %}</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if section == "all" %}
+    {% if context_substudy_queries_visible or context_date_issues_visible or context_dsdr_visible or context_outcome_no_treatment_visible %}
+    <h2 class="qo-h">Other checks <span>listed separately, not in the totals above{% if filtered %} · all your sites{% endif %}</span></h2>
+    <div class="qo-grid qo-grid-small">
+        {% if context_substudy_queries_visible %}
+        <a class="qo-card qo-other" href="{% url 'reports:substudy_queries' %}">
+            <div class="qo-card-top"><span class="qo-card-name"><i class="fas fa-code-compare"></i> Substudy queries</span><span class="qo-card-num">{{ context_substudy_queries_total|intcomma }}</span></div>
+            <div class="qo-card-desc">Substudy 2/4 against Zonal Lab and outcomes</div>
+        </a>
+        {% endif %}
+        {% if context_date_issues_visible %}
+        <a class="qo-card qo-other" href="{% url 'reports:date_issues' %}">
+            <div class="qo-card-top"><span class="qo-card-name"><i class="fas fa-calendar-xmark"></i> Date issues</span><span class="qo-card-num">{{ context_date_issues_total|intcomma }}</span></div>
+            <div class="qo-card-desc">Impossible or conflicting dates</div>
+        </a>
+        {% endif %}
+        {% if context_dsdr_visible %}
+        <a class="qo-card qo-other" href="{% url 'reports:dsdr_checks' %}">
+            <div class="qo-card-top"><span class="qo-card-name"><i class="fas fa-pills"></i> DS / DR checks</span><span class="qo-card-num">{{ context_dsdr_total|intcomma }}</span></div>
+            <div class="qo-card-desc">Regimen against rifampicin results</div>
+        </a>
+        {% endif %}
+        {% if context_outcome_no_treatment_visible %}
+        <a class="qo-card qo-other" href="{% url 'reports:outcome_without_treatment' %}">
+            <div class="qo-card-top"><span class="qo-card-name"><i class="fas fa-notes-medical"></i> Untreated outcomes</span><span class="qo-card-num">{{ context_outcome_no_treatment_total|intcomma }}</span></div>
+            <div class="qo-card-desc">Outcome recorded without treatment started</div>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+{% include "reports/data_quality/date_issues/_styles.html" %}
+<style>
+    .qo-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .qo-kpi {
+        display: flex; flex-direction: column; gap: 2px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px;
+        background: var(--surface); color: var(--ink); text-decoration: none; transition: box-shadow .15s, border-color .15s;
+    }
+    .qo-kpi:hover { box-shadow: 0 8px 22px rgba(20, 33, 61, .08); color: var(--ink); }
+    .qo-kpi.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+    .qo-kpi-label { font-size: .8rem; font-weight: 600; color: var(--ink-2); }
+    .qo-kpi-label i { color: var(--accent); margin-right: 4px; }
+    .qo-kpi-num { font-size: 2rem; font-weight: 700; line-height: 1.1; color: var(--warn); font-variant-numeric: tabular-nums; }
+    .qo-kpi-note { font-size: .76rem; color: var(--muted); }
+    .qo-h { font-size: 1.05rem; font-weight: 700; margin: 22px 0 10px; }
+    .qo-h span { font-size: .8rem; font-weight: 400; color: var(--muted); margin-left: 6px; }
+    .qo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    .qo-card {
+        display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-left: 4px solid var(--warn);
+        border-radius: 12px; background: var(--surface); color: var(--ink); text-decoration: none; transition: box-shadow .15s, transform .15s;
+    }
+    .qo-card:hover { box-shadow: 0 8px 22px rgba(20, 33, 61, .09); transform: translateY(-1px); color: var(--ink); }
+    .qo-card.qo-missing { border-left-color: var(--bad); }
+    .qo-card.qo-other { border-left-color: var(--accent); }
+    .qo-card.is-zero { border-left-color: var(--good); }
+    .qo-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .qo-card-name { font-weight: 700; font-size: .95rem; }
+    .qo-card-name i { color: var(--accent); margin-right: 4px; }
+    .qo-card-num { font-size: 1.5rem; font-weight: 700; color: var(--warn); font-variant-numeric: tabular-nums; }
+    .qo-missing .qo-card-num { color: var(--bad); }
+    .qo-other .qo-card-num { color: var(--ink); }
+    .is-zero .qo-card-num { color: var(--good); }
+    .qo-card-desc { font-size: .8rem; color: var(--muted); flex: 1; }
+    .qo-card-go { font-size: .8rem; font-weight: 600; color: var(--accent); }
+    .is-zero .qo-card-go { color: var(--good); }
+    @media (max-width: 767.98px) {
+        .qo-kpis { grid-template-columns: 1fr; }
+        .qo-kpi { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 10px; }
+        .qo-kpi-num { font-size: 1.5rem; order: -1; }
+        .qo-kpi-note { width: 100%; }
+    }
+</style>
+{% endblock %}
