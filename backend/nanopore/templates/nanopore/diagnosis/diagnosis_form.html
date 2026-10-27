@@ -1,359 +1,314 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Diagnosis Form{% endblock %}
+{% block title %}Diagnosis · {{ screening.pid|default:"New" }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-
-            <!-- Navigation -->
-            <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back</a>
-                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
-            </div>
-            {% if form.non_field_errors %}
-            <div class="alert alert-warning">
-                {% for error in form.non_field_errors %}
-                <div>{{ error }}</div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">{{ object|default:"New" }} Diagnosis</h4>
-                </div>
-                <div class="card-body">
-                    <form method="post" novalidate id="diagnosisForm">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ next }}">
-
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-warning">
-                            {% for error in form.non_field_errors %}
-                            <div>{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Screening Info -->
-                        <div class="p-2 mb-3 bg-info text-white rounded">
-                            <h5 class="mb-0">Screening Information</h5>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Screening</label>
-                            <input type="text" class="form-control" value="{{ form.readonly_screening }}" readonly>
-                            {{ form.screening }}
-                        </div>
-
-                        <!-- Diagnosis Details -->
-                        <div class="p-2 mb-3 bg-warning text-white rounded">
-                            <h5 class="mb-0">Diagnosis Details</h5>
-                        </div>
-
-                        <!-- TB Diagnosis -->
-                        <div class="p-2 mb-3 bg-secondary text-white rounded">
-                            <h5 class="mb-0">TB Diagnosis</h5>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                {{ form.tb_diagnosis.label_tag }} {{ form.tb_diagnosis }}
-                            </div>
-                            <div class="col-md-6" id="tb-diagnosis-date-sections">
-                                {{ form.tb_diagnosis_date.label_tag }} {{ form.tb_diagnosis_date }}
-                            </div>
-                        </div>
-                        <hr>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6" id="tb-diagnosis-made-sections" style="display:none;">
-                                {{ form.tb_diagnosis_made.label_tag }} {{ form.tb_diagnosis_made }}
-                            </div>
-                            <div class="col-md-6" id="tb-diagnosis-made-other-sections" style="display:none;">
-                                {{ form.diagnosis_made_other.label_tag }} {{ form.diagnosis_made_other }}
-                            </div>
-                        </div>
-                        <hr>
-
-
-                        <div id="bacteriological-diagnosis-section" style="display:none;">
-                            <!-- Bacteriological Diagnosis -->
-                            <div class="bacteriological-diagnosis-section">
-                                <div class="p-2 mb-3 bg-info text-white rounded">
-                                    <h5 class="mb-0">Bacteriological Diagnosis</h5>
-                                </div>
-                                <hr>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        {{ form.bacteriological_diagnosis.label_tag }}
-                                        {{ form.bacteriological_diagnosis }}</div>
-                                    <div class="col-md-6">
-                                        {{ form.clinician_received_date.label_tag }}
-                                        {{ form.clinician_received_date }}</div>
-                                </div>
-                                <hr>
-                            </div>
-                        </div>
-
-                        <div id="clinical-diagnosis-section" style="display:none;">
-                            <!-- Clinical Diagnosis -->
-                            <div class="clinical-diagnosis-section">
-                                <div class="p-2 mb-3 bg-info text-white rounded">
-                                    <h5 class="mb-0">Clinical Diagnosis</h5>
-                                </div>
-                                <hr>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        {{ form.tb_diagnosed_clinically.label_tag }}
-                                        {{ form.tb_diagnosed_clinically }}
-                                    </div>
-                                    <div class="col-md-6" id="tb-clinically-other" style="display:none;">
-                                        {{ form.tb_clinically_other.label_tag }} {{ form.tb_clinically_other }}</div>
-                                </div>
-                                <hr>
-                            </div>
-                        </div>
-
-                        <!-- TB sections -->
-                        <div id="tb-sections">
-                            <!-- TB Treatment -->
-                            <div class="p-2 mb-3 bg-warning text-white rounded">
-                                <h5 class="mb-0">TB Treatment</h5>
-                            </div>
-                            <hr>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    {{ form.tb_treatment.label_tag }}
-                                    {{ form.tb_treatment }}
-                                </div>
-                                <div class="col-md-6" id="tb-treatment-started-section">
-                                    {{ form.tb_treatment_date.label_tag }}
-                                    {{ form.tb_treatment_date }}
-                                </div>
-                                <div class="col-md-6" id="tb-treatment-facility-section">
-                                    {{ form.tb_facility.label_tag }}
-                                    {{ form.tb_facility }}
-                                </div>
-                                <div class="col-md-6" id="tb-treatment-reason-section">
-                                    {{ form.tb_reason.label_tag }}
-                                    {{ form.tb_reason }}
-                                </div>
-                            </div>
-                            <hr>
-                            <div id="regimen-change-section">
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-                                        {{ form.tb_register_number.label_tag }}
-                                        {{ form.tb_register_number }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        {{ form.tb_regimen.label_tag }}
-                                        {{ form.tb_regimen }}
-                                    </div>
-                                    <div class="col-md-3" id="tb-regimen-other-section">
-                                        {{ form.tb_regimen_other.label_tag }}
-                                        {{ form.tb_regimen_other }}
-                                    </div>
-                                    <div class="col-md-3 regimen-changed-section" id="regimen-changed-section">
-                                        {{ form.regimen_changed.label_tag }}
-                                        {{ form.regimen_changed }}
-                                    </div>
-                                </div>
-                            </div>
-                            <hr>
-
-                            <!-- Regimen Changes Table / Add Button -->
-                            <div class="card mt-4" id="regimenChangesCard">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <span>Regimen Changes</span>
-                                    <button type="button" class="btn btn-sm btn-primary" id="addRegimenBtn"
-                                        data-save-url="{% url 'nanopore:regimen-save' %}"
-                                        data-screening-id="{{ screening.id }}">
-                                        Add Change
-                                    </button>
-                                </div>
-                                <div class="card-body p-0">
-                                    <table class="table table-striped mb-0" id="regimenChangesTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Drug</th>
-                                                <th>Changes</th>
-                                                <th>Reason</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% if regimen_error %}
-                                            <tr>
-                                                <td colspan="5" class="text-center text-danger">{{ regimen_error }}</td>
-                                            </tr>
-                                            {% elif regimen_changes %}
-                                            {% for regimen in regimen_changes %}
-                                            <tr id="regimenRow{{ regimen.id }}">
-                                                <td>{{ regimen.date }}</td>
-                                                <td>{{ regimen.drug }}</td>
-                                                <td>{{ regimen.changes }}</td>
-                                                <td>{{ regimen.reason }}</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-warning editRegimenBtn"
-                                                        data-id="{{ regimen.id }}"
-                                                        data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
-                                                        data-save-url="{% url 'nanopore:regimen-save' %}"
-                                                        data-screening-id="{{ screening.id }}">
-                                                        Edit
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-danger deleteRegimenBtn"
-                                                        data-id="{{ regimen.id }}"
-                                                        data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}">
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                            {% else %}
-                                            <tr>
-                                                <td colspan="5" class="text-center text-muted">No regimen changes added
-                                                    yet.
-                                                </td>
-                                            </tr>
-                                            {% endif %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <hr>
-
-                            <!-- TB treatment-outcomes sections -->
-                            <div id="tb-treatment-outcomes-sections">
-                                <div class="p-2 mb-3 bg-secondary text-white rounded">
-                                    <h5 class="mb-0">Treatment outcome</h5>
-                                </div>
-                                <hr>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        {{ form.tb_outcome2.label_tag }}
-                                        {{ form.tb_outcome2 }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        {{ form.tb_outcome2_date.label_tag }}
-                                        {{ form.tb_outcome2_date }}
-                                    </div>
-                                </div>
-                                <hr>
-                            </div>
-                        </div>
-
-
-
-                        <!-- Non-TB sections -->
-                        <div id="non-tb-sections">
-                            <!-- TB Other Diagnosis -->
-                            <div id="tb-other-diagnosis-section">
-                                <div class="p-2 mb-3 bg-secondary text-white rounded">
-                                    <h5 class="mb-0">Diagnosis other than TB</h5>
-                                </div>
-                                <hr>
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
-                                        {{ form.tb_other_diagnosis.label_tag }}
-                                        {{ form.tb_other_diagnosis }}
-                                    </div>
-                                    <div class="col-md-4" id="tb-other-specify-section">
-                                        {{ form.tb_other_specify.label_tag }}
-                                        {{ form.tb_other_specify }}
-                                    </div>
-                                    <div class="col-md-4">
-                                        {{ form.tb_diagnosis_made2.label_tag }}
-                                        {{ form.tb_diagnosis_made2 }}
-                                    </div>
-                                </div>
-                                <hr>
-                            </div>
-                            <hr>
-                        </div>
-
-                        <!-- Remarks sections -->
-                        <div id="remarks-sections">
-                            <!-- Remarks -->
-                            <div class="p-2 mb-3 bg-secondary text-white rounded">
-                                <h5 class="mb-0">Any Comment or Remarks</h5>
-                            </div>
-                            <hr>
-                            <div class="mb-3">{{ form.remarks.label_tag }} {{ form.remarks }}</div>
-                        </div>
-                        <hr>
-
-                        <!-- Bottom Buttons -->
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
-                            {% if access.edit.diagnosis %}
-                            {% if system_control.enable_form_submissions %}
-                                <button type="submit" class="btn btn-success">💾 Save Diagnosis</button>
-                            {% else %}
-                                <button type="button" class="btn btn-secondary" disabled>🚫 Submissions Disabled</button>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                    </form>
-                </div>
+<div class="df">
+    <!-- Header -->
+    <section class="df-hero">
+        <div>
+            <div class="df-eyebrow">Forms · Diagnosis</div>
+            <h1 class="df-title">{{ screening.pid|default:"New diagnosis" }}</h1>
+            <div class="df-meta">
+                {% if screening %}<span><i class="fas fa-hospital"></i> {{ screening.site }}</span>{% endif %}
+                <span><i class="fas fa-{% if object %}pen{% else %}plus{% endif %}"></i> {% if object %}Editing a saved form{% else %}New form{% endif %}</span>
             </div>
         </div>
-    </div>
+        <div class="df-hero-actions">
+            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Forms</a>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-light"><i class="fas fa-house"></i> Dashboard</a>
+        </div>
+    </section>
+
+    <form method="post" novalidate id="diagnosisForm">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'' }}">
+        {{ form.screening }}
+
+        {% include "nanopore/partials/form_error_summary.html" with form=form %}
+
+        <!-- 4–7. TB diagnosis -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step">1</span>
+                <div><h2>TB diagnosis</h2><p>Questions 4–7</p></div>
+            </header>
+            <div class="df-grid">
+                {% include "nanopore/diagnosis/_field.html" with field=form.tb_diagnosis %}
+                <div id="tb-diagnosis-date-sections">{% include "nanopore/diagnosis/_field.html" with field=form.tb_diagnosis_date %}</div>
+                <div id="tb-diagnosis-made-sections" style="display:none;">{% include "nanopore/diagnosis/_field.html" with field=form.tb_diagnosis_made %}</div>
+                <div id="tb-diagnosis-made-other-sections" style="display:none;">{% include "nanopore/diagnosis/_field.html" with field=form.diagnosis_made_other %}</div>
+            </div>
+
+            <div id="bacteriological-diagnosis-section" class="df-sub" style="display:none;">
+                <h3><i class="fas fa-flask"></i> Bacteriological diagnosis</h3>
+                <div class="df-grid">
+                    {% include "nanopore/diagnosis/_field.html" with field=form.bacteriological_diagnosis %}
+                    {% include "nanopore/diagnosis/_field.html" with field=form.clinician_received_date %}
+                </div>
+            </div>
+
+            <div id="clinical-diagnosis-section" class="df-sub" style="display:none;">
+                <h3><i class="fas fa-stethoscope"></i> Clinical diagnosis</h3>
+                <div class="df-grid">
+                    <div class="df-span">{% include "nanopore/diagnosis/_field.html" with field=form.tb_diagnosed_clinically %}</div>
+                    <div id="tb-clinically-other" style="display:none;">{% include "nanopore/diagnosis/_field.html" with field=form.tb_clinically_other %}</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8–11. Treatment (TB diagnosed) -->
+        <div id="tb-sections">
+            <section class="df-card">
+                <header class="df-card-head">
+                    <span class="df-step">2</span>
+                    <div><h2>TB treatment</h2><p>Questions 8–10</p></div>
+                </header>
+                <div class="df-grid">
+                    {% include "nanopore/diagnosis/_field.html" with field=form.tb_treatment %}
+                    <div id="tb-treatment-started-section">{% include "nanopore/diagnosis/_field.html" with field=form.tb_treatment_date %}</div>
+                    <div id="tb-treatment-facility-section">{% include "nanopore/diagnosis/_field.html" with field=form.tb_facility %}</div>
+                    <div id="tb-treatment-reason-section">{% include "nanopore/diagnosis/_field.html" with field=form.tb_reason %}</div>
+                </div>
+
+                <div id="regimen-change-section" class="df-sub">
+                    <h3><i class="fas fa-pills"></i> Regimen</h3>
+                    <div class="df-grid">
+                        {% include "nanopore/diagnosis/_field.html" with field=form.tb_register_number %}
+                        {% include "nanopore/diagnosis/_field.html" with field=form.tb_regimen %}
+                        <div id="tb-regimen-other-section">{% include "nanopore/diagnosis/_field.html" with field=form.tb_regimen_other %}</div>
+                        <div id="regimen-changed-section">{% include "nanopore/diagnosis/_field.html" with field=form.regimen_changed %}</div>
+                    </div>
+                </div>
+
+                <!-- 10(b–f). Regimen changes, saved one by one -->
+                <div class="df-changes" id="regimenChangesCard">
+                    <div class="df-changes-head">
+                        <div>
+                            <h3><i class="fas fa-right-left"></i> Regimen changes</h3>
+                            <p>Each change is saved straight away when you press Save in its window.</p>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" id="addRegimenBtn"
+                                data-save-url="{% url 'nanopore:regimen-save' %}"
+                                data-screening-id="{{ screening.id }}">
+                            <i class="fas fa-plus"></i> Add change
+                        </button>
+                    </div>
+                    <div class="df-notice" id="regimenNotice" role="status" style="display:none;"></div>
+                    <div class="table-responsive">
+                        <table class="table df-table mb-0" id="regimenChangesTable">
+                            <thead>
+                                <tr><th>Date</th><th>Drug(s)</th><th>Nature of change</th><th>Reason</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                {% for regimen in regimen_changes %}
+                                <tr id="regimenRow{{ regimen.id }}">
+                                    <td class="text-nowrap" data-label="Date">{{ regimen.date|date:"Y-m-d"|default:"—" }}</td>
+                                    <td data-label="Drug(s)">{{ regimen.drug|default:"—" }}</td>
+                                    <td data-label="Change">{{ regimen.changes|default:"—" }}</td>
+                                    <td data-label="Reason">{{ regimen.reason|default:"—" }}{% if regimen.specify %}<div class="df-muted">{{ regimen.specify }}</div>{% endif %}</td>
+                                    <td class="df-row-actions">
+                                        <button type="button" class="btn btn-sm btn-outline-primary editRegimenBtn"
+                                                data-id="{{ regimen.id }}"
+                                                data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
+                                                data-save-url="{% url 'nanopore:regimen-save' %}"
+                                                data-screening-id="{{ screening.id }}"><i class="fas fa-pen"></i> Edit</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger deleteRegimenBtn"
+                                                data-id="{{ regimen.id }}"
+                                                data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="df-empty-row" {% if regimen_changes %}style="display:none;"{% endif %}>
+                                    <td colspan="5">No regimen changes added yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="df-card" id="tb-treatment-outcomes-sections">
+                <header class="df-card-head">
+                    <span class="df-step">3</span>
+                    <div><h2>Treatment outcome</h2><p>Question 11 · shown 6 months after treatment start</p></div>
+                </header>
+                <div class="df-grid">
+                    {% include "nanopore/diagnosis/_field.html" with field=form.tb_outcome2 %}
+                    {% include "nanopore/diagnosis/_field.html" with field=form.tb_outcome2_date %}
+                </div>
+            </section>
+        </div>
+
+        <!-- 12. Diagnosis other than TB -->
+        <div id="non-tb-sections">
+            <section class="df-card" id="tb-other-diagnosis-section">
+                <header class="df-card-head">
+                    <span class="df-step">2</span>
+                    <div><h2>Diagnosis other than TB</h2><p>Question 12</p></div>
+                </header>
+                <div class="df-grid">
+                    {% include "nanopore/diagnosis/_field.html" with field=form.tb_other_diagnosis %}
+                    <div id="tb-other-specify-section">{% include "nanopore/diagnosis/_field.html" with field=form.tb_other_specify %}</div>
+                    {% include "nanopore/diagnosis/_field.html" with field=form.tb_diagnosis_made2 %}
+                </div>
+            </section>
+        </div>
+
+        <!-- 13. Remarks -->
+        <section class="df-card" id="remarks-sections">
+            <header class="df-card-head">
+                <span class="df-step"><i class="fas fa-comment"></i></span>
+                <div><h2>Comments</h2><p>Question 13</p></div>
+            </header>
+            {% include "nanopore/diagnosis/_field.html" with field=form.remarks %}
+        </section>
+
+        <!-- Save bar -->
+        <div class="df-savebar">
+            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary">Cancel</a>
+            {% if access.edit.diagnosis %}
+                {% if system_control.enable_form_submissions %}
+                <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save diagnosis</button>
+                {% else %}
+                <button type="button" class="btn btn-secondary" disabled><i class="fas fa-ban"></i> Submissions disabled</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </form>
 </div>
 
-<!-- Regimen Modal -->
-<div class="modal fade" id="regimenChangeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<!-- Regimen change window -->
+<div class="modal fade df-modal" id="regimenChangeModal" tabindex="-1" aria-labelledby="regimenModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <form id="regimenForm" method="post">
+            <form id="regimenForm" method="post" novalidate>
                 {% csrf_token %}
                 <input type="hidden" name="screening_id" id="regimenScreeningId" value="">
                 <input type="hidden" name="regimen_id" id="regimenId" value="">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="regimenModalTitle">Regimen Change Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <div>
+                        <div class="df-eyebrow">{{ screening.pid }} · Question 10</div>
+                        <h5 class="modal-title" id="regimenModalTitle">Regimen change</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ regimen_form.date.label_tag }} {{ regimen_form.date }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ regimen_form.drug.label_tag }} {{ regimen_form.drug }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ regimen_form.changes.label_tag }} {{ regimen_form.changes }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ regimen_form.reason.label_tag }}
-                            {{ regimen_form.reason }}
-                        </div>
-
-                        <div  class="col-md-12" id="regimen-specify-section" style="display:none;">
-                            {{ regimen_form.specify.label_tag }}
-                            {{ regimen_form.specify }}
-                        </div>
+                    <div class="df-notice bad" id="regimenFormErrors" style="display:none;"></div>
+                    <div class="df-grid">
+                        {% include "nanopore/diagnosis/_field.html" with field=regimen_form.date %}
+                        {% include "nanopore/diagnosis/_field.html" with field=regimen_form.drug %}
+                        {% include "nanopore/diagnosis/_field.html" with field=regimen_form.changes %}
+                        {% include "nanopore/diagnosis/_field.html" with field=regimen_form.reason %}
+                        <div class="df-span" id="regimen-specify-section" style="display:none;">{% include "nanopore/diagnosis/_field.html" with field=regimen_form.specify %}</div>
                     </div>
-                    <hr>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     {% if system_control.enable_form_submissions %}
-                        <button type="submit" class="btn btn-primary" id="regimenModalSaveBtn">Save</button>
+                    <button type="submit" class="btn btn-primary" id="regimenModalSaveBtn"><i class="fas fa-floppy-disk"></i> Save change</button>
                     {% else %}
-                        <button type="button" class="btn btn-secondary" disabled>Disabled</button>
+                    <button type="button" class="btn btn-secondary" disabled>Submissions disabled</button>
                     {% endif %}
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+    .df {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff; --soft: #f6f8fc;
+        --accent: #1d6fd6; --accent-soft: #e8f1fc; --good: #1f8a4c; --warn: #a15c00; --warn-soft: #fff4e5; --bad: #b42318; --bad-soft: #fdecea;
+        max-width: 1080px; margin: 24px auto 40px; padding: 0 4px; color: var(--ink);
+    }
+    .df-hero {
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+        padding: 22px 26px; margin-bottom: 16px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%);
+        box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .df-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .df-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; word-break: break-all; }
+    .df-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: .88rem; opacity: .9; }
+    .df-meta i { margin-right: 4px; opacity: .8; }
+    .df-hero-actions { display: flex; gap: 8px; }
+
+    .df-card { padding: 20px 22px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .df-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .df-card-head h2 { font-size: 1.08rem; font-weight: 700; margin: 0; }
+    .df-card-head p { font-size: .78rem; color: var(--muted); margin: 0; }
+    .df-step {
+        width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px;
+        background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .9rem;
+    }
+    .df-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+    .df-span { grid-column: 1 / -1; }
+    .df-sub { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+    .df-sub h3, .df-changes h3 { font-size: .92rem; font-weight: 700; margin: 0 0 12px; color: var(--ink-2); }
+    .df-sub h3 i, .df-changes h3 i { color: var(--accent); margin-right: 6px; }
+
+    .df-q { min-width: 0; }
+    .df-label { display: block; font-size: .84rem; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+    .df .form-control, .df .form-select, .df-modal .form-control, .df-modal .form-select { border-color: #d5dcea; border-radius: 9px; font-size: .92rem; }
+    .df .form-control:focus, .df .form-select:focus, .df-modal .form-control:focus, .df-modal .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29, 111, 214, .15); }
+    .df .form-control[readonly] { background: var(--soft); }
+    .df-q.has-error .form-control, .df-q.has-error .form-select { border-color: var(--bad); }
+    .df-error { margin-top: 4px; font-size: .8rem; color: var(--bad); }
+
+    /* 7. clinical signs as tappable chips */
+    #id_tb_diagnosed_clinically { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+    #id_tb_diagnosed_clinically label {
+        display: flex; align-items: center; gap: 8px; height: 100%; padding: 8px 12px; margin: 0; cursor: pointer;
+        border: 1px solid var(--line); border-radius: 9px; font-size: .86rem; background: var(--surface);
+    }
+    #id_tb_diagnosed_clinically label:hover { border-color: var(--accent); }
+    #id_tb_diagnosed_clinically label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    #id_tb_diagnosed_clinically input { accent-color: var(--accent); }
+
+    .df-changes { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); overflow: hidden; }
+    .df-changes-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px 16px 10px; }
+    .df-changes-head h3 { margin-bottom: 2px; }
+    .df-changes-head p { font-size: .76rem; color: var(--muted); margin: 0; }
+    .df-table { background: var(--surface); }
+    .df-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; border-bottom-width: 1px; white-space: nowrap; }
+    .df-table td { font-size: .87rem; vertical-align: middle; }
+    .df-row-actions { text-align: right; white-space: nowrap; }
+    .df-row-actions .btn { margin-left: 4px; }
+    .df-empty-row td { text-align: center; color: var(--muted); padding: 18px; }
+    .df-muted { font-size: .78rem; color: var(--muted); }
+    .df-notice { margin: 0 16px 12px; padding: 10px 12px; border-radius: 9px; font-size: .84rem; background: var(--warn-soft); color: var(--warn); }
+    .df-notice.bad { background: var(--bad-soft); color: var(--bad); margin: 0 0 14px; }
+
+    .df-savebar {
+        position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: flex-end; gap: 10px;
+        padding: 12px 16px; margin-top: 6px; border: 1px solid var(--line); border-radius: 14px;
+        background: rgba(255, 255, 255, .94); backdrop-filter: blur(6px); box-shadow: 0 -6px 20px rgba(20, 33, 61, .06);
+    }
+    .df-modal .modal-content { border: 0; border-radius: 16px; }
+    .df-modal .modal-header { border-bottom: 1px solid #e6eaf2; }
+    .df-modal .df-eyebrow { color: #7d8aa3; opacity: 1; }
+    .df-modal .df-label { display: block; font-size: .84rem; font-weight: 600; color: #4a5872; margin-bottom: 5px; }
+    .df-modal .df-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+
+    @media (max-width: 767.98px) {
+        .df { margin-top: 12px; }
+        .df-hero { padding: 18px; }
+        .df-card { padding: 16px; }
+        .df-grid, .df-modal .df-grid { grid-template-columns: 1fr; }
+        .df-changes-head { flex-direction: column; }
+        .df-savebar .btn { flex: 1; }
+        /* Regimen changes: one small card per change */
+        .df-table thead { display: none; }
+        .df-table tr[id^="regimenRow"] { display: block; padding: 10px 14px; border-top: 1px solid var(--line); }
+        .df-table tr[id^="regimenRow"] td { display: flex; gap: 10px; padding: 3px 0; border: 0; }
+        .df-table tr[id^="regimenRow"] td[data-label]::before { content: attr(data-label); flex: 0 0 76px; font-size: .74rem; color: var(--muted); }
+        .df-table tr[id^="regimenRow"] .df-row-actions { justify-content: flex-end; padding-top: 8px; }
+    }
+</style>
 {% endblock %}
 
 {% block extra_scripts %}
 <script src="{% static 'custom_js/diagnosis/all.js' %}"></script>
-<!-- <script src="{% static 'custom_js/diagnosis/tb_outcome.js' %}"></script> -->
-<!-- <script src="{% static 'custom_js/diagnosis/tb_diagnosis_made.js' %}"></script> -->
 {% endblock %}

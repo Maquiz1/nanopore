@@ -96,19 +96,18 @@ class DiagnosisForm(forms.ModelForm):
                 raise ValidationError(f"This screening {self.screening_instance} already has a diagnosis record.")
 
 
-        # Custom validation: If regimen_changed=1, ensure at least one RegimenChange exists
-        # Custom validation: If regimen_changed = Yes, ensure at least one RegimenChange exists
+        # 10(a) must agree with the regimen changes recorded for this participant
         regimen_changed = cleaned_data.get("regimen_changed")
-        screening_instance = self.screening_instance
-
-        if regimen_changed and regimen_changed.id == 1:  # ID=1 is 'Yes'
-            if not screening_instance:
-                raise ValidationError("Screening information is missing.")
-            existing_changes = RegimenChanges.objects.filter(screening=screening_instance)
-            if not existing_changes.exists():
+        if regimen_changed and self.screening_instance:
+            has_changes = RegimenChanges.objects.filter(screening=self.screening_instance).exists()
+            if regimen_changed.value == 1 and not has_changes:
                 self.add_error("regimen_changed", "You must add at least one regimen change if the regimen was changed.")
-                
-            return cleaned_data
+            elif regimen_changed.value == 2 and has_changes:
+                self.add_error("regimen_changed", "Regimen changes are recorded below. Delete them, or answer Yes.")
+        elif regimen_changed and regimen_changed.value == 1:
+            raise ValidationError("Screening information is missing.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         obj = super().save(commit=False)

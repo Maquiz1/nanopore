@@ -30,7 +30,7 @@ class DateIssuesTests(AccessTestBase):
         )
         # Outcome recorded although treatment was not started; outcome dated before treatment
         TBTreatmentStarted.objects.create(pk=1, value=1, name="Yes")
-        not_started = TBTreatmentStarted.objects.create(pk=3, value=3, name="Not started, reason (specify)")
+        not_started, _ = TBTreatmentStarted.objects.update_or_create(pk=3, defaults={"value": 3, "name": "Not started, reason (specify)"})
         cured = TBTreatmentOutcome.objects.create(pk=1, value=1, name="Cured")
         Diagnosis.objects.create(screening=a1, tb_diagnosis=yes, tb_outcome2=cured, tb_treatment=not_started)
         Diagnosis.objects.create(screening=self.screenings["A2"], tb_diagnosis=yes, tb_outcome2=cured, tb_treatment_id=1,
@@ -123,3 +123,62 @@ class DateIssuesTests(AccessTestBase):
         form = RegimenChangesForm({**data, "reason": side.pk, "specify": "old text"})
         self.assertTrue(form.is_valid())
         self.assertIsNone(form.cleaned_data["specify"])
+
+    def test_regimen_specify_checks_ignore_empty_text(self):
+        from nanopore.models import RegimenChanges
+        from options.models import RegimenReasonForChange, RegimenTypeOfChange
+        from reports.services.regimen_dq import get_regimen_dq
+        changes = RegimenTypeOfChange.objects.create(value=1, name="Stopped")
+        resistance = RegimenReasonForChange.objects.create(value=1, name="Drug resistance")
+        other = RegimenReasonForChange.objects.create(value=96, name="Other, specify")
+        a2 = self.screenings["A2"]
+        make = lambda reason, specify: RegimenChanges.objects.create(
+            screening=a2, date=datetime.date(2025, 3, 5), drug="H", changes=changes, reason=reason, specify=specify)
+        make(resistance, "")          # fine: empty box
+        make(resistance, "  ")        # fine: only spaces
+        make(resistance, None)        # fine
+        bad = make(resistance, "NOTHING")
+        make(other, "Travelled")      # fine
+        missing = make(other, " ")
+        problems, totals = get_regimen_dq(RegimenChanges.objects.all())
+        self.assertEqual(list(problems["invalid_reason_filled"]), [bad])
+        self.assertEqual(list(problems["missing_specify"]), [missing])
+
+    def test_diagnosis_missing_text_counts_empty_box(self):
+        from nanopore.models import Diagnosis
+        from options.models import TBTreatmentStarted, YesNo
+        from reports.services.diagnosis_dq import get_diagnosis_dq
+        yes = YesNo.objects.get(name="Yes")
+        not_started, _ = TBTreatmentStarted.objects.update_or_create(pk=3, defaults={"value": 3, "name": "Not started, reason (specify)"})
+        Diagnosis.objects.filter(screening__in=[self.screenings["A1"], self.screenings["A2"]]).delete()
+        empty = Diagnosis.objects.create(screening=self.screenings["A1"], tb_diagnosis=yes, tb_treatment=not_started, tb_reason="")
+        Diagnosis.objects.create(screening=self.screenings["A2"], tb_diagnosis=yes, tb_treatment=not_started, tb_reason="Refused")
+        problems, _ = get_diagnosis_dq(Diagnosis.objects.all())
+        self.assertEqual(list(problems["missing_tb_reason"]), [empty])
+
+    def test_regimen_changed_no_with_changes_is_caught(self):
+        from nanopore.forms.diagnosis.diagnosisform import DiagnosisForm
+        from nanopore.models import RegimenChanges
+        from options.models import RegimenReasonForChange, RegimenTypeOfChange, YesNo
+        from reports.services.regimen_dq import get_regimen_dq
+        a2 = self.screenings["A2"]
+        no, _ = YesNo.objects.get_or_create(value=2, defaults={"name": "No"})
+        a2.diagnosis.regimen_changed = no
+        a2.diagnosis.save()
+        change = RegimenChanges.objects.create(
+            screening=a2, date=datetime.date(2025, 3, 5), drug="H",
+            changes=RegimenTypeOfChange.objects.create(value=1, name="Stopped"),
+            reason=RegimenReasonForChange.objects.create(value=1, name="Side effects"))
+        # The Regimen queries list it
+        problems, _ = get_regimen_dq(RegimenChanges.objects.all())
+        self.assertEqual(list(problems["changes_when_not_changed"]), [change])
+        # The form shows the change and will not save "No" while it exists
+        page = self.client.get(reverse("nanopore:diagnosis-update", args=[a2.diagnosis.pk]))
+        self.assertContains(page, f'id="regimenRow{change.pk}"')
+        form = DiagnosisForm(instance=a2.diagnosis, screening_instance=a2)
+        data = {name: form[name].value() for name in form.fields}
+        data["regimen_changed"] = no.pk
+        data = {k: v for k, v in data.items() if v is not None}
+        bound = DiagnosisForm(data, instance=a2.diagnosis, screening_instance=a2)
+        self.assertFalse(bound.is_valid())
+        self.assertIn("Delete them, or answer Yes", str(bound.errors["regimen_changed"]))

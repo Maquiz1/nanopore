@@ -29,8 +29,8 @@ def get_regimen_dq_counts(user, zone_id=None, site_id=None):
     missing_reason_qs = qs.filter(reason__isnull=True)
 
     # reason = Other (96)
-    reason_is_96_q = Q(reason__value=96) | Q(reason__name__iexact="96") | Q(reason__name__iexact="other")
-    missing_specify_qs = qs.filter(reason_is_96_q).filter(Q(specify__isnull=True) | Q(specify__exact=""))
+    reason_is_96_q = Q(reason__value=96) | Q(reason__name__iexact="96") | Q(reason__name__icontains="other")
+    missing_specify_qs = qs.filter(reason_is_96_q).filter(Q(specify__isnull=True) | Q(specify__regex=r"^\s*$"))
 
     counts = {
         "count_missing_date": missing_date_qs.count(),
@@ -38,6 +38,7 @@ def get_regimen_dq_counts(user, zone_id=None, site_id=None):
         "count_missing_changes": missing_changes_qs.count(),
         "count_missing_reason": missing_reason_qs.count(),
         "count_missing_specify_when_other": missing_specify_qs.count(),
+        "count_changes_when_not_changed": qs.filter(screening__diagnosis__regimen_changed__value=2).count(),
     }
 
     counts["regimen_report_total"] = sum(counts.values())

@@ -34,21 +34,11 @@ class DiagnosisFormView(FormAccessMixin, View):
             return get_object_or_404(self.scope(Screening.objects.all(), "site"), pk=screening_id)
         return None
 
-    def get_regimen_error(self, diagnosis, screening_instance):
-        """
-        Returns a message to display inside the Regimen Changes table:
-        - If regimen_changed = Yes (id=1) and no changes exist → "Regimen changes are missing"
-        - If regimen_changed = No (id !=1) → "N/A"
-        - Else → None
-        """
-        regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
-
-        if diagnosis and diagnosis.regimen_changed:
-            if diagnosis.regimen_changed.id == 1 and not regimen_changes.exists():
-                return "Regimen changes are missing"
-            elif diagnosis.regimen_changed.id != 1:
-                return "N/A"
-        return None
+    def get_regimen_changes(self, screening_instance):
+        # Always listed, whatever 10(a) says, so a mismatch can be seen and fixed
+        if not screening_instance:
+            return RegimenChanges.objects.none()
+        return RegimenChanges.objects.filter(screening=screening_instance).select_related("changes", "reason").order_by("date", "pk")
 
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -61,9 +51,8 @@ class DiagnosisFormView(FormAccessMixin, View):
             screening_instance=screening_instance,
         )
 
-        regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
+        regimen_changes = self.get_regimen_changes(screening_instance)
         regimen_form = RegimenChangesForm()  # For modal
-        regimen_error = self.get_regimen_error(obj, screening_instance)
 
         return render(
             request,
@@ -74,7 +63,6 @@ class DiagnosisFormView(FormAccessMixin, View):
                 "screening": screening_instance,
                 "regimen_changes": regimen_changes,
                 "regimen_form": regimen_form,
-                "regimen_error": regimen_error,
                 "next": next_url,
             },
         )
@@ -87,11 +75,8 @@ class DiagnosisFormView(FormAccessMixin, View):
             request.POST, instance=obj, screening_instance=screening_instance
         )
 
-        regimen_changes = RegimenChanges.objects.filter(screening=screening_instance)
+        regimen_changes = self.get_regimen_changes(screening_instance)
         regimen_form = RegimenChangesForm()  # For modal if needed
-
-        # Compute regimen error for template
-        regimen_error = self.get_regimen_error(obj, screening_instance)
 
         self.limit_choices(form)
 
@@ -123,6 +108,6 @@ class DiagnosisFormView(FormAccessMixin, View):
                 "screening": screening_instance,
                 "regimen_changes": regimen_changes,
                 "regimen_form": regimen_form,
-                "regimen_error": regimen_error,
+                "next": request.POST.get("next"),
             },
         )

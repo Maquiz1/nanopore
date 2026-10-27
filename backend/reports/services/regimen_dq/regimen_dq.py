@@ -77,10 +77,11 @@ def get_regimen_dq(qs):
     def m2m_has_any(field):
         return Q(**{f"{field}__isnull": False})
     
+    # Reason = "Other, specify" (value 96)
     reason_is_96_q = (
         Q(reason__value=96) |
         Q(reason__name__iexact="96") |
-        Q(reason__name__iexact="other")
+        Q(reason__name__icontains="other")
     )
 
     missing_date = qs.filter(date__isnull=True)
@@ -88,24 +89,16 @@ def get_regimen_dq(qs):
     missing_changes = qs.filter(changes__isnull=True)
     missing_reason = qs.filter(reason__isnull=True)
 
-    missing_specify = qs.filter(reason_is_96_q).filter(
-        Q(specify__isnull=True) | Q(specify="")
-    )
-    
-    # xpert_mtb = 1,2 → fields (specify) must be EMPTY
-    reason_condition_q = (
-        Q(reason__in=[1,2]) |
-        Q(reason__value__in=[1,2]) |
-        Q(reason__name__in=["1","2"])
-    )
-    
-    case_invalid_reason_q = (
-        is_filled_non_char("specify")
+    # Other → specify must be filled (blank or spaces count as empty)
+    missing_specify = qs.filter(reason_is_96_q).exclude(is_filled_char("specify"))
+
+    # Any other reason → specify must be EMPTY (the web form saves an empty box as "")
+    invalid_reason_filled = qs.filter(reason__isnull=False).exclude(reason_is_96_q).filter(
+        is_filled_char("specify")
     )
 
-    invalid_reason_filled = qs.filter(
-        reason_condition_q & case_invalid_reason_q
-    )
+    # Diagnosis 10(a) says the regimen was NOT changed, yet changes are recorded
+    changes_when_not_changed = qs.filter(screening__diagnosis__regimen_changed__value=2)
 
     counts = {
         "missing_date": missing_date,
@@ -113,7 +106,8 @@ def get_regimen_dq(qs):
         "missing_changes": missing_changes,
         "missing_reason": missing_reason,
         "missing_specify": missing_specify,
-        "invalid_reason_filled":invalid_reason_filled
+        "invalid_reason_filled": invalid_reason_filled,
+        "changes_when_not_changed": changes_when_not_changed,
     }
 
     totals = {f"count_{k}": v.count() for k, v in counts.items()}

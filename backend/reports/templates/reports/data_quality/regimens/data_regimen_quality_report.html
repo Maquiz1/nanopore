@@ -276,6 +276,42 @@
         </div>
         {% endif %}
 
+        <!-- ================= changes_when_not_changed ================= -->
+        {% if count_changes_when_not_changed %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapsechanges_when_not_changed">
+                    10(a) "Was the regimen changed?" answered No, but changes are recorded
+                    ({{ count_changes_when_not_changed }})
+                </button>
+            </h2>
+            <div id="collapsechanges_when_not_changed" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <p class="dq-muted mb-2">Either answer Yes on the Diagnosis form, or delete the changes that did not happen.</p>
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr><th>PID</th><th>Site</th><th>Date</th><th>Drug</th><th>Nature of change</th><th>Reason</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for r in changes_when_not_changed %}
+                            <tr>
+                                <td><a href="{% url 'nanopore:diagnosis-update' pk=r.screening.diagnosis.id %}?next={{ request.get_full_path|urlencode }}#regimen-change-section">{{ r.pid|default:r.screening.pid }}</a></td>
+                                <td>{{ r.screening.site.name }}</td>
+                                <td class="dq-nowrap">{{ r.date|date:"d/m/Y"|default:"—" }}</td>
+                                <td>{{ r.drug }}</td>
+                                <td>{{ r.changes|default:"—" }}</td>
+                                <td>{{ r.reason|default:"—" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- ================= invalid_reason_filled ================= -->
         {% if count_invalid_reason_filled %}
         <div class="accordion-item">
@@ -283,7 +319,7 @@
                 <button class="accordion-button collapsed"
                         data-bs-toggle="collapse"
                         data-bs-target="#collapseinvalid_reason_filled">
-                    Invalid Specify Reason filled
+                    "If other, specify" filled but reason is not Other
                     ({{ count_invalid_reason_filled }})
                 </button>
             </h2>
@@ -299,6 +335,7 @@
                                 <th>Site</th>
                                 <th>Drug</th>
                                 <th>Reason</th>
+                                <th>Specify (should be empty)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -319,7 +356,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center text-muted">
+                                <td colspan="5" class="text-center text-muted">
                                     No records found
                                 </td>
                             </tr>

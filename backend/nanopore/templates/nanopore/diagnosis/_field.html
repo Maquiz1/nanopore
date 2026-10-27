@@ -1,0 +1,6 @@
+{# One question: label, input and its error. Include with field=form.<name> #}
+<div class="df-q{% if field.errors %} has-error{% endif %}">
+    <label class="df-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% for error in field.errors %}<div class="df-error"><i class="fas fa-circle-exclamation"></i> {{ error }}</div>{% endfor %}
+</div>

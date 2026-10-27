@@ -179,11 +179,47 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ===========================
-    // Regimen Add Button
+    // 10(a) Was the regimen changed? → Regimen changes table
     // ===========================
+    const regimenNotice = document.getElementById("regimenNotice");
+    const regimenChangesCard = document.getElementById("regimenChangesCard");
+    const regimenFormErrors = document.getElementById("regimenFormErrors");
+    const csrfToken = regimenForm ? regimenForm.querySelector("[name=csrfmiddlewaretoken]").value : "";
+
+    function selectedText(select) {
+        if (!select || select.selectedIndex < 0 || !select.value) return "";
+        return select.options[select.selectedIndex].text.trim().toLowerCase();
+    }
+
+    function regimenRows() {
+        return regimenTableBody ? regimenTableBody.querySelectorAll("tr[id^='regimenRow']").length : 0;
+    }
+
     function toggleAddButton() {
-        if(!regimenChangedField || !addBtn) return;
-        addBtn.style.display = (regimenChangedField.value === "1") ? "inline-block" : "none";
+        // Name kept: the treatment toggles call it too
+        const treated = tbTreatmentField && tbTreatmentField.value === "1";
+        const answer = selectedText(regimenChangedField);   // "yes" / "no" / ""
+        const rows = regimenRows();
+
+        // Table: when the regimen changed, or when changes exist that need sorting out
+        if (regimenChangesCard) regimenChangesCard.style.display = (treated && answer === "yes") || rows ? "block" : "none";
+        if (addBtn) addBtn.style.display = treated && answer === "yes" ? "inline-block" : "none";
+
+        const emptyRow = regimenTableBody && regimenTableBody.querySelector(".df-empty-row");
+        if (emptyRow) emptyRow.style.display = rows ? "none" : "";
+
+        let message = "";
+        if (rows && answer !== "yes") {
+            message = answer === "no"
+                ? "10(a) says the regimen was not changed, but changes are recorded. Delete them, or answer Yes."
+                : "Changes are recorded below. Answer 10(a) with Yes, or delete them.";
+        } else if (treated && answer === "yes" && !rows) {
+            message = "Add at least one regimen change before saving the form.";
+        }
+        if (regimenNotice) {
+            regimenNotice.textContent = message;
+            regimenNotice.style.display = message ? "block" : "none";
+        }
     }
 
     // ===========================
@@ -200,22 +236,37 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function showRegimenErrors(errors) {
+        if (!regimenFormErrors) return;
+        if (!errors) { regimenFormErrors.style.display = "none"; regimenFormErrors.textContent = ""; return; }
+        const labels = {date: "Date", drug: "Drug(s)", changes: "Nature of change", reason: "Reason", specify: "Specify", __all__: ""};
+        regimenFormErrors.innerHTML = "";
+        Object.keys(errors).forEach(key => {
+            const line = document.createElement("div");
+            line.textContent = (labels[key] ? labels[key] + ": " : "") + [].concat(errors[key]).join(" ");
+            regimenFormErrors.appendChild(line);
+        });
+        regimenFormErrors.style.display = "block";
+    }
+
     function editHandler() {
         const regimenId = this.dataset.id;
         const editUrl = this.dataset.editUrl;
         const saveUrl = this.dataset.saveUrl;
         const screeningId = this.dataset.screeningId;
 
+        regimenForm.reset();
+        showRegimenErrors(null);
         regimenIdInput.value = regimenId;
         regimenScreeningInput.value = screeningId;
         regimenForm.action = saveUrl;
-        document.getElementById("regimenModalTitle").textContent = "Edit Regimen Change";
+        document.getElementById("regimenModalTitle").textContent = "Edit regimen change";
 
         fetch(editUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
             .then(res => res.json())
             .then(data => {
                 Object.keys(data.fields).forEach(key => {
-                    const input = document.getElementById(`id_${key}`);
+                    const input = regimenForm.querySelector(`#id_${key}`);
                     if(input) input.value = data.fields[key];
                 });
                 toggleRegimenSpecify();
@@ -227,29 +278,38 @@ document.addEventListener("DOMContentLoaded", function () {
     function deleteHandler() {
         const deleteUrl = this.dataset.deleteUrl;
         const rowId = `regimenRow${this.dataset.id}`;
-        if(!confirm("Are you sure you want to delete this regimen change?")) return;
+        if(!confirm("Delete this regimen change? It goes to the Recycle Bin.")) return;
 
         fetch(deleteUrl, {
             method: "DELETE",
-            headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}" }
+            headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": csrfToken }
         }).then(res => res.json())
           .then(data => {
             if(data.success) {
                 const row = document.getElementById(rowId);
                 if(row) row.remove();
+                toggleAddButton();
             } else {
-                alert("Error deleting regimen: " + JSON.stringify(data.errors));
+                alert("Could not delete: " + JSON.stringify(data.errors));
             }
-          });
+          })
+          .catch(() => alert("Could not delete this regimen change. Please try again."));
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value == null ? "" : String(value);
+        return div.innerHTML;
     }
 
     if(addBtn) {
         addBtn.addEventListener("click", function () {
             regimenForm.reset();
+            showRegimenErrors(null);
             regimenIdInput.value = "";
             regimenScreeningInput.value = this.dataset.screeningId;
             regimenForm.action = this.dataset.saveUrl;
-            document.getElementById("regimenModalTitle").textContent = "Add Regimen Change";
+            document.getElementById("regimenModalTitle").textContent = "Add regimen change";
             toggleRegimenSpecify();
             regimenModal.show();
         });
@@ -266,37 +326,36 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(res => res.json())
             .then(data => {
-                if(data.success) {
-                    regimenModal.hide();
-                    const rowId = `regimenRow${data.regimen_id}`;
-                    let row = document.getElementById(rowId);
-                    const html = `
-                        <td>${data.date}</td>
-                        <td>${data.drug}</td>
-                        <td>${data.changes}</td>
-                        <td>${data.reason}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning editRegimenBtn"
-                                data-id="${data.regimen_id}"
-                                data-edit-url="/nanopore/regimen/${data.regimen_id}/edit/"
-                                data-save-url="${regimenForm.action}"
-                                data-screening-id="${regimenScreeningInput.value}">Edit</button>
-                            <button class="btn btn-sm btn-danger deleteRegimenBtn"
-                                data-id="${data.regimen_id}"
-                                data-delete-url="/nanopore/regimen/${data.regimen_id}/delete/">Delete</button>
-                        </td>`;
-                    if(row) row.innerHTML = html;
-                    else if(regimenTableBody) {
-                        const newRow = document.createElement("tr");
-                        newRow.id = rowId;
-                        newRow.innerHTML = html;
-                        regimenTableBody.prepend(newRow);
-                    }
-                    bindRegimenButtons();
-                } else {
-                    alert("Error: " + JSON.stringify(data.errors));
+                if(!data.success) { showRegimenErrors(data.errors); return; }
+                regimenModal.hide();
+                const rowId = `regimenRow${data.regimen_id}`;
+                let row = document.getElementById(rowId);
+                const html = `
+                    <td class="text-nowrap" data-label="Date">${escapeHtml(data.date) || "—"}</td>
+                    <td data-label="Drug(s)">${escapeHtml(data.drug) || "—"}</td>
+                    <td data-label="Change">${escapeHtml(data.changes) || "—"}</td>
+                    <td data-label="Reason">${escapeHtml(data.reason) || "—"}${data.specify ? `<div class="df-muted">${escapeHtml(data.specify)}</div>` : ""}</td>
+                    <td class="df-row-actions">
+                        <button type="button" class="btn btn-sm btn-outline-primary editRegimenBtn"
+                            data-id="${data.regimen_id}"
+                            data-edit-url="/nanopore/regimen/${data.regimen_id}/edit/"
+                            data-save-url="${regimenForm.action}"
+                            data-screening-id="${escapeHtml(regimenScreeningInput.value)}"><i class="fas fa-pen"></i> Edit</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger deleteRegimenBtn"
+                            data-id="${data.regimen_id}"
+                            data-delete-url="/nanopore/regimen/${data.regimen_id}/delete/"><i class="fas fa-trash"></i></button>
+                    </td>`;
+                if(row) row.innerHTML = html;
+                else if(regimenTableBody) {
+                    const newRow = document.createElement("tr");
+                    newRow.id = rowId;
+                    newRow.innerHTML = html;
+                    regimenTableBody.insertBefore(newRow, regimenTableBody.querySelector(".df-empty-row"));
                 }
-            });
+                bindRegimenButtons();
+                toggleAddButton();
+            })
+            .catch(() => showRegimenErrors({__all__: "Could not save. Check your connection and try again."}));
         });
     }
 
@@ -322,7 +381,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if(tbDiagnosisField) tbDiagnosisField.addEventListener("change", toggleTbSections);
     if(tbDiagnosisMadeField) tbDiagnosisMadeField.addEventListener("change", toggleTbDiagnosisMade);
-    if(tbTreatmentField) tbTreatmentField.addEventListener("change", toggleTbTreatmentSections);
+    if(tbTreatmentField) tbTreatmentField.addEventListener("change", function () { toggleTbTreatmentSections(); toggleAddButton(); });
+    const tbTreatmentDateField = document.getElementById("id_tb_treatment_date");
+    if(tbTreatmentDateField) tbTreatmentDateField.addEventListener("change", toggleTbTreatmentSections);
     if(tbRegimenField) tbRegimenField.addEventListener("change", toggleTbRegimenSection);
     if(tbOtherDiagnosisField) tbOtherDiagnosisField.addEventListener("change", toggleTbOtherSpecify);
     if(regimenChangedField) regimenChangedField.addEventListener("change", toggleAddButton);

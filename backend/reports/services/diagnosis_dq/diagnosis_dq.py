@@ -38,6 +38,18 @@ def get_diagnosis_queryset(user, zone_id=None, site_id=None):
     return qs
 
 
+def is_filled_char(field):
+    return (
+        Q(**{f"{field}__isnull": False}) &
+        ~Q(**{f"{field}__regex": r'^\s*$'})
+    )
+
+
+def is_blank_char(field):
+    """Empty text: NULL, "" (what the web form saves) or only spaces"""
+    return Q(**{f"{field}__isnull": True}) | Q(**{f"{field}__regex": r'^\s*$'})
+
+
 def get_diagnosis_dq(qs):
     today = timezone.now().date()
     six_months_ago = today - relativedelta(months=6)
@@ -74,7 +86,7 @@ def get_diagnosis_dq(qs):
         "tb_regimen_other",
     ]
     for field in char_fields:
-        tb_diag_filled_q |= (~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}": ""}))
+        tb_diag_filled_q |= is_filled_char(field)
 
     non_char_fields = [
         "tb_diagnosis_date",
@@ -118,10 +130,7 @@ def get_diagnosis_dq(qs):
         Q(tb_other_diagnosis__name__in=["1","2","4","5"])
     )
 
-    mention_tb_other_specify_filled_q = (
-        Q(tb_other_specify__isnull=False) &
-        ~Q(tb_other_specify="")
-    )
+    mention_tb_other_specify_filled_q = is_filled_char("tb_other_specify")
 
     invalid_mention_tb_other_specify_filled = qs.filter(
         tb_other_diag_condition_q & mention_tb_other_specify_filled_q
@@ -134,10 +143,7 @@ def get_diagnosis_dq(qs):
         Q(tb_regimen__name__in=["1","2","3","4","5","6"])
     )
 
-    tb_regimen_other_filled_q = (
-        Q(tb_regimen_other__isnull=False) &
-        ~Q(tb_regimen_other="")
-    )
+    tb_regimen_other_filled_q = is_filled_char("tb_regimen_other")
 
     invalid_tb_regimen_other_filled = qs.filter(
         tb_regimen_condition_q & tb_regimen_other_filled_q
@@ -147,12 +153,6 @@ def get_diagnosis_dq(qs):
     # tb_treatment = 1 → fields(tb_facility,tb_reason) must be EMPTY
     # tb_treatment = 2 → fields(tb_treatment_date,tb_reason,tb_register_number,tb_regimen,regimen_changed) must be EMPTY
     # tb_treatment = 3 → fields(tb_treatment_date,tb_facility,tb_register_number,tb_regimen,regimen_changed) must be EMPTY
-    def is_filled_char(field):
-        return (
-            Q(**{f"{field}__isnull": False}) &
-            ~Q(**{f"{field}__regex": r'^\s*$'})
-        )
-
     def is_filled_non_char(field):
         return Q(**{f"{field}__isnull": False})
     
@@ -298,7 +298,7 @@ def get_diagnosis_dq(qs):
         
         # DIAGNOSIS MADE
         "missing_tb_diagnosis_made": qs.filter(tb_diagnosis=1, tb_diagnosis_made__isnull=True),
-        "missing_diagnosis_made_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made__value=96, diagnosis_made_other__isnull=True),
+        "missing_diagnosis_made_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made__value=96).filter(is_blank_char("diagnosis_made_other")),
         "invalid_tb_diagnosis_made":invalid_tb_diagnosis_made,
 
         # TB TREATMENT
@@ -308,23 +308,23 @@ def get_diagnosis_dq(qs):
         # TB DIAGNOSIS CLINICALLY
         "missing_tb_diagnosed_clinically": qs.filter(tb_diagnosis=1, tb_diagnosis_made=1)
             .annotate(clinical_count=Count("tb_diagnosed_clinically")).filter(clinical_count=0),
-        "missing_tb_clinically_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made=1, tb_diagnosed_clinically__value=96, tb_clinically_other__isnull=True).distinct(),
+        "missing_tb_clinically_other": qs.filter(tb_diagnosis=1, tb_diagnosis_made=1, tb_diagnosed_clinically__value=96).filter(is_blank_char("tb_clinically_other")).distinct(),
         "invalid_tb_clinically_other":invalid_tb_clinically_other,
         
         "missing_bacteriological_diagnosis": qs.filter(tb_diagnosis=1, tb_diagnosis_made=2, bacteriological_diagnosis__isnull=True),
         "missing_clinician_received_date": qs.filter(tb_diagnosis=1, tb_diagnosis_made=2, clinician_received_date__isnull=True),
         "missing_tb_treatment_date": qs.filter(tb_treatment=1, tb_treatment_date__isnull=True),
-        "missing_tb_register_number": qs.filter(tb_treatment=1, tb_register_number__isnull=True),
+        "missing_tb_register_number": qs.filter(tb_treatment=1).filter(is_blank_char("tb_register_number")),
         "duplicate_tb_register_number": duplicate_tb_register_number_qs,
         
         # TB REGIMEN
         "missing_tb_regimen": qs.filter(tb_treatment=1, tb_regimen__isnull=True),
-        "missing_tb_regimen_other":qs.filter(tb_regimen=7, tb_regimen_other__isnull=True),
+        "missing_tb_regimen_other":qs.filter(tb_regimen__value=7).filter(is_blank_char("tb_regimen_other")),
         "invalid_tb_regimen_other_filled":invalid_tb_regimen_other_filled,
         "missing_regimen_changed": qs.filter(tb_treatment=1, regimen_changed__isnull=True),
         
-        "missing_tb_facility": qs.filter(tb_treatment=2, tb_facility__isnull=True),
-        "missing_tb_reason": qs.filter(tb_treatment=96, tb_reason__isnull=True),
+        "missing_tb_facility": qs.filter(tb_treatment=2).filter(is_blank_char("tb_facility")),
+        "missing_tb_reason": qs.filter(tb_treatment__value=3).filter(is_blank_char("tb_reason")),
         "pending_tb_outcome": pending_tb_outcome_qs,
         "pending_tb_outcome_date": pending_tb_outcome_date_qs,
         
@@ -334,7 +334,7 @@ def get_diagnosis_dq(qs):
         # DIAGNOSIS OTHER THAN TB
         "missing_tb_other_diagnosis": qs.filter(tb_diagnosis=2, tb_other_diagnosis__isnull=True),
         "missing_tb_diagnosis_made2": qs.filter(tb_diagnosis=2, tb_diagnosis_made2__isnull=True),
-        "missing_tb_other_specify": qs.filter(tb_diagnosis=2, tb_other_diagnosis__value=96, tb_other_specify__isnull=True),
+        "missing_tb_other_specify": qs.filter(tb_diagnosis=2, tb_other_diagnosis__value=96).filter(is_blank_char("tb_other_specify")),
         "invalid_diag_other_than_tb_filled":invalid_diag_other_than_tb_filled,
         "invalid_mention_tb_other_specify_filled":invalid_mention_tb_other_specify_filled,
     }
