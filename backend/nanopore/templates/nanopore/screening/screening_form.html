@@ -1,328 +1,227 @@
 {% extends "base.html" %}
 
+{% block title %}Screening · {{ object.pid|default:"New" }}{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-
-            <!-- Navigation -->
-            <div class="d-flex justify-content-between mb-4 gap-2">
-                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary flex-grow-1">
-                    🔙 Back to List
-                </a>
-                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary flex-grow-1">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
-
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">{{ object|default:"New" }} Screening</h4>
-                </div>
-
-                <div class="card-body">
-                    <form method="post" novalidate id="screeningForm" data-zone-id="{{ user_zone.id|default:'0' }}"
-                        data-zone-name="{{ user_zone.name|default:'' }}">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ next }}">
-
-                        <!-- Non-field errors -->
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-warning">
-                            {% for error in form.non_field_errors %}
-                            <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- DEMOGRAPHIC SECTION -->
-                        <div class="p-2 mb-3 bg-info text-white rounded">
-                            <h5 class="mb-0">Demographic Information</h5>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.screening_date.label_tag }} {{ form.screening_date }}
-                                {% for error in form.screening_date.errors %}
-                                <div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.pid1.label_tag }} {{ form.pid1 }}
-                                {% for error in form.pid1.errors %}
-                                <div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.pid2.label_tag }} {{ form.pid2 }}
-                                {% for error in form.pid2.errors %}
-                                <div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.sex.label_tag }} {{ form.sex }}
-                                {% for error in form.sex.errors %}
-                                <div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.dob.label_tag }} {{ form.dob }}
-                                {% for error in form.dob.errors %}
-                                <div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.age.label_tag }} {{ form.age }}
-                                {% if form.instance.dob %}
-                                <small class="text-muted">(Current age: {{ current_age }} yrs)</small>
-                                {% endif %}
-                                {% for error in form.age.errors %}
-                                <div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- INCLUSION SECTION -->
-                        <div class="p-2 mb-3 bg-success text-white rounded">
-                            <h5 class="mb-0">Inclusion Criteria</h5>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            {% if access.is_unscoped %}
-                            <!-- Admins & reviewers see both -->
-                            <div class="col-md-6">
-                                {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
-                                {% for error in form.present_symptoms.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
-                                {% for error in form.genexpert_confirmation.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            {% elif user_zone %}
-                            {% if user_zone.id == 1 %}
-                            <!-- Zone 1 → Present symptoms -->
-                            <div class="col-md-6">
-                                {{ form.present_symptoms.label_tag }} {{ form.present_symptoms }}
-                                {% for error in form.present_symptoms.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            {% elif user_zone.id in zone_group_2_5 %}
-                            <!-- Zone 2–5 → GeneXpert -->
-                            <div class="col-md-6">
-                                {{ form.genexpert_confirmation.label_tag }} {{ form.genexpert_confirmation }}
-                                {% for error in form.genexpert_confirmation.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            {% else %}
-                            <div class="col-md-12 text-muted">
-                                <em>No inclusion criteria required for this zone.</em>
-                            </div>
-                            {% endif %}
-                            {% else %}
-                            <div class="col-md-12 text-muted">
-                                <em>No site information available.</em>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.produce_resp_sample.label_tag }} {{ form.produce_resp_sample }}
-                                {% for error in form.produce_resp_sample.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                {{ form.age18years.label_tag }} {{ form.age18years }}
-                                {% for error in form.age18years.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                {{ form.consent.label_tag }} {{ form.consent }}
-                                {% for error in form.consent.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4" id="consent-date-wrapper">
-                                {{ form.consent_date.label_tag }} {{ form.consent_date }}
-                                {% for error in form.consent_date.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- EXCLUSION SECTION -->
-                        <div class="p-2 mb-3 bg-danger text-white rounded">
-                            <h5 class="mb-0">Exclusion Criteria</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                {{ form.not_willing.label_tag }} {{ form.not_willing }}
-                                {% for error in form.not_willing.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.unable_understand.label_tag }} {{ form.unable_understand }}
-                                {% for error in form.unable_understand.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- ENROLLMENT SECTION -->
-                        <div id="enrollment-section" style="display:none;">
-                            <div class="p-2 mb-3 bg-warning text-white rounded">
-                                <h5 class="mb-0">Enrollment</h5>
-                            </div>
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-4">
-                                    {{ form.enrolled.label_tag }} {{ form.enrolled }}
-                                    {% for error in form.enrolled.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-4" id="reasons-wrapper" style="display:none;">
-                                    {{ form.reasons.label_tag }} {{ form.reasons }}
-                                    {% for error in form.reasons.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-4" id="reasons-other-wrapper" style="display:none;">
-                                    {{ form.reasons_other.label_tag }} {{ form.reasons_other }}
-                                    {% for error in form.reasons_other.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- GENERAL COMMENTS -->
-                        <div class="p-2 mb-3 bg-secondary text-white rounded">
-                            <h5 class="mb-0">General Comments</h5>
-                        </div>
-                        <div class="mb-3">
-                            {{ form.remarks.label_tag }} {{ form.remarks }}
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">❌ Cancel</a>
-                            {% if access.edit.screening %}
-                            {% if system_control.enable_form_submissions %}
-                                <button type="submit" class="btn btn-success">💾 Save Screening</button>
-                            {% else %}
-                                <button type="button" class="btn btn-secondary" disabled>🚫 Submissions Disabled</button>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                    </form>
-                </div>
+<div class="df">
+    <!-- Header -->
+    <section class="df-hero">
+        <div>
+            <div class="df-eyebrow">Forms · Screening</div>
+            <h1 class="df-title">{{ object.pid|default:"New screening" }}</h1>
+            <div class="df-meta">
+                {% if site %}<span><i class="fas fa-hospital"></i> {{ site }}</span>{% endif %}
+                {% if is_dar is not None %}
+                <span class="df-pill"><i class="fas fa-location-dot"></i> {% if is_dar %}Dar es Salaam · asks question 4{% else %}{{ user_zone.name }} · asks question 4(a){% endif %}</span>
+                {% endif %}
+                <span><i class="fas fa-{% if object %}pen{% else %}plus{% endif %}"></i> {% if object %}Editing a saved form{% else %}New form{% endif %}</span>
             </div>
         </div>
-    </div>
+        <div class="df-hero-actions">
+            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Forms</a>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-light"><i class="fas fa-house"></i> Dashboard</a>
+        </div>
+    </section>
+
+    <form method="post" novalidate id="screeningForm" data-dar="{% if is_dar %}1{% elif is_dar is None %}{% else %}0{% endif %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+        {% include "nanopore/partials/form_error_summary.html" with form=form %}
+
+        <!-- 1–3. Participant -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step">1</span>
+                <div><h2>Participant</h2><p>Screening date, PID and age</p></div>
+            </header>
+            <div class="df-grid df-grid-3">
+                {% include "nanopore/partials/_field.html" with field=form.screening_date %}
+                <div class="df-q{% if form.pid1.errors %} has-error{% endif %}">
+                    <label class="df-label" for="{{ form.pid1.id_for_label }}">{{ form.pid1.label }}</label>
+                    <div class="input-group">
+                        {% if site.pid_prefix %}<span class="input-group-text">{{ site.pid_prefix }}</span>{% endif %}
+                        {{ form.pid1 }}
+                    </div>
+                    {% for error in form.pid1.errors %}<div class="df-error"><i class="fas fa-circle-exclamation"></i> {{ error }}</div>{% endfor %}
+                    <div class="df-hint">3 digits</div>
+                </div>
+                <div class="df-q{% if form.pid2.errors %} has-error{% endif %}">
+                    <label class="df-label" for="{{ form.pid2.id_for_label }}">{{ form.pid2.label }}</label>
+                    {{ form.pid2 }}
+                    {% for error in form.pid2.errors %}<div class="df-error"><i class="fas fa-circle-exclamation"></i> {{ error }}</div>{% endfor %}
+                    <div class="df-hint" id="pid-match-hint">Type the 3 digits again</div>
+                </div>
+                {% include "nanopore/partials/_field.html" with field=form.sex %}
+                {% include "nanopore/partials/_field.html" with field=form.dob %}
+                <div>
+                    {% include "nanopore/partials/_field.html" with field=form.age %}
+                    {% if current_age %}<div class="df-hint">Age today: {{ current_age }} years</div>{% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- 4–8. Inclusion -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step">2</span>
+                <div><h2>Inclusion criteria</h2><p>Questions 4–8 · all must be Yes</p></div>
+            </header>
+            {% if is_dar is None %}
+            <div class="df-zone-note"><i class="fas fa-circle-info"></i> The zone is not known yet. Dar es Salaam answers question 4; other zones answer question 4(a).</div>
+            {% endif %}
+            <div class="df-grid">
+                {% if is_dar or is_dar is None %}
+                <div class="df-span">{% include "nanopore/partials/_field.html" with field=form.present_symptoms %}</div>
+                {% endif %}
+                {% if not is_dar %}
+                <div class="df-span">{% include "nanopore/partials/_field.html" with field=form.genexpert_confirmation %}</div>
+                {% endif %}
+                {% include "nanopore/partials/_field.html" with field=form.produce_resp_sample %}
+                {% include "nanopore/partials/_field.html" with field=form.age18years %}
+                {% include "nanopore/partials/_field.html" with field=form.consent %}
+                <div id="consent-date-wrapper">{% include "nanopore/partials/_field.html" with field=form.consent_date %}</div>
+            </div>
+        </section>
+
+        <!-- 9–10. Exclusion -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step">3</span>
+                <div><h2>Exclusion criteria</h2><p>Questions 9–10 · all must be No</p></div>
+            </header>
+            <div class="df-grid">
+                {% include "nanopore/partials/_field.html" with field=form.not_willing %}
+                {% include "nanopore/partials/_field.html" with field=form.unable_understand %}
+            </div>
+        </section>
+
+        <!-- Live eligibility -->
+        <div class="df-status wait" id="eligibility-status" role="status" aria-live="polite">
+            <i class="fas fa-hourglass-half"></i>
+            <div><strong>Eligibility</strong><span>Answer questions 4–10 to see if the patient is eligible.</span></div>
+        </div>
+
+        <!-- 11. Enrollment -->
+        <section class="df-card" id="enrollment-section">
+            <header class="df-card-head">
+                <span class="df-step">4</span>
+                <div><h2>Enrollment</h2><p>Question 11</p></div>
+            </header>
+            <div class="df-grid">
+                {% include "nanopore/partials/_field.html" with field=form.enrolled %}
+                <div id="reasons-wrapper" style="display:none;">{% include "nanopore/partials/_field.html" with field=form.reasons %}</div>
+                <div id="reasons-other-wrapper" class="df-span" style="display:none;">{% include "nanopore/partials/_field.html" with field=form.reasons_other %}</div>
+            </div>
+        </section>
+
+        <!-- Comments -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step"><i class="fas fa-comment"></i></span>
+                <div><h2>Comments</h2><p>Anything else about this screening</p></div>
+            </header>
+            {% include "nanopore/partials/_field.html" with field=form.remarks %}
+        </section>
+
+        <!-- Save bar -->
+        <div class="df-savebar">
+            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary">Cancel</a>
+            {% if access.edit.screening %}
+                {% if system_control.enable_form_submissions %}
+                <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save screening</button>
+                {% else %}
+                <button type="button" class="btn btn-secondary" disabled><i class="fas fa-ban"></i> Submissions disabled</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </form>
 </div>
+
+{% include "nanopore/partials/_form_styles.html" %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // ────────────────────────────────────────────────
-    // Consent date toggle
-    // ────────────────────────────────────────────────
-    const consentField = document.getElementById("id_consent");
-    const consentDateWrapper = document.getElementById("consent-date-wrapper");
-
-    function toggleConsentDate() {
-        if (consentField?.value === "1") {
-            consentDateWrapper.style.display = "block";
-        } else {
-            consentDateWrapper.style.display = "none";
-            const dateInput = document.getElementById("id_consent_date");
-            if (dateInput) dateInput.value = "";
-        }
-    }
-    consentField?.addEventListener("change", toggleConsentDate);
-    toggleConsentDate();
-
-    // ────────────────────────────────────────────────
-    // Zone & enrollment visibility
-    // ────────────────────────────────────────────────
     const form = document.getElementById("screeningForm");
-    const zoneId = parseInt(form?.dataset.zoneId || "0");
-    const darZoneId = parseInt("{{ dar_es_salaam_zone.id|default:'0' }}", 10);
+    const dar = form.dataset.dar;   // "1" Dar es Salaam, "0" other zone, "" unknown
+    const $ = id => document.getElementById(id);
 
-    const presentSymptoms       = document.getElementById("id_present_symptoms");
-    const genexpertConfirmation = document.getElementById("id_genexpert_confirmation");
-    const enrollmentSection     = document.getElementById("enrollment-section");
+    // Selected option's label in lower case ("yes", "no", "other, please explain", "")
+    function answer(id) {
+        const select = $(id);
+        if (!select || !select.value || select.selectedIndex < 0) return "";
+        return select.options[select.selectedIndex].text.trim().toLowerCase();
+    }
+    function show(id, visible) { const el = $(id); if (el) el.style.display = visible ? "" : "none"; }
 
-    function toggleEnrollmentVisibility() {
-        let eligible = false;
-        if (zoneId === darZoneId) eligible = presentSymptoms?.value === "1";
-        else eligible = genexpertConfirmation?.value === "1";
-
-        enrollmentSection.style.display = eligible ? "block" : "none";
+    // 7 → 8. Consent date only when consent is Yes
+    function toggleConsentDate() {
+        const yes = answer("id_consent") === "yes";
+        show("consent-date-wrapper", yes);
+        if (!yes && $("id_consent_date")) $("id_consent_date").value = "";
     }
 
-    presentSymptoms?.addEventListener("change", toggleEnrollmentVisibility);
-    genexpertConfirmation?.addEventListener("change", toggleEnrollmentVisibility);
-    toggleEnrollmentVisibility();
+    // 11(a) No → 11(b) reason → Other, explain
+    function toggleReasons() {
+        const notEnrolled = answer("id_enrolled") === "no";
+        show("reasons-wrapper", notEnrolled);
+        if (!notEnrolled && $("id_reasons")) $("id_reasons").value = "";
+        const other = notEnrolled && answer("id_reasons").startsWith("other");
+        show("reasons-other-wrapper", other);
+    }
 
-    // ────────────────────────────────────────────────
-    // Enrolled → Reasons → Reasons Other logic
-    // ────────────────────────────────────────────────
-    const enrolledField       = document.getElementById("id_enrolled");
-    const reasonsWrapper      = document.getElementById("reasons-wrapper");
-    const reasonsField        = document.getElementById("id_reasons");
-    const reasonsOtherWrapper = document.getElementById("reasons-other-wrapper");
-    const reasonsOtherField   = document.getElementById("id_reasons_other");
+    // Same rules as Screening.eligibility_problems()
+    function updateEligibility() {
+        const rules = [];
+        if (dar === "1") rules.push(["id_present_symptoms", "yes", "4. No TB signs and symptoms"]);
+        else if (dar === "0") rules.push(["id_genexpert_confirmation", "yes", "4(a). TB not confirmed by GeneXpert"]);
+        rules.push(
+            ["id_produce_resp_sample", "yes", "5. Cannot produce a sputum sample"],
+            ["id_age18years", "yes", "6. Under 18 years"],
+            ["id_consent", "yes", "7. No written consent"],
+            ["id_not_willing", "no", "9. Not willing to sign consent"],
+            ["id_unable_understand", "no", "10. Unable to understand consent"],
+        );
+        const unanswered = rules.filter(([id]) => !answer(id)).length;
+        const problems = rules.filter(([id, ok]) => answer(id) && answer(id) !== ok).map(r => r[2]);
 
-    function toggleReasonsVisibility() {
-        if (enrolledField?.value === "2") {  // "No" = "2" (adjust if different)
-            reasonsWrapper.style.display = "block";
-            toggleReasonsOtherVisibility();  // check initial/selected value
+        const box = $("eligibility-status");
+        let icon, title, body = "";
+        if (problems.length) {
+            box.className = "df-status bad"; icon = "fa-circle-xmark"; title = "Not eligible";
+            body = "<ul>" + problems.map(p => `<li>${p}</li>`).join("") + "</ul><span>Answer 11(a) with No and choose the reason “Patient not eligible”.</span>";
+        } else if (unanswered || dar === "") {
+            box.className = "df-status wait"; icon = "fa-hourglass-half"; title = "Eligibility";
+            body = "<span>Answer questions 4–10 to see if the patient is eligible.</span>";
         } else {
-            reasonsWrapper.style.display = "none";
-            reasonsField.value = "";
-            reasonsOtherWrapper.style.display = "none";
-            reasonsOtherField.value = "";
+            box.className = "df-status good"; icon = "fa-circle-check"; title = "Eligible";
+            body = "<span>All inclusion criteria are Yes and all exclusion criteria are No.</span>";
         }
+        box.innerHTML = `<i class="fas ${icon}"></i><div><strong>${title}</strong>${body}</div>`;
     }
 
-    function toggleReasonsOtherVisibility() {
-        // Get the selected option and its data-value (which is EnrolledReason.value)
-        // const selectedOption = reasonsField?.options[reasonsField.selectedIndex];
-        // const reasonValue = selectedOption ? selectedOption.getAttribute("data-value") : null;
-
-        if (reasonsField?.value === "2") {  // "Other" = "2" (adjust if different)
-            reasonsOtherWrapper.style.display = "block";
-        } else {
-            reasonsOtherWrapper.style.display = "none";
-            // reasonsOtherField.value = "";  // clear when hidden
-        }
+    // PID2 must repeat PID1
+    function checkPid() {
+        const p1 = $("id_pid1")?.value || "", p2 = $("id_pid2")?.value || "", hint = $("pid-match-hint");
+        if (!hint) return;
+        if (!p2) { hint.textContent = "Type the 3 digits again"; hint.style.color = ""; }
+        else if (p1 === p2) { hint.textContent = "✓ Matches PID"; hint.style.color = "var(--good)"; }
+        else { hint.textContent = "Does not match PID"; hint.style.color = "var(--bad)"; }
     }
 
-    // Event listeners
-    enrolledField?.addEventListener("change", toggleReasonsVisibility);
-    reasonsField?.addEventListener("change", toggleReasonsOtherVisibility);
+    $("id_consent")?.addEventListener("change", toggleConsentDate);
+    $("id_enrolled")?.addEventListener("change", toggleReasons);
+    $("id_reasons")?.addEventListener("change", toggleReasons);
+    ["id_present_symptoms", "id_genexpert_confirmation", "id_produce_resp_sample", "id_age18years",
+     "id_consent", "id_not_willing", "id_unable_understand"].forEach(id => $(id)?.addEventListener("change", updateEligibility));
+    ["id_pid1", "id_pid2"].forEach(id => $(id)?.addEventListener("input", checkPid));
 
-    // Run on page load (very important for edit forms)
-    toggleReasonsVisibility();
+    toggleConsentDate();
+    toggleReasons();
+    updateEligibility();
+    checkPid();
 });
 </script>
 {% endblock %}

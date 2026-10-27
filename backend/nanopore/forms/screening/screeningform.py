@@ -121,6 +121,14 @@ class ScreeningForm(forms.ModelForm):
     class Meta:
         model = Screening
         fields = "__all__"
+        labels = {
+            "screening_date": "Screening date",
+            "pid1": "PID",
+            "pid2": "Confirm PID",
+            "dob": "Date of birth",
+            "age": "Age (years)",
+            "remarks": "Remarks",
+        }
         widgets = {
             "pid": forms.HiddenInput(),
             "pid1": forms.TextInput(attrs={"class": "form-control", "maxlength": 3}),
@@ -176,12 +184,15 @@ class ScreeningForm(forms.ModelForm):
         # Conditional required based on Zone
         present_symptoms = cleaned_data.get("present_symptoms")
         genexpert_confirmation = cleaned_data.get("genexpert_confirmation")
+        # Each zone answers only its own question; the other one is cleared
         if zone and zone.name.lower() == "dar es salaam":
+            cleaned_data["genexpert_confirmation"] = None
             if not present_symptoms:
                 self.add_error(
                     "present_symptoms", "This field is required for Dar es Salaam zone."
                 )
         elif zone:
+            cleaned_data["present_symptoms"] = None
             if not genexpert_confirmation:
                 self.add_error(
                     "genexpert_confirmation",
@@ -255,6 +266,14 @@ class ScreeningForm(forms.ModelForm):
         reasons = cleaned_data.get("reasons")
         reasons_other = cleaned_data.get("reasons_other")
 
+        if enrolled and enrolled.name == "Yes" and site:
+            answers = {name: cleaned_data.get(name) for name in (
+                "present_symptoms", "genexpert_confirmation", "produce_resp_sample", "age18years",
+                "consent", "not_willing", "unable_understand")}
+            problems = Screening(site=site, **answers).eligibility_problems()
+            if problems:
+                self.add_error("enrolled", "Not eligible, so cannot be enrolled: " + "; ".join(problems) + ".")
+
         if enrolled and enrolled.name == "No":
             if not reasons:
                 self.add_error(
@@ -266,5 +285,14 @@ class ScreeningForm(forms.ModelForm):
                         "reasons_other",
                         "This field is required if 'Other' is selected as a reason.",
                     )
+
+        # Answers to hidden questions are not kept
+        if not (enrolled and enrolled.name == "No"):
+            cleaned_data["reasons"] = None
+        if not (cleaned_data.get("reasons") and cleaned_data["reasons"].name.lower().startswith("other")):
+            cleaned_data["reasons_other"] = ""
+        consent = cleaned_data.get("consent")
+        if not (consent and consent.name == "Yes"):
+            cleaned_data["consent_date"] = None
 
         return cleaned_data

@@ -1,0 +1,108 @@
+{# Shared look of the data entry forms (Diagnosis, Screening). Wrap the page in <div class="df">. #}
+<style>
+    .df {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff; --soft: #f6f8fc;
+        --accent: #1d6fd6; --accent-soft: #e8f1fc; --good: #1f8a4c; --warn: #a15c00; --warn-soft: #fff4e5; --bad: #b42318; --bad-soft: #fdecea;
+        max-width: 1080px; margin: 24px auto 40px; padding: 0 4px; color: var(--ink);
+    }
+    .df-hero {
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+        padding: 22px 26px; margin-bottom: 16px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%);
+        box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .df-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .df-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; word-break: break-all; }
+    .df-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: .88rem; opacity: .9; }
+    .df-meta i { margin-right: 4px; opacity: .8; }
+    .df-hero-actions { display: flex; gap: 8px; }
+
+    .df-card { padding: 20px 22px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .df-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .df-card-head h2 { font-size: 1.08rem; font-weight: 700; margin: 0; }
+    .df-card-head p { font-size: .78rem; color: var(--muted); margin: 0; }
+    .df-step {
+        width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px;
+        background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .9rem;
+    }
+    .df-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+    .df-span { grid-column: 1 / -1; }
+    .df-sub { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+    .df-sub h3, .df-changes h3 { font-size: .92rem; font-weight: 700; margin: 0 0 12px; color: var(--ink-2); }
+    .df-sub h3 i, .df-changes h3 i { color: var(--accent); margin-right: 6px; }
+
+    .df-q { min-width: 0; }
+    .df-label { display: block; font-size: .84rem; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+    .df .form-control, .df .form-select, .df-modal .form-control, .df-modal .form-select { border-color: #d5dcea; border-radius: 9px; font-size: .92rem; }
+    .df .form-control:focus, .df .form-select:focus, .df-modal .form-control:focus, .df-modal .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29, 111, 214, .15); }
+    .df .form-control[readonly] { background: var(--soft); }
+    .df-q.has-error .form-control, .df-q.has-error .form-select { border-color: var(--bad); }
+    .df-error { margin-top: 4px; font-size: .8rem; color: var(--bad); }
+
+    /* 7. clinical signs as tappable chips */
+    #id_tb_diagnosed_clinically { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+    #id_tb_diagnosed_clinically label {
+        display: flex; align-items: center; gap: 8px; height: 100%; padding: 8px 12px; margin: 0; cursor: pointer;
+        border: 1px solid var(--line); border-radius: 9px; font-size: .86rem; background: var(--surface);
+    }
+    #id_tb_diagnosed_clinically label:hover { border-color: var(--accent); }
+    #id_tb_diagnosed_clinically label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    #id_tb_diagnosed_clinically input { accent-color: var(--accent); }
+
+    .df-changes { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); overflow: hidden; }
+    .df-changes-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px 16px 10px; }
+    .df-changes-head h3 { margin-bottom: 2px; }
+    .df-changes-head p { font-size: .76rem; color: var(--muted); margin: 0; }
+    .df-table { background: var(--surface); }
+    .df-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; border-bottom-width: 1px; white-space: nowrap; }
+    .df-table td { font-size: .87rem; vertical-align: middle; }
+    .df-row-actions { text-align: right; white-space: nowrap; }
+    .df-row-actions .btn { margin-left: 4px; }
+    .df-empty-row td { text-align: center; color: var(--muted); padding: 18px; }
+    .df-muted { font-size: .78rem; color: var(--muted); }
+    .df-notice { margin: 0 16px 12px; padding: 10px 12px; border-radius: 9px; font-size: .84rem; background: var(--warn-soft); color: var(--warn); }
+    .df-notice.bad { background: var(--bad-soft); color: var(--bad); margin: 0 0 14px; }
+
+    .df-savebar {
+        position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: flex-end; gap: 10px;
+        padding: 12px 16px; margin-top: 6px; border: 1px solid var(--line); border-radius: 14px;
+        background: rgba(255, 255, 255, .94); backdrop-filter: blur(6px); box-shadow: 0 -6px 20px rgba(20, 33, 61, .06);
+    }
+    .df-modal .modal-content { border: 0; border-radius: 16px; }
+    .df-modal .modal-header { border-bottom: 1px solid #e6eaf2; }
+    .df-modal .df-eyebrow { color: #7d8aa3; opacity: 1; }
+    .df-modal .df-label { display: block; font-size: .84rem; font-weight: 600; color: #4a5872; margin-bottom: 5px; }
+    .df-modal .df-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+
+    .df-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .df-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .16); font-size: .8rem; }
+    .df-hint { margin-top: 4px; font-size: .78rem; color: var(--muted); }
+    .df-zone-note { padding: 10px 12px; margin-bottom: 14px; border-radius: 9px; background: var(--accent-soft); color: var(--ink-2); font-size: .84rem; }
+    .df-zone-note i { color: var(--accent); margin-right: 6px; }
+    .df-status { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; margin-bottom: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+    .df-status i { font-size: 1.2rem; margin-top: 2px; }
+    .df-status strong { display: block; font-size: .95rem; }
+    .df-status span { font-size: .84rem; }
+    .df-status ul { margin: 4px 0 0; padding-left: 18px; font-size: .84rem; }
+    .df-status.good { border-color: #bfe3cc; background: #edf8f1; color: var(--good); }
+    .df-status.bad { border-color: #f5c6c2; background: var(--bad-soft); color: var(--bad); }
+    .df-status.wait { color: var(--ink-2); }
+    .df-status.wait i { color: var(--muted); }
+    .df .input-group-text { border-color: #d5dcea; background: var(--soft); color: var(--ink-2); font-size: .85rem; border-radius: 9px 0 0 9px; }
+    .df .input-group .form-control { border-radius: 0 9px 9px 0; }
+
+    @media (max-width: 767.98px) {
+        .df { margin-top: 12px; }
+        .df-hero { padding: 18px; }
+        .df-card { padding: 16px; }
+        .df-grid, .df-modal .df-grid { grid-template-columns: 1fr; }
+        .df-changes-head { flex-direction: column; }
+        .df-savebar .btn { flex: 1; }
+        /* Regimen changes: one small card per change */
+        .df-table thead { display: none; }
+        .df-table tr[id^="regimenRow"] { display: block; padding: 10px 14px; border-top: 1px solid var(--line); }
+        .df-table tr[id^="regimenRow"] td { display: flex; gap: 10px; padding: 3px 0; border: 0; }
+        .df-table tr[id^="regimenRow"] td[data-label]::before { content: attr(data-label); flex: 0 0 76px; font-size: .74rem; color: var(--muted); }
+        .df-table tr[id^="regimenRow"] .df-row-actions { justify-content: flex-end; padding-top: 8px; }
+    }
+</style>

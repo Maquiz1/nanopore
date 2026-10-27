@@ -98,9 +98,8 @@ def get_screening_dq(qs, user=None):
         consent__name__iexact="yes",
         consent_date__isnull=True
     )
-    missing_reasons_other = qs.filter(
-        reasons__value=96,
-        reasons_other__isnull=True
+    missing_reasons_other = qs.filter(reasons__value=96).filter(
+        Q(reasons_other__isnull=True) | Q(reasons_other__regex=r'^\s*$')
     )
 
     missing_present_symptoms = qs.filter(
@@ -165,9 +164,20 @@ def get_screening_dq(qs, user=None):
         consent_2_q & is_filled_non_char("consent_date")
     )
 
+    # Each zone answers only its own inclusion question:
+    # Dar es Salaam → 4 (symptoms), other zones → 4(a) (GeneXpert)
+    wrong_zone_question = (
+        qs.filter(site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID, genexpert_confirmation__isnull=False) |
+        qs.exclude(site__district__region__zone_id=DAR_ES_SALAAM_ZONE_ID).filter(present_symptoms__isnull=False)
+    )
+
+    # Enrolled although an inclusion/exclusion answer makes them not eligible
+    enrolled_not_eligible = qs.filter(enrolled__name__iexact="yes", eligible=False)
+
     # ── NON-ELIGIBLE (ROLE CONTROLLED) ──
     if is_full_access:
-        not_eligible_qs = qs.filter(eligible=False)
+        # Enrolled ones are listed for everyone under enrolled_not_eligible
+        not_eligible_qs = qs.filter(eligible=False).exclude(enrolled__name__iexact="yes")
     else:
         not_eligible_qs = qs.none()
 
@@ -195,6 +205,8 @@ def get_screening_dq(qs, user=None):
         "not_eligible": not_eligible_qs,  # always present, but may be empty
         "invalid_enrollment_rules":invalid_enrollment_rules,
         "invalid_consent_2":invalid_consent_2,
+        "wrong_zone_question": wrong_zone_question,
+        "enrolled_not_eligible": enrolled_not_eligible,
     }
 
     # ── TOTALS ──

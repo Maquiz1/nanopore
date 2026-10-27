@@ -77,6 +77,36 @@ class Screening(models.Model):
     #             return "Uncategorized"
     #     return "Uncategorized"
 
+    @property
+    def is_dar_es_salaam(self):
+        """Dar es Salaam asks question 4 (symptoms); other zones ask 4(a) (GeneXpert)."""
+        zone = getattr(getattr(getattr(self.site, "district", None), "region", None), "zone", None)
+        return bool(zone and zone.name.strip().lower() == "dar es salaam")
+
+    def eligibility_problems(self):
+        """Inclusion/exclusion answers that make the patient not eligible (empty list = eligible)."""
+        def answer(field):
+            value = getattr(self, field)
+            return value.name.strip().lower() if value else ""
+
+        problems = []
+        if self.is_dar_es_salaam:
+            if answer("present_symptoms") != "yes":
+                problems.append("4. No TB signs and symptoms")
+        elif answer("genexpert_confirmation") != "yes":
+            problems.append("4(a). TB not confirmed by GeneXpert")
+        if answer("produce_resp_sample") != "yes":
+            problems.append("5. Cannot produce a sputum sample")
+        if answer("age18years") != "yes":
+            problems.append("6. Under 18 years")
+        if answer("consent") != "yes":
+            problems.append("7. No written consent")
+        if answer("not_willing") != "no":
+            problems.append("9. Not willing to sign consent")
+        if answer("unable_understand") != "no":
+            problems.append("10. Unable to understand consent")
+        return problems
+
     def save(self, *args, **kwargs):
         # Generate PID
         pid_prefix = self.site.pid_prefix if self.site else ""
@@ -84,25 +114,8 @@ class Screening(models.Model):
             self.pid = f"{pid_prefix}{self.pid1}"
 
         # --- Eligibility calculation ---
-        consent_logic = all([
-            self.consent and self.consent.name.strip().lower() == 'yes',
-            self.unable_understand and self.unable_understand.name.strip().lower() == 'no',
-            self.not_willing and self.not_willing.name.strip().lower() == 'no',
-        ])
-        screening_logic = all([
-            self.age18years and self.age18years.name.strip().lower() == 'yes',
-            self.produce_resp_sample and self.produce_resp_sample.name.strip().lower() == 'yes',
-        ])
-        zone_name = ''
-        if self.site and self.site.district and self.site.district.region and self.site.district.region.zone:
-            zone_name = self.site.district.region.zone.name.strip().lower()
-        if zone_name == "dar es salaam":
-            screening_logic = screening_logic and (self.present_symptoms and self.present_symptoms.name.strip().lower() == 'yes')
-        else:
-            screening_logic = screening_logic and (self.genexpert_confirmation and self.genexpert_confirmation.name.strip().lower() == 'yes')
+        self.eligible = not self.eligibility_problems()
 
-        self.eligible = consent_logic and screening_logic
-        
         if self.remarks:
             self.remarks = re.sub(r"\s+", " ", self.remarks.strip())
         if self.reasons_other:

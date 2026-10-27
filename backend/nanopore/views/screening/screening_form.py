@@ -66,9 +66,10 @@ class ScreeningFormView(FormAccessMixin, View):
             user_zone = relevant_site.district.region.zone
 
         context["user_zone"] = user_zone
-        context["dar_es_salaam_zone"] = Zone.objects.filter(name__iexact="Dar es Salaam").first()
-        context["zone_group_1"] = [1]  # ← add this line
-        context["zone_group_2_5"] = [2, 3, 4, 5]  # ← add this line
+        context["site"] = relevant_site
+        # Question 4 (Dar es Salaam) or 4(a) (other zones); None = zone unknown, show both
+        context["is_dar"] = user_zone.name.strip().lower() == "dar es salaam" if user_zone else None
+        context["eligibility_problems"] = obj.eligibility_problems() if obj else []
         
         # Calculate current age if dob exists
         form = context.get("form")
@@ -90,8 +91,8 @@ class ScreeningFormView(FormAccessMixin, View):
         original_site = obj.site if obj else None
         
         form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
-        context = self.get_context_data(form=form, object=obj)
-        
+        context = self.get_context_data(form=form, object=obj, next=request.POST.get("next"))
+
         self.limit_choices(form)
         
         if form.is_valid():
@@ -110,7 +111,7 @@ class ScreeningFormView(FormAccessMixin, View):
 
             if not obj.site:
                 form.add_error(None, "No site found. Please create a site first.")
-                return render(request, self.template_name, {"form": form, "object": obj})
+                return render(request, self.template_name, context)
 
             # Assign audit fields
             if not obj.pk:
@@ -118,18 +119,16 @@ class ScreeningFormView(FormAccessMixin, View):
             obj.updated_by = request.user
             obj.updated_at = timezone.now()
 
-            # Eligibility recalculation
-            obj.eligible = self.calculate_eligibility(obj)
-
+            # Eligibility is worked out in Screening.save()
             try:
                 obj.save()
                 form.save_m2m()
             except ValidationError as e:
                 form.add_error(None, e)
-                return render(request, self.template_name, {"form": form, "object": obj})
+                return render(request, self.template_name, context)
             except Exception as e:
                 form.add_error(None, str(e))
-                return render(request, self.template_name, {"form": form, "object": obj})
+                return render(request, self.template_name, context)
             
             messages.success(request, "Screening saved successfully.")
 
@@ -163,37 +162,3 @@ class ScreeningFormView(FormAccessMixin, View):
         elif hasattr(request.user, "profile") and request.user.profile.zones.exists():
             initial["site"] = Site.objects.filter(district__region__zone=request.user.profile.zones.first()).first()
         return initial
-
-    def calculate_eligibility(self, obj):
-        """
-        Recalculate eligibility based on zone, consent, understanding, willingness,
-        age, inclusion/exclusion criteria.
-        """
-        eligible = True
-
-        # Basic checks
-        if not (obj.consent and obj.unable_understand and obj.not_willing):
-            eligible = False
-        elif not (obj.consent.name == "Yes" and obj.unable_understand.name == "No" and obj.not_willing.name == "No"):
-            eligible = False
-
-        # Age ≥ 18 at screening
-        if obj.age < 18 or not (obj.age18years and obj.age18years.name == "Yes"):
-            eligible = False
-
-        # Zone-dependent inclusion
-        zone = getattr(getattr(obj.site, "district", None), "region", None)
-        zone = getattr(zone, "zone", None) if zone else None
-
-        if zone and zone.name.lower() == "dar es salaam":
-            if not (obj.present_symptoms and obj.present_symptoms.name == "Yes"):
-                eligible = False
-        elif zone:
-            if not (obj.genexpert_confirmation and obj.genexpert_confirmation.name == "Yes"):
-                eligible = False
-
-        # Must be able to produce sample
-        if not (obj.produce_resp_sample and obj.produce_resp_sample.name == "Yes"):
-            eligible = False
-
-        return eligible
