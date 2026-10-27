@@ -1,388 +1,300 @@
 {% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }} · Dream Fund - Nanopore{% endblock %}
 
 {% block content %}
-{% if access.is_unscoped %}
-    <div class="alert alert-info d-flex justify-content-between align-items-center">
+<div class="fs">
+    <!-- Header -->
+    <section class="fs-hero">
         <div>
-            <strong>Position:</strong> {{ request.user.profile.position }}
-        </div>
-        <i class="fas fa-user-shield"></i>
-    </div>
-{% else %}
-    {% if request.user.profile.sites.exists or request.user.profile.zones.exists %}
-        <div class="alert alert-info d-flex justify-content-between align-items-center">
-            <div>
-                {% if assigned_zones %}
-                <strong>Zone(s):</strong> {% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
-                {% endif %}
-                {% if assigned_sites %}
-                <strong>Site(s):</strong> {% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %} &nbsp; | &nbsp;
-                {% endif %}
-                <strong>Position:</strong> {{ request.user.profile.position }}
+            <div class="fs-eyebrow">
+                {% if access.is_unscoped %}All sites
+                {% elif assigned_zones %}{% for z in assigned_zones %}{{ z.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% elif assigned_sites %}{% for s in assigned_sites %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% else %}No site assigned{% endif %}
+                {% if request.user.profile.position %} · {{ request.user.profile.position }}{% endif %}
             </div>
-            <i class="fas fa-map-marker-alt"></i>
+            <h1 class="fs-title">{{ page_title }}</h1>
+            <div class="fs-meta">{{ page_note }}</div>
         </div>
-    {% else %}
-        <div class="alert alert-warning">
-            ⚠️ Your profile does not have a site or zone assigned.
-        </div>
-    {% endif %}
-{% endif %}
-
-<div class="container mt-4">
-    <h2 class="mb-4">Screening & Form Status</h2>
-
-    <!-- 🔹 Top Buttons -->
-    <div class="d-flex justify-content-between mb-3">
-        {% if access.is_admin %}
-            {% if system_control.enable_new_screening %}
-            <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
-                ➕ New Screening
-            </a>
+        <div class="fs-hero-actions">
+            {% if access.edit.screening and system_control.enable_new_screening %}
+            <a href="{% url 'nanopore:screening-create' %}" class="btn btn-sm btn-light"><i class="fas fa-plus"></i> New screening</a>
             {% endif %}
-        {% endif %}
-        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">
-            ⬅ Back to Dashboard
-        </a>
-    </div>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-light"><i class="fas fa-house"></i> Dashboard</a>
+        </div>
+    </section>
 
-    <!-- 🔹 Filter Bar -->
-    <form method="get" class="row g-3 mb-4">
-        {% if is_admin_or_reviewer or is_lab_tech %}
-        <div class="col-md-4">
-            <label for="zone" class="form-label">Zone</label>
-            <select name="zone" id="zone" class="form-select">
-                <option value="">-- All Zones --</option>
-                {% for zone in zones %}
-                    <option value="{{ zone.id }}" {% if selected_zone == zone.id|stringformat:"s" %}selected{% endif %}>{{ zone.name }}</option>
-                {% endfor %}
+    {% if not access.is_unscoped and not assigned_zones and not assigned_sites %}
+    <div class="alert alert-warning"><i class="fas fa-triangle-exclamation"></i> Your profile has no site or zone assigned. Ask an administrator to assign one.</div>
+    {% endif %}
+
+    <!-- Tabs with counts (after the filters below) -->
+    <nav class="fs-tabs">
+        {% for tab in tabs %}
+        <a href="?list_type={{ tab.key }}{% if filter_params %}&{{ filter_params }}{% endif %}" class="fs-tab {% if tab.active %}active{% endif %}">
+            <span class="fs-tab-label">{{ tab.label }}</span>
+            <span class="fs-tab-num">{{ tab.count|intcomma }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <!-- Filters (folded on phones unless one is in use) -->
+    <details class="fs-filter-wrap" id="fs-filter-wrap" open>
+    <summary class="btn btn-sm btn-outline-secondary"><i class="fas fa-filter"></i> Filters{% if filters_active %} · on{% endif %}</summary>
+    <form method="get" class="fs-filters">
+        <input type="hidden" name="list_type" value="{{ list_type }}">
+        {% if show_location_filter %}
+        <div>
+            <label class="form-label" for="fs-zone">Zone</label>
+            <select name="zone" id="fs-zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for zone in zones %}<option value="{{ zone.id }}" {% if selected_zone == zone.id|stringformat:"s" %}selected{% endif %}>{{ zone.name }}</option>{% endfor %}
             </select>
         </div>
-        <div class="col-md-4">
-            <label for="site" class="form-label">Site</label>
-            <select name="site" id="site" class="form-select">
-                <option value="">-- All Sites --</option>
-                {% for site in sites %}
-                    <option value="{{ site.id }}" {% if selected_site == site.id|stringformat:"s" %}selected{% endif %}>{{ site.name }}</option>
-                {% endfor %}
+        <div>
+            <label class="form-label" for="fs-site">Site</label>
+            <select name="site" id="fs-site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for site in sites %}<option value="{{ site.id }}" {% if selected_site == site.id|stringformat:"s" %}selected{% endif %}>{{ site.name }}</option>{% endfor %}
             </select>
         </div>
         {% endif %}
-        <div class="col-md-4">
-            <label for="pid" class="form-label">PID</label>
-            <input type="text" name="pid" id="pid" placeholder="Enter Patient ID" class="form-control" value="{{ selected_pid }}">
+        <div>
+            <label class="form-label" for="fs-pid">PID</label>
+            <input type="search" name="pid" id="fs-pid" placeholder="e.g. 18_025" class="form-control form-control-sm" value="{{ selected_pid }}">
         </div>
-        <div class="col-md-4">
-            <label for="start_date" class="form-label">From</label>
-            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ selected_start_date }}">
+        {% if access.view.zonal_lab %}
+        <div>
+            <label class="form-label" for="fs-lab">Lab No.</label>
+            <input type="search" name="unique_lab_no" id="fs-lab" placeholder="Zonal lab number" class="form-control form-control-sm" value="{{ selected_unique_lab_no }}">
         </div>
-        <div class="col-md-4">
-            <label for="end_date" class="form-label">To</label>
-            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ selected_end_date }}">
+        {% endif %}
+        <div>
+            <label class="form-label" for="fs-from">Screened from</label>
+            <input type="date" name="start_date" id="fs-from" class="form-control form-control-sm" value="{{ selected_start_date }}">
         </div>
-        <div class="col-md-4">
-            <label for="status" class="form-label">Status</label>
-            <select name="status" id="status" class="form-select">
-                <option value="">-- All --</option>
+        <div>
+            <label class="form-label" for="fs-to">Screened to</label>
+            <input type="date" name="end_date" id="fs-to" class="form-control form-control-sm" value="{{ selected_end_date }}">
+        </div>
+        <div>
+            <label class="form-label" for="fs-status">Eligibility</label>
+            <select name="status" id="fs-status" class="form-select form-select-sm">
+                <option value="">All</option>
                 <option value="eligible" {% if selected_status == "eligible" %}selected{% endif %}>Eligible</option>
-                <option value="not_eligible" {% if selected_status == "not_eligible" %}selected{% endif %}>Not Eligible</option>
+                <option value="not_eligible" {% if selected_status == "not_eligible" %}selected{% endif %}>Not eligible</option>
             </select>
         </div>
-        <div class="col-md-4">
-            <label for="substudy" class="form-label">Substudy</label>
-            <select name="substudy" id="substudy" class="form-select">
-                <option value="">-- All --</option>
+        <div>
+            <label class="form-label" for="fs-substudy">Substudy</label>
+            <select name="substudy" id="fs-substudy" class="form-select form-select-sm">
+                <option value="">All</option>
                 <option value="substudy2" {% if selected_substudy == "substudy2" %}selected{% endif %}>Substudy 2</option>
                 <option value="substudy4" {% if selected_substudy == "substudy4" %}selected{% endif %}>Substudy 4</option>
                 <option value="uncategorized" {% if selected_substudy == "uncategorized" %}selected{% endif %}>Uncategorized</option>
             </select>
         </div>
-        <div class="col-md-4">
-            <label for="unique_lab_no" class="form-label">Lab No.</label>
-            <input type="text" name="unique_lab_no" id="unique_lab_no" placeholder="Enter Lab Number" class="form-control" value="{{ selected_unique_lab_no }}">
-        </div>
-        <div class="col-md-12 text-end">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary">Reset</a>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            {% if filters_active %}<a href="?list_type={{ list_type }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
         </div>
     </form>
+    </details>
 
-    {% if messages %}
-    <div class="container mt-3">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    <div class="mb-2">
-        <strong>Total counts:</strong> {{ object_list|length }}
-    </div>
+    <!-- List -->
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ paginator.count|intcomma }} participant{{ paginator.count|pluralize }}</strong>
+            {% if is_paginated %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Screening Date</th>
-                    {% if is_admin_or_reviewer or is_lab_tech %}<th>Lab No.</th><th>Facility</th>{% endif %}
-                    {% if is_admin_or_reviewer %}<th>Zone</th>{% endif %}
-                    <th>Substudy</th>
-                    <th>Eligibility</th>
-                    {% if is_admin_or_reviewer or is_nurse_clinician %}
-                        <th>Enrollment</th>
-                        <th>Clinic Lab</th>
-                        <th>Diagnosis</th>
-                    {% endif %}
-                    {% if is_admin_only %}
-                        <th>Expert Results</th>
-                    {% endif %}
-                    {% if is_admin_or_reviewer or is_lab_tech %}
-                        <th>Zonal Lab</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for screening in object_list %}
-                <tr>
-                    <td>
-                        {% if access.edit.screening %}
-                            <a href="{% url 'nanopore:screening-update' screening.pk %}">{{ screening.pid }}</a>
-                        {% else %}
-                            {{ screening.pid }}
+        {% if screenings %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead>
+                    <tr>
+                        <th>PID</th>
+                        <th>Screened</th>
+                        <th>Site</th>
+                        <th>Substudy</th>
+                        <th>Screening</th>
+                        {% if access.view.enrollment %}<th>Enrollment</th>{% endif %}
+                        {% if access.view.clinic_lab %}<th>Clinic Lab</th>{% endif %}
+                        {% if access.view.diagnosis %}<th>Diagnosis</th>{% endif %}
+                        {% if access.view.zonal_lab %}<th>Zonal Lab</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in screenings %}
+                    {% with open=s.eligible %}
+                    <tr>
+                        <td class="fs-pid" data-label="PID">
+                            {% if access.view.screening %}<a href="{% url 'nanopore:screening-update' s.pk %}">{{ s.pid }}</a>{% else %}{{ s.pid }}{% endif %}
+                        </td>
+                        <td data-label="Screened" class="text-nowrap">{{ s.screening_date|date:"d M Y"|default:"—" }}</td>
+                        <td data-label="Site">
+                            {{ s.site.name|default:"—" }}
+                            {% if access.is_unscoped %}<div class="fs-muted">{{ s.site.district.region.zone.name }}</div>{% endif %}
+                        </td>
+                        <td data-label="Substudy">
+                            <span class="fs-pill {% if s.substudy_case == 'Substudy 2' %}s2{% elif s.substudy_case == 'Substudy 4' %}s4{% else %}un{% endif %}"
+                                  title="{% if s.clinic_laboratory.xpert_mtb %}Xpert: {{ s.clinic_laboratory.xpert_mtb }}{% elif s.clinic_laboratory %}Xpert not done or no result{% else %}No Clinic Lab form yet{% endif %}">{{ s.substudy_case }}</span>
+                        </td>
+                        <td data-label="Screening">
+                            {% if open %}<span class="fs-chip ok"><i class="fas fa-circle-check"></i> Eligible</span>
+                            {% else %}<span class="fs-chip no"><i class="fas fa-circle-xmark"></i> Not eligible</span>{% endif %}
+                        </td>
+
+                        {% if access.view.enrollment %}
+                        <td data-label="Enrollment">
+                            {% if s.enrollment %}
+                                <a class="fs-chip ok" href="{% url 'nanopore:enrollment-update' s.enrollment.pk %}"><i class="fas fa-circle-check"></i> {{ s.enrollment.enrollment_date|date:"d M Y"|default:"Done" }}</a>
+                            {% elif not open %}<span class="fs-chip na">N/A</span>
+                            {% elif access.edit.enrollment %}<a class="fs-chip add" href="{% url 'nanopore:enrollment-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                            {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
+                        </td>
                         {% endif %}
-                    </td>
-                    <td>{{ screening.screening_date|date:"Y-m-d"|default:"-" }}</td>
-                    {% if is_admin_or_reviewer or is_lab_tech %}
-                    <td>{{ screening.zonal_laboratory.unique_lab_no|default:"-" }}</td>
-                    <td>{{ screening.site.name|default:"-" }}</td>
-                    {% endif %}
-                    {% if is_admin_or_reviewer %}
-                    <td>{{ screening.site.district.region.zone.name|default:"-" }}</td>
-                    {% endif %}
-                    <td>{{ screening.substudy_case|default:"-" }}</td>
-                    <td class="{% if screening.eligible %}table-success{% else %}table-danger{% endif %}">
-                        {% if screening.eligible %}
-                            ✅ <br> Eligible
-                        {% else %}
-                            ❌ <br> Not Eligible
+
+                        {% if access.view.clinic_lab %}
+                        <td data-label="Clinic Lab">
+                            {% if s.clinic_laboratory %}
+                                <a class="fs-chip ok" href="{% url 'nanopore:clinic-laboratory-update' s.clinic_laboratory.pk %}"><i class="fas fa-circle-check"></i> Done</a>
+                            {% elif not open %}<span class="fs-chip na">N/A</span>
+                            {% elif access.edit.clinic_lab %}<a class="fs-chip add" href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                            {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
+                        </td>
                         {% endif %}
-                    </td>
 
-                    <!-- Enrollment / Clinic Lab / Diagnosis -->
-                    {% if is_admin_or_reviewer or is_nurse_clinician %}
-                        <td>
-                            {% if not screening.eligible %}
-                                N/A
-                            {% else %}
-                                {% if screening.enrollment %}
-                                    {% if not is_reviewer_only %}
-                                        <a href="{% url 'nanopore:enrollment-update' screening.enrollment.pk %}">✅ <br>Enrolled</a>
-                                    {% else %}
-                                        ✅ <br>Enrolled
-                                    {% endif %}
-                                    <br>{{ screening.enrollment.enrollment_date|date:"Y-m-d" }}
-                                {% else %}
-                                    {% if is_nurse_clinician %}
-                                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ screening.pk }}">❌ <br>Not Enrolled</a>
-                                    {% else %}
-                                        ❌ <br>Not Enrolled
-                                    {% endif %}
-                                {% endif %}
-                            {% endif %}
+                        {% if access.view.diagnosis %}
+                        <td data-label="Diagnosis">
+                            {% if s.diagnosis %}
+                                <a class="fs-chip ok" href="{% url 'nanopore:diagnosis-update' s.diagnosis.pk %}"><i class="fas fa-circle-check"></i> Done</a>
+                            {% elif not open %}<span class="fs-chip na">N/A</span>
+                            {% elif access.edit.diagnosis %}<a class="fs-chip add" href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                            {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
                         </td>
-
-                        <td>
-                            {% if not screening.eligible %}
-                                N/A
-                            {% else %}
-                                {% if screening.clinic_laboratory %}
-                                    {% if not is_reviewer_only %}
-                                        <a href="{% url 'nanopore:clinic-laboratory-update' screening.clinic_laboratory.pk %}">✅ <br> DONE</a>
-                                    {% else %}
-                                        ✅ <br> DONE
-                                    {% endif %}
-                                {% else %}
-                                    {% if is_nurse_clinician %}
-                                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ screening.pk }}">❌ <br> Add</a>
-                                    {% else %}
-                                        ❌ <br> Add
-                                    {% endif %}
-                                {% endif %}
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            {% if not screening.eligible %}
-                                N/A
-                            {% else %}
-                                {% if screening.diagnosis %}
-                                    {% if not is_reviewer_only %}
-                                        <a href="{% url 'nanopore:diagnosis-update' screening.diagnosis.pk %}">✅ <br>DONE</a>
-                                    {% else %}
-                                        ✅ <br> DONE
-                                    {% endif %}
-                                {% else %}
-                                    {% if is_nurse_clinician %}
-                                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ screening.pk }}">❌ <br> Add</a>
-                                    {% else %}
-                                        ❌ <br> Add
-                                    {% endif %}
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    {% endif %}
-
-                    <!-- Expert Results for Lab Tech -->
-                    {% if is_admin_only %}
-                        <td>
-                            {% if screening.substudy_case == "uncategorized" %}
-                                N/A (Uncategorized)
-                            {% else %}
-                                {% if screening.clinic_laboratory %}
-                                    {% if screening.substudy_case == "substudy2" %}
-                                        {% if screening.clinic_laboratory.xpert_mtb_rif_conducted == 1 %}
-                                            {% if screening.clinic_laboratory.xpert_mtb == 2 %}
-                                                ✅ MTB/RIF Done (Substudy 2)
-                                            {% elif screening.clinic_laboratory.xpert_mtb == 3 %}
-                                                ✅ MTB/RIF Done (Substudy 2)
-                                            {% elif screening.clinic_laboratory.xpert_mtb == 4 %}
-                                                ✅ MTB/RIF Done (Substudy 2)
-                                            {% elif screening.clinic_laboratory.xpert_mtb == 5 %}
-                                                ✅ MTB/RIF Done (Substudy 2)
-                                            {% elif screening.clinic_laboratory.xpert_mtb == 6 %}
-                                                ✅ MTB/RIF Done (Substudy 2)
-                                            {% else %}
-                                                ❌ Not Done
-                                            {% endif %}
-                                        {% else %}
-                                            ❌ Not Done
-                                        {% endif %}
-                                    {% elif screening.substudy_case == "substudy4" %}
-                                        {% if screening.clinic_laboratory.xpert_mtb_rif_conducted == 1 %}
-                                            {% if screening.clinic_laboratory.xpert_mtb == 1 %}
-                                                ✅ MTB/RIF Done (Substudy 4)
-                                            {% elif screening.clinic_laboratory.xpert_mtb == 7 %}
-                                                ✅ MTB/RIF Done (Substudy 4)
-                                            {% elif screening.clinic_laboratory.xpert_mtb == 8 %}
-                                                ✅ MTB/RIF Done (Substudy 4)
-                                            {% elif screening.clinic_laboratory.xpert_mtb == 9 %}
-                                                ✅ MTB/RIF Done (Substudy 4)
-                                            {% else %}
-                                                ❌ Not Done
-                                            {% endif %}
-                                        {% elif screening.clinic_laboratory.xpert_mtb_rif_conducted == 2 %}
-                                            ✅ MTB/RIF Done (Substudy 4)
-                                        {% else %}
-                                            ❌ Not Done
-                                        {% endif %}
-                                    {% else %}
-                                        ❌ Not Done
-                                    {% endif %}
-                                {% else %}
-                                    ❌ Clinic Lab Missing
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    {% endif %}
-
-                    <!-- Zonal Lab -->
-                    {% if is_admin_or_reviewer or is_lab_tech %}
-                        <td>
-                            {% if not screening.eligible %}
-                                N/A
-                            {% else %}
-                                {% if screening.substudy_case == "Substudy 2" %}
-                                    {% if screening.zonal_laboratory %}
-                                        {% if not is_reviewer_only %}
-                                            <a href="{% url 'nanopore:zonal-laboratory-update' screening.zonal_laboratory.pk %}">✅  <br>DONE</a>
-                                        {% else %}
-                                            ✅ <br> DONE
-                                        {% endif %}
-                                    {% else %}
-                                        {% if is_lab_tech %}
-                                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ screening.pk }}">❌ <br> Add</a>
-                                        {% else %}
-                                            ❌ <br> Add
-                                        {% endif %}
-                                    {% endif %}
-                                {% elif screening.substudy_case in "Substudy 4,Uncategorized" %}
-                                    N/A
-                                    {% if screening.substudy_case == "Uncategorized" %}
-                                        <br><small>(ASK Site to fill Clinic Lab form first)</small>
-                                    {% endif %}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="9" class="text-center">No screenings found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- 🔹 Pagination -->
-    {% if is_paginated %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-
-                {# Previous Page #}
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ query_params }}">Previous</a>
-                </li>
-                {% endif %}
-
-                {# First Page #}
-                {% if page_obj.number > 3 %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1&{{ query_params }}">1</a>
-                </li>
-                {% if page_obj.number > 4 %}
-                <li class="page-item disabled"><span class="page-link">…</span></li>
-                {% endif %}
-                {% endif %}
-
-                {# Pages around current page (two before and after) #}
-                {% for i in page_obj.paginator.page_range %}
-                    {% if i >= page_obj.number|add:"-2" and i <= page_obj.number|add:"2" %}
-                        {% if i == page_obj.number %}
-                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                        {% else %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ i }}&{{ query_params }}">{{ i }}</a>
-                            </li>
                         {% endif %}
-                    {% endif %}
-                {% endfor %}
 
-                {# Last Page #}
-                {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
-                    {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
-                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                    {% endif %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ query_params }}">{{ page_obj.paginator.num_pages }}</a>
-                    </li>
-                {% endif %}
+                        {% if access.view.zonal_lab %}
+                        <td data-label="Zonal Lab">
+                            {% if s.zonal_laboratory %}
+                                <a class="fs-chip ok" href="{% url 'nanopore:zonal-laboratory-update' s.zonal_laboratory.pk %}"><i class="fas fa-circle-check"></i> {{ s.zonal_laboratory.unique_lab_no|default:"Done" }}</a>
+                            {% elif not open %}<span class="fs-chip na">N/A</span>
+                            {% elif s.substudy_case == "Substudy 2" %}
+                                {% if access.edit.zonal_lab %}<a class="fs-chip add" href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                                {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
+                            {% elif s.substudy_case == "Substudy 4" %}<span class="fs-chip na" title="Only Substudy 2 goes to the zonal lab">N/A</span>
+                            {% else %}<span class="fs-chip wait" title="The Clinic Lab Xpert result decides the substudy">Waiting for Clinic Lab</span>{% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty">
+            <i class="fas fa-magnifying-glass"></i>
+            <p>No participants match{% if filters_active %} these filters{% endif %}.</p>
+            {% if filters_active %}<a href="?list_type={{ list_type }}" class="btn btn-sm btn-outline-secondary">Clear filters</a>{% endif %}
+        </div>
+        {% endif %}
 
-                {# Next Page #}
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ query_params }}">Next</a>
-                </li>
-                {% endif %}
-
-            </ul>
+        {% if is_paginated %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}&{{ query_params }}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}&{{ query_params }}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
         </nav>
-    {% endif %}
+        {% endif %}
+    </section>
 </div>
+
+<style>
+    .fs {
+        --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff; --soft: #f6f8fc;
+        --accent: #1d6fd6; --accent-soft: #e8f1fc; --good: #1f8a4c; --good-soft: #edf8f1; --warn: #a15c00; --warn-soft: #fff4e5; --bad: #b42318; --bad-soft: #fdecea;
+        max-width: 1240px; margin: 24px auto 40px; padding: 0 4px; color: var(--ink);
+    }
+    .fs-hero {
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+        padding: 22px 26px; margin-bottom: 14px; border-radius: 16px; color: #fff;
+        background: linear-gradient(120deg, #0b2545 0%, #134074 60%, #1d6fd6 100%); box-shadow: 0 10px 30px rgba(11, 37, 69, .18);
+    }
+    .fs-eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .fs-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0 6px; }
+    .fs-meta { font-size: .9rem; opacity: .9; }
+    .fs-hero-actions { display: flex; gap: 8px; }
+
+    .fs-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .fs-tab {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid var(--line);
+        border-radius: 12px; background: var(--surface); color: var(--ink-2); text-decoration: none;
+    }
+    .fs-tab:hover { box-shadow: 0 6px 18px rgba(20, 33, 61, .08); color: var(--ink); }
+    .fs-tab.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); color: var(--ink); }
+    .fs-tab-label { font-weight: 600; font-size: .88rem; }
+    .fs-tab-num { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .fs-filters {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); align-items: end; gap: 10px;
+        padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    }
+    .fs-filters .form-label { font-size: .74rem; color: var(--muted); margin-bottom: 2px; }
+    .fs-filter-actions { display: flex; gap: 6px; }
+    .fs-filter-wrap > summary { display: none; }
+
+    .fs-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+    .fs-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .fs-muted { font-size: .76rem; color: var(--muted); }
+    .fs-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; white-space: nowrap; background: var(--soft); }
+    .fs-table td { font-size: .87rem; vertical-align: middle; }
+    .fs-table tbody tr:hover { background: #fafcff; }
+    .fs-pid a { font-weight: 600; text-decoration: none; white-space: nowrap; }
+
+    .fs-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .74rem; font-weight: 600; white-space: nowrap; }
+    .fs-pill.s2 { background: var(--accent-soft); color: var(--accent); }
+    .fs-pill.s4 { background: #f1ecfb; color: #6a3fb5; }
+    .fs-pill.un { background: var(--warn-soft); color: var(--warn); }
+    .fs-chip {
+        display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 8px; font-size: .78rem; font-weight: 600;
+        white-space: nowrap; text-decoration: none; border: 1px solid transparent;
+    }
+    .fs-chip.ok { background: var(--good-soft); color: var(--good); }
+    a.fs-chip.ok:hover { border-color: var(--good); color: var(--good); }
+    .fs-chip.no { background: var(--bad-soft); color: var(--bad); }
+    .fs-chip.miss { background: var(--bad-soft); color: var(--bad); }
+    .fs-chip.add { background: var(--surface); color: var(--accent); border-color: var(--accent); }
+    .fs-chip.add:hover { background: var(--accent); color: #fff; }
+    .fs-chip.na { background: var(--soft); color: var(--muted); }
+    .fs-chip.wait { background: var(--warn-soft); color: var(--warn); }
+    .fs-empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+    .fs-empty i { font-size: 1.6rem; margin-bottom: 8px; }
+    .fs-pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); }
+
+    @media (max-width: 767.98px) {
+        .fs { margin-top: 12px; }
+        .fs-hero { padding: 18px; }
+        .fs-tabs { grid-template-columns: 1fr 1fr; gap: 6px; }
+        .fs-tab { flex-direction: column; padding: 10px; gap: 0; }
+        .fs-tab-num { font-size: 1.15rem; }
+        .fs-filter-wrap > summary { display: inline-block; margin-bottom: 10px; list-style: none; }
+        /* One card per participant */
+        .fs-table thead { display: none; }
+        .fs-table tr { display: block; padding: 10px 14px; border-top: 1px solid var(--line); }
+        .fs-table td { display: flex; align-items: center; gap: 10px; padding: 3px 0; border: 0; }
+        .fs-table td::before { content: attr(data-label); flex: 0 0 88px; font-size: .74rem; color: var(--muted); }
+        .fs-table td.fs-pid { font-size: 1rem; padding-bottom: 6px; }
+        .fs-table td.fs-pid::before { display: none; }
+    }
+</style>
+<script>
+    // Phones: start with the filters folded, unless one is in use
+    if (window.matchMedia("(max-width: 767.98px)").matches && !{{ filters_active|yesno:"true,false" }}) {
+        document.getElementById("fs-filter-wrap").open = false;
+    }
+</script>
 {% endblock %}

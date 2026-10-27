@@ -84,6 +84,24 @@ UNSCOPED_ROLES = frozenset([ADMIN, REVIEWER])
 ALL_SITES_EXPORT_ROLES = frozenset([DATA_MANAGER, STATISTICIAN])
 
 
+# New screenings: these roles pick the zone and site from a list; everyone else
+# (nurses, clinicians) screens at the sites they are assigned to.
+CHOOSE_SCREENING_SITE_ROLES = frozenset([ADMIN, DATA_MANAGER, DATA_SPECIALIST])
+
+
+def chooses_screening_site(user):
+    return bool(getattr(user, "is_superuser", False)) or has_role(user, *CHOOSE_SCREENING_SITE_ROLES)
+
+
+def screening_site_choices(user):
+    """Sites a new screening can be recorded at: active clinics (not the national lab) the user may see."""
+    sites = Site.objects.filter(is_active=True).exclude(site_level__code__iexact="national")
+    accessible = get_accessible_sites(user)
+    if accessible is not None:
+        sites = sites.filter(pk__in=accessible)
+    return sites.select_related("district__region__zone").order_by("district__region__zone__name", "name")
+
+
 def _cache(user):
     """Per-request cache stored on the user object (users are re-fetched every request)."""
     cache = getattr(user, "_access_cache", None)

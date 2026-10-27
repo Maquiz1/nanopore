@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 
 from nanopore.models import Screening
 from nanopore.forms.screening.screeningform import ScreeningForm
-from locations.models import Site,Zone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib import messages
 
@@ -28,51 +27,69 @@ class ScreeningFormView(FormAccessMixin, View):
         return None
 
 
-    # def get(self, request, pk=None):
-    #     obj = self.get_object(pk)
-    #     form = self.form_class(instance=obj, initial=self.get_initial(request, obj))
-    #     context = self.get_context_data(form=form, object=obj)
-    #     return render(request, self.template_name, context)
-    
+    def build_form(self, obj, data=None):
+        """
+        The site decides the zone, the PID prefix and question 4 / 4(a).
+        New screening: chosen from screening_site_choices (admins, data managers and
+        data specialists see every zone they may access; nurses and clinicians only
+        their assigned sites). Saved screening: the site is fixed.
+        """
+        form = self.form_class(data, instance=obj)
+        self.limit_choices(form)
+        field = form.fields["site"]
+        if obj:
+            field.disabled = True
+            field.required = False
+        else:
+            field.queryset = access.screening_site_choices(self.request.user)
+            field.required = True
+            field.empty_label = "Select site"
+            field.widget.attrs["class"] = "form-select"
+            sites = list(field.queryset)
+            if len(sites) == 1:
+                field.initial = sites[0].pk
+        return form
+
     def get(self, request, pk=None):
         obj = self.get_object(pk)
 
         next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
 
-        form = self.limit_choices(self.form_class(instance=obj, initial=self.get_initial(request, obj)))
+        form = self.build_form(obj)
         context = self.get_context_data(form=form, object=obj, next=next_url)
 
         return render(request, self.template_name, context)
 
-    
     def get_context_data(self, **kwargs):
         """
         Returns context data for the template, including the user's zone
         and the Dar es Salaam zone reference.
         """
         context = kwargs
-        # Determine the relevant site for this form
-        obj = context.get('object')
-        relevant_site = None
-        if obj and obj.site:
-            relevant_site = obj.site
-        elif hasattr(self.request.user, "profile") and self.request.user.profile.sites.exists():
-            relevant_site = self.request.user.profile.sites.first()
-        elif hasattr(self.request.user, "profile") and self.request.user.profile.zones.exists():
-            relevant_site = Site.objects.filter(district__region__zone=self.request.user.profile.zones.first()).first()
+        obj = context.get("object")
+        form = context["form"]
 
-        user_zone = None
-        if relevant_site and relevant_site.district and relevant_site.district.region:
-            user_zone = relevant_site.district.region.zone
+        if obj:
+            site = obj.site
+        else:
+            # Site picked on this (failed) post, or the only one the user can pick
+            choices = list(form.fields["site"].queryset)
+            site = form.cleaned_data.get("site") if form.is_bound and hasattr(form, "cleaned_data") else None
+            if site is None and len(choices) == 1:
+                site = choices[0]
+            context["site_choices"] = choices
+            context["chooses_location"] = access.chooses_screening_site(self.request.user)
+            context["zone_choices"] = sorted(
+                {s.district.region.zone for s in choices if s.district.region.zone}, key=lambda z: z.name)
 
+        user_zone = site.district.region.zone if site and site.district and site.district.region else None
         context["user_zone"] = user_zone
-        context["site"] = relevant_site
-        # Question 4 (Dar es Salaam) or 4(a) (other zones); None = zone unknown, show both
+        context["site"] = site
+        # Question 4 (Dar es Salaam) or 4(a) (other zones); None = not chosen yet
         context["is_dar"] = user_zone.name.strip().lower() == "dar es salaam" if user_zone else None
         context["eligibility_problems"] = obj.eligibility_problems() if obj else []
-        
+
         # Calculate current age if dob exists
-        form = context.get("form")
         current_age = None
         if form and form.instance.dob:
             today = timezone.now().date()
@@ -89,29 +106,14 @@ class ScreeningFormView(FormAccessMixin, View):
 
         obj = self.get_object(pk)
         original_site = obj.site if obj else None
-        
-        form = self.form_class(request.POST, instance=obj, initial=self.get_initial(request, obj))
-        context = self.get_context_data(form=form, object=obj, next=request.POST.get("next"))
 
-        self.limit_choices(form)
-        
+        form = self.build_form(obj, request.POST)
+
         if form.is_valid():
             obj = form.save(commit=False)
-            
-            # If updating an existing record, STRICTLY preserve its original site
-            if pk and original_site:
+            # A saved screening keeps its site
+            if original_site:
                 obj.site = original_site
-
-            # Ensure site is set for NEW records: default to user's first assigned site
-            if not obj.site:
-                if hasattr(request.user, "profile") and request.user.profile.sites.exists():
-                    obj.site = request.user.profile.sites.first()
-                elif hasattr(request.user, "profile") and request.user.profile.zones.exists():
-                    obj.site = Site.objects.filter(district__region__zone=request.user.profile.zones.first()).first()
-
-            if not obj.site:
-                form.add_error(None, "No site found. Please create a site first.")
-                return render(request, self.template_name, context)
 
             # Assign audit fields
             if not obj.pk:
@@ -125,10 +127,10 @@ class ScreeningFormView(FormAccessMixin, View):
                 form.save_m2m()
             except ValidationError as e:
                 form.add_error(None, e)
-                return render(request, self.template_name, context)
+                return render(request, self.template_name, self.get_context_data(form=form, object=self.get_object(pk), next=request.POST.get("next")))
             except Exception as e:
                 form.add_error(None, str(e))
-                return render(request, self.template_name, context)
+                return render(request, self.template_name, self.get_context_data(form=form, object=self.get_object(pk), next=request.POST.get("next")))
             
             messages.success(request, "Screening saved successfully.")
 
@@ -145,20 +147,4 @@ class ScreeningFormView(FormAccessMixin, View):
             return redirect(self.success_url)
 
 
-        # return render(request, self.template_name, {"form": form, "object": obj})
-    
-        return render(request, self.template_name, context)
-
-
-    def get_initial(self, request, obj=None):
-        """
-        Pre-fill the site in the form if user has a profile with a site.
-        """
-        initial = {}
-        if obj and obj.site:
-            initial["site"] = obj.site
-        elif hasattr(request.user, "profile") and request.user.profile.sites.exists():
-            initial["site"] = request.user.profile.sites.first()
-        elif hasattr(request.user, "profile") and request.user.profile.zones.exists():
-            initial["site"] = Site.objects.filter(district__region__zone=request.user.profile.zones.first()).first()
-        return initial
+        return render(request, self.template_name, self.get_context_data(form=form, object=self.get_object(pk), next=request.POST.get("next")))

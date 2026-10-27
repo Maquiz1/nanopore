@@ -124,3 +124,34 @@ class SubstudyConsistencyTests(AccessTestBase):
             page = self.client.get(reverse("nanopore:form-status-list"), {"substudy": key}).context
             ids = {s.pk for s in page["paginator"].object_list} & set(self.screening_ids.values())
             self.assertEqual(len(ids), count, key)
+
+
+class FormStatusListTests(AccessTestBase):
+    def test_tabs_counts_and_filters_keep_the_list(self):
+        from nanopore.models import Enrollment
+        Enrollment.objects.create(screening=self.screenings["A1"], enrollment_date="2025-03-02",
+                                  **SubstudyTwoOutcomesTests.required_answers(Enrollment))
+        from django.contrib.auth.models import User
+        self.client.force_login(User.objects.create_superuser("root", "root@example.org", "pw"))
+        page = self.client.get(reverse("nanopore:enrolled-list"), {"list_type": "enrolled"})
+        self.assertEqual(page.context["page_title"], "Enrolled participants")
+        self.assertEqual(page.context["paginator"].count, 1)
+        self.assertEqual({t["key"]: t["count"] for t in page.context["tabs"]}, {"screened": 3, "eligible": 0, "enrolled": 1, "completed": 0})
+        # The filter form keeps the tab, and a start date works without an end date
+        self.assertContains(page, '<input type="hidden" name="list_type" value="enrolled">')
+        page = self.client.get(reverse("nanopore:form-status-list"), {"start_date": "2025-03-01"})
+        self.assertEqual(page.context["paginator"].count, 3)
+        self.assertEqual(self.client.get(reverse("nanopore:form-status-list"), {"start_date": "2025-03-02"}).context["paginator"].count, 0)
+
+    def test_dashboard_cards_open_the_matching_list(self):
+        from django.contrib.auth.models import User
+        self.client.force_login(User.objects.create_superuser("root2", "root2@example.org", "pw"))
+        params = {"zone": self.zone_a.pk, "start_date": "2025-03-01"}
+        dashboard = self.client.get(reverse("dashboard:dashboard"), params)
+        link = reverse("nanopore:form-status-list") + f"?list_type=eligible&amp;zone={self.zone_a.pk}&amp;start_date=2025-03-01"
+        self.assertContains(dashboard, link)
+        tabs = {t["key"]: t["count"] for t in self.client.get(
+            reverse("nanopore:form-status-list"), {"list_type": "eligible", **params}).context["tabs"]}
+        self.assertEqual(tabs["screened"], dashboard.context["screened_count"])
+        self.assertEqual(tabs["eligible"], dashboard.context["eligible_count"])
+        self.assertEqual(tabs["enrolled"], dashboard.context["enrolled_count"])

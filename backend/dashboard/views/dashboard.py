@@ -5,6 +5,7 @@ from django.db.models import Count, Q, F, IntegerField, ExpressionWrapper, Sum
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 import json
+from django.utils.http import urlencode
 from datetime import timedelta
 
 from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory,Diagnosis
@@ -46,8 +47,11 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
             if site_id:
                 qs = qs.filter(site_id=site_id)
 
-            if start_date and end_date:
-                qs = qs.filter(screening_date__range=[start_date, end_date])
+            # Same rules as the Participants list, so card counts match it
+            if start_date:
+                qs = qs.filter(screening_date__gte=start_date)
+            if end_date:
+                qs = qs.filter(screening_date__lte=end_date)
 
             self._qs = qs.order_by(order_by)
 
@@ -83,6 +87,11 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         context.update({
             "assigned_zones": assigned_zones,
             "assigned_sites": assigned_sites,
+        })
+
+        # Dashboard filters carried into the Participants list links
+        context["list_filters"] = urlencode({
+            key: self.request.GET[key] for key in ("zone", "site", "start_date", "end_date") if self.request.GET.get(key)
         })
         
         user_site = getattr(getattr(self.request.user, "profile", None), "site", None)
@@ -317,8 +326,11 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         if site_id:
             qs = qs.filter(site_id=site_id)
 
-        if start_date and end_date:
-            qs = qs.filter(screening_date__range=[start_date, end_date])
+        # Same rules as the Participants list, so card counts match it
+        if start_date:
+            qs = qs.filter(screening_date__gte=start_date)
+        if end_date:
+            qs = qs.filter(screening_date__lte=end_date)
 
         return qs.order_by(order_by)
 
@@ -328,6 +340,11 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         qs = self.get_queryset()
+
+        # Dashboard filters carried into the Participants list links
+        context["list_filters"] = urlencode({
+            key: self.request.GET[key] for key in ("zone", "site", "start_date", "end_date") if self.request.GET.get(key)
+        })
 
         # Role context
         role_context = get_role_context(self.request.user)

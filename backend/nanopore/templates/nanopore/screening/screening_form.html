@@ -10,10 +10,8 @@
             <div class="df-eyebrow">Forms · Screening</div>
             <h1 class="df-title">{{ object.pid|default:"New screening" }}</h1>
             <div class="df-meta">
-                {% if site %}<span><i class="fas fa-hospital"></i> {{ site }}</span>{% endif %}
-                {% if is_dar is not None %}
-                <span class="df-pill"><i class="fas fa-location-dot"></i> {% if is_dar %}Dar es Salaam · asks question 4{% else %}{{ user_zone.name }} · asks question 4(a){% endif %}</span>
-                {% endif %}
+                {% if object and site %}<span><i class="fas fa-hospital"></i> {{ site }}</span>{% endif %}
+                <span class="df-pill" id="zone-pill" {% if is_dar is None %}style="display:none;"{% endif %}><i class="fas fa-location-dot"></i> <span>{% if is_dar %}Dar es Salaam · asks question 4{% elif user_zone %}{{ user_zone.name }} · asks question 4(a){% endif %}</span></span>
                 <span><i class="fas fa-{% if object %}pen{% else %}plus{% endif %}"></i> {% if object %}Editing a saved form{% else %}New form{% endif %}</span>
             </div>
         </div>
@@ -29,6 +27,49 @@
 
         {% include "nanopore/partials/form_error_summary.html" with form=form %}
 
+        {% if not object %}
+        <!-- Where the patient was screened (decides the zone, PID prefix and question 4 / 4(a)) -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step"><i class="fas fa-location-dot"></i></span>
+                <div><h2>Location</h2><p>{% if chooses_location %}Choose the zone, then the site{% else %}Your assigned site{% endif %}</p></div>
+            </header>
+            {% if not site_choices %}
+            <div class="df-notice bad">You are not assigned to any site, so you cannot add a screening. Ask an administrator to assign your zone or site.</div>
+            {% else %}
+            <div class="df-grid">
+                {% if chooses_location %}
+                <div class="df-q">
+                    <label class="df-label" for="zone-pick">Zone</label>
+                    <select id="zone-pick" class="form-select">
+                        <option value="">All zones</option>
+                        {% for zone in zone_choices %}<option value="{{ zone.id }}" {% if user_zone.id == zone.id %}selected{% endif %}>{{ zone.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="df-q{% if form.site.errors %} has-error{% endif %}">
+                    <label class="df-label" for="id_site">Site</label>
+                    {% if site_choices|length == 1 %}
+                    {% with only=site_choices.0 %}
+                    <input type="hidden" name="site" id="id_site" value="{{ only.pk }}" data-zone="{{ only.district.region.zone.id }}" data-zone-name="{{ only.district.region.zone.name }}" data-prefix="{{ only.pid_prefix }}">
+                    <input type="text" class="form-control" value="{{ only.name }} · {{ only.district.region.zone.name }}" readonly>
+                    {% endwith %}
+                    {% else %}
+                    <select name="site" id="id_site" class="form-select" required>
+                        <option value="">Select site</option>
+                        {% for s in site_choices %}
+                        <option value="{{ s.pk }}" data-zone="{{ s.district.region.zone.id }}" data-zone-name="{{ s.district.region.zone.name }}" data-prefix="{{ s.pid_prefix }}"
+                                {% if site.pk == s.pk %}selected{% endif %}>{{ s.name }}{% if not chooses_location %} · {{ s.district.region.zone.name }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    {% for error in form.site.errors %}<div class="df-error"><i class="fas fa-circle-exclamation"></i> {{ error }}</div>{% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
         <!-- 1–3. Participant -->
         <section class="df-card">
             <header class="df-card-head">
@@ -40,7 +81,7 @@
                 <div class="df-q{% if form.pid1.errors %} has-error{% endif %}">
                     <label class="df-label" for="{{ form.pid1.id_for_label }}">{{ form.pid1.label }}</label>
                     <div class="input-group">
-                        {% if site.pid_prefix %}<span class="input-group-text">{{ site.pid_prefix }}</span>{% endif %}
+                        <span class="input-group-text" id="pid-prefix" {% if not site.pid_prefix %}style="display:none;"{% endif %}>{{ site.pid_prefix }}</span>
                         {{ form.pid1 }}
                     </div>
                     {% for error in form.pid1.errors %}<div class="df-error"><i class="fas fa-circle-exclamation"></i> {{ error }}</div>{% endfor %}
@@ -67,15 +108,13 @@
                 <span class="df-step">2</span>
                 <div><h2>Inclusion criteria</h2><p>Questions 4–8 · all must be Yes</p></div>
             </header>
-            {% if is_dar is None %}
-            <div class="df-zone-note"><i class="fas fa-circle-info"></i> The zone is not known yet. Dar es Salaam answers question 4; other zones answer question 4(a).</div>
-            {% endif %}
+            <div class="df-zone-note" id="zone-note" {% if is_dar is not None %}style="display:none;"{% endif %}><i class="fas fa-circle-info"></i> Choose the site first: Dar es Salaam answers question 4, other zones answer question 4(a).</div>
             <div class="df-grid">
-                {% if is_dar or is_dar is None %}
-                <div class="df-span">{% include "nanopore/partials/_field.html" with field=form.present_symptoms %}</div>
+                {% if not object or is_dar %}
+                <div class="df-span" id="q4-wrap" {% if not is_dar %}style="display:none;"{% endif %}>{% include "nanopore/partials/_field.html" with field=form.present_symptoms %}</div>
                 {% endif %}
-                {% if not is_dar %}
-                <div class="df-span">{% include "nanopore/partials/_field.html" with field=form.genexpert_confirmation %}</div>
+                {% if not object or is_dar is False %}
+                <div class="df-span" id="q4a-wrap" {% if is_dar is not False %}style="display:none;"{% endif %}>{% include "nanopore/partials/_field.html" with field=form.genexpert_confirmation %}</div>
                 {% endif %}
                 {% include "nanopore/partials/_field.html" with field=form.produce_resp_sample %}
                 {% include "nanopore/partials/_field.html" with field=form.age18years %}
@@ -145,7 +184,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("screeningForm");
-    const dar = form.dataset.dar;   // "1" Dar es Salaam, "0" other zone, "" unknown
+    let dar = form.dataset.dar;   // "1" Dar es Salaam, "0" other zone, "" unknown
     const $ = id => document.getElementById(id);
 
     // Selected option's label in lower case ("yes", "no", "other, please explain", "")
@@ -210,6 +249,51 @@ document.addEventListener("DOMContentLoaded", function () {
         else if (p1 === p2) { hint.textContent = "✓ Matches PID"; hint.style.color = "var(--good)"; }
         else { hint.textContent = "Does not match PID"; hint.style.color = "var(--bad)"; }
     }
+
+    // New screening: the site decides the zone, the PID prefix and question 4 / 4(a)
+    const sitePick = $("id_site"), zonePick = $("zone-pick");
+    function siteInfo() {
+        if (!sitePick) return null;
+        const el = sitePick.tagName === "SELECT" ? sitePick.options[sitePick.selectedIndex] : sitePick;
+        return el && el.value ? el.dataset : null;
+    }
+    function applySite() {
+        const info = siteInfo();
+        dar = info ? (info.zoneName.trim().toLowerCase() === "dar es salaam" ? "1" : "0") : "";
+        show("q4-wrap", dar === "1");
+        show("q4a-wrap", dar === "0");
+        show("zone-note", dar === "");
+        const prefix = $("pid-prefix");
+        if (prefix) { prefix.textContent = info ? info.prefix : ""; show("pid-prefix", !!(info && info.prefix)); }
+        const pill = $("zone-pill");
+        if (pill) {
+            pill.querySelector("span").textContent = info ? `${info.zoneName} · asks question ${dar === "1" ? "4" : "4(a)"}` : "";
+            show("zone-pill", !!info);
+        }
+        updateEligibility();
+    }
+    function filterSites() {
+        // Zone list narrows the site list
+        if (!zonePick || !sitePick || sitePick.tagName !== "SELECT") return;
+        const zone = zonePick.value;
+        Array.from(sitePick.options).forEach(opt => {
+            if (!opt.value) return;
+            const keep = !zone || opt.dataset.zone === zone;
+            opt.hidden = !keep;
+            opt.disabled = !keep;
+        });
+        const current = sitePick.options[sitePick.selectedIndex];
+        if (current && current.disabled) sitePick.value = "";
+        applySite();
+    }
+    zonePick?.addEventListener("change", filterSites);
+    sitePick?.addEventListener("change", function () {
+        // Picking a site also sets its zone
+        const info = siteInfo();
+        if (zonePick && info) zonePick.value = info.zone;
+        filterSites();
+    });
+    if (sitePick) filterSites();
 
     $("id_consent")?.addEventListener("change", toggleConsentDate);
     $("id_enrolled")?.addEventListener("change", toggleReasons);

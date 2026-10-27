@@ -105,37 +105,37 @@
             <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
         </div>
     </form>
-    {% if request.GET.site or request.GET.zone or request.GET.start_date %}
+    {% if request.GET.site or request.GET.zone or request.GET.start_date or request.GET.end_date %}
     <div class="dash-filter-note">
         Showing
         {% if request.GET.zone %}zone <strong>{{ zones|get_item:request.GET.zone|default:"N/A" }}</strong>{% endif %}
         {% if request.GET.site %}site <strong>{{ sites|get_item:request.GET.site|default:"N/A" }}</strong>{% endif %}
-        {% if request.GET.start_date %}screened {{ request.GET.start_date }} – {{ request.GET.end_date }}{% endif %}
+        {% if request.GET.start_date or request.GET.end_date %}screened {{ request.GET.start_date|default:"from the start" }} – {{ request.GET.end_date|default:"today" }}{% endif %}
     </div>
     {% endif %}
 
     {% if access.view.enrollment %}
     <!-- ── Key numbers ───────────────────────────────────────── -->
     <section class="dash-kpis">
-        <a class="dash-kpi" href="{% url 'nanopore:screened-list' %}?list_type=screened">
+        <a class="dash-kpi" href="{% url 'nanopore:form-status-list' %}?list_type=screened{% if list_filters %}&amp;{{ list_filters }}{% endif %}">
             <span class="dash-kpi-icon"><i class="fas fa-user-plus"></i></span>
             <span class="dash-kpi-label">Screened</span>
             <span class="dash-kpi-value">{{ screened_count|intcomma }}</span>
             <span class="dash-kpi-sub">participants screened</span>
         </a>
-        <a class="dash-kpi" href="{% url 'nanopore:eligible-list' %}?list_type=eligible">
+        <a class="dash-kpi" href="{% url 'nanopore:form-status-list' %}?list_type=eligible{% if list_filters %}&amp;{{ list_filters }}{% endif %}">
             <span class="dash-kpi-icon"><i class="fas fa-circle-check"></i></span>
             <span class="dash-kpi-label">Eligible</span>
             <span class="dash-kpi-value">{{ eligible_count|intcomma }}</span>
             <span class="dash-kpi-sub">{{ eligible_progress }}% of screened</span>
         </a>
-        <a class="dash-kpi" href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled">
+        <a class="dash-kpi" href="{% url 'nanopore:form-status-list' %}?list_type=enrolled{% if list_filters %}&amp;{{ list_filters }}{% endif %}">
             <span class="dash-kpi-icon"><i class="fas fa-id-card"></i></span>
             <span class="dash-kpi-label">Enrolled</span>
             <span class="dash-kpi-value">{{ enrolled_count|intcomma }}</span>
             <span class="dash-kpi-sub">{{ enrolled_progress }}% of target {{ enrolled_required_count|intcomma }}</span>
         </a>
-        <a class="dash-kpi" href="{% url 'nanopore:completed-list' %}?list_type=completed">
+        <a class="dash-kpi" href="{% url 'nanopore:form-status-list' %}?list_type=completed{% if list_filters %}&amp;{{ list_filters }}{% endif %}">
             <span class="dash-kpi-icon"><i class="fas fa-flag-checkered"></i></span>
             <span class="dash-kpi-label">Treatment outcomes</span>
             <span class="dash-kpi-value">{{ diagnosis_outcome_count|intcomma }}</span>
@@ -148,7 +148,7 @@
         <section class="dash-card">
             <header class="dash-card-head">
                 <h2><i class="fas fa-bullseye"></i> Enrollment against targets</h2>
-                <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled" class="dash-link">View enrollments <i class="fas fa-arrow-right"></i></a>
+                <a href="{% url 'nanopore:form-status-list' %}?list_type=enrolled{% if list_filters %}&amp;{{ list_filters }}{% endif %}" class="dash-link">View enrollments <i class="fas fa-arrow-right"></i></a>
             </header>
             {% include "dashboard/partials/meter.html" with label="Overall enrollment" done=enrolled_count total=enrolled_required_count pct=enrolled_progress %}
             {% include "dashboard/partials/meter.html" with label="Substudy 2" note="MTB detected" done=substudy2_enrolled_count total=substudy2_required_count pct=substudy2_enrolled_progress %}
@@ -166,10 +166,10 @@
                 <i class="fas fa-plus"></i><span>Add new screening</span>
             </a>
             {% endif %}
-            <a href="{% url 'nanopore:screened-list' %}?list_type=screened" class="dash-action"><i class="fas fa-list"></i><span>All screenings</span></a>
-            <a href="{% url 'nanopore:eligible-list' %}?list_type=eligible" class="dash-action"><i class="fas fa-circle-check"></i><span>Eligible participants</span></a>
-            <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled" class="dash-action"><i class="fas fa-id-card"></i><span>Enrolled participants</span></a>
-            <a href="{% url 'nanopore:completed-list' %}?list_type=completed" class="dash-action"><i class="fas fa-flag-checkered"></i><span>Completed outcomes</span></a>
+            <a href="{% url 'nanopore:form-status-list' %}?list_type=screened{% if list_filters %}&amp;{{ list_filters }}{% endif %}" class="dash-action"><i class="fas fa-list"></i><span>All screenings</span></a>
+            <a href="{% url 'nanopore:form-status-list' %}?list_type=eligible{% if list_filters %}&amp;{{ list_filters }}{% endif %}" class="dash-action"><i class="fas fa-circle-check"></i><span>Eligible participants</span></a>
+            <a href="{% url 'nanopore:form-status-list' %}?list_type=enrolled{% if list_filters %}&amp;{{ list_filters }}{% endif %}" class="dash-action"><i class="fas fa-id-card"></i><span>Enrolled participants</span></a>
+            <a href="{% url 'nanopore:form-status-list' %}?list_type=completed{% if list_filters %}&amp;{{ list_filters }}{% endif %}" class="dash-action"><i class="fas fa-flag-checkered"></i><span>Completed outcomes</span></a>
             <a href="{% url 'reports:codebook' %}" class="dash-action"><i class="fas fa-book"></i><span>Codebook</span></a>
         </section>
     </div>

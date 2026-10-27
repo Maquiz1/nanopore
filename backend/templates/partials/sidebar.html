@@ -18,14 +18,10 @@
         <a href="{% url 'dashboard:dashboard' %}" class="sb-link" title="Dashboard">
             <i class="fas fa-gauge-high"></i><span>Dashboard</span>
         </a>
-        <a href="{% url 'nanopore:enrolled-list' %}?list_type=enrolled" class="sb-link" title="Enrolled">
-            <i class="fas fa-user-check"></i><span>Enrolled</span>
+        <!-- All screened / Enrolled / Completed are tabs on this page -->
+        <a href="{% url 'nanopore:form-status-list' %}" class="sb-link" title="Participants" data-match="/nanopore/form-status/">
+            <i class="fas fa-users"></i><span>Participants</span>
         </a>
-        {% if user.is_superuser %}
-        <a href="{% url 'nanopore:form-status-list' %}" class="sb-link" title="Visits">
-            <i class="fas fa-calendar-check"></i><span>Visits</span>
-        </a>
-        {% endif %}
         <a href="{% url 'nanopore:master-data-list' %}" class="sb-link" title="Master Data Table">
             <i class="fas fa-table"></i><span>Master Data</span>
         </a>
@@ -307,7 +303,7 @@
         const here = window.location.pathname;
         sidebar.querySelectorAll(".sb-scroll a[href]").forEach(link => {
             const path = new URL(link.href, window.location.origin).pathname;
-            if (path === here) {
+            if (path === here || (link.dataset.match && here.startsWith(link.dataset.match))) {
                 link.classList.add("active");
                 const group = link.closest(".sb-group");
                 if (group) group.classList.add("open");

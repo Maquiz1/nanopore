@@ -1,14 +1,30 @@
 # nanopore/views/status.py
 from nanopore.substudy import OUTCOMES, SUBSTUDY_2, SUBSTUDY_KEYS, substudy_case, substudy_q
 from django.views.generic import ListView
-from nanopore.models import Screening,Enrollment,Diagnosis,ClinicLaboratory,ZonalLaboratory,RegimenChanges
+from nanopore.models import Screening
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 from utils import access
-from utils.access import assigned_locations, legacy_role_flags
+from utils.access import assigned_locations
 from utils.access_mixins import AnyFormAccessMixin
-from django.db.models import Case, When, Value, CharField, Q
+from django.db.models import Count, Q
 from django.utils.http import urlencode
+
+# ?list_type= tabs: key -> (tab label, page title, what the list holds)
+LIST_TYPES = {
+    "screened": ("All screened", "Participants", "Everyone screened, with the status of each form."),
+    "eligible": ("Eligible", "Eligible participants", "Screened participants who meet every inclusion and exclusion criterion."),
+    "enrolled": ("Enrolled", "Enrolled participants", "Participants with an Enrollment form."),
+    "completed": ("Completed", "Completed participants", "Substudy 2 participants with a treatment outcome recorded."),
+}
+LIST_TYPE_Q = {
+    "screened": Q(),
+    "eligible": Q(eligible=True),
+    "enrolled": Q(enrollment__isnull=False),
+    # Completed = Substudy 2 enrolled with a treatment outcome (nanopore/substudy.py)
+    "completed": substudy_q(SUBSTUDY_2) & Q(enrollment__isnull=False, diagnosis__tb_outcome2__in=OUTCOMES),
+}
+FILTER_KEYS = ("zone", "site", "pid", "unique_lab_no", "start_date", "end_date", "status", "substudy")
 
 
 class FormStatusListView(AnyFormAccessMixin, ListView):
@@ -16,142 +32,80 @@ class FormStatusListView(AnyFormAccessMixin, ListView):
     model = Screening
     template_name = "nanopore/form_status/form_status_list.html"
     context_object_name = "screenings"
-    paginate_by = 10  # optional for large datasets
+    paginate_by = 25
 
-    def get_queryset(self):
+    def get_list_type(self):
+        list_type = self.request.GET.get("list_type", "screened")
+        return list_type if list_type in LIST_TYPES else "screened"
+
+    def filtered_queryset(self):
+        """Role scope + the filter bar, before the list-type tab."""
         qs = Screening.objects.select_related(
             "enrollment",
             "clinic_laboratory",
+            "clinic_laboratory__xpert_mtb",
             "zonal_laboratory",
             "diagnosis",
+            "enrolled",
             "site",
-            "site__district",
-            "site__district__region",
             "site__district__region__zone",
         )
-
-        # Role-based filtering
         qs = filter_queryset_by_user_role(self.request.user, qs)
 
-        # GET filters
-        zone_id = self.request.GET.get("zone")
-        site_id = self.request.GET.get("site")
-        pid = self.request.GET.get("pid")
-        unique_lab_no = self.request.GET.get("unique_lab_no")
-        start_date = self.request.GET.get("start_date")
-        end_date = self.request.GET.get("end_date")
-        status = self.request.GET.get("status")  # 🔹 Status filter
-        list_type = self.request.GET.get("list_type", "screened")  # default to all screenings
-        substudy = self.request.GET.get("substudy")  # 🔹 New filter
-
-
-        if zone_id:
-            qs = qs.filter(site__district__region__zone_id=zone_id)
-        if site_id:
-            qs = qs.filter(site_id=site_id)
-        if pid:
-            qs = qs.filter(pid__icontains=pid)
-        if start_date and end_date:
-            qs = qs.filter(screening_date__range=[start_date, end_date])
-        if unique_lab_no:
-            # qs = qs.filter(Q(clinic_laboratory__unique_lab_no__icontains=unique_lab_no) | Q(zonal_laboratory__unique_lab_no__icontains=unique_lab_no) )
-            qs = qs.filter(Q(zonal_laboratory__unique_lab_no__icontains=unique_lab_no))
-
-        # 🔹 Filter by eligibility status using correct field
-        if status == "eligible":
+        get = self.request.GET.get
+        if get("zone"):
+            qs = qs.filter(site__district__region__zone_id=get("zone"))
+        if get("site"):
+            qs = qs.filter(site_id=get("site"))
+        if get("pid"):
+            qs = qs.filter(pid__icontains=get("pid").strip())
+        if get("unique_lab_no"):
+            qs = qs.filter(zonal_laboratory__unique_lab_no__icontains=get("unique_lab_no").strip())
+        # Either date works on its own
+        if get("start_date"):
+            qs = qs.filter(screening_date__gte=get("start_date"))
+        if get("end_date"):
+            qs = qs.filter(screening_date__lte=get("end_date"))
+        if get("status") == "eligible":
             qs = qs.filter(eligible=True)
-        elif status == "not_eligible":
+        elif get("status") == "not_eligible":
             qs = qs.filter(eligible=False)
-            
-            
-        # 🔹 Dynamic list type filter
-        if list_type == "eligible":
-            qs = qs.filter(eligible=True)
-        elif list_type == "enrolled":
-            enrolled_screenings = Enrollment.objects.values_list("screening_id", flat=True)
-            qs = qs.filter(id__in=enrolled_screenings)
-        elif list_type == "completed":
-            # Completed = Substudy 2 enrolled with a treatment outcome (nanopore/substudy.py)
-            qs = qs.filter(substudy_q(SUBSTUDY_2), enrollment__isnull=False, diagnosis__tb_outcome2__in=OUTCOMES)
-        
-            
-            
-        # 🔹 Annotate substudy (one definition: nanopore/substudy.py)
-        qs = qs.annotate(substudy_case=substudy_case())
+        if get("substudy") in SUBSTUDY_KEYS:
+            qs = qs.filter(substudy_q(SUBSTUDY_KEYS[get("substudy")]))
+        return qs
 
-        # 🔹 Substudy filter
-        if substudy in SUBSTUDY_KEYS:
-            qs = qs.filter(substudy_q(SUBSTUDY_KEYS[substudy]))
-
-
-        # # Substudy filter using property logic
-        # if substudy:
-        #     filtered_ids = []
-        #     for screening in qs:
-        #         if screening.substudy.lower().replace(" ", "") == substudy.lower():
-        #             filtered_ids.append(screening.id)
-        #     qs = qs.filter(id__in=filtered_ids)
-
-        return qs.order_by("-screening_date")
+    def get_queryset(self):
+        self.base_qs = self.filtered_queryset()
+        qs = self.base_qs.filter(LIST_TYPE_Q[self.get_list_type()])
+        # Substudy of each row (one definition: nanopore/substudy.py)
+        return qs.annotate(substudy_case=substudy_case()).order_by("-screening_date", "-pk")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context.update(get_role_context(self.request.user))
 
-        # # Include your filter values as before
-        # filters = {}
-        # for key in ['zone', 'site', 'pid', 'start_date', 'end_date', 'status', 'list_type', 'substudy']:
-        #     value = self.request.GET.get(key)
-        #     if value:
-        #         filters[key] = value
-
-        # context['query_params'] = urlencode(filters)
-    
-        # Add zones and sites for filter dropdowns
-        role_context = get_role_context(self.request.user)
-        context.update(role_context)
-        
-        # Explicit Profile Assignments for Header Display
         assigned_zones, assigned_sites = assigned_locations(self.request.user)
-        context.update({
-            "assigned_zones": assigned_zones,
-            "assigned_sites": assigned_sites,
+        context.update({"assigned_zones": assigned_zones, "assigned_sites": assigned_sites})
+
+        list_type = self.get_list_type()
+        counts = self.base_qs.aggregate(**{
+            key: Count("pk", filter=q, distinct=True) if q else Count("pk", distinct=True)
+            for key, q in LIST_TYPE_Q.items()
         })
+        context["tabs"] = [
+            {"key": key, "label": label, "count": counts[key], "active": key == list_type}
+            for key, (label, _, _) in LIST_TYPES.items()
+        ]
+        context["list_type"] = list_type
+        context["page_title"], context["page_note"] = LIST_TYPES[list_type][1:]
 
-        # Role flags (union of all the user's roles)
-        context.update(legacy_role_flags(self.request.user))
-
-        # Keep GET params for form persistence
-        context['selected_zone'] = self.request.GET.get("zone", "")
-        context['selected_site'] = self.request.GET.get("site", "")
-        context['selected_pid'] = self.request.GET.get("pid", "")
-        context['selected_unique_lab_no'] = self.request.GET.get("unique_lab_no", "")
-        context['selected_start_date'] = self.request.GET.get("start_date", "")
-        context['selected_end_date'] = self.request.GET.get("end_date", "")
-        context['selected_status'] = self.request.GET.get("status", "")  # 🔹 Pass status to template
-        context['list_type'] = self.request.GET.get("list_type", "screened")
-        context['selected_substudy'] = self.request.GET.get("substudy", "")
-
-        # 🔹 Build query_params string for pagination
-        query_dict = {}
-        if context['selected_zone']:
-            query_dict['zone'] = context['selected_zone']
-        if context['selected_site']:
-            query_dict['site'] = context['selected_site']
-        if context['selected_pid']:
-            query_dict['pid'] = context['selected_pid']
-        if context['selected_start_date']:
-            query_dict['start_date'] = context['selected_start_date']
-        if context['selected_end_date']:
-            query_dict['end_date'] = context['selected_end_date']
-        if context['selected_unique_lab_no']:
-            query_dict['unique_lab_no'] = context['selected_unique_lab_no']
-        if context['selected_status']:
-            query_dict['status'] = context['selected_status']
-        if context['list_type']:
-            query_dict['list_type'] = context['list_type']
-        if context['selected_substudy']:
-            query_dict['substudy'] = context['selected_substudy']
-
-        context['query_params'] = urlencode(query_dict)
-
+        # Keep the filter values in the form and in the pager / tab links
+        selected = {key: self.request.GET.get(key, "").strip() for key in FILTER_KEYS}
+        for key, value in selected.items():
+            context[f"selected_{key}"] = value
+        filters = {key: value for key, value in selected.items() if value}
+        context["filters_active"] = bool(filters)
+        context["filter_params"] = urlencode(filters)
+        context["query_params"] = urlencode({**filters, "list_type": list_type})
+        context["show_location_filter"] = context["sites"].count() > 1 if hasattr(context["sites"], "count") else len(context["sites"]) > 1
         return context
