@@ -18,7 +18,6 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta  # pip install python-dateutil
 from nanopore.models import Screening, Enrollment, ClinicLaboratory, ZonalLaboratory, Diagnosis
 from locations.models import Zone,Site
-from weasyprint import HTML
 
 import pdfkit
 import openpyxl

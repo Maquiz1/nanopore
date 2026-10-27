@@ -9,7 +9,6 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Q
 from django.apps import apps
-import weasyprint
 
 from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
@@ -109,7 +108,13 @@ class DreamFundQueriesPDFView(AnyFormAccessMixin, View):
             context,
             request=request
         )
+        # Loaded here, not at import: a broken PDF install then only affects this download
+        try:
+            from weasyprint import HTML
+        except (ImportError, OSError) as error:
+            return HttpResponse(f"PDF download is unavailable on this server ({error}). Ask the administrator to "
+                                f"reinstall the packages in requirements.txt.", status=503, content_type="text/plain")
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="dreamfund_queries_report.pdf"'
-        weasyprint.HTML(string=html_string).write_pdf(response)
+        HTML(string=html_string).write_pdf(response)
         return response
