@@ -15,6 +15,11 @@ from .models import EmailLog, EmailRecipient, SiteConfiguration
 logger = logging.getLogger(__name__)
 
 
+def emails_enabled():
+    """EMAILS_ENABLED in settings (.env). Off: nothing is sent and nothing is logged."""
+    return bool(getattr(settings, "EMAILS_ENABLED", False))
+
+
 def _config():
     return SiteConfiguration.objects.filter(is_active=True).first()
 
@@ -56,7 +61,9 @@ def already_sent(recipient, subject, task_type):
 
 def send_email(to, subject, template, context, task_type, bcc=()):
     """Send `template`.txt and `template`.html to one address or a list. Returns True when sent.
-    One EmailLog row is written per address."""
+    One EmailLog row is written per address. Returns False without sending while emails are off."""
+    if not emails_enabled():
+        return False
     to = [to] if isinstance(to, str) else list(to)
     bcc = [e for e in bcc if e not in to]
     if not to and bcc:

@@ -8,6 +8,7 @@ from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_de
 from django.views import View
 from django.views.generic import FormView
 
+from notifications.mail import emails_enabled
 from users.emails import send_activation_email
 from users.forms import ResendActivationEmailForm
 from utils.access_mixins import SuperuserRequiredMixin
@@ -68,7 +69,9 @@ class StaffResendActivationView(SuperuserRequiredMixin, View):
 
     def post(self, request, pk):
         user = get_object_or_404(User, pk=pk)
-        if not user.email:
+        if not emails_enabled():
+            messages.error(request, "Emails are turned off on this server. Use Reset password > Make a temporary password.")
+        elif not user.email:
             messages.error(request, f"{user.username} has no email address. Add one first.")
         elif send_activation_email(user):
             messages.success(request, f"Activation link sent to {user.email}.")

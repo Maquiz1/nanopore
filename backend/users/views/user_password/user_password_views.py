@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
 
+from notifications.mail import emails_enabled
 from users.emails import random_password, send_activation_email, send_password_reset_email
 from utils.access_mixins import SuperuserRequiredMixin
 
@@ -29,6 +30,9 @@ class StaffResetPasswordView(SuperuserRequiredMixin, View):
             # Shown on the page itself (never stored in a message or cookie)
             return render(request, "users/staff/temporary_password.html", {"staff_member": user, "password": password})
 
+        if not emails_enabled():
+            messages.error(request, "Emails are turned off on this server. Make a temporary password instead.")
+            return redirect("users:staff_reset_password", pk=user.pk)
         if not user.email:
             messages.error(request, f"{user.username} has no email address. Make a temporary password instead.")
             return redirect("users:staff_reset_password", pk=user.pk)

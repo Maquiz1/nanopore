@@ -18,7 +18,7 @@ def _link(message, path_start):
     return re.search(rf"https?://[^\s\"<]+({path_start}[^\s\"<]+)", message.body).group(1)
 
 
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", EMAILS_ENABLED=True)
 class AccountEmailTests(test_access.AccessTestBase):
     def setUp(self):
         cache.clear()
@@ -109,7 +109,7 @@ class AccountEmailTests(test_access.AccessTestBase):
         self.assertEqual(self.client.get(reverse("notifications:logs")).status_code, 403)
 
 
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", EMAILS_ENABLED=True)
 class WeeklyEmailTests(test_access.AccessTestBase):
     def setUp(self):
         cache.clear()
@@ -188,3 +188,42 @@ class ScheduleTests(test_access.AccessTestBase):
         self.assertEqual(PeriodicTask.objects.get(name="weekly_query_emails").crontab.hour, "7")
         self.assertFalse(PeriodicTask.objects.get(name="weekly_treatment_outcome_emails").enabled)
         self.assertEqual(PeriodicTask.objects.filter(name__startswith="weekly_").count(), 2)
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", EMAILS_ENABLED=False)
+class EmailsOffTests(test_access.AccessTestBase):
+    """EMAILS_ENABLED off (the default): nothing is sent, accounts get temporary passwords."""
+
+    def setUp(self):
+        cache.clear()
+        self.admin = User.objects.create_superuser("root", "root@example.org", "pw")
+
+    def test_account_with_email_gets_a_temporary_password(self):
+        self.client.force_login(self.admin)
+        page = self.client.post(reverse("users:staff_add"), {"username": "asha", "email": "asha@example.org",
+                                                              "first_name": "Asha", "last_name": "M", "is_active": "on"})
+        self.assertContains(page, "Emails are turned off on this server")
+        password = page.context["password"]
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertFalse(EmailLog.objects.exists())
+        self.client.logout()
+        self.assertTrue(self.client.login(username="asha", password=password))
+
+    def test_email_options_are_hidden_and_refused(self):
+        user = User.objects.create_user("juma", "juma@example.org", "pw", is_active=False)
+        self.client.force_login(self.admin)
+        self.assertNotContains(self.client.get(reverse("users:staff_reset_password", args=[user.pk])), 'value="link"')
+        self.client.post(reverse("users:staff_reset_password", args=[user.pk]), {"action": "link"})
+        self.client.post(reverse("users:staff_send_activation", args=[user.pk]))
+        self.assertEqual(len(mail.outbox), 0)
+        self.client.logout()
+        self.assertNotContains(self.client.get(reverse("users:login")), "Forgot password?")
+        self.assertContains(self.client.get(reverse("users:password_reset")), "Emails are turned off")
+
+    def test_weekly_jobs_send_nothing_but_keep_the_snapshot(self):
+        from reports.models import QuerySnapshotRun
+        self.make_user("nurse", [access.NURSE], sites=[self.a1]).__class__.objects.filter(username="nurse").update(email="n@example.org")
+        self.assertEqual(weekly.send_weekly_query_emails(datetime.date(2025, 3, 9)), 0)
+        self.assertEqual(weekly.send_weekly_outcome_emails(datetime.date(2025, 3, 9)), 0)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertTrue(QuerySnapshotRun.objects.filter(snapshot_date=datetime.date(2025, 3, 9)).exists())

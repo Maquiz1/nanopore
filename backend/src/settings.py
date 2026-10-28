@@ -109,6 +109,7 @@ TEMPLATES = [
                 'reports.context_processors.total_context.global_total_issues',
                 'nanopore.context_processors.system_controls',
                 'utils.context_processors.access',
+                'notifications.context_processors.emails',
             ],
         },
     },
@@ -178,8 +179,13 @@ PASSWORD_RESET_TIMEOUT = 7 * 24 * 60 * 60
 SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
 
 # Email settings
+# EMAILS_ENABLED=true in .env turns on all emails (account links, password resets, weekly emails).
+# While it is off nothing is sent, no SMTP settings are needed, and accounts get temporary passwords.
+EMAILS_ENABLED = env.bool("EMAILS_ENABLED", default=False)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="DREAM Nanopore <no-reply@localhost>")
-if DEBUG:
+if not EMAILS_ENABLED:
+    EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
+elif DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
     EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 else:

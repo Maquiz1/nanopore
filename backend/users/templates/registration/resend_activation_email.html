@@ -4,11 +4,15 @@
 <div class="auth-icon-big"><i class="fas fa-paper-plane"></i></div>
 <h2>Send a new activation link</h2>
 <p class="auth-sub">Enter the email address on your account. If the account is not active yet, we'll email you a link to choose your password.</p>
+{% if emails_enabled %}
 <form method="post" novalidate>
     {% csrf_token %}
     {% include "registration/_auth_errors.html" %}
     {% include "registration/_auth_field.html" with field=form.email icon="fa-envelope" %}
     <button type="submit" class="auth-btn">Send activation link</button>
 </form>
+{% else %}
+<div class="alert alert-info">Emails are turned off on this server, so no activation link can be sent. Ask your administrator for a temporary password.</div>
+{% endif %}
 <p class="auth-alt"><a class="auth-link" href="{% url 'users:login' %}"><i class="fas fa-arrow-left me-1"></i>Back to sign in</a></p>
 {% endblock %}

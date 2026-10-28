@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
 from users.models import Profile, Prefix, Position
 from users.forms import StaffForm
+from notifications.mail import emails_enabled
 from users.emails import random_password, send_activation_email
 from locations.models import Site
 
@@ -123,8 +124,9 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
                 form.add_error("email", "This email address is already registered.")
                 return self.form_invalid(form)
 
-            # The password is generated. With an email the person chooses their own from the
-            # activation link (inactive until then); without one the admin sees it once.
+            # The password is generated. With an email (and emails turned on) the person chooses their
+            # own from the activation link (inactive until then); otherwise the admin sees it once.
+            send_link = bool(email) and emails_enabled()
             password = random_password()
             user = User.objects.create_user(
                 username=username,
@@ -133,7 +135,7 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
                 first_name=first_name,
                 last_name=last_name,
                 is_staff=is_staff,
-                is_active=is_active if not email else False,
+                is_active=is_active if not send_link else False,
             )
 
             profile = Profile.objects.create(
@@ -154,10 +156,11 @@ class StaffCreateUpdateView(SuperuserRequiredMixin, FormView):
             if groups:
                 user.groups.set(groups)
 
-            if not email:
+            if not send_link:
                 # Shown on the page itself (never stored in a message or cookie)
                 return render(self.request, "users/staff/temporary_password.html",
-                              {"staff_member": user, "password": password, "created": True})
+                              {"staff_member": user, "password": password, "created": True,
+                               "emails_off": bool(email)})
             elif send_activation_email(user):
                 messages.success(self.request, f"Staff member '{username}' created. Activation link sent to {email}.")
             else:

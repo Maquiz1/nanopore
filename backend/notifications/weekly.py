@@ -19,7 +19,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from nanopore.substudy import OUTCOMES, SUBSTUDY_2, substudy_q
-from notifications.mail import absolute_url, already_sent, report_copies, send_email
+from notifications.mail import absolute_url, already_sent, emails_enabled, report_copies, send_email
 from reports.services.query_snapshot import ADMIN_ONLY, FORM_LABELS, take_snapshot
 from utils import access
 
@@ -91,6 +91,8 @@ def query_table(per_site, sites, forms, site_ids=None, admin=False):
 def send_weekly_query_emails(today=None):
     today = today or timezone.localdate()
     run, _ = take_snapshot(today)
+    if not emails_enabled():
+        return 0  # the snapshot is still kept for Query trends
     per_site = defaultdict(dict)
     for site_id, form, query, n in run.counts.filter(site__isnull=False).values_list("site_id", "form", "query", "count"):
         per_site[site_id][(form, query)] = n
@@ -156,6 +158,8 @@ def _by_site(rows):
 
 
 def send_weekly_outcome_emails(today=None):
+    if not emails_enabled():
+        return 0
     today = today or timezone.localdate()
     rows = outcome_rows(treatment_without_outcome(), today)
     subject = f"Substudy 2 on treatment without an outcome - {today:%d %b %Y}"

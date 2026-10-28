@@ -9,11 +9,13 @@
     {% include "registration/_auth_errors.html" %}
     {% include "registration/_auth_field.html" with field=form.username icon="fa-user" %}
     {% include "registration/_auth_field.html" with field=form.password icon="fa-lock" %}
+    {% if emails_enabled %}
     <div class="auth-row">
         <a class="auth-link" href="{% url 'users:resend_activation' %}">Activate account</a>
         <a class="auth-link" href="{% url 'users:password_reset' %}">Forgot password?</a>
     </div>
+    {% endif %}
     <button type="submit" class="auth-btn"><i class="fas fa-right-to-bracket me-2"></i>Sign in</button>
 </form>
-<p class="auth-alt">New staff? Your administrator creates your account and emails you an activation link.</p>
+<p class="auth-alt">{% if emails_enabled %}New staff? Your administrator creates your account and emails you an activation link.{% else %}Forgot your password, or new staff? Ask your administrator for a temporary password.{% endif %}</p>
 {% endblock %}
