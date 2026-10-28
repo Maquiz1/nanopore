@@ -120,13 +120,17 @@ def get_user_roles(user):
     cache = _cache(user)
     if "roles" not in cache:
         roles = {name.upper() for name in user.groups.values_list("name", flat=True)}
-        # Data specialists used to be identified by Profile.position; coordinators still are.
+        # A position can also give its role (accounts set up with a position but no group).
         profile = getattr(user, "profile", None)
         position = profile.position.name.strip().lower() if profile and profile.position else ""
         if position == "data specialist":
             roles.add(DATA_SPECIALIST)
         elif position == "coordinator":
             roles.add(COORDINATOR)
+        elif position == "data manager":
+            roles.add(DATA_MANAGER)
+        elif position.startswith("statist"):  # also the misspelt "Statistiician" position
+            roles.add(STATISTICIAN)
         cache["roles"] = frozenset(roles)
     return cache["roles"]
 

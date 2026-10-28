@@ -284,6 +284,17 @@ class ExportRolesTests(AccessTestBase):
             user = self.make_user(f"u_{role.lower()}", [role], sites=[self.a1])
             self.assertEqual(has_feature(user, access.EXPORTS), role in exporters, role)
 
+    def test_statistician_position_gives_the_export(self):
+        from django.urls import reverse
+        from utils.access import has_feature
+        for name in ("Statistician", "Statistiician"):  # the position list has the misspelling
+            user = self.make_user(f"pos_{name}", [], sites=[self.a1], position=name)
+            self.assertIn(access.STATISTICIAN, access.get_user_roles(user), name)
+            self.assertTrue(has_feature(user, access.EXPORTS), name)
+            self.assertFalse(can_edit(user, access.SCREENING), name)
+            self.client.force_login(user)
+            self.assertEqual(self.client.get(reverse("reports:data-export")).status_code, 200, name)
+
     def test_statistician_is_view_only(self):
         stat = self.make_user("stat", [access.STATISTICIAN], sites=[self.a1])
         for form in access.ALL_FORMS:
