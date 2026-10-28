@@ -157,10 +157,11 @@ def can_view(user, form):
 
 def can_see_queries(user, form):
     """
-    Data-quality queries go to whoever can fix them (edit rights), plus reviewers.
+    Data-quality queries go to whoever can fix them (edit rights), plus reviewers and
+    statisticians, who see every form's queries (statisticians for their assigned sites).
     Read-only lookups (lab technicians on Screening) don't bring the queries along.
     """
-    return can_edit(user, form) or has_role(user, REVIEWER)
+    return can_edit(user, form) or has_role(user, REVIEWER, STATISTICIAN)
 
 
 def has_feature(user, feature):

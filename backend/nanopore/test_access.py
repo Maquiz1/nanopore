@@ -295,6 +295,18 @@ class ExportRolesTests(AccessTestBase):
             self.client.force_login(user)
             self.assertEqual(self.client.get(reverse("reports:data-export")).status_code, 200, name)
 
+    def test_statistician_sees_every_forms_queries(self):
+        from django.urls import reverse
+        stat = self.make_user("stat_q", [access.STATISTICIAN], sites=[self.a1])
+        for form in access.ALL_FORMS:
+            self.assertTrue(access.can_see_queries(stat, form), form)
+        self.client.force_login(stat)
+        page = self.client.get(reverse("reports:all_queries_overview"))
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual({f["key"] for f in page.context["forms"]}, set(access.ALL_FORMS))
+        self.assertEqual(page.context["grand_total"], page.context["context_total_issues"])
+        self.assertEqual(self.client.get(reverse("reports:date_issues")).status_code, 200)
+
     def test_statistician_is_view_only(self):
         stat = self.make_user("stat", [access.STATISTICIAN], sites=[self.a1])
         for form in access.ALL_FORMS:
