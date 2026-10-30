@@ -1,13 +1,28 @@
 from django.db.models import Q
-from reports.constants.zona_mapping import ZONAL_DQ_FIELD_MAPPING
+from reports.constants.zona_mapping import CTRL_QUERIES, ZONAL_DQ_FIELD_MAPPING
 from nanopore.models import ZonalLaboratory
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
 
 def get_zonal_dq_filters(model):
     """
-    Dynamically generate Q objects for all Zonal DQ fields to serve as 
-    the single source of truth for stats.py and problem_lists.py.
+    Q objects for the queries of a form's page: the single source of truth for
+    stats.py and problem_lists.py. What CTRL answers for other zones is counted
+    once, on the CTRL isolates page, not on these forms.
     """
+    filters = _all_filters(model)
+    if model is ZonalLaboratory:
+        return {key: q for key, q in filters.items() if key not in CTRL_QUERIES}
+    # Dar es Salaam: the zonal lab's own answer, not in TBLIS and OK to leave empty (tblis_mapping.py)
+    del filters["missing_culture_isolate"]
+    return filters
+
+
+def get_ctrl_isolate_filters():
+    filters = _all_filters(ZonalLaboratory)
+    return {key: filters[key] for key in CTRL_QUERIES}
+
+
+def _all_filters(model):
     filters = {}
 
     for key, fields in ZONAL_DQ_FIELD_MAPPING.items():
@@ -58,6 +73,9 @@ def get_zonal_dq_filters(model):
             q &= Q(culture_performed=1, culture_method=2)
 
         # ISOLATE
+        if key == "isolate_no_not_submitted":  # a number, though question 11 doesn't say it went to CTRL
+            q = ~Q(isolate_unique_lab_no__isnull=True) & ~Q(isolate_unique_lab_no="") & ~Q(culture_isolate=1)
+
         if key == "missing_culture_isolate":
             q &= (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)) & Q(culture_isolate__isnull=True)
 

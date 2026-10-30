@@ -28,6 +28,7 @@ ZONAL_DQ_FIELD_MAPPING = {
     "missing_culture_isolate":["culture_isolate"],
     "missing_isolate_date": ["isolate_date"],
     "missing_isolate_unique_lab_no": ["isolate_unique_lab_no"],
+    "isolate_no_not_submitted": ["isolate_unique_lab_no"],
 
     # Phenotypic DST
     "missing_phenotypic_performed": ["phenotypic_performed"],
@@ -103,4 +104,18 @@ ZONAL_DQ_FIELD_MAPPING = {
         "nano_kanamycin","nano_levofloxacin","nano_linezolid","nano_moxifloxacin",
         "nano_pretomanid","nano_pyrazinamide","nano_rifampicin","nano_streptomycin"
     ],
+}
+
+# Queries CTRL answers for other zones (reports/services/zonal_dq/ctrl.py), with the page's labels.
+CTRL_QUERIES = {
+    "missing_isolate_unique_lab_no": "Isolate lab number",
+    "missing_phenotypic_performed": "Phenotypic DST performed",
+    "missing_first_line_dst_performed": "First-line DST performed",
+    "missing_first_line_dst_performed_date": "First-line date performed",
+    "missing_first_line_dst_results_date": "First-line results date",
+    "missing_first_line_dst_results": "First-line results",
+    "missing_second_line_dst_performed": "Second-line DST performed",
+    "missing_second_line_dst_performed_date": "Second-line date performed",
+    "missing_second_line_dst_results_date": "Second-line results date",
+    "missing_second_line_dst_results": "Second-line results",
 }

@@ -17,11 +17,11 @@
                     <h4 class="mb-0">{{ object|default:"New" }} Zonal Lab</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ next }}">
-
-                        {% include "nanopore/partials/form_error_summary.html" with form=form %}
+                    <div class="alert alert-info">
+                        <strong>Read only.</strong> This record is rebuilt daily from the Zonal Lab form and the TB-LIS upload.
+                        To fix it, correct the {% if zonal_lab %}<a href="{% url 'nanopore:zonal-laboratory-update' zonal_lab.pk %}">Zonal Lab form</a>{% else %}Zonal Lab form{% endif %} and, for TB-LIS results, upload TB-LIS again.
+                    </div>
+                    <form onsubmit="return false;">
 
                         <!-- Screening info -->
                         <div class="p-2 mb-3 bg-info text-white rounded">
@@ -375,17 +375,6 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}" class="btn btn-warning me-2">Back to Edcs/TBLIS list</a>
-                            <!-- <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a> -->
-                            <!-- {% with user_group=request.user.groups.first.name|upper %}
-                            {% if not user_group == "REVIEWER" %}
-                            {% if system_control.enable_form_submissions %}
-                                <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>
-                            {% else %}
-                                <button type="button" class="btn btn-secondary" disabled>🚫 Submissions Disabled</button>
-                            {% endif %}
-                            {% endif %}
-                            {% endwith %} -->
-                            <!-- <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button> -->
                             <a href="{% url 'reports:edcs_tblis_quality_report' %}" class="btn btn-info me-2">Back to Edcs/TBLIS Queries</a>
                         </div>
                     </form>

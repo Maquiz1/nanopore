@@ -103,6 +103,8 @@ function showMergeSummary(data) {
     mergeSummaryStats.innerHTML =
         statCard("Rows in file", data.rows_in_file ?? "—", "secondary") +
         statCard("✂️ Left out by filter", data.rows_left_out ?? 0, "warning") +
+        statCard("🧫 Isolates merged (other zones)", data.isolates_merged ?? 0, "success") +
+        statCard("🧫 Isolates with no number yet", data.isolates_unmatched ?? 0, "warning") +
         statCard("Rows used", data.total ?? "—", "primary") +
         statCard(data.preview ? "🔄 Would merge into EDCS" : "🔄 Merged into EDCS", data.updated ?? "—", "info") +
         statCard("❌ Row errors", data.errors ? data.errors.length : 0, "danger") +

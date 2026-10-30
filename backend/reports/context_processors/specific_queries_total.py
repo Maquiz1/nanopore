@@ -24,6 +24,7 @@ def specific_queries_total(request):
         (access.DIAGNOSIS, diagnosis_report_total, 'context_diagnosis_report_total'),
         (access.CLINIC_LAB, clinic_report_total, 'context_clinic_report_total'),
         (access.ZONAL_LAB, zonal_report_total, 'context_zonal_report_total'),
+        (access.CTRL_ISOLATES, zonal_report_total, 'context_ctrl_isolates_report_total'),
         (access.EDCS_TBLIS, edcs_tblis_report_total, 'context_edcs_tblis_report_total'),
     ]
     total = sum(

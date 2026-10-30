@@ -86,7 +86,8 @@ def card_queryset(key, batch=None):
         qs = batch_rows
         if key == "tblis_not_in_edcs":
             ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
-            qs = qs.exclude(labno__in=ZonalLaboratory.objects.values("unique_lab_no"))
+            qs = qs.exclude(labno__in=ZonalLaboratory.objects.values("unique_lab_no")).exclude(
+                labno__in=ZonalLaboratory.objects.filter(isolate_unique_lab_no__isnull=False).values("isolate_unique_lab_no"))
         return qs.order_by("labno")
 
     model = apps.get_model("nanopore", "ZonalLaboratory" if card.source == "zonal" else "EdcsTblisZonal")

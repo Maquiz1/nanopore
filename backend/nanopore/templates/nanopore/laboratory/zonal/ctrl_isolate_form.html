@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}CTRL isolate · {{ screening.pid }}{% endblock %}
+
+{% block content %}
+<div class="df">
+    <!-- Header -->
+    <section class="df-hero">
+        <div>
+            <div class="df-eyebrow">Forms · CTRL isolate</div>
+            <h1 class="df-title">{{ screening.pid }}</h1>
+            <div class="df-meta">
+                <span><i class="fas fa-location-dot"></i>{{ screening.site.name }} · {{ screening.site.district.region.zone.name }}</span>
+                <span><i class="fas fa-vial"></i>Lab No. {{ object.unique_lab_no|default:"—" }}</span>
+                <span><i class="fas fa-calendar"></i>Isolate date {{ object.isolate_date|date:"d M Y"|default:"—" }}</span>
+            </div>
+        </div>
+        <div class="df-hero-actions">
+            <a href="{{ next }}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+    </section>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% include "nanopore/partials/form_error_summary.html" with form=form %}
+
+        <!-- Isolate -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step">1</span>
+                <div><h2>Isolate</h2><p>The CTRL lab number of this isolate, exactly as in TB-LIS.</p></div>
+            </header>
+            <div class="df-grid">
+                {% include "nanopore/partials/_field.html" with field=form.isolate_unique_lab_no %}
+            </div>
+        </section>
+
+        <!-- DST, read only -->
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step">2</span>
+                <div><h2>Phenotypic DST</h2><p>Comes from the TB-LIS upload using the number above.</p></div>
+            </header>
+            {% if dst_values %}
+            <ul class="mb-0">
+                {% for label, value in dst_values %}<li>{{ label }}: <strong>{{ value }}</strong></li>{% endfor %}
+            </ul>
+            {% else %}
+            <p class="mb-0 text-muted">Nothing from TB-LIS yet.</p>
+            {% endif %}
+        </section>
+
+        <!-- Save bar -->
+        <div class="df-savebar">
+            <a href="{{ next }}" class="btn btn-outline-secondary">Cancel</a>
+            {% if system_control.enable_form_submissions %}
+            <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save</button>
+            {% else %}
+            <button type="button" class="btn btn-secondary" disabled><i class="fas fa-ban"></i> Submissions disabled</button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+{% include "nanopore/partials/_form_styles.html" %}
+{% endblock %}

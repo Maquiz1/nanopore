@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}CTRL isolates · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="fs">
+    <!-- Header -->
+    <section class="fs-hero">
+        <div>
+            <div class="fs-eyebrow">Queries · Other zones</div>
+            <h1 class="fs-title">CTRL isolates</h1>
+            <div class="fs-meta">Isolates sent to CTRL from zones outside Dar es Salaam. CTRL enters the isolate lab number; the phenotypic DST then comes from the TB-LIS upload using that number.</div>
+        </div>
+        <div class="fs-hero-actions">
+            <a href="{% url 'reports:all_queries_overview' %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> All queries</a>
+        </div>
+    </section>
+
+    <!-- Tabs -->
+    <nav class="fs-tabs">
+        {% for t in tabs %}
+        <a href="?tab={{ t.key }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="fs-tab {% if tab == t.key %}active{% endif %}">
+            <span class="fs-tab-label">{{ t.label }}</span>
+            <span class="fs-tab-num">{{ t.count|intcomma }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <!-- Filters -->
+    <form method="get" class="fs-filters">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <div>
+            <label class="form-label" for="ci-q">PID or lab no.</label>
+            <input type="search" name="q" id="ci-q" class="form-control form-control-sm" value="{{ search }}">
+        </div>
+        <div>
+            <label class="form-label" for="ci-zone">Zone</label>
+            <select name="zone" id="ci-zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}<option value="{{ id }}" {% if id == selected_zone %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="ci-site">Site</label>
+            <select name="site" id="ci-site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}<option value="{{ id }}" {% if id == selected_site %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            {% if filters_active %}<a href="?tab={{ tab }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+        </div>
+    </form>
+
+    <!-- What is open -->
+    {% if checks %}
+    <div class="ci-checks">
+        <span class="fs-muted">{{ total_queries|intcomma }} open quer{{ total_queries|pluralize:"y,ies" }}:</span>
+        {% for c in checks %}<a href="?tab={{ c.key }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="ci-check {% if tab == c.key %}active{% endif %}">{{ c.label }} <strong>{{ c.count|intcomma }}</strong></a>{% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Table -->
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}</strong>
+            {% if page_obj.has_other_pages %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
+        {% if rows %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead>
+                    <tr><th>PID</th><th>Lab No.</th><th>Isolate Lab No.</th><th>Zone</th><th>Site</th><th>Isolate date</th><th>Still missing</th>{% if can_edit %}<th></th>{% endif %}</tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td class="fs-pid" data-label="PID">{{ row.z.screening.pid }}</td>
+                        <td data-label="Lab No.">{{ row.z.unique_lab_no|default:"—" }}</td>
+                        <td data-label="Isolate Lab No.">{{ row.isolate_no }}</td>
+                        <td data-label="Zone">{{ row.z.screening.site.district.region.zone.name }}</td>
+                        <td data-label="Site">{{ row.z.screening.site.name }}</td>
+                        <td data-label="Isolate date">{{ row.z.isolate_date|date:"d M Y"|default:"—" }}</td>
+                        <td data-label="Still missing">
+                            {% for label in row.open %}<span class="fs-chip miss">{{ label }}</span> {% empty %}<span class="fs-chip ok"><i class="fas fa-circle-check"></i> Complete</span>{% endfor %}
+                        </td>
+                        {% if can_edit %}<td><a href="{% url 'nanopore:ctrl-isolate-update' row.z.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary">Isolate no.</a></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty">
+            <i class="fas fa-circle-check"></i>
+            <p>Nothing here{% if filters_active %} for these filters{% endif %}.</p>
+        </div>
+        {% endif %}
+
+        {% if page_obj.has_other_pages %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
+</div>
+
+{% include "nanopore/partials/_list_styles.html" %}
+<style>
+    .ci-checks { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 12px; font-size: .8rem; }
+    .ci-check { padding: 3px 10px; border: 1px solid #e6eaf2; border-radius: 999px; background: #fff; color: #4a5872; text-decoration: none; }
+    .ci-check.active { border-color: #1d6fd6; background: #e8f1fc; color: #1d6fd6; }
+</style>
+{% endblock %}

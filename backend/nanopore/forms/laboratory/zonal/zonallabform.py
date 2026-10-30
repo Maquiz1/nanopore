@@ -1,5 +1,5 @@
 from nanopore.forms.laboratory.lpa_rules import relax_lpa_lines, require_lpa_lines_when_done
-from nanopore.zonal_rules import is_lab_number_only
+from nanopore.zonal_rules import CTRL_FIELDS, LAB_NUMBER_ONLY_FIELDS, NANOPORE_PREFIXES, ctrl_answers, is_lab_number_only, lpa_lines_done
 from django import forms
 from django.core.exceptions import ValidationError
 from nanopore.models import ZonalLaboratory
@@ -297,14 +297,27 @@ class ZonalLaboratoryForm(forms.ModelForm):
         # Keep readonly display in template
         self.readonly_screening = screening_instance
 
-        # Dar es Salaam (CTRL): only the Unique Lab Number is entered here; the
-        # results come from the TBLIS upload. Fields left out of the form are
-        # not touched on save.
+        # Dar es Salaam (CTRL): only what TBLIS can't supply is entered here; the
+        # other results come from the TBLIS upload. Fields left out of the form
+        # are not touched on save.
         self.lab_number_only = is_lab_number_only(screening_instance)
         if self.lab_number_only:
+            self.lpa1_done, self.lpa2_done = lpa_lines_done(screening_instance)
+            keep = {*LAB_NUMBER_ONLY_FIELDS}
+            if self.lpa1_done:
+                keep.add("first_line_drugs")
+            if self.lpa2_done:
+                keep.add("second_line_drugs")
             for name in list(self.fields):
-                if name not in ("screening", "unique_lab_no"):
+                if name not in keep and not name.startswith(NANOPORE_PREFIXES):
                     del self.fields[name]
+            # The lab number comes first, when the sample arrives; sequencing is later
+            self.fields["nanopore_done"].required = False
+        else:
+            # Other zones: these come from CTRL and TBLIS; here they are only shown.
+            for name in CTRL_FIELDS:
+                del self.fields[name]
+            self.ctrl_values = ctrl_answers(self.instance)
 
     def clean(self):
         cleaned_data = super().clean()

@@ -39,8 +39,8 @@
                             <h5 class="mb-0">Lab Details</h5>
                         </div>
                         <div class="alert alert-info">
-                            <strong>Dar es Salaam:</strong> enter only the <strong>Unique Lab Number</strong>.
-                            Culture, DST, Xpert XDR, LPA and Nanopore results come from the TBLIS upload,
+                            <strong>Dar es Salaam (CTRL staff):</strong> enter the <strong>Unique Lab Number</strong> and Remarks when the sample arrives, and Nanopore when it is sequenced.
+                            Culture, DST, Xpert XDR and LPA results come from the TBLIS upload,
                             which merges them into the EDCS / TBLIS record using this lab number.
                         </div>
                         <div class="row g-3 mb-3">
@@ -50,7 +50,31 @@
                                 <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
+                            <div class="col-md-8">{{ form.remarks.label_tag }}{{ form.remarks }}</div>
                         </div>
+
+                        {% if form.lpa1_done or form.lpa2_done %}
+                        <!-- LPA bands: TBLIS supplies the LPA results but not these checkboxes -->
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Line Probe Assay Bands</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            {% if form.lpa1_done %}
+                            <div class="col-md-6">
+                                {{ form.first_line_drugs.label_tag }}{{ form.first_line_drugs }}
+                                {% for error in form.first_line_drugs.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if form.lpa2_done %}
+                            <div class="col-md-6">
+                                {{ form.second_line_drugs.label_tag }}{{ form.second_line_drugs }}
+                                {% for error in form.second_line_drugs.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% include "nanopore/laboratory/zonal/_nanopore_section.html" %}
                         {% else %}
                         <!-- Lab Details -->
                         <div class="p-2 mb-3 bg-warning text-white rounded">
@@ -139,70 +163,21 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-4" id="culture-isolate" style="display:none;">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
                             <div class="col-md-4" id="isolate-date" style="display:none;">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
-                            <div class="col-md-4" id="isolate-unique-lab-no" style="display:none;">{{ form.isolate_unique_lab_no.label_tag }}{{ form.isolate_unique_lab_no }}</div>
+                            <div id="isolate-unique-lab-no" style="display:none;"></div>
                         </div>
 
-                        <!-- Phenotypic DST -->
-                        <div class="p-2 mb-3 bg-dark text-white rounded"  id="phenotypic-dst-header" style="display:none;">
-                            <h5 class="mb-0">Phenotypic DST</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6"  id="phenotypic-performed" style="display:none;">{{ form.phenotypic_performed.label_tag }}{{ form.phenotypic_performed }}</div>
-                        </div>
-                        <!-- <div class="row g-3 mb-3">
-                            <div class="col-md-6"  id="phenotypic-date-performed" style="display:none;">{{ form.phenotypic_date_performed.label_tag }}{{ form.phenotypic_date_performed }}</div>
-                            <div class="col-md-6"  id="phenotypic-date-results" style="display:none;">{{ form.phenotypic_date_results.label_tag }}{{ form.phenotypic_date_results }}</div>
-                        </div> -->
-                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-first-line-header" style="display:none;">
-                            <h5 class="mb-0">First Line Phenotypic DST</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4"  id="first-line-dst-performed" style="display:none;">{{ form.first_line_dst_performed.label_tag }}{{ form.first_line_dst_performed }}</div>
-                            <div class="col-md-4"  id="first-line-dst-performed-date" style="display:none;">{{ form.first_line_dst_performed_date.label_tag }}{{ form.first_line_dst_performed_date }}</div>
-                            <div class="col-md-4"  id="first-line-dst-results-date" style="display:none;">{{ form.first_line_dst_results_date.label_tag }}{{ form.first_line_dst_results_date }}</div>
-                        </div>
-                        <div class="p-2 mb-3 bg-danger text-white rounded" id="phenotypic-dst-results-first-line-header" style="display:none;">
-                            <h5 class="mb-0">First Line Phenotypic DST RESULTS</h5>
-                        </div>
-                        <div id="phenotypic-dst-results-first-line" style="display:none;">
-                            <div class="row">
-                                {% for field in form %}
-                                    {% if field.name in "rifampicin,isoniazid,ethambutol"|split:"," %}
-                                    <div class="col-md-4 mb-3">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <div class="p-2 mb-3 bg-warning text-white rounded" id="phenotypic-dst-second-line-header" style="display:none;">
-                            <h5 class="mb-0">Second Line Phenotypic DST</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4"  id="second-line-dst-performed" style="display:none;">{{ form.second_line_dst_performed.label_tag }}{{ form.second_line_dst_performed }}</div>
-                            <div class="col-md-4"  id="second-line-dst-performed-date" style="display:none;">{{ form.second_line_dst_performed_date.label_tag }}{{ form.second_line_dst_performed_date }}</div>
-                            <div class="col-md-4"  id="second-line-dst-results-date" style="display:none;">{{ form.second_line_dst_results_date.label_tag }}{{ form.second_line_dst_results_date }}</div>
-                        </div>
-                        <div class="p-2 mb-3 bg-warning text-white rounded" id="phenotypic-dst-results-second-line-header" style="display:none;">
-                            <h5 class="mb-0">Second Line Phenotypic DST RESULTS</h5>
-                        </div>
-                        <div id="phenotypic-dst-results-second-line" style="display:none;">
-                            <div class="row">
-                                {% for field in form %}
-                                    {% if field.name in "levofloxacin,bedaquiline,linezolid,clofazimine,cycloserine,delamanid,pretomanid"|split:"," %}
-                                    <div class="col-md-3 mb-3">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
+                        <!-- Isolate number: entered at CTRL. Phenotypic DST: from the TB-LIS upload (nanopore/zonal_rules.py) -->
+                        <div id="phenotypic-dst-header" class="alert alert-info mb-3" style="display:none;">
+                            <div id="phenotypic-performed">
+                                <strong>From CTRL:</strong> CTRL enters the isolate unique lab number, and the phenotypic DST comes from the TB-LIS upload using that number.
+                                {% if access.edit.ctrl_isolates and object %}<a href="{% url 'nanopore:ctrl-isolate-update' object.pk %}?next={{ request.get_full_path|urlencode }}">Open the CTRL form</a>{% endif %}
+                                {% if form.ctrl_values %}
+                                <ul class="mb-0 mt-2">
+                                    {% for label, value in form.ctrl_values %}<li>{{ label }}: <strong>{{ value }}</strong></li>{% endfor %}
+                                </ul>
+                                {% else %}
+                                <div class="mt-1">Nothing entered yet.</div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -370,71 +345,7 @@
                             </div>
                         </div>
 
-                        <!-- Nanopore Sequencing -->
-                        <div class="p-2 mb-3 bg-secondary text-white rounded">
-                            <h5 class="mb-0">Nanopore Sequencing</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            {% for field in form %}
-                                {% if field.name in "nanopore_done,nanopore_sequencing_date"|split:"," %}
-                                <div class="col-md-6">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% for error in field.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            {% for field in form %}
-                                {% if field.name in "epi_to_me,epi_to_me_date,epi_to_me_version,sequencing_results,nanopore_results"|split:"," %}
-                                <div class="col-md-6">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% for error in field.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            {% for field in form %}
-                                {% if field.name in "sequencing_delayed,sequencing_delayed_days,sequencing_delayed_reasons,sequencing_delayed_others"|split:"," %}
-                                <div class="col-md-6">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% for error in field.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-
-                        <!-- Nanopore Sequencing Results -->
-                        <div id="nanopore-sequencing-results" style="display:none;">
-                            <div class="p-2 mb-3 bg-secondary text-white rounded">
-                                <h5 class="mb-0">Nanopore Sequencing Results</h5>
-                            </div>
-                            <div class="row g-3 mb-3">
-                                {% for field in form %}
-                                    {% if field.name|startswith:"nano_" and field.name in "nano_amikacin,nano_bedaquiline,nano_capreomycin,nano_clofazimine,nano_delamanid,nano_ethambutol,nano_ethionamide,nano_isoniazid,nano_kanamycin,nano_levofloxacin,nano_linezolid,nano_moxifloxacin,nano_pretomanid,nano_pyrazinamide,nano_rifampicin,nano_streptomycin"|split:"," %}
-                                    <div class="col-md-3">
-                                        {{ field.label_tag }}
-                                        {{ field }}
-                                        {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
+                        {% include "nanopore/laboratory/zonal/_nanopore_section.html" %}
 
                         <!-- Remarks -->
                         <div class="p-2 mb-3 bg-secondary text-white rounded">
@@ -465,27 +376,20 @@
 
 {% block extra_scripts %}
 {% if not form.lab_number_only %}
-
 <script src="{% static 'custom_js/culture_performed_fields.js' %}"></script>
 <script src="{% static 'custom_js/culture_method_fields.js' %}"></script>
 <script src="{% static 'custom_js/lj_mgit_results_fields.js' %}"></script>
 <script src="{% static 'custom_js/culture_isolate_fileds.js' %}"></script>
-<script src="{% static 'custom_js/phenotypic_dst_fields.js' %}"></script>
-<script src="{% static 'custom_js/first_line_phenotypic_dst_fields.js' %}"></script>
-<script src="{% static 'custom_js/rifampicin_isoniazid_ethambutol.js' %}"></script>
-<script src="{% static 'custom_js/second_line_phenotypic_dst_fields.js' %}"></script>
 <script src="{% static 'custom_js/xpert_xdr_performed_fields.js' %}"></script>
 <script src="{% static 'custom_js/lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/first_line_lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/second_line_lpa_fields.js' %}"></script>
+{% endif %}
 <script src="{% static 'custom_js/nanopore_sequencing_fields.js' %}"></script>
 <script src="{% static 'custom_js/epi_to_me_fields.js' %}"></script>
 <script src="{% static 'custom_js/sequencing_delayed.js' %}"></script>
 <script src="{% static 'custom_js/sequencing_delayed_reasons.js' %}"></script>
 <script src="{% static 'custom_js/nanopore_results_fields.js' %}"></script >
-
-
-{% endif %}
 {% endblock %}
 
 

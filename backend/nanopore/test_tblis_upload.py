@@ -6,8 +6,10 @@ import tempfile
 import openpyxl
 from django.test import SimpleTestCase
 
-from nanopore.models import EdcsTblisMismatch, EdcsTblisZonal, TblisRawData, TblisUploadBatch
-from nanopore.tasks_tblis_raw import process_raw_tblis_upload
+from locations.models import Zone
+from nanopore.models import EdcsTblisMismatch, EdcsTblisZonal, Screening, TblisRawData, TblisUploadBatch, ZonalLaboratory
+from nanopore.models.discrepancies import TblisNotInEdcs
+from nanopore.tasks_tblis_raw import process_raw_tblis_upload, sync_zonal_laboratory_daily
 from nanopore.tblis_file import TblisFileError, filter_rows, read_tblis_file
 from nanopore.test_access import AccessTestBase
 from options.models import CultureMethod, YesNo
@@ -125,11 +127,12 @@ class FilterRowsTests(SimpleTestCase):
             self.row("Sputum", "Not Provided"),
             self.row("Sputum", ""),
             self.row("Isolate", DETECTED),
+            self.row("Isolate", "Not Provided"),  # isolates often have no GeneXpert
             self.row("Not Provided", DETECTED),
         ]
         kept, left_out = filter_rows(rows)
-        self.assertEqual(len(kept), 3)
-        self.assertEqual(left_out, {"genexpert_not_detected": 1, "genexpert_missing": 2, "not_sputum": 2})
+        self.assertEqual(len(kept), 5)
+        self.assertEqual(left_out, {"genexpert_not_detected": 1, "genexpert_missing": 2, "not_sputum": 1})
 
 
 class UploadTaskTests(AccessTestBase):
@@ -163,20 +166,18 @@ class UploadTaskTests(AccessTestBase):
         result = self.run_upload(dry_run=True)
         self.assertTrue(result["preview"])
         self.assertEqual(result["rows_in_file"], 3)
-        self.assertEqual(result["rows_kept"], 1)
+        self.assertEqual(result["rows_kept"], 2)
         self.assertEqual(result["updated"], 1)
+        self.assertEqual(result["isolates_unmatched"], 1)
         self.assertEqual(TblisUploadBatch.objects.count(), 0)
         self.assertEqual(TblisRawData.objects.count(), 0)
         self.assertFalse(EdcsTblisZonal.objects.filter(screening=self.screening).exists())
 
     def test_upload_keeps_only_filtered_rows_and_merges(self):
         result = self.run_upload(dry_run=False)
-        self.assertEqual(result["rows_left_out"], 2)
-        self.assertEqual(
-            result["left_out_by_reason"],
-            {"GeneXpert: MTB Not Detected": 1, "Specimen is not Sputum": 1},
-        )
-        self.assertEqual(list(TblisRawData.objects.values_list("labno", flat=True)), [self.zonal.unique_lab_no])
+        self.assertEqual(result["rows_left_out"], 1)
+        self.assertEqual(result["left_out_by_reason"], {"GeneXpert: MTB Not Detected": 1})
+        self.assertEqual(set(TblisRawData.objects.values_list("labno", flat=True)), {self.zonal.unique_lab_no, "99998"})
         edcs = EdcsTblisZonal.objects.get(screening=self.screening)
         self.assertEqual(str(edcs.date_sputum_received), "2025-04-23")
         self.assertEqual(edcs.culture_performed_id, 1)
@@ -195,3 +196,74 @@ class UploadTaskTests(AccessTestBase):
         finally:
             os.unlink(bad)
         self.assertIn("day/month", result["file_error"])
+
+
+class IsolateMergeTests(AccessTestBase):
+    """Other zones' isolates: TB-LIS gives the DST by the number CTRL entered; nothing else changes."""
+    HEADER = ["labno", "spectype", "peripheralres_genexpert", "rctdate", "ljdst1_date", "ljdst1_rifampicin", "LJDST1_SETUPDATE", "lj_res"]
+
+    def setUp(self):
+        YesNo.objects.get_or_create(pk=2, defaults={"name": "No", "value": 2})
+        self.yes = YesNo.objects.get(pk=1)
+        self.lab = self.zonal_labs["B1"]
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(
+            isolate_unique_lab_no="50001", date_sputum_received=datetime.date(2025, 1, 5), sample_volume=5,
+        )
+        self.paths = []
+        self.addCleanup(lambda: [os.unlink(path) for path in self.paths])
+
+    def upload(self, *rows):
+        path = write_csv(list(rows), header=self.HEADER)
+        self.paths.append(path)
+        return process_raw_tblis_upload.apply(args=[path, None, "test.csv"]).get()
+
+    def isolate_row(self, labno="50001", dst_date="2025-06-01"):
+        return [labno, "Isolate", "Not Provided", "2025-05-01", dst_date, "", "2025-05-02" if dst_date else "", "Positive"]
+
+    def test_isolate_row_fills_only_the_dst_section(self):
+        result = self.upload(self.isolate_row())
+        self.assertEqual((result["isolates_merged"], result["isolates_unmatched"], result["updated"]), (1, 0, 0))
+        lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
+        self.assertEqual(lab.phenotypic_performed_id, 1)
+        self.assertEqual(lab.first_line_dst_performed_id, 1)
+        self.assertEqual(str(lab.first_line_dst_results_date), "2025-06-01")
+        # The site's sections stay as they were, and the sync carries the DST to EDCS/TBLIS
+        self.assertEqual(str(lab.date_sputum_received), "2025-01-05")
+        self.assertEqual(lab.sample_volume, 5)
+        self.assertIsNone(lab.lj_results_id)
+        edcs = EdcsTblisZonal.objects.get(screening=lab.screening)
+        self.assertEqual(edcs.first_line_dst_performed_id, 1)
+
+    def test_row_without_dst_does_not_undo_a_yes(self):
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(first_line_dst_performed=self.yes)
+        self.upload(self.isolate_row(dst_date=""))
+        lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
+        self.assertEqual(lab.first_line_dst_performed_id, 1)
+        self.assertEqual(lab.second_line_dst_performed_id, 2)
+
+    def test_unmatched_isolate_is_reported(self):
+        result = self.upload(self.isolate_row(labno="50002"))
+        self.assertEqual((result["isolates_merged"], result["isolates_unmatched"]), (0, 1))
+        self.assertTrue(TblisNotInEdcs.objects.filter(labno="50002").exists())
+        self.assertIsNone(ZonalLaboratory.objects.get(pk=self.lab.pk).first_line_dst_performed_id)
+
+    def test_isolate_row_never_merges_by_unique_lab_number(self):
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(isolate_unique_lab_no=None, unique_lab_no="50001")
+        self.upload(self.isolate_row())
+        self.assertIsNone(ZonalLaboratory.objects.get(pk=self.lab.pk).first_line_dst_performed_id)
+
+    def test_dar_records_ignore_isolate_rows(self):
+        Screening.objects.filter(pk=self.lab.screening_id).update(pid="DF_TZ_SS2_18_009")
+        Zone.objects.filter(pk=self.zone_b.pk).update(name="Dar es salaam")
+        self.upload(self.isolate_row())
+        self.assertIsNone(ZonalLaboratory.objects.get(pk=self.lab.pk).first_line_dst_performed_id)
+
+    def test_number_entered_after_the_upload_merges_at_once_and_daily(self):
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(isolate_unique_lab_no=None)
+        self.upload(self.isolate_row())
+        lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
+        self.assertIsNone(lab.first_line_dst_performed_id)
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(isolate_unique_lab_no="50001")
+        sync_zonal_laboratory_daily.apply().get()
+        self.assertEqual(ZonalLaboratory.objects.get(pk=self.lab.pk).first_line_dst_performed_id, 1)
+        self.assertEqual(EdcsTblisZonal.objects.get(screening=lab.screening).first_line_dst_performed_id, 1)

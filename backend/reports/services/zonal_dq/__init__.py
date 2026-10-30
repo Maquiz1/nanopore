@@ -3,6 +3,7 @@ from . duplicates import get_duplicate_lab_numbers
 from . main import get_zonal_counts, get_zonal_dq
 from . problem_lists import get_zonal_problem_lists
 from . queryset import get_zonal_queryset
+from . ctrl import get_ctrl_isolate_counts, get_ctrl_isolates_queryset, to_complete_q
 from . serializers import serialize_record
 from . stats import get_zonal_stats
 

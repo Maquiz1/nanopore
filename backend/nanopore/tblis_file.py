@@ -9,8 +9,10 @@ dates that cannot be read are reported, and a CSV whose day/month order cannot
 be worked out is refused.
 
 Then only the rows the study uses are kept (filter_rows):
-  * spectype is Sputum, and
-  * peripheralres_genexpert is "MTB Detected ..." or "MTB Trace Detected ...".
+  * Dar es Salaam samples: spectype is Sputum, and peripheralres_genexpert is
+    "MTB Detected ..." or "MTB Trace Detected ...".
+  * Other zones' isolates sent to CTRL: spectype is Isolate. They give the DST
+    only (tasks_tblis_raw.merge_isolate_dst) and often have no GeneXpert.
 Everything else ("MTB Not Detected", "Not Provided", blank, other specimens) is
 left out of the merge.
 """
@@ -36,7 +38,7 @@ ISO_DATE = re.compile(r"^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T].*)?$")
 SLASH_DATE = re.compile(r"^(\d{1,2})[/.](\d{1,2})[/.](\d{4})(?:\s.*)?$")
 
 FILTER_REASONS = {
-    "not_sputum": "Specimen is not Sputum",
+    "not_sputum": "Specimen is not Sputum or Isolate",
     "genexpert_not_detected": "GeneXpert: MTB Not Detected",
     "genexpert_missing": "GeneXpert: Not Provided / blank",
     "genexpert_other": "GeneXpert: other result",
@@ -222,8 +224,14 @@ def normalize_dates(rows, date_order):
 
 # ── filtering ──────────────────────────────────────────────────────────────
 
+def is_isolate(row):
+    return row.get("spectype", "").strip().lower() == "isolate"
+
+
 def filter_reason(row):
     """None when the row is used for the merge, otherwise the reason it's left out."""
+    if is_isolate(row):
+        return None
     if row.get("spectype", "").strip().lower() != "sputum":
         return "not_sputum"
     genexpert = row.get("peripheralres_genexpert", "").strip().lower()

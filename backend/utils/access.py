@@ -41,7 +41,8 @@ ZONAL_LAB = "zonal_lab"
 EDCS_TBLIS = "edcs_tblis"
 DIAGNOSIS = "diagnosis"
 REGIMEN = "regimen"
-ALL_FORMS = frozenset([SCREENING, ENROLLMENT, CLINIC_LAB, ZONAL_LAB, EDCS_TBLIS, DIAGNOSIS, REGIMEN])
+CTRL_ISOLATES = "ctrl_isolates"  # the part of other zones' Zonal Lab forms that CTRL enters
+ALL_FORMS = frozenset([SCREENING, ENROLLMENT, CLINIC_LAB, ZONAL_LAB, EDCS_TBLIS, DIAGNOSIS, REGIMEN, CTRL_ISOLATES])
 CLINICAL_FORMS = frozenset([SCREENING, ENROLLMENT, CLINIC_LAB, DIAGNOSIS, REGIMEN])
 LAB_FORMS = frozenset([ZONAL_LAB, EDCS_TBLIS])
 
@@ -79,6 +80,7 @@ ROLE_FEATURES = {
     ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, DELETE_RECORDS]),
 }
 UNSCOPED_ROLES = frozenset([ADMIN, REVIEWER])
+CTRL_LAB_SITE = "ctrl laboratory"
 # Data managers and statisticians export every site, whatever their assignment
 # (their pages still follow their assignment).
 ALL_SITES_EXPORT_ROLES = frozenset([DATA_MANAGER, STATISTICIAN])
@@ -145,8 +147,21 @@ def is_unscoped(user):
     return bool(getattr(user, "is_superuser", False)) or has_role(user, *UNSCOPED_ROLES)
 
 
+def is_ctrl_lab(user):
+    """A laboratory technician assigned to the CTRL Laboratory: enters other zones' isolate numbers and DST."""
+    if not has_role(user, LABORATORY_TECHNICIAN):
+        return False
+    cache = _cache(user)
+    if "ctrl_lab" not in cache:
+        profile = getattr(user, "profile", None)
+        cache["ctrl_lab"] = bool(profile and profile.sites.filter(name__iexact=CTRL_LAB_SITE).exists())
+    return cache["ctrl_lab"]
+
+
 def can_edit(user, form):
     if getattr(user, "is_superuser", False):
+        return True
+    if form == CTRL_ISOLATES and is_ctrl_lab(user):
         return True
     return any(form in ROLE_FORMS_EDIT.get(role, ()) for role in get_user_roles(user))
 

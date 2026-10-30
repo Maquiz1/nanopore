@@ -98,7 +98,8 @@ class DateIssuesView(LoginRequiredMixin, View):
                 if record is None:
                     continue
                 edit_url, view_url = FORM_URLS[form]
-                can_edit = access.can_edit(request.user, form)
+                # EDCS/TBLIS records are read only: their page says where to fix them
+                can_edit = form != access.EDCS_TBLIS and access.can_edit(request.user, form)
                 regimen = form == access.DIAGNOSIS and access.REGIMEN in forms
                 links.append({"label": "Diagnosis (regimen changes)" if regimen else FORMS[form][0],
                               "url_name": edit_url if can_edit else view_url, "pk": record.pk, "edit": can_edit,

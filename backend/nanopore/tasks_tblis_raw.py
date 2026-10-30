@@ -16,6 +16,7 @@ from nanopore.models import (
     ZonalLaboratory,
 )
 from nanopore.models.discrepancies import TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
+from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
 from options.models import (
     SampleAppearance, YesNo, CultureMethod, MicroscopyType, CultureMicroscopyResults,
     LJCultureResult, MGITCultureResult, YesNoNA, PhenotypicDSTResults,
@@ -26,7 +27,7 @@ from options.models import (
 )
 
 from nanopore.tblis_file import (
-    FILTER_REASONS, MAX_REPORTED_PROBLEMS, TblisFileError, filter_rows, read_tblis_file,
+    FILTER_REASONS, MAX_REPORTED_PROBLEMS, TblisFileError, filter_rows, is_isolate, read_tblis_file,
 )
 # Helper functions from utils or duplicated logic (simplified for chunk processing)
 from utils.edcs_tblis_helpers import safe_int, safe_decimal, parse_date_field, get_foreign, split_m2m
@@ -180,11 +181,8 @@ def get_ctrl_prefix_query():
     return prefix_query
 
 # --- TRANSFORMATION LOGIC ---
-def apply_tblis_transformations(edcs_zonal, clean_row, labno):
-    """
-    Applies all TBLIS specific mapping transformations directly to the EdcsTblisZonal object,
-    overwriting fields where TBLIS data is present and logging mismatches.
-    """
+def mismatch_logger(record, labno):
+    """log_mismatch(field, old, new): records where the form and TBLIS disagree."""
     def same_value(old_val, new_val):
         try:  # numbers: 2.0 and "2" are the same volume
             return Decimal(str(old_val).strip()) == Decimal(str(new_val).strip())
@@ -193,11 +191,137 @@ def apply_tblis_transformations(edcs_zonal, clean_row, labno):
 
     def log_mismatch(field, old_val, new_val):
         if old_val and new_val and not same_value(old_val, new_val):
-            pid = edcs_zonal.screening.pid if hasattr(edcs_zonal, 'screening') and edcs_zonal.screening else None
+            pid = record.screening.pid if hasattr(record, 'screening') and record.screening else None
             EdcsTblisMismatch.objects.create(
                 labno=labno, pid=pid, field_name=field, 
                 edcs_value=str(old_val), tblis_value=str(new_val)
             )
+    return log_mismatch
+
+
+def apply_tblis_dst(edcs_zonal, clean_row, log_mismatch):
+    """The phenotypic DST section of a TBLIS row: performed, dates and results."""
+    # Phenotypic DST Date
+    mgitdst1_date = clean_row.get("mgitdst1_date")
+    mgitdst2_date = clean_row.get("mgitdst2_date")
+    ljdst1_date = clean_row.get("ljdst1_date")
+    ljdst2_date = clean_row.get("ljdst2_date")
+    
+    # DST set-up dates (the day the DST was performed). TBLIS only has them for LJ.
+    ljdst1_setupdate = clean_row.get("LJDST1_SETUPDATE")
+    ljdst2_setupdate = clean_row.get("LJDST2_SETUPDATE")
+    
+    pheno_date = mgitdst1_date or mgitdst2_date or ljdst1_date or ljdst2_date
+    pheno_perf_val = 1 if pheno_date else 2
+    log_mismatch("phenotypic_performed_id", edcs_zonal.phenotypic_performed_id, pheno_perf_val)
+    edcs_zonal.phenotypic_performed_id = pheno_perf_val
+    if pheno_date:
+        parsed_pheno_date = parse_date_field(pheno_date)
+        log_mismatch("phenotypic_date_performed", edcs_zonal.phenotypic_date_performed, parsed_pheno_date)
+        edcs_zonal.phenotypic_date_performed = parsed_pheno_date
+
+    # First and Second Line DST Performed (data dictionary): performed when there is
+    # a DST result date. The performed DATE is the DST set-up date
+    # (LJDST1_SETUPDATE / LJDST2_SETUPDATE), not the TBLIS data-entry date; MGIT
+    # DST has no set-up date in TBLIS, so it stays empty for MGIT-only DST.
+    first_line_perf_date = ljdst1_setupdate
+    first_perf_val = 1 if (mgitdst1_date or ljdst1_date) else 2
+    log_mismatch("first_line_dst_performed_id", edcs_zonal.first_line_dst_performed_id, first_perf_val)
+    edcs_zonal.first_line_dst_performed_id = first_perf_val
+    if first_line_perf_date:
+        parsed_first_perf = parse_date_field(first_line_perf_date)
+        log_mismatch("first_line_dst_performed_date", edcs_zonal.first_line_dst_performed_date, parsed_first_perf)
+        edcs_zonal.first_line_dst_performed_date = parsed_first_perf
+
+    second_line_perf_date = ljdst2_setupdate
+    second_perf_val = 1 if (mgitdst2_date or ljdst2_date) else 2
+    log_mismatch("second_line_dst_performed_id", edcs_zonal.second_line_dst_performed_id, second_perf_val)
+    edcs_zonal.second_line_dst_performed_id = second_perf_val
+    if second_line_perf_date:
+        parsed_second_perf = parse_date_field(second_line_perf_date)
+        log_mismatch("second_line_dst_performed_date", edcs_zonal.second_line_dst_performed_date, parsed_second_perf)
+        edcs_zonal.second_line_dst_performed_date = parsed_second_perf
+
+
+    # First and Second Line DST Results Dates. Each date comes from the same source
+    # as the results shown: first-line results prefer LJ (MGIT as fallback), so
+    # does the date; second-line results come from MGIT.
+    first_line_res_date = ljdst1_date or mgitdst1_date
+    if first_line_res_date:
+        parsed_first_res = parse_date_field(first_line_res_date)
+        log_mismatch("first_line_dst_results_date", edcs_zonal.first_line_dst_results_date, parsed_first_res)
+        edcs_zonal.first_line_dst_results_date = parsed_first_res
+
+    second_line_res_date = mgitdst2_date or ljdst2_date
+    if second_line_res_date:
+        parsed_second_res = parse_date_field(second_line_res_date)
+        log_mismatch("second_line_dst_results_date", edcs_zonal.second_line_dst_results_date, parsed_second_res)
+        edcs_zonal.second_line_dst_results_date = parsed_second_res
+
+    # Phenotypic DST Results
+    def apply_dst(edcs_field, tblis_col, override_col=None):
+        tblis_str = clean_row.get(tblis_col)
+        override_str = clean_row.get(override_col) if override_col else None
+        
+        val = phenotypic_results_map.get(tblis_str) if tblis_str else None
+        if override_str:
+            over_val = phenotypic_results_map.get(override_str)
+            if over_val and (not val or val == 5):
+                val = over_val
+                
+        if val:
+            existing = getattr(edcs_zonal, f"{edcs_field}_id", None)
+            log_mismatch(edcs_field, existing, val)
+            setattr(edcs_zonal, f"{edcs_field}_id", val)
+
+    apply_dst("rifampicin", "ljdst1_rifampicin", "mgitdst1_rifampicin")
+    apply_dst("isoniazid", "ljdst1_isoniazid", "mgitdst1_isoniazid")
+    apply_dst("levofloxacin", "mgitdst2_levofloxacin")
+    apply_dst("bedaquiline", "mgitdst2_bedaquiline")
+    apply_dst("linezolid", "mgitdst2_linezolid")
+    apply_dst("clofazimine", "mgitdst2_clofazimine")
+    apply_dst("cycloserine", "mgitdst2_cycloserine")
+    apply_dst("ethambutol", "ljdst1_ethambutol", "mgitdst1_ethambutol")
+    apply_dst("delamanid", "mgitdst2_delamanid")
+    apply_dst("ethionamide", "mgitdst2_ethionamide")
+    apply_dst("prothionamide", "mgitdst2_prothionamide")
+    apply_dst("para_aminosalicylic_acid", "mgitdst2_pas")
+    apply_dst("pretomanid", "mgitdst2_pretomanid")
+
+
+def merge_isolate_dst(z_lab, clean_row):
+    """
+    Another zone's isolate: CTRL's TBLIS row gives the DST section of its Zonal Lab
+    form, saved there so the daily sync carries it to EDCS/TBLIS. The other sections
+    stay as the site entered them. A row without a DST date doesn't undo a Yes.
+    """
+    answers = ("phenotypic_performed_id", "first_line_dst_performed_id", "second_line_dst_performed_id")
+    before = {name: getattr(z_lab, name) for name in answers}
+    apply_tblis_dst(z_lab, clean_row, mismatch_logger(z_lab, clean_row.get("labno")))
+    for name, value in before.items():
+        if value == 1 and getattr(z_lab, name) == 2:
+            setattr(z_lab, name, value)
+    z_lab.save()
+
+
+def merge_isolate_from_raw(z_lab):
+    """Apply the latest uploaded isolate row with this form's isolate number. True when there was one."""
+    if not z_lab.isolate_unique_lab_no:
+        return False
+    raw_entry = (TblisRawData.objects.filter(labno=z_lab.isolate_unique_lab_no, raw_data__spectype__iexact="isolate")
+                 .order_by("-uploaded_at").first())
+    if raw_entry is None:
+        return False
+    merge_isolate_dst(z_lab, raw_entry.raw_data)
+    return True
+
+
+def apply_tblis_transformations(edcs_zonal, clean_row, labno):
+    """
+    Applies all TBLIS specific mapping transformations directly to the EdcsTblisZonal object,
+    overwriting fields where TBLIS data is present and logging mismatches.
+    """
+    log_mismatch = mismatch_logger(edcs_zonal, labno)
 
     # Appearance mapping
     app_str = clean_row.get("appearance_tblis") or clean_row.get("appearance")
@@ -324,92 +448,7 @@ def apply_tblis_transformations(edcs_zonal, clean_row, labno):
         log_mismatch("mgit_results_id", edcs_zonal.mgit_results_id, mgit_res_val)
         edcs_zonal.mgit_results_id = mgit_res_val
 
-    # Phenotypic DST Date
-    mgitdst1_date = clean_row.get("mgitdst1_date")
-    mgitdst2_date = clean_row.get("mgitdst2_date")
-    ljdst1_date = clean_row.get("ljdst1_date")
-    ljdst2_date = clean_row.get("ljdst2_date")
-    
-    # DST set-up dates (the day the DST was performed). TBLIS only has them for LJ.
-    ljdst1_setupdate = clean_row.get("LJDST1_SETUPDATE")
-    ljdst2_setupdate = clean_row.get("LJDST2_SETUPDATE")
-    
-    pheno_date = mgitdst1_date or mgitdst2_date or ljdst1_date or ljdst2_date
-    pheno_perf_val = 1 if pheno_date else 2
-    log_mismatch("phenotypic_performed_id", edcs_zonal.phenotypic_performed_id, pheno_perf_val)
-    edcs_zonal.phenotypic_performed_id = pheno_perf_val
-    if pheno_date:
-        parsed_pheno_date = parse_date_field(pheno_date)
-        log_mismatch("phenotypic_date_performed", edcs_zonal.phenotypic_date_performed, parsed_pheno_date)
-        edcs_zonal.phenotypic_date_performed = parsed_pheno_date
-
-    # First and Second Line DST Performed (data dictionary): performed when there is
-    # a DST result date. The performed DATE is the DST set-up date
-    # (LJDST1_SETUPDATE / LJDST2_SETUPDATE), not the TBLIS data-entry date; MGIT
-    # DST has no set-up date in TBLIS, so it stays empty for MGIT-only DST.
-    first_line_perf_date = ljdst1_setupdate
-    first_perf_val = 1 if (mgitdst1_date or ljdst1_date) else 2
-    log_mismatch("first_line_dst_performed_id", edcs_zonal.first_line_dst_performed_id, first_perf_val)
-    edcs_zonal.first_line_dst_performed_id = first_perf_val
-    if first_line_perf_date:
-        parsed_first_perf = parse_date_field(first_line_perf_date)
-        log_mismatch("first_line_dst_performed_date", edcs_zonal.first_line_dst_performed_date, parsed_first_perf)
-        edcs_zonal.first_line_dst_performed_date = parsed_first_perf
-
-    second_line_perf_date = ljdst2_setupdate
-    second_perf_val = 1 if (mgitdst2_date or ljdst2_date) else 2
-    log_mismatch("second_line_dst_performed_id", edcs_zonal.second_line_dst_performed_id, second_perf_val)
-    edcs_zonal.second_line_dst_performed_id = second_perf_val
-    if second_line_perf_date:
-        parsed_second_perf = parse_date_field(second_line_perf_date)
-        log_mismatch("second_line_dst_performed_date", edcs_zonal.second_line_dst_performed_date, parsed_second_perf)
-        edcs_zonal.second_line_dst_performed_date = parsed_second_perf
-
-
-    # First and Second Line DST Results Dates. Each date comes from the same source
-    # as the results shown: first-line results prefer LJ (MGIT as fallback), so
-    # does the date; second-line results come from MGIT.
-    first_line_res_date = ljdst1_date or mgitdst1_date
-    if first_line_res_date:
-        parsed_first_res = parse_date_field(first_line_res_date)
-        log_mismatch("first_line_dst_results_date", edcs_zonal.first_line_dst_results_date, parsed_first_res)
-        edcs_zonal.first_line_dst_results_date = parsed_first_res
-
-    second_line_res_date = mgitdst2_date or ljdst2_date
-    if second_line_res_date:
-        parsed_second_res = parse_date_field(second_line_res_date)
-        log_mismatch("second_line_dst_results_date", edcs_zonal.second_line_dst_results_date, parsed_second_res)
-        edcs_zonal.second_line_dst_results_date = parsed_second_res
-
-    # Phenotypic DST Results
-    def apply_dst(edcs_field, tblis_col, override_col=None):
-        tblis_str = clean_row.get(tblis_col)
-        override_str = clean_row.get(override_col) if override_col else None
-        
-        val = phenotypic_results_map.get(tblis_str) if tblis_str else None
-        if override_str:
-            over_val = phenotypic_results_map.get(override_str)
-            if over_val and (not val or val == 5):
-                val = over_val
-                
-        if val:
-            existing = getattr(edcs_zonal, f"{edcs_field}_id", None)
-            log_mismatch(edcs_field, existing, val)
-            setattr(edcs_zonal, f"{edcs_field}_id", val)
-
-    apply_dst("rifampicin", "ljdst1_rifampicin", "mgitdst1_rifampicin")
-    apply_dst("isoniazid", "ljdst1_isoniazid", "mgitdst1_isoniazid")
-    apply_dst("levofloxacin", "mgitdst2_levofloxacin")
-    apply_dst("bedaquiline", "mgitdst2_bedaquiline")
-    apply_dst("linezolid", "mgitdst2_linezolid")
-    apply_dst("clofazimine", "mgitdst2_clofazimine")
-    apply_dst("cycloserine", "mgitdst2_cycloserine")
-    apply_dst("ethambutol", "ljdst1_ethambutol", "mgitdst1_ethambutol")
-    apply_dst("delamanid", "mgitdst2_delamanid")
-    apply_dst("ethionamide", "mgitdst2_ethionamide")
-    apply_dst("prothionamide", "mgitdst2_prothionamide")
-    apply_dst("para_aminosalicylic_acid", "mgitdst2_pas")
-    apply_dst("pretomanid", "mgitdst2_pretomanid")
+    apply_tblis_dst(edcs_zonal, clean_row, log_mismatch)
     
     # Xpert XDR performed: Yes when TBLIS has gxxdr_date, otherwise No (same as
     # DST and LPA performed).
@@ -573,6 +612,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
     row_errors = []
     created = 0
     updated = 0
+    isolates_merged = 0
+    isolates_unmatched = 0
     upload_batch = TblisUploadBatch.objects.create(
         source_file_name=source_filename,
         uploaded_by_id=user_id,
@@ -600,6 +641,20 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
                     uploaded_by_id=user_id,
                     upload_batch=upload_batch,
                 )
+
+                # Other zones' isolates match on the number CTRL entered, and give the DST only
+                if is_isolate(clean_row):
+                    z_lab = ZonalLaboratory.objects.exclude(LAB_NUMBER_ONLY_Q).filter(isolate_unique_lab_no=labno).first()
+                    if z_lab:
+                        merge_isolate_dst(z_lab, clean_row)
+                        raw_entry.is_merged = True
+                        raw_entry.save(update_fields=['is_merged'])
+                        isolates_merged += 1
+                    else:
+                        TblisNotInEdcs.objects.create(labno=labno, raw_data=clean_row)
+                        isolates_unmatched += 1
+                    processed += 1
+                    continue
 
                 # 2. Find matching ZonalLaboratory record
                 z_lab = ZonalLaboratory.objects.filter(unique_lab_no=labno).first()
@@ -697,6 +752,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
         "total": total,
         "created": created,
         "updated": updated,
+        "isolates_merged": isolates_merged,
+        "isolates_unmatched": isolates_unmatched,
         "errors": row_errors,
         "state": "SUCCESS",
         "upload_batch_id": upload_batch.id,
@@ -726,6 +783,8 @@ def sync_zonal_laboratory_daily():
                     break
                     
             clean_row = None
+            if not is_ctrl_lab:
+                merge_isolate_from_raw(z_lab)
             if is_ctrl_lab:
                 # Find the latest TBLIS raw data for this labno
                 raw_entry = TblisRawData.objects.filter(labno=z_lab.unique_lab_no).order_by('-uploaded_at').first()

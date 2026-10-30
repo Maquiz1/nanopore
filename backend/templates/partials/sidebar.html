@@ -126,6 +126,10 @@
                 <a href="{% url 'reports:zonal_quality_report' %}"><span>Zonal Lab</span>
                     <span class="sb-badge sb-badge-sm">{{ context_zonal_report_total|intcomma }}</span></a>
                 {% endif %}
+                {% if access.queries.ctrl_isolates %}
+                <a href="{% url 'reports:ctrl_isolates' %}"><span>CTRL isolates</span>
+                    {% if context_ctrl_isolates_report_total %}<span class="sb-badge sb-badge-sm">{{ context_ctrl_isolates_report_total|intcomma }}</span>{% endif %}</a>
+                {% endif %}
                 {% if access.queries.edcs_tblis and context_edcs_tblis_report_total %}
                 <a href="{% url 'reports:edcs_tblis_quality_report' %}"><span>EDCS / TBLIS</span>
                     <span class="sb-badge sb-badge-sm">{{ context_edcs_tblis_report_total|intcomma }}</span></a>
