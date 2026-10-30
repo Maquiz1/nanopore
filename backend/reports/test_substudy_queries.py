@@ -104,9 +104,38 @@ class QueryTrendsAccessTests(AccessTestBase):
             self.make_user("dm", [access.DATA_MANAGER], zones=[self.zone_a]),
             self.make_user("coord", [access.COORDINATOR], zones=[self.zone_a]),
             self.make_user("coord2", zones=[self.zone_a], position="Coordinator"),  # by position
+            self.make_user("stat", [access.STATISTICIAN], sites=[self.a1]),
+            self.make_user("rev", [access.REVIEWER]),
+            self.make_user("rev2", position="Reviewer"),  # by position
         ]
         for user in allowed:
             self.client.force_login(user)
             self.assertEqual(self.client.get(url).status_code, 200, user.username)
         self.client.force_login(self.make_user("nurse", [access.NURSE], sites=[self.a1]))
         self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_statistician_and_reviewer_see_the_data_quality_section(self):
+        trends = reverse("reports:query_trends")
+        download = reverse("reports:substudy_download", args=["substudy2"])
+        users = [self.make_user("stat", [access.STATISTICIAN], sites=[self.a1]), self.make_user("rev", [access.REVIEWER])]
+        for user in users:
+            cache.clear()
+            self.client.force_login(user)
+            page = self.client.get(reverse("dashboard:dashboard"))
+            self.assertContains(page, "Data quality")
+            self.assertContains(page, trends)
+            self.assertContains(page, download)
+            self.assertContains(page, reverse("reports:substudy_queries"))
+            self.assertContains(page, reverse("reports:date_issues"))
+            self.assertEqual(self.client.get(download).status_code, 200, user.username)
+
+    def test_substudy_download_link_stays_hidden_from_others(self):
+        cache.clear()
+        self.client.force_login(self.make_user("nurse", [access.NURSE], sites=[self.a1]))
+        self.assertNotContains(self.client.get(reverse("dashboard:dashboard")),
+                               reverse("reports:substudy_download", args=["substudy2"]))
+
+    def test_reviewer_trends_count_not_eligible_like_the_live_page(self):
+        from reports.services.query_snapshot import is_visible
+        self.assertTrue(is_visible(self.make_user("rev", [access.REVIEWER]), "screening", "not_eligible"))
+        self.assertFalse(is_visible(self.make_user("stat", [access.STATISTICIAN], sites=[self.a1]), "screening", "not_eligible"))

@@ -162,7 +162,7 @@
         </a>
         {% endif %}
 
-        {% if access.is_admin %}
+        {% if access.is_admin or "STATISTICIAN" in access.roles or "REVIEWER" in access.roles %}
         <div class="sb-group">
             <button type="button" class="sb-link sb-toggle" title="Substudy downloads">
                 <i class="fas fa-file-excel"></i><span>Substudy downloads</span><i class="fas fa-chevron-right sb-chevron"></i>

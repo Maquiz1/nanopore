@@ -25,7 +25,7 @@ from utils import access
 
 # Queries the live pages count but leave out of their totals.
 NOT_COUNTED = {("diagnosis", "long_treatment_qs")}
-# Queries only admins see (screening shows "not eligible" to full-access users only).
+# Queries only full-access users see (admins and reviewers: screening's "not eligible").
 ADMIN_ONLY = {("screening", "not_eligible")}
 
 
@@ -110,8 +110,8 @@ def take_snapshot(snapshot_date=None):
 
 def is_visible(user, form, query):
     """Query trends show every count in the viewer's zones/sites (the page is for people
-    following query resolution: admins, data specialists/managers, coordinators)."""
+    following query resolution: admins, data specialists/managers, coordinators, statisticians, reviewers)."""
     if (form, query) in ADMIN_ONLY:
-        return access.AccessFlags(user).is_admin
+        return access.is_unscoped(user)
     return True
 

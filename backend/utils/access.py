@@ -74,8 +74,8 @@ ROLE_FEATURES = {
     DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, SNAPSHOTS]),
     DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, SNAPSHOTS]),
     COORDINATOR: frozenset([SNAPSHOTS]),  # query trends of the zones/sites they are assigned
-    STATISTICIAN: frozenset([REPORTS, EXPORTS]),
-    REVIEWER: frozenset([REPORTS]),
+    STATISTICIAN: frozenset([REPORTS, EXPORTS, SNAPSHOTS]),
+    REVIEWER: frozenset([REPORTS, SNAPSHOTS]),
     ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, DELETE_RECORDS]),
 }
 UNSCOPED_ROLES = frozenset([ADMIN, REVIEWER])
@@ -131,6 +131,8 @@ def get_user_roles(user):
             roles.add(DATA_MANAGER)
         elif position.startswith("statist"):  # also the misspelt "Statistiician" position
             roles.add(STATISTICIAN)
+        elif position == "reviewer":
+            roles.add(REVIEWER)
         cache["roles"] = frozenset(roles)
     return cache["roles"]
 
