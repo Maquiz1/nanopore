@@ -5,14 +5,16 @@ import tempfile
 
 import openpyxl
 from django.test import SimpleTestCase
+from django.urls import reverse
 
-from locations.models import Zone
+from locations.models import Site, Zone
 from nanopore.models import EdcsTblisMismatch, EdcsTblisZonal, Screening, TblisRawData, TblisUploadBatch, ZonalLaboratory
-from nanopore.models.discrepancies import TblisNotInEdcs
+from nanopore.models.discrepancies import TblisFollowUp, TblisNotInEdcs
 from nanopore.tasks_tblis_raw import process_raw_tblis_upload, sync_zonal_laboratory_daily
 from nanopore.tblis_file import TblisFileError, filter_rows, read_tblis_file
 from nanopore.test_access import AccessTestBase
 from options.models import CultureMethod, YesNo
+from utils import access
 
 HEADER = ["labno", "spectype", "peripheralres_genexpert", "rctdate", "lj_innocdate", "mgitdst1_date", "volume"]
 DETECTED = "MTB Detected - Rifampicin Sensitive"
@@ -132,7 +134,7 @@ class FilterRowsTests(SimpleTestCase):
         ]
         kept, left_out = filter_rows(rows)
         self.assertEqual(len(kept), 5)
-        self.assertEqual(left_out, {"genexpert_not_detected": 1, "genexpert_missing": 2, "not_sputum": 1})
+        self.assertEqual(left_out, {"genexpert_not_detected": 1, "genexpert_missing": 2, "specimen_missing": 1})
 
 
 class UploadTaskTests(AccessTestBase):
@@ -267,3 +269,61 @@ class IsolateMergeTests(AccessTestBase):
         sync_zonal_laboratory_daily.apply().get()
         self.assertEqual(ZonalLaboratory.objects.get(pk=self.lab.pk).first_line_dst_performed_id, 1)
         self.assertEqual(EdcsTblisZonal.objects.get(screening=lab.screening).first_line_dst_performed_id, 1)
+
+
+class TblisFollowUpTests(AccessTestBase):
+    HEADER = ["labno", "spectype", "peripheralres_genexpert", "tbregion", "hfacility", "rctdate", "ljdst1_date"]
+    URL = "/nanopore/edcs-tblis/tblis-follow-up/"
+
+    def upload(self, *rows, dry_run=False):
+        path = write_csv(list(rows), header=self.HEADER)
+        self.addCleanup(os.unlink, path)
+        return process_raw_tblis_upload.apply(args=[path, None, "test.csv"], kwargs={"dry_run": dry_run}).get()
+
+    ROWS = (
+        ["LAB-A1", "Sputum", "Not Provided", "Temeke", "Clinic A", "2025-04-23", "2025-06-01"],
+        ["70002", "Sputum", "", "Ilala", "Clinic B", "2025-04-24", ""],
+        ["70003", "Not Provided", DETECTED, "Njombe", "Clinic C", "2025-04-25", ""],
+        ["70004", "Sputum", "MTB Not Detected", "Temeke", "Clinic A", "2025-04-26", ""],
+        ["70005", "Isolate", "Not Provided", "Mwanza", "Clinic D", "2025-04-27", ""],
+        ["70006", "Sputum", DETECTED, "Temeke", "Clinic A", "2025-04-28", ""],
+    )
+
+    def test_lists_only_rows_with_something_not_recorded(self):
+        result = self.upload(*self.ROWS)
+        self.assertEqual(result["follow_up_count"], 3)
+        self.assertEqual(set(TblisFollowUp.objects.values_list("labno", "reason")),
+                         {("LAB-A1", "genexpert_missing"), ("70002", "genexpert_missing"), ("70003", "specimen_missing")})
+        self.assertTrue(TblisFollowUp.objects.get(labno="LAB-A1").has_dst)
+
+    def test_next_upload_replaces_the_list_and_preview_saves_nothing(self):
+        self.upload(*self.ROWS)
+        result = self.upload(self.ROWS[1], dry_run=True)
+        self.assertEqual(result["follow_up_count"], 1)
+        self.assertEqual(TblisFollowUp.objects.count(), 3)
+        self.upload(self.ROWS[1])
+        self.assertEqual(list(TblisFollowUp.objects.values_list("labno", flat=True)), ["70002"])
+
+    def test_page_shows_the_participant_and_filters(self):
+        self.upload(*self.ROWS)
+        self.client.force_login(self.make_user("rev_fu", [access.REVIEWER]))
+        page = self.client.get(self.URL)
+        self.assertContains(page, self.pid("A1"))
+        self.assertContains(page, "Not in EDCS")
+        self.assertEqual(len(self.client.get(self.URL, {"reason": "specimen_missing"}).context["rows"]), 1)
+        self.assertEqual(len(self.client.get(self.URL, {"region": "Ilala"}).context["rows"]), 1)
+
+    def test_who_can_open_it(self):
+        self.assertEqual(self.client.get(self.URL).status_code, 302)
+        ctrl_site = Site.objects.create(name="CTRL Laboratory", district=self.a1.district, pid_prefix="CT-", site_level=self.alab.site_level)
+        allowed = [self.make_user("fu_ds", [access.DATA_SPECIALIST], sites=[self.a1]),
+                   self.make_user("fu_stat", [access.STATISTICIAN], sites=[self.a1]),
+                   self.make_user("fu_ctrl", [access.LABORATORY_TECHNICIAN], sites=[ctrl_site])]
+        for user in allowed:
+            self.client.force_login(user)
+            self.assertEqual(self.client.get(self.URL).status_code, 200, user.username)
+            self.assertContains(self.client.get(reverse("dashboard:dashboard")), self.URL)
+        for user in (self.make_user("fu_lab", [access.LABORATORY_TECHNICIAN], sites=[self.alab]),
+                     self.make_user("fu_nurse", [access.NURSE], sites=[self.a1])):
+            self.client.force_login(user)
+            self.assertEqual(self.client.get(self.URL).status_code, 403, user.username)

@@ -7,6 +7,7 @@ from nanopore.views import (
     ZonalLabFormView,
     ZonalLabCsvUploadView
 )
+from nanopore.views.laboratory.zonal.ctrl_dar_form_views import CtrlDarLpaView, CtrlDarNanoporeView
 from nanopore.views.laboratory.zonal.ctrl_isolate_form_view import CtrlIsolateFormView
 
 urlpatterns = [
@@ -15,6 +16,8 @@ urlpatterns = [
     path("zonal-lab/form/", ZonalLabFormView.as_view(), name="zonal-laboratory-create"),
     path("zonal-lab/form/<int:pk>/", ZonalLabFormView.as_view(), name="zonal-laboratory-update"),
     path("zonal-lab/ctrl/<int:pk>/", CtrlIsolateFormView.as_view(), name="ctrl-isolate-update"),
+    path("zonal-lab/ctrl-dar/nanopore/<int:pk>/", CtrlDarNanoporeView.as_view(), name="ctrl-dar-nanopore"),
+    path("zonal-lab/ctrl-dar/lpa/<int:pk>/", CtrlDarLpaView.as_view(), name="ctrl-dar-lpa"),
     path("zonal-lab/<int:pk>/delete/", ZonalLaboratoryDeleteView.as_view(), name="zonal-laboratory-delete"),
     
     path('upload/', ZonalLabCsvUploadView.as_view(), name="zonal-upload-csv"),

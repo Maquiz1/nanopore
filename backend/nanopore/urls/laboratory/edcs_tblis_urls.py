@@ -14,7 +14,10 @@ from nanopore.views import (
     ServeCsvExportView,
 )
 
+from nanopore.views.laboratory.edcs_tblis.tblis_follow_up_view import TblisFollowUpView
+
 urlpatterns = [
+    path("tblis-follow-up/", TblisFollowUpView.as_view(), name="tblis-follow-up"),
     path("edcs-tblis-list/", EdcsTBLISLaboratoryListView.as_view(), name="edcs-tblis-laboratory-list"),
     path("edcs-tblis/form/<int:pk>/update", EdcsTblisFormView.as_view(), name="edcs-tblis-laboratory-update"),
     path("edcs-tblis/form/<int:pk>/view", EdcsTblisFormView.as_view(), name="edcs-tblis-laboratory-view"),

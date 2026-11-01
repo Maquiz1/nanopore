@@ -3,9 +3,9 @@ Zonal Lab data entry rules.
 
 Dar es Salaam (CTRL) zonal labs report their results through TBLIS: the TBLIS
 upload merges them into the EDCS/TBLIS record by lab number. So for Dar es Salaam
-participants the Zonal Lab form only takes what TBLIS can't supply, all of it
-entered by CTRL staff: the Unique Lab Number, Remarks, Nanopore and, when TBLIS
-says that LPA line was done, its band checkboxes. Every other zone enters the
+participants the Zonal Lab form only takes the Unique Lab Number and Remarks. What
+TBLIS can't supply has its own CTRL form (nanopore/forms/laboratory/zonal/ctrl_dar_forms.py):
+the isolate number, Nanopore and the LPA band checkboxes. Every other zone enters the
 full form, except CTRL_FIELDS: an isolate sent to CTRL gets its number there
 (the CTRL isolate form), and the phenotypic DST comes from the TBLIS upload by
 that number, because other zones' lab numbers are not in TBLIS.
@@ -21,7 +21,7 @@ LAB_NUMBER_ONLY_ZONE = "dar es salaam"
 # Zonal Lab records of lab-number-only participants.
 LAB_NUMBER_ONLY_Q = Q(screening__site__district__region__zone__name__iexact=LAB_NUMBER_ONLY_ZONE)
 
-# Fields of the Dar es Salaam form, beside the LPA band checkboxes (see lpa_lines_done)
+# Fields of the Dar es Salaam Zonal Lab form
 LAB_NUMBER_ONLY_FIELDS = ("screening", "unique_lab_no", "remarks")
 NANOPORE_PREFIXES = ("nano", "epi_to_me", "sequencing_")
 
@@ -45,6 +45,13 @@ def ctrl_records(user):
     """Other zones' Zonal Lab forms: CTRL covers every zone, anyone else their assigned sites."""
     ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
     qs = ZonalLaboratory.objects.exclude(LAB_NUMBER_ONLY_Q).select_related("screening__site__district__region__zone")
+    return qs if is_unscoped(user) or is_ctrl_lab(user) else scope_queryset(user, qs, "screening__site")
+
+
+def ctrl_dar_records(user):
+    """Dar es Salaam Zonal Lab forms CTRL's own forms can open."""
+    ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
+    qs = ZonalLaboratory.objects.filter(LAB_NUMBER_ONLY_Q).select_related("screening__site__district__region__zone")
     return qs if is_unscoped(user) or is_ctrl_lab(user) else scope_queryset(user, qs, "screening__site")
 
 

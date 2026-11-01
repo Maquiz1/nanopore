@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import AccessMixin
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 
-from utils.access import can_edit, can_view, get_accessible_sites, has_feature, scope_queryset
+from utils.access import can_edit, can_read_records, can_view, get_accessible_sites, has_feature, scope_queryset
 
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
@@ -19,12 +19,14 @@ class FormAccessMixin(AccessMixin):
     access_write       True for views that always change data (delete, upload)
     access_is_form     True for create/update views: opening one without a pk is a create
     access_safe_post   True when POST only reads data (e.g. queues an export)
+    access_record_page True for a page that only shows records on screen (utils.access.ROLE_RECORDS_READ)
     """
     access_form = None
     access_site_field = "screening__site"
     access_write = False
     access_is_form = False
     access_safe_post = False
+    access_record_page = False
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -39,7 +41,7 @@ class FormAccessMixin(AccessMixin):
             or (request.method not in SAFE_METHODS and not (self.access_safe_post and request.method == "POST"))
             or (self.access_is_form and not kwargs.get("pk"))
         )
-        check = can_edit if needs_edit else can_view
+        check = can_edit if needs_edit else can_read_records if self.access_record_page else can_view
         return check(request.user, self.access_form)
 
     def scope(self, qs, site_field=None):

@@ -11,8 +11,8 @@ from django.test import TestCase
 from django.urls import reverse
 
 from locations.models import Country, District, Region, Site, SiteLevel, Zone
-from nanopore.models import Screening, ZonalLaboratory
-from options.models import YesNo
+from nanopore.models import ClinicLaboratory, EdcsTblisZonal, Screening, ZonalLaboratory
+from options.models import SampleNumber, YesNo
 from users.models import Position, Profile
 from utils import access
 from utils.access import can_edit, can_view, get_accessible_sites, scope_queryset
@@ -189,6 +189,53 @@ class ViewEnforcementTests(AccessTestBase):
         self.assertEqual(self.client.get(reverse("nanopore:enrollment-list")).status_code, 403)
         # Screening is read-only for lab technicians.
         self.assertEqual(self.client.get(reverse("nanopore:screening-create")).status_code, 403)
+
+    def test_lab_detail_pages_open_and_offer_edit_only_to_editors(self):
+        zonal = self.zonal_labs["A1"]
+        yes = YesNo.objects.first()
+        clinic = ClinicLaboratory.objects.create(
+            screening=self.screenings["A1"], sample_received=yes, afb_microscopy_conducted=yes, xpert_mtb_rif_conducted=yes,
+            number_received=SampleNumber.objects.create(name="1", value=1),
+        )
+        pages = (("zonal-laboratory", zonal), ("clinic-laboratory", clinic))
+        self.login(self.make_user("admin_detail", [access.ADMIN]))
+        for name, record in pages:
+            page = self.client.get(reverse(f"nanopore:{name}-detail", args=[record.pk]))
+            self.assertContains(page, self.pid("A1"))
+            self.assertContains(page, reverse(f"nanopore:{name}-update", args=[record.pk]))
+        self.login(self.make_user("rev_detail", [access.REVIEWER]))
+        for name, record in pages:
+            page = self.client.get(reverse(f"nanopore:{name}-detail", args=[record.pk]))
+            self.assertContains(page, self.pid("A1"))
+            self.assertNotContains(page, reverse(f"nanopore:{name}-update", args=[record.pk]))
+
+    def test_coordinator_reads_lab_records_of_their_zone_only_on_screen(self):
+        zonal = self.zonal_labs["A1"]
+        edcs = EdcsTblisZonal.objects.create(screening=self.screenings["A1"], unique_lab_no="LAB-E1")
+        other = EdcsTblisZonal.objects.create(screening=self.screenings["B1"], unique_lab_no="LAB-E2")
+        self.login(self.make_user("coord_read", [access.COORDINATOR], zones=[self.zone_a]))
+
+        update = reverse("nanopore:zonal-laboratory-update", args=[zonal.pk])
+        for url in (reverse("nanopore:zonal-laboratory-list"), reverse("nanopore:edcs-tblis-laboratory-list"),
+                    reverse("nanopore:zonal-laboratory-detail", args=[zonal.pk]), update,
+                    reverse("nanopore:edcs-tblis-laboratory-view", args=[edcs.pk])):
+            self.assertEqual(self.client.get(url).status_code, 200, url)
+        page = self.client.get(update)
+        self.assertNotContains(page, "Save Zonal Laboratory")
+        self.assertTrue(page.context["form"].fields["unique_lab_no"].disabled)
+
+        self.assertEqual(self.client.get(reverse("nanopore:edcs-tblis-laboratory-view", args=[other.pk])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("nanopore:zonal-laboratory-detail", args=[self.zonal_labs["B1"].pk])).status_code, 404)
+        self.assertEqual(self.client.post(update, {"unique_lab_no": "CHANGED"}).status_code, 403)
+        self.assertEqual(self.client.get(reverse("nanopore:zonal-laboratory-create")).status_code, 403)
+
+        # Nothing beyond reading: no exports, query pages or other forms
+        self.assertNotContains(self.client.get(reverse("nanopore:edcs-tblis-laboratory-list")), 'onclick="startCardExport')
+        self.assertEqual(self.client.post(reverse("nanopore:edcs-tblis-export-trigger")).status_code, 403)
+        for url in (reverse("nanopore:edcs-tblis-download-csv"), reverse("nanopore:tblis-mapping-download", args=["excel"]),
+                    reverse("reports:edcs_tblis_quality_report"), reverse("reports:zonal_quality_report"),
+                    reverse("nanopore:form-status-list"), reverse("nanopore:screening-list"), reverse("nanopore:clinic-laboratory-list")):
+            self.assertEqual(self.client.get(url).status_code, 403, url)
 
     def test_record_outside_scope_returns_404(self):
         self.login(self.make_user("lab", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))

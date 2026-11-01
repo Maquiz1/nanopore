@@ -13,4 +13,5 @@ class ClinicLaboratoryDetailView(FormAccessMixin, DetailView):
     access_form = access.CLINIC_LAB
     model = ClinicLaboratory
     template_name = 'nanopore/laboratory/clinic/clinic_laboratory_detail.html'
+    context_object_name = 'clinic_laboratory'
 

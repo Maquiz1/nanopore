@@ -1,0 +1,6 @@
+{# One Nanopore question: label, input and errors hide together. Include with field=form.<name> when=<rule in nanopore_section.js> width=<col class> #}
+<div class="{{ width|default:'col-md-6' }} nano-q{% if field.errors %} has-error{% endif %}"{% if when %} data-nano-when="{{ when }}"{% endif %}>
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+</div>

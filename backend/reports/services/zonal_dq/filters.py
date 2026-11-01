@@ -1,7 +1,7 @@
 from django.db.models import Q
 from reports.constants.zona_mapping import CTRL_QUERIES, ZONAL_DQ_FIELD_MAPPING
 from nanopore.models import ZonalLaboratory
-from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
+from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q, NANOPORE_PREFIXES
 
 def get_zonal_dq_filters(model):
     """
@@ -12,8 +12,11 @@ def get_zonal_dq_filters(model):
     filters = _all_filters(model)
     if model is ZonalLaboratory:
         return {key: q for key, q in filters.items() if key not in CTRL_QUERIES}
-    # Dar es Salaam: the zonal lab's own answer, not in TBLIS and OK to leave empty (tblis_mapping.py)
-    del filters["missing_culture_isolate"]
+    # Dar es Salaam has no isolate questions: every positive culture should have DST, and
+    # the upload fills "No" when TBLIS has none, so a No stays a query until TBLIS has it.
+    for key in ("missing_culture_isolate", "missing_isolate_date", "missing_isolate_unique_lab_no", "isolate_no_not_submitted"):
+        del filters[key]
+    filters["missing_phenotypic_performed"] = (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)) & ~Q(phenotypic_performed=1)
     return filters
 
 
@@ -173,6 +176,10 @@ def _all_filters(model):
 
         if key == "missing_sequencing_delayed_others":
             q &= Q(sequencing_delayed_reasons__value=96)
+
+        # Nanopore: answered No is fine, so nothing behind it is asked (only a blank answer is a query)
+        if fields[0].startswith(NANOPORE_PREFIXES) and key != "missing_nanopore_done":
+            q &= Q(nanopore_done=1)
 
         # Nanopore drug results
         if key == "missing_nanopore_drug_results":

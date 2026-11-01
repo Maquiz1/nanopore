@@ -13,6 +13,7 @@ from utils.roles import get_role_context
 class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
     """EDCS / TB-LIS records: summary cards (nanopore/edcs_tblis_cards.py) and the list behind the chosen card."""
     access_form = access.EDCS_TBLIS
+    access_record_page = True
     model = EdcsTblisZonal
     template_name = "nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_list.html"
     context_object_name = "object_list"

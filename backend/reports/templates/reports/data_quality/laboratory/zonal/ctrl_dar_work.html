@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}CTRL work · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="fs">
+    <section class="fs-hero">
+        <div>
+            <div class="fs-eyebrow">Dar es Salaam</div>
+            <h1 class="fs-title">CTRL work</h1>
+            <div class="fs-meta">What TB-LIS can't supply. Each list opens its own form; saving removes the record from the list.</div>
+        </div>
+    </section>
+
+    <nav class="fs-tabs">
+        {% for t in tabs %}
+        <a href="?tab={{ t.key }}{% if search %}&q={{ search|urlencode }}{% endif %}" class="fs-tab {% if tab == t.key %}active{% endif %}">
+            <span class="fs-tab-label">{{ t.label }}</span>
+            <span class="fs-tab-num">{{ t.count|intcomma }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <form method="get" class="fs-filters">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <div>
+            <label class="form-label" for="cw-q">PID or lab no.</label>
+            <input type="search" name="q" id="cw-q" class="form-control form-control-sm" value="{{ search }}">
+        </div>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            {% if search %}<a href="?tab={{ tab }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+        </div>
+    </form>
+
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}</strong>
+            {% if page_obj.has_other_pages %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead><tr><th>PID</th><th>Lab No.</th><th>Site</th><th></th></tr></thead>
+                <tbody>
+                    {% for record in page_obj %}
+                    <tr>
+                        <td class="fs-pid" data-label="PID">{{ record.screening.pid }}</td>
+                        <td data-label="Lab No.">{{ record.unique_lab_no|default:"—" }}</td>
+                        <td data-label="Site">{{ record.screening.site.name }}</td>
+                        <td><a href="{% url form_url record.screening.zonal_laboratory.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary">{% if can_edit %}Enter{% else %}View{% endif %}</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>Nothing to do here.</p></div>
+        {% endif %}
+        {% if page_obj.has_other_pages %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% include "nanopore/partials/_list_styles.html" %}
+{% endblock %}

@@ -38,6 +38,7 @@ ISO_DATE = re.compile(r"^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T].*)?$")
 SLASH_DATE = re.compile(r"^(\d{1,2})[/.](\d{1,2})[/.](\d{4})(?:\s.*)?$")
 
 FILTER_REASONS = {
+    "specimen_missing": "Specimen: Not Provided / blank",
     "not_sputum": "Specimen is not Sputum or Isolate",
     "genexpert_not_detected": "GeneXpert: MTB Not Detected",
     "genexpert_missing": "GeneXpert: Not Provided / blank",
@@ -232,7 +233,10 @@ def filter_reason(row):
     """None when the row is used for the merge, otherwise the reason it's left out."""
     if is_isolate(row):
         return None
-    if row.get("spectype", "").strip().lower() != "sputum":
+    spectype = row.get("spectype", "").strip().lower()
+    if not spectype or spectype == "not provided":
+        return "specimen_missing"
+    if spectype != "sputum":
         return "not_sputum"
     genexpert = row.get("peripheralres_genexpert", "").strip().lower()
     if genexpert.startswith(("mtb detected", "mtb trace detected")):
@@ -242,6 +246,15 @@ def filter_reason(row):
     if genexpert.startswith("mtb not detected"):
         return "genexpert_not_detected"
     return "genexpert_other"
+
+
+# Left out because something wasn't recorded in TB-LIS, so somebody can follow them up.
+FOLLOW_UP_REASONS = ("specimen_missing", "genexpert_missing")
+
+
+def follow_up_rows(rows):
+    """[(row, reason)] of the left-out rows to follow up (the TB-LIS follow-up page)."""
+    return [(row, filter_reason(row)) for row in rows if filter_reason(row) in FOLLOW_UP_REASONS]
 
 
 def filter_rows(rows):

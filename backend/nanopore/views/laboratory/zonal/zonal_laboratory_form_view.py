@@ -21,6 +21,7 @@ from django.contrib import messages
 
 class ZonalLabFormView(FormAccessMixin, View):
     access_form = access.ZONAL_LAB
+    access_record_page = True
     access_is_form = True
     template_name = "nanopore/laboratory/zonal/zonal_laboratory_form.html"
     success_url = reverse_lazy("nanopore:form-status-list")
@@ -51,6 +52,9 @@ class ZonalLabFormView(FormAccessMixin, View):
             initial={"screening": screening_instance},
             screening_instance=screening_instance
         )
+        if not access.can_edit(request.user, access.ZONAL_LAB):
+            for field in form.fields.values():
+                field.disabled = True
 
         return render(
             request,

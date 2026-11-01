@@ -79,6 +79,5 @@ class LabQueryColumnsTests(AccessTestBase):
         EdcsTblisZonal.objects.create(screening=screening, unique_lab_no="DAR-1", culture_isolate=yes)
         cache.clear()
         page = self.client.get(reverse("reports:edcs_tblis_quality_report"))
-        self.assertContains(page, "<th>Isolate Lab No.</th>")
+        self.assertNotContains(page, "Isolate Lab No.")  # Dar es Salaam has no isolate number
         self.assertContains(page, "<td>DAR-1</td>")
-        self.assertContains(page, "<td>Not entered</td>")

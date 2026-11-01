@@ -42,10 +42,10 @@
                 {% if access.view.clinic_lab %}
                 <a href="{% url 'nanopore:clinic-laboratory-list' %}"><i class="fas fa-vial"></i><span>Clinic Laboratory</span></a>
                 {% endif %}
-                {% if access.view.zonal_lab %}
+                {% if access.records.zonal_lab %}
                 <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i><span>Zonal Laboratory</span></a>
                 {% endif %}
-                {% if access.view.edcs_tblis %}
+                {% if access.records.edcs_tblis %}
                 <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"><i class="fas fa-database"></i><span>EDCS / TBLIS</span></a>
                 {% endif %}
                 {% if access.view.diagnosis %}
@@ -58,7 +58,7 @@
         </div>
 
         <!-- ── Data quality ─────────────────────────────────── -->
-        {% if context_total_issues or access.is_admin or access.snapshots or context_substudy_queries_visible or context_date_issues_visible or context_dsdr_visible %}
+        {% if context_total_issues or access.is_admin or access.snapshots or access.tblis_follow_up or context_substudy_queries_visible or context_date_issues_visible or context_dsdr_visible %}
         <div class="sb-section">Data quality</div>
         {% endif %}
 
@@ -178,6 +178,19 @@
                     {% if context_substudy4_count %}<span class="sb-badge sb-badge-sm">{{ context_substudy4_count|intcomma }}</span>{% endif %}</a>
             </div>
         </div>
+        {% endif %}
+
+        {% if access.queries.ctrl_isolates %}
+        <a href="{% url 'reports:ctrl_dar_work' %}" class="sb-link" title="CTRL work, Dar es Salaam">
+            <i class="fas fa-microscope"></i><span>CTRL work (Dar)</span>
+            {% if context_ctrl_dar_work_total %}<span class="sb-badge">{{ context_ctrl_dar_work_total|intcomma }}</span>{% endif %}
+        </a>
+        {% endif %}
+
+        {% if access.tblis_follow_up %}
+        <a href="{% url 'nanopore:tblis-follow-up' %}" class="sb-link" title="TB-LIS follow-up">
+            <i class="fas fa-list-check"></i><span>TB-LIS follow-up</span>
+        </a>
         {% endif %}
 
         {% if access.snapshots %}

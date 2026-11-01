@@ -1,8 +1,20 @@
 # reports/services/zonal_dq/problem_lists.py
 
+from django.urls import reverse
+
+from nanopore.zonal_rules import NANOPORE_PREFIXES
 from reports.constants.zona_mapping import ZONAL_DQ_FIELD_MAPPING
 from .serializers import serialize_record
 from .filters import get_zonal_dq_filters
+
+def fix_url_name(key):
+    """The form that answers a Dar es Salaam query (EDCS/TBLIS records are read only)."""
+    if key in ("missing_first_line_drugs", "missing_second_line_drugs"):
+        return "nanopore:ctrl-dar-lpa"
+    if ZONAL_DQ_FIELD_MAPPING[key][0].startswith(NANOPORE_PREFIXES):
+        return "nanopore:ctrl-dar-nanopore"
+    return "nanopore:zonal-laboratory-update"  # lab number: fix it there and upload TB-LIS again
+
 
 def get_zonal_problem_lists(qs, duplicate_lab_numbers):
     """
@@ -31,6 +43,11 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers):
             ]
         else:
             problem_lists[key] = []
+
+    for key, items in problem_lists.items():
+        name = fix_url_name(key)
+        for item in items:
+            item["fix_url"] = reverse(name, args=[item["zonal_id"]]) if item["zonal_id"] else ""
 
     return problem_lists
 

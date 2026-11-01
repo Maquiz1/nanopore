@@ -22,11 +22,13 @@
                 {% endif %}
             </div>
         </div>
+        {% if access.view.edcs_tblis %}
         <div class="et-hero-actions">
             <span class="et-hero-label">TB-LIS mapping</span>
             <a href="{% url 'nanopore:tblis-mapping-download' 'excel' %}" class="et-hero-btn"><i class="fas fa-file-excel"></i> Excel</a>
             <a href="{% url 'nanopore:tblis-mapping-download' 'pdf' %}" class="et-hero-btn"><i class="fas fa-file-pdf"></i> PDF</a>
         </div>
+        {% endif %}
     </section>
 
     <!-- Coverage -->
@@ -37,7 +39,7 @@
                 <div class="et-coverage-value">{{ coverage }}%</div>
                 <div class="et-sub">{{ merged_count|intcomma }} of {{ ctrl_count|intcomma }} CTRL records</div>
             </div>
-            {% if merge_summary %}
+            {% if merge_summary and access.view.edcs_tblis %}
             <div class="et-flags">
                 <a href="{% url 'nanopore:tblis-raw-discrepancies' 'edcs_not_in_tblis' %}" class="et-flag">
                     <strong>{{ merge_summary.edcs_not_in_tblis|intcomma }}</strong> EDCS not in TB-LIS</a>
@@ -65,8 +67,8 @@
             <div class="et-stat tone-{{ item.card.tone }} {% if item.card.key == active_card.key %}active{% endif %}">
                 <a class="et-stat-link" href="?card_type={{ item.card.key }}{% if filter_params %}&{{ filter_params }}{% endif %}#records"
                    aria-label="List {{ item.card.label }}"></a>
-                <button type="button" class="et-export" title="Export to Excel"
-                        onclick="startCardExport('{{ item.card.key }}', this)"><i class="fas fa-download"></i></button>
+                {% if access.view.edcs_tblis %}<button type="button" class="et-export" title="Export to Excel"
+                        onclick="startCardExport('{{ item.card.key }}', this)"><i class="fas fa-download"></i></button>{% endif %}
                 <div class="et-stat-value">{{ item.count|intcomma }}</div>
                 <div class="et-stat-label">{{ item.card.label }}</div>
                 {% if item.share is not None %}<div class="et-stat-share">{{ item.share }}%</div>{% endif %}
@@ -83,9 +85,11 @@
                 <h2>{{ active_card.label }}</h2>
                 <span class="et-sub">{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}{% if has_filters %} matching the filters{% endif %}</span>
             </div>
+            {% if access.view.edcs_tblis %}
             <button type="button" class="btn btn-sm btn-outline-success" onclick="startCardExport('{{ active_card.key }}', this)">
                 <i class="fas fa-file-excel"></i> Export list
             </button>
+            {% endif %}
         </div>
 
         <form method="get" class="et-filters" action="#records">

@@ -15,7 +15,7 @@ from nanopore.models import (
     TblisUploadBatch,
     ZonalLaboratory,
 )
-from nanopore.models.discrepancies import TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
+from nanopore.models.discrepancies import TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
 from options.models import (
     SampleAppearance, YesNo, CultureMethod, MicroscopyType, CultureMicroscopyResults,
@@ -27,7 +27,7 @@ from options.models import (
 )
 
 from nanopore.tblis_file import (
-    FILTER_REASONS, MAX_REPORTED_PROBLEMS, TblisFileError, filter_rows, is_isolate, read_tblis_file,
+    FILTER_REASONS, MAX_REPORTED_PROBLEMS, TblisFileError, filter_rows, follow_up_rows, is_isolate, read_tblis_file,
 )
 # Helper functions from utils or duplicated logic (simplified for chunk processing)
 from utils.edcs_tblis_helpers import safe_int, safe_decimal, parse_date_field, get_foreign, split_m2m
@@ -555,6 +555,18 @@ def sync_zonal_laboratory_to_edcs(z_lab, clean_row=None):
     return e_zonal
 
 
+def sync_with_latest_tblis(z_lab):
+    """Rebuild the EDCS/TBLIS record from the Zonal Lab form and, where it applies, the latest TBLIS row."""
+    clean_row = None
+    if any(z_lab.screening.pid.startswith(prefix) for prefix in CTRL_PREFIXES):
+        raw_entry = TblisRawData.objects.filter(labno=z_lab.unique_lab_no).order_by('-uploaded_at').first()
+        if raw_entry:
+            clean_row = raw_entry.raw_data
+    else:
+        merge_isolate_from_raw(z_lab)
+    return sync_zonal_laboratory_to_edcs(z_lab, clean_row)
+
+
 # --- CELERY TASKS ---
 class _PreviewRollback(Exception):
     """Raised at the end of a preview so every database change is rolled back."""
@@ -596,6 +608,7 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
     try:
         with transaction.atomic():
             result = _merge_tblis_rows(self, kept_rows, prepared["columns"], user_id, source_filename)
+            result["follow_up_count"] = _save_follow_up(prepared["rows"], result.get("upload_batch_id"))
             if dry_run:
                 raise _PreviewRollback(result)
     except _PreviewRollback as preview:
@@ -604,6 +617,23 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
 
     result.update(file_info)
     return result
+
+
+def _save_follow_up(rows, batch_id):
+    """Replace the follow-up list with this upload's rows. Only what the page shows is kept."""
+    TblisFollowUp.objects.all().delete()
+    records = []
+    for row, reason in follow_up_rows(rows):
+        if row.get("labno"):
+            records.append(TblisFollowUp(
+                labno=row["labno"], reason=reason, upload_batch_id=batch_id,
+                specimen=row.get("spectype", "")[:50], genexpert=row.get("peripheralres_genexpert", "")[:100],
+                region=row.get("tbregion", "")[:100], facility=row.get("hfacility", "")[:200],
+                received=row.get("rctdate", "")[:10],
+                has_dst=any(row.get(col) for col in ("ljdst1_date", "ljdst2_date", "mgitdst1_date", "mgitdst2_date")),
+            ))
+    TblisFollowUp.objects.bulk_create(records, batch_size=1000)
+    return len(records)
 
 
 def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
@@ -775,23 +805,7 @@ def sync_zonal_laboratory_daily():
     updated_count = 0
     for z_lab in zonal_labs:
         try:
-            # Apply the latest raw TBLIS transformation only to CTRL laboratory records.
-            is_ctrl_lab = False
-            for prefix in CTRL_PREFIXES:
-                if z_lab.screening.pid.startswith(prefix):
-                    is_ctrl_lab = True
-                    break
-                    
-            clean_row = None
-            if not is_ctrl_lab:
-                merge_isolate_from_raw(z_lab)
-            if is_ctrl_lab:
-                # Find the latest TBLIS raw data for this labno
-                raw_entry = TblisRawData.objects.filter(labno=z_lab.unique_lab_no).order_by('-uploaded_at').first()
-                if raw_entry:
-                    clean_row = raw_entry.raw_data
-                    
-            sync_zonal_laboratory_to_edcs(z_lab, clean_row)
+            sync_with_latest_tblis(z_lab)
             updated_count += 1
             
         except Exception as e:

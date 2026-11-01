@@ -77,7 +77,7 @@ class CtrlIsolatesTests(AccessTestBase):
         admin = self.make_user("admin_once", [access.ADMIN])
         self.assertEqual(get_ctrl_isolate_counts(admin)["missing_isolate_unique_lab_no"], 1)  # B1, not Dar
         self.assertNotIn("missing_isolate_unique_lab_no", get_zonal_counts(admin, ZonalLaboratory)[0])
-        self.assertEqual(get_zonal_counts(admin, EdcsTblisZonal)[0]["missing_isolate_unique_lab_no"], 1)  # Dar only
+        self.assertNotIn("missing_isolate_unique_lab_no", get_zonal_counts(admin, EdcsTblisZonal)[0])  # Dar has no isolate number
 
     def test_edcs_page_only_counts_dar(self):
         EdcsTblisZonal.objects.create(screening=self.screenings["B1"], unique_lab_no="LAB-B1")

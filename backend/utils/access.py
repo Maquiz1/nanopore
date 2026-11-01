@@ -55,6 +55,7 @@ SYSTEM_ADMIN = "system_admin"  # system controls, locations, targets, admin site
 TBLIS_UPLOAD = "tblis_upload"  # TBLIS raw upload
 BULK_UPLOAD = "bulk_upload"    # CSV imports of whole forms (superusers only: no role grants it)
 DELETE_RECORDS = "delete_records"  # delete form records to the recycle bin, and restore them
+TBLIS_FOLLOW_UP = "tblis_follow_up"  # TB-LIS rows left out because specimen/GeneXpert wasn't recorded
 
 ROLE_FORMS_EDIT = {
     NURSE: CLINICAL_FORMS,
@@ -71,13 +72,17 @@ ROLE_FORMS_VIEW = {
     REVIEWER: ALL_FORMS,
     STATISTICIAN: ALL_FORMS,
 }
+# Lab records readable on screen only: the lists and forms, not exports or query pages.
+ROLE_RECORDS_READ = {
+    COORDINATOR: frozenset([ZONAL_LAB, EDCS_TBLIS]),
+}
 ROLE_FEATURES = {
-    DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, SNAPSHOTS]),
-    DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, SNAPSHOTS]),
+    DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS]),
+    DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS]),
     COORDINATOR: frozenset([SNAPSHOTS]),  # query trends of the zones/sites they are assigned
-    STATISTICIAN: frozenset([REPORTS, EXPORTS, SNAPSHOTS]),
-    REVIEWER: frozenset([REPORTS, SNAPSHOTS]),
-    ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, DELETE_RECORDS]),
+    STATISTICIAN: frozenset([REPORTS, EXPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),
+    REVIEWER: frozenset([REPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),
+    ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, DELETE_RECORDS]),
 }
 UNSCOPED_ROLES = frozenset([ADMIN, REVIEWER])
 CTRL_LAB_SITE = "ctrl laboratory"
@@ -172,6 +177,12 @@ def can_view(user, form):
     return any(form in ROLE_FORMS_VIEW.get(role, ()) for role in get_user_roles(user))
 
 
+def can_read_records(user, form):
+    if can_view(user, form):
+        return True
+    return any(form in ROLE_RECORDS_READ.get(role, ()) for role in get_user_roles(user))
+
+
 def can_see_queries(user, form):
     """
     Data-quality queries go to whoever can fix them (edit rights), plus reviewers and
@@ -183,6 +194,8 @@ def can_see_queries(user, form):
 
 def has_feature(user, feature):
     if getattr(user, "is_superuser", False):
+        return True
+    if feature == TBLIS_FOLLOW_UP and is_ctrl_lab(user):
         return True
     return any(feature in ROLE_FEATURES.get(role, ()) for role in get_user_roles(user))
 
@@ -303,6 +316,7 @@ class AccessFlags:
         self.user = user
         self.view = self._Lookup(user, can_view)
         self.edit = self._Lookup(user, can_edit)
+        self.records = self._Lookup(user, can_read_records)
         self.queries = self._Lookup(user, can_see_queries)
         self.roles = get_user_roles(user)
         self.is_admin = bool(getattr(user, "is_superuser", False)) or ADMIN in self.roles

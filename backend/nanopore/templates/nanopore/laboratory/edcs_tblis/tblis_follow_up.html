@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}TB-LIS follow-up · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="fs">
+    <section class="fs-hero">
+        <div>
+            <div class="fs-eyebrow">Data quality · Latest TB-LIS upload</div>
+            <h1 class="fs-title">TB-LIS follow-up</h1>
+            <div class="fs-meta">Rows left out of the merge because the specimen type or GeneXpert result wasn't recorded in TB-LIS. Correct them in TB-LIS; the next upload refreshes this list.</div>
+        </div>
+    </section>
+
+    <form method="get" class="fs-filters">
+        <div>
+            <label class="form-label" for="fu-q">Lab no.</label>
+            <input type="search" name="q" id="fu-q" class="form-control form-control-sm" value="{{ selected.q }}">
+        </div>
+        <div>
+            <label class="form-label" for="fu-reason">Why it's listed</label>
+            <select name="reason" id="fu-reason" class="form-select form-select-sm">
+                <option value="">All</option>
+                {% for key, label in reasons %}<option value="{{ key }}" {% if selected.reason == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="fu-region">Region</label>
+            <select name="region" id="fu-region" class="form-select form-select-sm">
+                <option value="">All</option>
+                {% for region in regions %}<option value="{{ region }}" {% if selected.region == region %}selected{% endif %}>{{ region }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            {% if filters_active %}<a href="{% url 'nanopore:tblis-follow-up' %}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+        </div>
+    </form>
+
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ paginator.count|default:0|intcomma }} row{{ paginator.count|pluralize }}</strong>
+            {% if is_paginated %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
+        {% if rows %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead>
+                    <tr><th>Lab No.</th><th>PID</th><th>Facility</th><th>Region</th><th>Received</th><th>Why it's listed</th><th>DST in TB-LIS</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td class="fs-pid" data-label="Lab No.">{{ row.labno }}</td>
+                        <td data-label="PID">{{ row.screening.pid|default:"Not in EDCS" }}</td>
+                        <td data-label="Facility">{{ row.facility|default:"—" }}</td>
+                        <td data-label="Region">{{ row.region|default:"—" }}</td>
+                        <td data-label="Received">{{ row.received|default:"—" }}</td>
+                        <td data-label="Why it's listed"><span class="fs-chip miss">{{ row.reason_label }}</span></td>
+                        <td data-label="DST in TB-LIS">{% if row.has_dst %}<span class="fs-chip ok">Yes</span>{% else %}<span class="fs-chip na">No</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty">
+            <i class="fas fa-circle-check"></i>
+            <p>{% if total %}No rows match these filters.{% else %}Nothing to follow up. The list fills when a TB-LIS file is uploaded.{% endif %}</p>
+        </div>
+        {% endif %}
+        {% if is_paginated %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% include "nanopore/partials/_list_styles.html" %}
+{% endblock %}

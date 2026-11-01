@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · {{ screening.pid }}{% endblock %}
+
+{% block content %}
+<div class="df">
+    <section class="df-hero">
+        <div>
+            <div class="df-eyebrow">CTRL work · {{ title }}</div>
+            <h1 class="df-title">{{ screening.pid }}</h1>
+            <div class="df-meta">
+                <span><i class="fas fa-location-dot"></i>{{ screening.site.name }}</span>
+                <span><i class="fas fa-vial"></i>Lab No. {{ object.unique_lab_no|default:"—" }}</span>
+            </div>
+        </div>
+        <div class="df-hero-actions">
+            <a href="{{ next }}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+    </section>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% include "nanopore/partials/form_error_summary.html" with form=form %}
+
+        <section class="df-card">
+            <header class="df-card-head"><div><h2>{{ title }}</h2></div></header>
+            {% if section == "nanopore" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_section.html" %}
+            {% elif section == "lpa" and not form.lpa1_done and not form.lpa2_done %}
+                <p class="mb-0 text-muted">TB-LIS doesn't show first- or second-line LPA for this record, so there is nothing to enter.</p>
+            {% else %}
+                <div class="df-grid">
+                    {% for field in form %}{% include "nanopore/partials/_field.html" with field=field %}{% endfor %}
+                </div>
+            {% endif %}
+        </section>
+
+        <div class="df-savebar">
+            <a href="{{ next }}" class="btn btn-outline-secondary">Cancel</a>
+            {% if access.edit.ctrl_isolates and form.fields %}
+                {% if system_control.enable_form_submissions %}
+                <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save</button>
+                {% else %}
+                <button type="button" class="btn btn-secondary" disabled><i class="fas fa-ban"></i> Submissions disabled</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+{% include "nanopore/partials/_form_styles.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if section == "nanopore" %}
+<script src="{% static 'custom_js/nanopore_section.js' %}"></script>
+{% endif %}
+{% endblock %}

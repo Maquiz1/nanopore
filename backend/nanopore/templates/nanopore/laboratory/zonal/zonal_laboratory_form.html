@@ -8,7 +8,7 @@
         <div class="col-lg-10">
 
             <div class="d-flex justify-content-between mb-3 gap-2">
-                <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
+                <a href="{% if access.view.zonal_lab %}{% url 'nanopore:form-status-list' %}{% else %}{% url 'nanopore:zonal-laboratory-list' %}{% endif %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
                 <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
             </div>
 
@@ -39,9 +39,9 @@
                             <h5 class="mb-0">Lab Details</h5>
                         </div>
                         <div class="alert alert-info">
-                            <strong>Dar es Salaam (CTRL staff):</strong> enter the <strong>Unique Lab Number</strong> and Remarks when the sample arrives, and Nanopore when it is sequenced.
-                            Culture, DST, Xpert XDR and LPA results come from the TBLIS upload,
-                            which merges them into the EDCS / TBLIS record using this lab number.
+                            <strong>Dar es Salaam (CTRL staff):</strong> enter the <strong>Unique Lab Number</strong>; Remarks are optional.
+                            Results come from the TBLIS upload, which merges them using this lab number.
+                            The isolate number, Nanopore and LPA checkboxes have their own forms under CTRL work.
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
@@ -53,28 +53,6 @@
                             <div class="col-md-8">{{ form.remarks.label_tag }}{{ form.remarks }}</div>
                         </div>
 
-                        {% if form.lpa1_done or form.lpa2_done %}
-                        <!-- LPA bands: TBLIS supplies the LPA results but not these checkboxes -->
-                        <div class="p-2 mb-3 bg-secondary text-white rounded">
-                            <h5 class="mb-0">Line Probe Assay Bands</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            {% if form.lpa1_done %}
-                            <div class="col-md-6">
-                                {{ form.first_line_drugs.label_tag }}{{ form.first_line_drugs }}
-                                {% for error in form.first_line_drugs.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                            {% endif %}
-                            {% if form.lpa2_done %}
-                            <div class="col-md-6">
-                                {{ form.second_line_drugs.label_tag }}{{ form.second_line_drugs }}
-                                {% for error in form.second_line_drugs.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        {% include "nanopore/laboratory/zonal/_nanopore_section.html" %}
                         {% else %}
                         <!-- Lab Details -->
                         <div class="p-2 mb-3 bg-warning text-white rounded">
@@ -345,6 +323,9 @@
                             </div>
                         </div>
 
+                        <div class="p-2 mb-3 bg-secondary text-white rounded">
+                            <h5 class="mb-0">Nanopore Sequencing</h5>
+                        </div>
                         {% include "nanopore/laboratory/zonal/_nanopore_section.html" %}
 
                         <!-- Remarks -->
@@ -355,7 +336,7 @@
 
                         {% endif %}
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-danger me-2">❌ Cancel</a>
+                            <a href="{% if access.view.zonal_lab %}{% url 'nanopore:form-status-list' %}{% else %}{% url 'nanopore:zonal-laboratory-list' %}{% endif %}" class="btn btn-danger me-2">❌ Cancel</a>
                             {% if access.edit.zonal_lab %}
                             {% if system_control.enable_form_submissions %}
                                 <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>
@@ -384,12 +365,8 @@
 <script src="{% static 'custom_js/lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/first_line_lpa_fields.js' %}"></script>
 <script src="{% static 'custom_js/second_line_lpa_fields.js' %}"></script>
+<script src="{% static 'custom_js/nanopore_section.js' %}"></script>
 {% endif %}
-<script src="{% static 'custom_js/nanopore_sequencing_fields.js' %}"></script>
-<script src="{% static 'custom_js/epi_to_me_fields.js' %}"></script>
-<script src="{% static 'custom_js/sequencing_delayed.js' %}"></script>
-<script src="{% static 'custom_js/sequencing_delayed_reasons.js' %}"></script>
-<script src="{% static 'custom_js/nanopore_results_fields.js' %}"></script >
 {% endblock %}
 
 

@@ -4,6 +4,7 @@ from reports.views.snapshots.query_trends_view import query_trends
 from reports.views.queries.substudy_queries_view import SubstudyQueriesView
 from reports.views.queries.queries_overview_view import QueriesOverviewView
 from reports.views.queries.laboratory.zonal.ctrl_isolates_view import CtrlIsolatesView
+from reports.views.queries.laboratory.zonal.ctrl_dar_work_view import CtrlDarWorkView
 from reports.views.queries.date_issues_view import DateIssuesView, DsDrChecksView, OutcomeWithoutTreatmentView
 from . import views
 
@@ -169,6 +170,7 @@ urlpatterns = [
     path('zonal-quality/', ZonalDataQualityView.as_view(), name='zonal_quality_report'),
     path('edcs-tblis-quality/', EdcsTBLISDataQualityView.as_view(), name='edcs_tblis_quality_report'),
     path('ctrl-isolates/', CtrlIsolatesView.as_view(), name='ctrl_isolates'),
+    path('ctrl-work/', CtrlDarWorkView.as_view(), name='ctrl_dar_work'),
 
     path('data-quality/pdf/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf'),
     path('data-quality/pdf/document/', DreamFundQueriesPDFView.as_view(), name='data_quality_pdf_document'),
