@@ -1,9 +1,15 @@
 """Codebook built live from forms, models and option tables (reports/codebook.py)."""
+import csv
+import io
+from unittest import mock
+
 from django.urls import reverse
 
+from nanopore.models import ZonalLaboratory
 from nanopore.test_access import AccessTestBase
-from options.models import YesNo
+from options.models import YesNo, YesNoNA
 from reports.codebook import CODEBOOK_FORMS, build_codebook, form_codebook
+from reports.views.list_models.export_model import ExportModelDataView
 from utils import access
 
 
@@ -43,3 +49,33 @@ class CodebookTests(AccessTestBase):
 
     def test_login_required(self):
         self.assertEqual(self.client.get(reverse("reports:codebook")).status_code, 302)
+
+
+class DataExportModesTests(AccessTestBase):
+    def export(self, mode):
+        self.client.force_login(self.make_user(f"stat_{mode}", [access.STATISTICIAN], zones=[self.zone_a]))
+        # SQLite can't join all the option tables at once; the production database can
+        with mock.patch.object(ExportModelDataView, "_build_select_related", return_value=["screening"]):
+            response = self.client.get(reverse("reports:export_data"), {"model": "ZonalLaboratory", "mode": mode})
+            rows = list(csv.DictReader(io.StringIO(b"".join(response.streaming_content).decode())))
+        return next(r for r in rows if r["pid"] == self.pid("A1"))
+
+    def setUp(self):
+        # An option whose row id (3) differs from its codebook code (98)
+        option = YesNoNA.objects.create(pk=3, name="N/A", value=98)
+        ZonalLaboratory.objects.filter(pk=self.zonal_labs["A1"].pk).update(culture_isolate=option)
+
+    def test_full_gives_code_and_label(self):
+        row = self.export("full")
+        self.assertEqual((row["culture_isolate"], row["culture_isolate_label"]), ("98", "N/A"))
+
+    def test_codes_are_the_codebook_values_not_row_ids(self):
+        row = self.export("values_only")
+        self.assertEqual(row["culture_isolate"], "98")
+        self.assertNotIn("culture_isolate_label", row)
+
+    def test_labels_only_gives_labels(self):
+        row = self.export("labels_only")
+        self.assertEqual(row["culture_isolate"], "N/A")
+        self.assertNotIn("culture_isolate_label", row)
+

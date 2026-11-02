@@ -50,6 +50,12 @@ class CtrlDarFormsTests(AccessTestBase):
         self.assertEqual([t["key"] for t in page.context["tabs"]], ["nanopore", "lpa"])
         self.assertEqual(page.context["tab"], "nanopore")
 
+    def test_dar_zonal_form_links_to_ctrl_forms_also_once_answered(self):
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(nanopore_done=self.no)
+        page = self.client.get(reverse("nanopore:zonal-laboratory-update", args=[self.lab.pk]))
+        self.assertContains(page, self.url("nanopore"))
+        self.assertContains(page, self.url("lpa"))
+
     def test_sidebar_badge_counts_both_lists(self):
         badge = lambda: self.client.get(reverse("reports:ctrl_dar_work")).context["context_ctrl_dar_work_total"]
         self.assertEqual(badge(), 1)  # needs Nanopore

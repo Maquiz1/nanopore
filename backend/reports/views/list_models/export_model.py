@@ -19,6 +19,31 @@ REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 PRIORITY_FIELDS = ["pid", "pid1", "pid2"]
 
 
+def is_coded(field):
+    """An answer from an option list: its code is the `value` the codebook lists (the row id can differ)."""
+    return any(f.name == "value" for f in field.related_model._meta.fields)
+
+
+def field_headers(field, mode, name=None):
+    name = name or field.name
+    if mode == "full" and field.is_relation and is_coded(field):
+        return [name, f"{name}_label"]
+    return [name]
+
+
+def relation_cells(field, related, mode):
+    """Full: code and label. Codes: the code. Labels: the label. Links that have no code (site) show their name."""
+    label = str(related) if related else ""
+    if not is_coded(field):
+        return [label]
+    code = ""
+    if related:
+        code = related.value if related.value is not None else related.pk
+    if mode == "full":
+        return [code, label]
+    return [code] if mode == "values_only" else [label]
+
+
 class ExportModelDataView(FeatureAccessMixin, View):
     access_feature = access.EXPORTS
     exclude_fields = [
@@ -67,10 +92,11 @@ class ExportModelDataView(FeatureAccessMixin, View):
                 headers = (["pid"] if pid_from_screening else []) + list(active_priority)
                 for f in model._meta.fields:
                     if f.name not in self.exclude_fields and f.name not in active_priority:
-                        headers.append(f.name)
+                        headers.extend(field_headers(f, mode))
                 if model._meta.model_name == "screening":
-                    for f in REGIMEN_FIELDS:
-                        headers.append(f"regimen_{f}")
+                    regimen_fields = [apps.get_model("nanopore", "RegimenChanges")._meta.get_field(f) for f in REGIMEN_FIELDS]
+                    for f in regimen_fields:
+                        headers.extend(field_headers(f, mode, f"regimen_{f.name}"))
                 writer.writerow(headers)
                 yield buffer.getvalue()
                 buffer.seek(0)
@@ -103,14 +129,7 @@ class ExportModelDataView(FeatureAccessMixin, View):
                             continue
 
                         if f.is_relation and not f.many_to_many:
-                            # Use raw FK id from __dict__ (no extra query, already selected)
-                            raw_id = obj.__dict__.get(f.attname)  # e.g. culture_performed_id
-                            if mode == "values_only":
-                                row.append(raw_id if raw_id is not None else "")
-                            else:
-                                # labels_only or full: use cached related object
-                                related = getattr(obj, f.name, None)
-                                row.append(str(related) if related else "")
+                            row.extend(relation_cells(f, getattr(obj, f.name, None), mode))  # already selected
                         else:
                             row.append(getattr(obj, f.name, "") or "")
 
@@ -118,8 +137,11 @@ class ExportModelDataView(FeatureAccessMixin, View):
                     if model._meta.model_name == "screening":
                         regimens = list(obj.regimen_changes.all().order_by("date")) or [None]
                         for regimen in regimens:
-                            for f in REGIMEN_FIELDS:
-                                row.append(getattr(regimen, f, "") or "")
+                            for f in regimen_fields:
+                                if f.is_relation:
+                                    row.extend(relation_cells(f, getattr(regimen, f.name, None), mode))
+                                else:
+                                    row.append(getattr(regimen, f.name, "") or "")
 
                     writer.writerow(row)
                     yield buffer.getvalue()

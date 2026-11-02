@@ -35,6 +35,13 @@
 
                         {% if form.lab_number_only %}
                         <!-- Dar es Salaam (CTRL): lab number only -->
+                        {% if object and access.view.ctrl_isolates %}
+                        <div class="alert alert-info py-2 small">
+                            Nanopore sequencing and the LPA checkboxes are on CTRL's own forms:
+                            <a href="{% url 'nanopore:ctrl-dar-nanopore' object.pk %}?next={{ request.get_full_path|urlencode }}">Nanopore sequencing</a> ·
+                            <a href="{% url 'nanopore:ctrl-dar-lpa' object.pk %}?next={{ request.get_full_path|urlencode }}">LPA checkboxes</a>
+                        </div>
+                        {% endif %}
                         <div class="p-2 mb-3 bg-warning text-white rounded">
                             <h5 class="mb-0">Lab Details</h5>
                         </div>

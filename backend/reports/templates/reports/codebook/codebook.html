@@ -53,7 +53,7 @@
         CSV files with the participant data.
         {% if exports_all_sites %}Your exports include <strong>all sites</strong>.
         {% else %}Your exports include <strong>only your assigned sites/zones</strong>.{% endif %}
-        <br><small><strong>Full</strong> = answer labels · <strong>Codes</strong> = answer codes only ·
+        <br><small><strong>Full</strong> = answer codes, with each label in a <code>_label</code> column · <strong>Codes</strong> = codes only ·
         <strong>Labels</strong> = labels only. Use the <a href="{% url 'reports:codebook' %}">codebook</a> to read the codes.</small>
     </p>
 
