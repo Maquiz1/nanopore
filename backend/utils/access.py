@@ -71,15 +71,12 @@ ROLE_FORMS_VIEW = {
     LABORATORY_TECHNICIAN: frozenset([SCREENING]),  # look up a participant / PID
     REVIEWER: ALL_FORMS,
     STATISTICIAN: ALL_FORMS,
-}
-# Lab records readable on screen only: the lists and forms, not exports or query pages.
-ROLE_RECORDS_READ = {
-    COORDINATOR: frozenset([ZONAL_LAB, EDCS_TBLIS]),
+    COORDINATOR: ALL_FORMS,
 }
 ROLE_FEATURES = {
     DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS]),
     DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS]),
-    COORDINATOR: frozenset([SNAPSHOTS]),  # query trends of the zones/sites they are assigned
+    COORDINATOR: frozenset([REPORTS, EXPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),  # of the zones/sites they are assigned
     STATISTICIAN: frozenset([REPORTS, EXPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),
     REVIEWER: frozenset([REPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),
     ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, DELETE_RECORDS]),
@@ -177,19 +174,13 @@ def can_view(user, form):
     return any(form in ROLE_FORMS_VIEW.get(role, ()) for role in get_user_roles(user))
 
 
-def can_read_records(user, form):
-    if can_view(user, form):
-        return True
-    return any(form in ROLE_RECORDS_READ.get(role, ()) for role in get_user_roles(user))
-
-
 def can_see_queries(user, form):
     """
     Data-quality queries go to whoever can fix them (edit rights), plus reviewers and
     statisticians, who see every form's queries (statisticians for their assigned sites).
     Read-only lookups (lab technicians on Screening) don't bring the queries along.
     """
-    return can_edit(user, form) or has_role(user, REVIEWER, STATISTICIAN)
+    return can_edit(user, form) or has_role(user, REVIEWER, STATISTICIAN, COORDINATOR)
 
 
 def has_feature(user, feature):
@@ -262,7 +253,7 @@ def get_accessible_zones(user):
 def legacy_role_flags(user):
     """Template flags used by the form-status and master-data lists."""
     is_admin_only = bool(getattr(user, "is_superuser", False)) or has_role(user, ADMIN, DATA_SPECIALIST, DATA_MANAGER)
-    is_reviewer = has_role(user, REVIEWER, STATISTICIAN)
+    is_reviewer = has_role(user, REVIEWER, STATISTICIAN, COORDINATOR)
     return {
         "is_admin_or_reviewer": is_admin_only or is_reviewer,
         "is_admin_only": is_admin_only,
@@ -316,7 +307,6 @@ class AccessFlags:
         self.user = user
         self.view = self._Lookup(user, can_view)
         self.edit = self._Lookup(user, can_edit)
-        self.records = self._Lookup(user, can_read_records)
         self.queries = self._Lookup(user, can_see_queries)
         self.roles = get_user_roles(user)
         self.is_admin = bool(getattr(user, "is_superuser", False)) or ADMIN in self.roles

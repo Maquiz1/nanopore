@@ -9,7 +9,6 @@ from utils.permissions import filter_queryset_by_user_role
 
 class ZonalLaboratoryListView(FormAccessMixin, ListView):
     access_form = access.ZONAL_LAB
-    access_record_page = True
     model = ZonalLaboratory
     template_name = "nanopore/laboratory/zonal/zonal_laboratory_list.html"
     context_object_name = "object_list"

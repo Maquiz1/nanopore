@@ -9,6 +9,8 @@ import csv
 import io
 from django.apps import apps
 
+from reports.tasks_export_models import export_date
+
 logger = logging.getLogger(__name__)
 
 REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
@@ -44,12 +46,26 @@ def relation_cells(field, related, mode):
     return [code] if mode == "values_only" else [label]
 
 
+def many_cells(field, items, mode):
+    """A multiple-answer question: the answers joined with ";", in code order."""
+    labels = ";".join(str(item) for item in items)
+    if not is_coded(field):
+        return [labels]
+    items = sorted(items, key=lambda item: item.value if item.value is not None else item.pk)
+    codes = ";".join(str(item.value if item.value is not None else item.pk) for item in items)
+    labels = ";".join(str(item) for item in items)
+    if mode == "full":
+        return [codes, labels]
+    return [codes] if mode == "values_only" else [labels]
+
+
 class ExportModelDataView(FeatureAccessMixin, View):
     access_feature = access.EXPORTS
     exclude_fields = [
         'id', 'created_at', 'updated_at', 'created_by', 'updated_by',
         'screening', 'enrollment', 'clinic_laboratory', 'zonal_laboratory',
-        'diagnosis', 'regimen_changes', 'remarks',
+        'diagnosis', 'regimen_changes',
+        'phenotypic_date_performed',  # replaced by the first- and second-line dates
     ]
 
     def get_models(self, model_name=None):
@@ -82,6 +98,7 @@ class ExportModelDataView(FeatureAccessMixin, View):
 
         # Pre-build select_related list (avoids N+1 FK lookups on every row)
         related_fields = self._build_select_related(model)
+        many_fields = [f for f in model._meta.many_to_many if f.name not in self.exclude_fields]
 
         def csv_generator():
             buffer = io.StringIO()
@@ -93,6 +110,8 @@ class ExportModelDataView(FeatureAccessMixin, View):
                 for f in model._meta.fields:
                     if f.name not in self.exclude_fields and f.name not in active_priority:
                         headers.extend(field_headers(f, mode))
+                for f in many_fields:
+                    headers.extend(field_headers(f, mode))
                 if model._meta.model_name == "screening":
                     regimen_fields = [apps.get_model("nanopore", "RegimenChanges")._meta.get_field(f) for f in REGIMEN_FIELDS]
                     for f in regimen_fields:
@@ -112,7 +131,7 @@ class ExportModelDataView(FeatureAccessMixin, View):
                     # One extra query instead of one more join (lab models already join ~60 tables).
                     Screening = apps.get_model("nanopore", "Screening")
                     pids = dict(Screening.objects.filter(pk__in=records.values("screening_id")).values_list("pk", "pid"))
-                qs = records.select_related(*related_fields).iterator(chunk_size=200)
+                qs = records.select_related(*related_fields).prefetch_related(*(f.name for f in many_fields)).iterator(chunk_size=200)
 
                 for obj in qs:
                     row = [pids.get(obj.screening_id, "")] if pid_from_screening else []
@@ -132,6 +151,9 @@ class ExportModelDataView(FeatureAccessMixin, View):
                             row.extend(relation_cells(f, getattr(obj, f.name, None), mode))  # already selected
                         else:
                             row.append(getattr(obj, f.name, "") or "")
+
+                    for f in many_fields:
+                        row.extend(many_cells(f, list(getattr(obj, f.name).all()), mode))
 
                     # 3. Regimen columns (screening only)
                     if model._meta.model_name == "screening":
@@ -157,7 +179,7 @@ class ExportModelDataView(FeatureAccessMixin, View):
                 writer.writerow([f"EXPORT ERROR: {exc}"])
                 yield buffer.getvalue()
 
-        filename = f"{model_name or 'model_data'}.csv"
+        filename = f"{model_name or 'model_data'}_{export_date()}.csv"
         response = StreamingHttpResponse(csv_generator(), content_type="text/csv")
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response

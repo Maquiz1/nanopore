@@ -14,7 +14,6 @@ class EdcsTblisFormView(FormAccessMixin, View):
     """
     http_method_names = ["get", "head", "options"]
     access_form = access.EDCS_TBLIS
-    access_record_page = True
     template_name = "nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_form.html"
 
     def get(self, request, *args, **kwargs):

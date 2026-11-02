@@ -11,7 +11,6 @@ from nanopore.models import ZonalLaboratory
 
 class ZonalLaboratoryDetailView(FormAccessMixin, DetailView):
     access_form = access.ZONAL_LAB
-    access_record_page = True
     model = ZonalLaboratory
     template_name = 'nanopore/laboratory/zonal/zonal_laboratory_detail.html'
     context_object_name = 'zonal_laboratory'

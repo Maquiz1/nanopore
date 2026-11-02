@@ -50,6 +50,9 @@ class DiagnosisFormView(FormAccessMixin, View):
             instance=obj,
             screening_instance=screening_instance,
         )
+        if not access.can_edit(request.user, access.DIAGNOSIS):
+            for field in form.fields.values():
+                field.disabled = True
 
         regimen_changes = self.get_regimen_changes(screening_instance)
         regimen_form = RegimenChangesForm()  # For modal

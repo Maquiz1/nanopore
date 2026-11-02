@@ -36,6 +36,9 @@ class ScreeningFormView(FormAccessMixin, View):
         """
         form = self.form_class(data, instance=obj)
         self.limit_choices(form)
+        if not access.can_edit(self.request.user, access.SCREENING):
+            for readonly in form.fields.values():
+                readonly.disabled = True
         field = form.fields["site"]
         if obj:
             field.disabled = True

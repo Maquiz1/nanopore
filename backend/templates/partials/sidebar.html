@@ -42,10 +42,10 @@
                 {% if access.view.clinic_lab %}
                 <a href="{% url 'nanopore:clinic-laboratory-list' %}"><i class="fas fa-vial"></i><span>Clinic Laboratory</span></a>
                 {% endif %}
-                {% if access.records.zonal_lab %}
+                {% if access.view.zonal_lab %}
                 <a href="{% url 'nanopore:zonal-laboratory-list' %}"><i class="fas fa-microscope"></i><span>Zonal Laboratory</span></a>
                 {% endif %}
-                {% if access.records.edcs_tblis %}
+                {% if access.view.edcs_tblis %}
                 <a href="{% url 'nanopore:edcs-tblis-laboratory-list' %}"><i class="fas fa-database"></i><span>EDCS / TBLIS</span></a>
                 {% endif %}
                 {% if access.view.diagnosis %}
@@ -166,7 +166,7 @@
         </a>
         {% endif %}
 
-        {% if access.is_admin or "STATISTICIAN" in access.roles or "REVIEWER" in access.roles %}
+        {% if access.is_admin or "STATISTICIAN" in access.roles or "REVIEWER" in access.roles or "COORDINATOR" in access.roles %}
         <div class="sb-group">
             <button type="button" class="sb-link sb-toggle" title="Substudy downloads">
                 <i class="fas fa-file-excel"></i><span>Substudy downloads</span><i class="fas fa-chevron-right sb-chevron"></i>

@@ -36,6 +36,9 @@ class EnrollmentFormView(FormAccessMixin, View):
 
         screening_instance = self.get_screening_instance()
         form = EnrollmentForm(instance=obj, screening_instance=screening_instance)
+        if not access.can_edit(request.user, access.ENROLLMENT):
+            for field in form.fields.values():
+                field.disabled = True
         return render(request, self.template_name, {"form": form, "object": obj,"next": next_url})
 
     def post(self, request, *args, **kwargs):

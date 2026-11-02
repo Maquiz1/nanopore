@@ -209,33 +209,40 @@ class ViewEnforcementTests(AccessTestBase):
             self.assertContains(page, self.pid("A1"))
             self.assertNotContains(page, reverse(f"nanopore:{name}-update", args=[record.pk]))
 
-    def test_coordinator_reads_lab_records_of_their_zone_only_on_screen(self):
-        zonal = self.zonal_labs["A1"]
-        edcs = EdcsTblisZonal.objects.create(screening=self.screenings["A1"], unique_lab_no="LAB-E1")
-        other = EdcsTblisZonal.objects.create(screening=self.screenings["B1"], unique_lab_no="LAB-E2")
-        self.login(self.make_user("coord_read", [access.COORDINATOR], zones=[self.zone_a]))
+    def test_coordinator_reads_exports_and_queries_in_their_zone_without_writing(self):
+        self.login(self.make_user("coord_all", zones=[self.zone_a], position="Coordinator"))
+        for name in ("nanopore:form-status-list", "nanopore:master-data-list", "nanopore:screening-list", "nanopore:enrollment-list",
+                     "nanopore:clinic-laboratory-list", "nanopore:zonal-laboratory-list", "nanopore:edcs-tblis-laboratory-list",
+                     "nanopore:diagnosis-list", "nanopore:regimen-list", "reports:zonal_quality_report", "reports:edcs_tblis_quality_report",
+                     "reports:ctrl_isolates", "reports:query_trends", "reports:data-export", "reports:summary"):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+        page = self.client.get(reverse("nanopore:form-status-list"))
+        self.assertEqual({s.pid for s in page.context["screenings"]}, {self.pid("A1"), self.pid("A2")})
 
-        update = reverse("nanopore:zonal-laboratory-update", args=[zonal.pk])
-        for url in (reverse("nanopore:zonal-laboratory-list"), reverse("nanopore:edcs-tblis-laboratory-list"),
-                    reverse("nanopore:zonal-laboratory-detail", args=[zonal.pk]), update,
-                    reverse("nanopore:edcs-tblis-laboratory-view", args=[edcs.pk])):
-            self.assertEqual(self.client.get(url).status_code, 200, url)
+        # Exports stay within the assigned zones
+        response = self.client.get(reverse("reports:export_data"), {"model": "Screening", "mode": "values_only"})
+        exported = b"".join(response.streaming_content).decode()
+        self.assertIn(self.pid("A1"), exported)
+        self.assertNotIn(self.pid("B1"), exported)
+
+        # No writing: forms are greyed out and saving is refused
+        create = reverse("nanopore:screening-create")
+        self.assertNotContains(self.client.get(reverse("nanopore:screening-list")), f'href="{create}"')
+        update = reverse("nanopore:screening-update", args=[self.screenings["A1"].pk])
         page = self.client.get(update)
-        self.assertNotContains(page, "Save Zonal Laboratory")
-        self.assertTrue(page.context["form"].fields["unique_lab_no"].disabled)
+        self.assertNotContains(page, "Save screening")
+        self.assertTrue(all(f.disabled for f in page.context["form"].fields.values()))
+        self.assertEqual(self.client.post(update, {}).status_code, 403)
+        self.assertEqual(self.client.get(create).status_code, 403)
+        self.assertEqual(self.client.get(reverse("nanopore:screening-update", args=[self.screenings["B1"].pk])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("nanopore:edcs-tblis-laboratory-list")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("nanopore:tblis-raw-upload")).status_code, 403)
 
-        self.assertEqual(self.client.get(reverse("nanopore:edcs-tblis-laboratory-view", args=[other.pk])).status_code, 404)
-        self.assertEqual(self.client.get(reverse("nanopore:zonal-laboratory-detail", args=[self.zonal_labs["B1"].pk])).status_code, 404)
-        self.assertEqual(self.client.post(update, {"unique_lab_no": "CHANGED"}).status_code, 403)
-        self.assertEqual(self.client.get(reverse("nanopore:zonal-laboratory-create")).status_code, 403)
-
-        # Nothing beyond reading: no exports, query pages or other forms
-        self.assertNotContains(self.client.get(reverse("nanopore:edcs-tblis-laboratory-list")), 'onclick="startCardExport')
-        self.assertEqual(self.client.post(reverse("nanopore:edcs-tblis-export-trigger")).status_code, 403)
-        for url in (reverse("nanopore:edcs-tblis-download-csv"), reverse("nanopore:tblis-mapping-download", args=["excel"]),
-                    reverse("reports:edcs_tblis_quality_report"), reverse("reports:zonal_quality_report"),
-                    reverse("nanopore:form-status-list"), reverse("nanopore:screening-list"), reverse("nanopore:clinic-laboratory-list")):
-            self.assertEqual(self.client.get(url).status_code, 403, url)
+    def test_roles_combine_read_and_write(self):
+        # A coordinator who is also a data specialist can write; the coordinator role alone cannot
+        both = self.make_user("coord_ds", [access.COORDINATOR, access.DATA_SPECIALIST], zones=[self.zone_a])
+        self.assertTrue(can_edit(both, access.SCREENING))
+        self.assertFalse(can_edit(self.make_user("coord_ro", [access.COORDINATOR], zones=[self.zone_a]), access.SCREENING))
 
     def test_record_outside_scope_returns_404(self):
         self.login(self.make_user("lab", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
@@ -326,7 +333,7 @@ class MissingFormsTests(AccessTestBase):
 class ExportRolesTests(AccessTestBase):
     def test_who_can_export(self):
         from utils.access import has_feature
-        exporters = [access.DATA_SPECIALIST, access.DATA_MANAGER, access.STATISTICIAN, access.ADMIN]
+        exporters = [access.DATA_SPECIALIST, access.DATA_MANAGER, access.STATISTICIAN, access.COORDINATOR, access.ADMIN]
         for role in access.ALL_ROLES:
             user = self.make_user(f"u_{role.lower()}", [role], sites=[self.a1])
             self.assertEqual(has_feature(user, access.EXPORTS), role in exporters, role)

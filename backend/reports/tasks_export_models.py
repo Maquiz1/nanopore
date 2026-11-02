@@ -1,13 +1,21 @@
 import csv
 import os
+from zoneinfo import ZoneInfo
+
 from celery import shared_task
 from django.conf import settings
 from django.apps import apps
+from django.utils import timezone
 
 def sanitize_text(val):
     if isinstance(val, str):
         return val.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ').strip()
     return val
+
+
+def export_date():
+    """Today in Tanzania for export file names (the server's clock is UTC)."""
+    return timezone.now().astimezone(ZoneInfo("Africa/Dar_es_Salaam")).strftime("%Y-%m-%d")
 
 
 def _scope_for_user(model, qs, user_id):
@@ -184,9 +192,7 @@ REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 @shared_task(bind=True)
 def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=None):
     if not filename:
-        from datetime import datetime
-        date_str = datetime.now().strftime("%Y%m%d")
-        filename = f"all_models_combined_{mode}_{date_str}_u{user_id}.csv"
+        filename = f"all_models_combined_{mode}_{export_date()}_u{user_id}.csv"
 
     export_dir = str(settings.PRIVATE_EXPORTS_DIR)
     os.makedirs(export_dir, exist_ok=True)
@@ -195,8 +201,9 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
     exclude_fields = [
         'id', 'created_at', 'updated_at', 'created_by', 'updated_by',
         'screening', 'enrollment', 'clinic_laboratory', 'zonal_laboratory',
-        'diagnosis', 'regimen_changes', 'remarks',
+        'diagnosis', 'regimen_changes',
         'pid', 'pid1', 'pid2',  # exported once as the first columns
+        'phenotypic_date_performed',  # replaced by the first- and second-line dates
     ]
 
     models = {
@@ -215,7 +222,8 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
 
     # Build lookup cache dynamically to prevent N+1 queries on foreign key dropdown options
     related_models = set()
-    for model in models.values():
+    RegimenChanges = apps.get_model("nanopore", "RegimenChanges")
+    for model in [*models.values(), RegimenChanges]:
         for f in model._meta.fields:
             if f.is_relation and not f.many_to_many and f.name not in exclude_fields:
                 related_models.add(f.related_model)
@@ -242,7 +250,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
             def get_m2m_val(v):
                 v_val = getattr(v, "value", None)
                 return v_val if v_val is not None else v.pk
-            return sanitize_text(";".join(str(get_m2m_val(v)) for v in getattr(obj, f.name).all()))
+            return sanitize_text(";".join(str(code) for code in sorted(get_m2m_val(v) for v in getattr(obj, f.name).all())))
         
         # Standard FK/OneToOne
         fk_id = obj.__dict__.get(f.attname)
@@ -256,10 +264,13 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
             
         return sanitize_text(fk_id)
 
+    def export_fields(model):
+        return [f for f in (*model._meta.fields, *model._meta.many_to_many) if f.name not in exclude_fields]
+
     # Headers
     headers = ["pid"]
     for key, model in models.items():
-        for f in model._meta.fields:
+        for f in export_fields(model):
             if f.name not in exclude_fields:
                 if f.name in ["remarks", "comments"]:
                     headers.append(f"{key}_{f.name}")
@@ -279,7 +290,13 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
     # Pre-select based on mode
     qs = screenings.select_related(
         'enrollment', 'diagnosis', 'clinic_laboratory'
-    ).prefetch_related('regimen_changes')
+    ).prefetch_related(
+        'regimen_changes',
+        *(f"enrollment__{f.name}" for f in models["enrollment"]._meta.many_to_many),
+        *(f"diagnosis__{f.name}" for f in models["diagnosis"]._meta.many_to_many),
+        *(f"clinic_laboratory__{f.name}" for f in models["clinic"]._meta.many_to_many),
+        *(f"{'tblis_laboratory' if mode == 'edcs' else 'zonal_laboratory'}__{f.name}" for f in models["lab"]._meta.many_to_many),
+    )
     
     if mode == "edcs":
         qs = qs.select_related('tblis_laboratory')
@@ -344,15 +361,13 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
                     ("lab",        lab),
                 ]:
                     model = models[key]
-                    for mf in model._meta.fields:
-                        if mf.name in exclude_fields:
-                            continue
+                    for mf in export_fields(model):
                         row.append(get_value(obj_instance, mf))
 
                 # 3. Regimen columns
                 if regimen:
                     for rf in REGIMEN_FIELDS:
-                        row.append(sanitize_text(getattr(regimen, rf, "") or ""))
+                        row.append(get_value(regimen, RegimenChanges._meta.get_field(rf)))
                 else:
                     row.extend([""] * len(REGIMEN_FIELDS))
 

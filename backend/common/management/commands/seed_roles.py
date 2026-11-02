@@ -72,6 +72,9 @@ class Command(BaseCommand):
         # STATISTICIAN -> All models (view only); exports cover all sites
         assign_view_only_perms("STATISTICIAN", all_models)
 
+        # COORDINATOR -> All models (view only), limited to their assignment
+        assign_view_only_perms("COORDINATOR", all_models)
+
         # ADMIN -> All models (full perms)
         assign_full_perms("ADMIN", all_models)
 

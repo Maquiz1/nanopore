@@ -39,6 +39,9 @@ class ClinicLaboratoryFormView(FormAccessMixin, View):
 
         screening_instance = self.get_screening_instance()
         form = ClinicLaboratoryForm(instance=obj, initial={"screening": screening_instance})
+        if not access.can_edit(request.user, access.CLINIC_LAB):
+            for field in form.fields.values():
+                field.disabled = True
         return render(
             request,
             self.template_name,

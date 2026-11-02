@@ -13,9 +13,11 @@
     {% include "partials/filter_form.html" %}
 
     <div>
+        {% if access.edit.diagnosis %}
         <a href="{% url 'nanopore:diagnosis-create' %}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add Diagnosis
         </a>
+        {% endif %}
     </div>
 
     <hr class="my-3">
@@ -44,7 +46,7 @@
                     <td>{{ d.remarks|default:"-" }}</td>
                     <td>
                         <a href="{% url 'nanopore:diagnosis-detail' d.pk %}" class="btn btn-sm btn-primary">View</a>
-                        <a href="{% url 'nanopore:diagnosis-update' d.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'nanopore:diagnosis-update' d.pk %}" class="btn btn-sm btn-warning">{% if access.edit.diagnosis %}Edit{% else %}Full form{% endif %}</a>
                         {% if access.delete_records %}
                         <a href="{% url 'nanopore:diagnosis-delete' d.pk %}" class="btn btn-sm btn-danger">Delete</a>
                         {% endif %}

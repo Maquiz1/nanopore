@@ -13,9 +13,11 @@
     {% include "partials/filter_form.html" %}
 
     <div>
+        {% if access.edit.enrollment %}
         <a href="{% url 'nanopore:enrollment-create' %}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add Enrollment
         </a>
+        {% endif %}
     </div>
 
     <hr class="my-3">
@@ -42,7 +44,7 @@
                     <td>{{ enrollment.remarks|default:"-" }}</td>
                     <td>
                         <a href="{% url 'nanopore:enrollment-detail' enrollment.pk %}" class="btn btn-sm btn-primary">View</a>
-                        <a href="{% url 'nanopore:enrollment-update' enrollment.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'nanopore:enrollment-update' enrollment.pk %}" class="btn btn-sm btn-warning">{% if access.edit.enrollment %}Edit{% else %}Full form{% endif %}</a>
                         {% if access.delete_records %}
                         <a href="{% url 'nanopore:enrollment-delete' enrollment.pk %}" class="btn btn-sm btn-danger">Delete</a>
                         {% endif %}
