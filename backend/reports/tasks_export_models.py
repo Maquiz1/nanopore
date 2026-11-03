@@ -309,7 +309,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
         ]
         ctrl_q = Q()
         for prefix in ctrl_prefixes:
-            ctrl_q |= Q(tblis_laboratory__pid__startswith=prefix)
+            ctrl_q |= Q(pid__startswith=prefix)  # the participant's PID (rows are screenings)
         latest_batch = TblisUploadBatch.objects.first()
         if latest_batch:
             merged_labnos = TblisRawData.objects.filter(

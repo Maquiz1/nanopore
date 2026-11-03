@@ -8,7 +8,7 @@ from unittest import mock
 
 from django.urls import reverse
 
-from nanopore.models import ZonalLaboratory
+from nanopore.models import EdcsTblisZonal, ZonalLaboratory
 from nanopore.test_access import AccessTestBase
 from options.models import CultureMethod, INHResultLPA, YesNo, YesNoNA
 from reports.codebook import CODEBOOK_FORMS, build_codebook, form_codebook
@@ -127,3 +127,15 @@ class DataExportModesTests(AccessTestBase):
                 tempfile.TemporaryDirectory() as folder, self.settings(PRIVATE_EXPORTS_DIR=folder):
             result = export_all_models_combined_task.apply(kwargs={"mode": "zonal", "user_id": 7}).result
         self.assertEqual(result["file"], "all_models_combined_zonal_2026-11-03_u7.csv")
+
+    def test_combined_export_with_edcs_tblis(self):
+        EdcsTblisZonal.objects.create(screening=self.screenings["A1"], unique_lab_no="LAB-E1", remarks="EDCS remark")
+        with tempfile.TemporaryDirectory() as folder, self.settings(PRIVATE_EXPORTS_DIR=folder):
+            user = self.make_user("stat_edcs", [access.STATISTICIAN])
+            result = export_all_models_combined_task.apply(kwargs={"mode": "edcs", "filename": "edcs.csv", "user_id": user.pk}).result
+            with open(os.path.join(folder, "edcs.csv"), encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+        self.assertEqual(result["state"], "SUCCESS")
+        row = next(r for r in rows if r["pid"] == self.pid("A1"))
+        self.assertEqual((row["unique_lab_no"], row["lab_remarks"]), ("LAB-E1", "EDCS remark"))
+
