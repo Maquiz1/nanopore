@@ -25,7 +25,8 @@ class CtrlDarFormView(FormAccessMixin, View):
     title = None
 
     def get_object(self):
-        return get_object_or_404(ctrl_dar_records(self.request.user), pk=self.kwargs["pk"])
+        write = self.needs_edit(self.request, self.kwargs)
+        return get_object_or_404(ctrl_dar_records(self.request.user, write=write), pk=self.kwargs["pk"])
 
     def next_url(self):
         url = self.request.POST.get("next") or self.request.GET.get("next")
@@ -37,6 +38,7 @@ class CtrlDarFormView(FormAccessMixin, View):
         return render(request, self.template_name, {
             "form": form, "object": obj, "screening": obj.screening, "next": self.next_url(),
             "section": self.section, "title": self.title,
+            "read_only": not ctrl_dar_records(request.user, write=True).filter(pk=obj.pk).exists(),
         })
 
     def get(self, request, *args, **kwargs):

@@ -36,10 +36,11 @@ class EnrollmentFormView(FormAccessMixin, View):
 
         screening_instance = self.get_screening_instance()
         form = EnrollmentForm(instance=obj, screening_instance=screening_instance)
-        if not access.can_edit(request.user, access.ENROLLMENT):
+        read_only = self.is_read_only(obj)
+        if read_only:
             for field in form.fields.values():
                 field.disabled = True
-        return render(request, self.template_name, {"form": form, "object": obj,"next": next_url})
+        return render(request, self.template_name, {"form": form, "object": obj,"next": next_url, "read_only": read_only})
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()

@@ -86,7 +86,7 @@
                         <td data-label="Still missing">
                             {% for label in row.open %}<span class="fs-chip miss">{{ label }}</span> {% empty %}<span class="fs-chip ok"><i class="fas fa-circle-check"></i> Complete</span>{% endfor %}
                         </td>
-                        {% if can_edit %}<td><a href="{% url 'nanopore:ctrl-isolate-update' row.z.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary">Isolate no.</a></td>{% endif %}
+                        {% if can_edit %}<td>{% if row.editable %}<a href="{% url 'nanopore:ctrl-isolate-update' row.z.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary">Isolate no.</a>{% endif %}</td>{% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>

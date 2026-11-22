@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.views import View
 
 from nanopore.models import TblisRawData
+from nanopore.zonal_rules import ctrl_records
 from reports.constants.zona_mapping import CTRL_QUERIES
 from reports.services.zonal_dq import get_ctrl_isolate_counts, get_ctrl_isolates_queryset, to_complete_q
 from reports.services.zonal_dq.filters import get_ctrl_isolate_filters
@@ -61,7 +62,8 @@ class CtrlIsolatesView(AnyFormAccessMixin, View):
         for key, query in filters.items():
             for pk in qs.filter(query, pk__in=ids).values_list("pk", flat=True):
                 open_queries[pk].append(CTRL_QUERIES[key])
-        rows = [{"z": z, "isolate_no": isolate_number(z), "open": open_queries[z.pk]} for z in page]
+        editable = set(ctrl_records(user, write=True).filter(pk__in=ids).values_list("pk", flat=True))
+        rows = [{"z": z, "isolate_no": isolate_number(z), "open": open_queries[z.pk], "editable": z.pk in editable} for z in page]
 
         params = request.GET.copy()
         params.pop("page", None)

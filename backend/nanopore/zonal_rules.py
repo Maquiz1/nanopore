@@ -14,7 +14,7 @@ from django.apps import apps
 from django.db.models import Q
 
 from common.labels.laboratory.zonal.zonal_labels import ZONAL_LABELS
-from utils.access import is_ctrl_lab, is_unscoped, scope_queryset
+from utils.access import is_ctrl_lab, scope_queryset, writable_queryset
 
 LAB_NUMBER_ONLY_ZONE = "dar es salaam"
 
@@ -41,18 +41,25 @@ def ctrl_answers(record, names=CTRL_FIELDS):
             if getattr(record, name) not in (None, "")]
 
 
-def ctrl_records(user):
+def _limit_ctrl(user, qs, write):
+    """Superusers first: the query snapshot's system user is unsaved, so it has no groups to look up."""
+    if getattr(user, "is_superuser", False) or is_ctrl_lab(user):
+        return qs
+    return (writable_queryset if write else scope_queryset)(user, qs, "screening__site")
+
+
+def ctrl_records(user, write=False):
     """Other zones' Zonal Lab forms: CTRL covers every zone, anyone else their assigned sites."""
     ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
     qs = ZonalLaboratory.objects.exclude(LAB_NUMBER_ONLY_Q).select_related("screening__site__district__region__zone")
-    return qs if is_unscoped(user) or is_ctrl_lab(user) else scope_queryset(user, qs, "screening__site")
+    return _limit_ctrl(user, qs, write)
 
 
-def ctrl_dar_records(user):
+def ctrl_dar_records(user, write=False):
     """Dar es Salaam Zonal Lab forms CTRL's own forms can open."""
     ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
     qs = ZonalLaboratory.objects.filter(LAB_NUMBER_ONLY_Q).select_related("screening__site__district__region__zone")
-    return qs if is_unscoped(user) or is_ctrl_lab(user) else scope_queryset(user, qs, "screening__site")
+    return _limit_ctrl(user, qs, write)
 
 
 def lpa_lines_done(screening):

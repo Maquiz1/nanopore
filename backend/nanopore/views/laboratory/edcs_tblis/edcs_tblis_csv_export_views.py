@@ -2,6 +2,7 @@ from utils import access
 from utils.access_mixins import FormAccessMixin
 import json
 import os
+import re
 import uuid
 from datetime import datetime
 from django.conf import settings
@@ -45,9 +46,9 @@ class TriggerCsvExportView(FormAccessMixin, View):
             "card_type": _get("card_type"),
         }
 
-        card_type = filters.get("card_type") or "data"
+        card_type = re.sub(r"\W", "", str(filters.get("card_type") or "")) or "data"
         date_str = datetime.now().strftime('%Y%m%d')
-        filename = f"export_{card_type}_{date_str}_{uuid.uuid4().hex[:8]}.xlsx"
+        filename = f"export_{card_type}_{date_str}_{uuid.uuid4().hex[:8]}_u{request.user.id}.xlsx"
         task = export_edcs_tblis_csv.delay(filters=filters, filename=filename, user_id=request.user.id)
         return JsonResponse({"task_id": task.id, "filename": filename})
 
@@ -58,6 +59,9 @@ class ServeCsvExportView(FormAccessMixin, View):
     GET: serve the generated Excel file for download once ready.
     """
     def get(self, request, filename, *args, **kwargs):
+        # Only the user's own Excel export: the folder also holds other people's and all-sites exports.
+        if not filename.endswith(f"_u{request.user.id}.xlsx"):
+            raise Http404("Export file not found.")
         filepath = os.path.join(settings.PRIVATE_EXPORTS_DIR, os.path.basename(filename))
         if not os.path.exists(filepath):
             raise Http404("Export file not found.")

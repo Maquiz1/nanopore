@@ -36,7 +36,8 @@ class ScreeningFormView(FormAccessMixin, View):
         """
         form = self.form_class(data, instance=obj)
         self.limit_choices(form)
-        if not access.can_edit(self.request.user, access.SCREENING):
+        self.read_only = self.is_read_only(obj)
+        if self.read_only:
             for readonly in form.fields.values():
                 readonly.disabled = True
         field = form.fields["site"]
@@ -69,6 +70,7 @@ class ScreeningFormView(FormAccessMixin, View):
         and the Dar es Salaam zone reference.
         """
         context = kwargs
+        context["read_only"] = self.read_only
         obj = context.get("object")
         form = context["form"]
 

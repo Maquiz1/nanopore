@@ -16,7 +16,7 @@ from nanopore.models import (
     ZonalLaboratory,
 )
 from nanopore.models.discrepancies import TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
-from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
+from nanopore.zonal_rules import CTRL_FIELDS, LAB_NUMBER_ONLY_Q
 from options.models import (
     SampleAppearance, YesNo, CultureMethod, MicroscopyType, CultureMicroscopyResults,
     LJCultureResult, MGITCultureResult, YesNoNA, PhenotypicDSTResults,
@@ -174,6 +174,14 @@ CTRL_PREFIXES = [
     "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
 ]
 
+# DST answers the site may enter and an isolate row may also fill
+SITE_DST_COLUMNS = {
+    "ethionamide": "mgitdst2_ethionamide",
+    "prothionamide": "mgitdst2_prothionamide",
+    "para_aminosalicylic_acid": "mgitdst2_pas",
+}
+
+
 def get_ctrl_prefix_query():
     prefix_query = Q()
     for prefix in CTRL_PREFIXES:
@@ -302,6 +310,20 @@ def merge_isolate_dst(z_lab, clean_row):
         if value == 1 and getattr(z_lab, name) == 2:
             setattr(z_lab, name, value)
     z_lab.save()
+
+
+def clear_isolate_dst(z_lab, old_number):
+    """
+    The isolate number was changed or cleared: the DST that came by the old number is
+    another isolate's. Drugs the site also enters go only if the old number's rows had them.
+    """
+    for name in (*CTRL_FIELDS[1:], "phenotypic_date_performed"):
+        setattr(z_lab, name, None)
+    old_rows = list(TblisRawData.objects.filter(labno=old_number, raw_data__spectype__iexact="isolate")
+                    .values_list("raw_data", flat=True))
+    for name, column in SITE_DST_COLUMNS.items():
+        if any(row.get(column) for row in old_rows):
+            setattr(z_lab, name, None)
 
 
 def merge_isolate_from_raw(z_lab):

@@ -166,7 +166,7 @@
         <!-- Save bar -->
         <div class="df-savebar">
             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary">Cancel</a>
-            {% if access.edit.screening %}
+            {% if access.edit.screening and not read_only %}
                 {% if system_control.enable_form_submissions %}
                 <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save screening</button>
                 {% else %}

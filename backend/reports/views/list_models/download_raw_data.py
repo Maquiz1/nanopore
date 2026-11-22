@@ -33,6 +33,9 @@ class ServeModelExportView(FeatureAccessMixin, View):
     GET: serve the generated CSV file for download once ready.
     """
     def get(self, request, filename, *args, **kwargs):
+        # Only CSV: the EDCS/TBLIS Excel exports (some hold raw TBLIS rows) have their own route.
+        if not filename.endswith(".csv"):
+            raise Http404("Export file not found.")
         # Scoped users may only fetch the files generated for them.
         if not exports_all_sites(request.user) and not filename.endswith(f"_u{request.user.id}.csv"):
             raise Http404("Export file not found.")

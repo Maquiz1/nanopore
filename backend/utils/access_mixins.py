@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import AccessMixin
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 
-from utils.access import can_edit, can_view, get_accessible_sites, has_feature, scope_queryset
+from utils.access import can_edit, can_view, get_writable_sites, has_feature, scope_queryset, writable_queryset
 
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
@@ -33,25 +33,38 @@ class FormAccessMixin(AccessMixin):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
-    def has_form_access(self, request, kwargs):
-        needs_edit = (
+    def needs_edit(self, request, kwargs):
+        return bool(
             self.access_write
             or (request.method not in SAFE_METHODS and not (self.access_safe_post and request.method == "POST"))
             or (self.access_is_form and not kwargs.get("pk"))
         )
-        check = can_edit if needs_edit else can_view
+
+    def has_form_access(self, request, kwargs):
+        check = can_edit if self.needs_edit(request, kwargs) else can_view
         return check(request.user, self.access_form)
 
     def scope(self, qs, site_field=None):
-        return scope_queryset(self.request.user, qs, site_field or self.access_site_field)
+        """The records this request may use: those the user may change when it writes, else those they may see."""
+        limit = writable_queryset if self.needs_edit(self.request, self.kwargs) else scope_queryset
+        return limit(self.request.user, qs, site_field or self.access_site_field)
+
+    def is_read_only(self, obj=None):
+        """The form opens greyed out: no edit role, or a saved record outside the user's assignment."""
+        if not can_edit(self.request.user, self.access_form):
+            return True
+        if obj is None:
+            return False
+        records = type(obj)._default_manager.filter(pk=obj.pk)
+        return not writable_queryset(self.request.user, records, self.access_site_field).exists()
 
     def limit_choices(self, form):
         """Restrict a form's screening/site dropdowns so out-of-scope values fail validation."""
         if "screening" in form.fields and hasattr(form.fields["screening"], "queryset"):
             field = form.fields["screening"]
-            field.queryset = scope_queryset(self.request.user, field.queryset, "site")
+            field.queryset = writable_queryset(self.request.user, field.queryset, "site")
         if "site" in form.fields and hasattr(form.fields["site"], "queryset"):
-            sites = get_accessible_sites(self.request.user)
+            sites = get_writable_sites(self.request.user)
             if sites is not None:
                 form.fields["site"].queryset = form.fields["site"].queryset.filter(pk__in=sites)
         return form

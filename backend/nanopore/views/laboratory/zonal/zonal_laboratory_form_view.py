@@ -51,14 +51,15 @@ class ZonalLabFormView(FormAccessMixin, View):
             initial={"screening": screening_instance},
             screening_instance=screening_instance
         )
-        if not access.can_edit(request.user, access.ZONAL_LAB):
+        read_only = self.is_read_only(obj)
+        if read_only:
             for field in form.fields.values():
                 field.disabled = True
 
         return render(
             request,
             self.template_name,
-            {"form": form, "object": obj, "screening": screening_instance, "next": next_url}
+            {"form": form, "object": obj, "screening": screening_instance, "next": next_url, "read_only": read_only}
         )
 
     def post(self, request, *args, **kwargs):

@@ -50,7 +50,8 @@ class DiagnosisFormView(FormAccessMixin, View):
             instance=obj,
             screening_instance=screening_instance,
         )
-        if not access.can_edit(request.user, access.DIAGNOSIS):
+        read_only = self.is_read_only(obj)
+        if read_only:
             for field in form.fields.values():
                 field.disabled = True
 
@@ -67,6 +68,7 @@ class DiagnosisFormView(FormAccessMixin, View):
                 "regimen_changes": regimen_changes,
                 "regimen_form": regimen_form,
                 "next": next_url,
+                "read_only": read_only,
             },
         )
 

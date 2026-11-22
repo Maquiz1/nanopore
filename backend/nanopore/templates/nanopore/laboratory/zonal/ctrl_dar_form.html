@@ -39,7 +39,7 @@
 
         <div class="df-savebar">
             <a href="{{ next }}" class="btn btn-outline-secondary">Cancel</a>
-            {% if access.edit.ctrl_isolates and form.fields %}
+            {% if access.edit.ctrl_isolates and form.fields and not read_only %}
                 {% if system_control.enable_form_submissions %}
                 <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save</button>
                 {% else %}

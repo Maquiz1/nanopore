@@ -93,11 +93,11 @@
                                 {% else %}
                                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:clinic-laboratory-detail' clinic.pk %}">Clinic Lab</a>
                                 {% endif %}
-                            {% elif access.edit.clinic_lab %}
+                            {% elif access.edit.clinic_lab and r.site_id in access.write_sites %}
                                 <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ r.pk }}">+ Clinic Lab</a>
                             {% endif %}
 
-                            {% if selected.key == "ss2_no_zonal" and access.edit.zonal_lab %}
+                            {% if selected.key == "ss2_no_zonal" and access.edit.zonal_lab and r.site_id in access.write_sites %}
                                 <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ r.pk }}">+ Zonal Lab</a>
                             {% elif zonal %}
                                 {% if access.edit.zonal_lab %}
@@ -117,7 +117,7 @@
                                 {% elif access.view.diagnosis %}
                                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:diagnosis-detail' diagnosis.pk %}">Diagnosis</a>
                                 {% endif %}
-                            {% elif selected.key == "ss2_no_outcome" and access.edit.diagnosis %}
+                            {% elif selected.key == "ss2_no_outcome" and access.edit.diagnosis and r.site_id in access.write_sites %}
                                 <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:diagnosis-create' %}?screening={{ r.pk }}">+ Diagnosis</a>
                             {% endif %}
                         </td>

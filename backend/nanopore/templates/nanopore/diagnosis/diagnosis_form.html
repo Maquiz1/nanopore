@@ -89,7 +89,7 @@
                             <h3><i class="fas fa-right-left"></i> Regimen changes</h3>
                             <p>Each change is saved straight away when you press Save in its window.</p>
                         </div>
-                        <button type="button" class="btn btn-sm btn-primary" id="addRegimenBtn"
+                        <button type="button" class="btn btn-sm btn-primary" id="addRegimenBtn" {% if read_only %}hidden disabled{% endif %}
                                 data-save-url="{% url 'nanopore:regimen-save' %}"
                                 data-screening-id="{{ screening.id }}">
                             <i class="fas fa-plus"></i> Add change
@@ -109,6 +109,7 @@
                                     <td data-label="Change">{{ regimen.changes|default:"—" }}</td>
                                     <td data-label="Reason">{{ regimen.reason|default:"—" }}{% if regimen.specify %}<div class="df-muted">{{ regimen.specify }}</div>{% endif %}</td>
                                     <td class="df-row-actions">
+                                        {% if not read_only %}
                                         <button type="button" class="btn btn-sm btn-outline-primary editRegimenBtn"
                                                 data-id="{{ regimen.id }}"
                                                 data-edit-url="{% url 'nanopore:regimen-edit' regimen.id %}"
@@ -117,6 +118,7 @@
                                         <button type="button" class="btn btn-sm btn-outline-danger deleteRegimenBtn"
                                                 data-id="{{ regimen.id }}"
                                                 data-delete-url="{% url 'nanopore:regimen-delete' regimen.id %}"><i class="fas fa-trash"></i></button>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -168,7 +170,7 @@
         <!-- Save bar -->
         <div class="df-savebar">
             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary">Cancel</a>
-            {% if access.edit.diagnosis %}
+            {% if access.edit.diagnosis and not read_only %}
                 {% if system_control.enable_form_submissions %}
                 <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save diagnosis</button>
                 {% else %}

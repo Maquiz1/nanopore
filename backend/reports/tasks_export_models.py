@@ -298,9 +298,10 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
         *(f"{'tblis_laboratory' if mode == 'edcs' else 'zonal_laboratory'}__{f.name}" for f in models["lab"]._meta.many_to_many),
     )
     
+    unmerged = set()  # participants whose EDCS/TBLIS columns stay blank
     if mode == "edcs":
         qs = qs.select_related('tblis_laboratory')
-        # Apply control sample exclusion logic similar to individual export
+        # Dar records the latest upload didn't merge show no lab results; the participant stays
         from django.db.models import Q
         from nanopore.models import TblisRawData, TblisUploadBatch
         ctrl_prefixes = [
@@ -318,9 +319,9 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
             ).values_list("labno", flat=True)
         else:
             merged_labnos = []
-        qs = qs.exclude(
+        unmerged = set(screenings.filter(
             ctrl_q & ~Q(tblis_laboratory__unique_lab_no__in=merged_labnos)
-        )
+        ).values_list("pk", flat=True))
     else:
         qs = qs.select_related('zonal_laboratory')
 
@@ -336,7 +337,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
             clinic     = getattr(screening, "clinic_laboratory", None)
             
             if mode == "edcs":
-                lab = getattr(screening, "tblis_laboratory", None)
+                lab = None if screening.pk in unmerged else getattr(screening, "tblis_laboratory", None)
             else:
                 lab = getattr(screening, "zonal_laboratory", None)
                 

@@ -281,7 +281,7 @@
                             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-danger">
                                 ❌ Cancel
                             </a>
-                            {% if access.edit.enrollment %}
+                            {% if access.edit.enrollment and not read_only %}
                             {% if system_control.enable_form_submissions %}
                                 <button type="submit" class="btn btn-success">💾 Save Enrollment</button>
                             {% else %}

@@ -2,7 +2,7 @@
 """
 Single source of truth for who can see and change what.
 
-Two independent questions are answered here:
+Three independent questions are answered here:
 
 1. WHICH FORMS a user may view / edit  -> decided by their roles (groups).
    A user may hold several roles; their rights are the union of all of them.
@@ -15,9 +15,14 @@ Two independent questions are answered here:
                         national-level lab site to its whole country, because
                         lab records belong to the clinic that screened the
                         participant, not to the lab.
-   * ADMIN, REVIEWER and superusers are not limited by assignment.
+   * ADMIN, REVIEWER and superusers are not limited by assignment when reading.
+
+3. WHICH RECORDS a user may change     -> their assignment, whatever else they may read.
+   * Only ADMIN and superusers write everywhere: REVIEWER widens reading, not writing.
+   * CTRL's own forms are the exception: a CTRL lab technician enters them for every zone.
 """
 from django.db.models import Q
+from django.utils.functional import cached_property
 
 from locations.models import Site, Zone
 
@@ -98,11 +103,11 @@ def chooses_screening_site(user):
 
 
 def screening_site_choices(user):
-    """Sites a new screening can be recorded at: active clinics (not the national lab) the user may see."""
+    """Sites a new screening can be recorded at: active clinics (not the national lab) the user may write at."""
     sites = Site.objects.filter(is_active=True).exclude(site_level__code__iexact="national")
-    accessible = get_accessible_sites(user)
-    if accessible is not None:
-        sites = sites.filter(pk__in=accessible)
+    writable = get_writable_sites(user)
+    if writable is not None:
+        sites = sites.filter(pk__in=writable)
     return sites.select_related("district__region__zone").order_by("district__region__zone__name", "name")
 
 
@@ -195,10 +200,21 @@ def get_accessible_sites(user):
     """Sites whose records the user may see. None means "all sites" (unscoped)."""
     if is_unscoped(user):
         return None
+    return Site.objects.filter(id__in=_assigned_site_ids(user))
+
+
+def get_writable_sites(user):
+    """Sites whose records the user may change. None means "all sites" (admins)."""
+    if getattr(user, "is_superuser", False) or has_role(user, ADMIN):
+        return None
+    return Site.objects.filter(id__in=_assigned_site_ids(user))
+
+
+def _assigned_site_ids(user):
     cache = _cache(user)
     if "site_ids" not in cache:
         cache["site_ids"] = _compute_site_ids(user)
-    return Site.objects.filter(id__in=cache["site_ids"])
+    return cache["site_ids"]
 
 
 def _compute_site_ids(user):
@@ -229,6 +245,14 @@ def _compute_site_ids(user):
 def scope_queryset(user, qs, site_field="site"):
     """Limit qs to the records of the sites the user is assigned to."""
     sites = get_accessible_sites(user)
+    if sites is None:
+        return qs
+    return qs.filter(**{f"{site_field}__in": sites})
+
+
+def writable_queryset(user, qs, site_field="site"):
+    """Limit qs to the records the user may change."""
+    sites = get_writable_sites(user)
     if sites is None:
         return qs
     return qs.filter(**{f"{site_field}__in": sites})
@@ -311,6 +335,12 @@ class AccessFlags:
         self.roles = get_user_roles(user)
         self.is_admin = bool(getattr(user, "is_superuser", False)) or ADMIN in self.roles
         self.is_unscoped = is_unscoped(user)
+
+    @cached_property
+    def write_sites(self):
+        """{% if s.site_id in access.write_sites %}: the user may add or change forms there."""
+        sites = get_writable_sites(self.user)
+        return set((Site.objects.all() if sites is None else sites).values_list("pk", flat=True))
 
     def __getattr__(self, feature):
         if feature.startswith("_"):
