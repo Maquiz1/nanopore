@@ -1,4 +1,6 @@
 from django.db.models import Max, Min
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import ListView
 
 from nanopore.edcs_tblis_cards import CARDS, DEFAULT_CARD, SECTIONS, card_queryset, latest_batch
@@ -10,6 +12,7 @@ from utils.access_mixins import FormAccessMixin
 from utils.roles import get_role_context
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")  # its export button posts with the cookie's token
 class EdcsTBLISLaboratoryListView(FormAccessMixin, ListView):
     """EDCS / TB-LIS records: summary cards (nanopore/edcs_tblis_cards.py) and the list behind the chosen card."""
     access_form = access.EDCS_TBLIS

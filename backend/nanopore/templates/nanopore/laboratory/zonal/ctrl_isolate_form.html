@@ -40,7 +40,7 @@
         <section class="df-card">
             <header class="df-card-head">
                 <span class="df-step">2</span>
-                <div><h2>Phenotypic DST</h2><p>Comes from the TB-LIS upload using the number above.</p></div>
+                <div><h2>Phenotypic DST</h2><p>{% if object.isolate_unique_lab_no %}From the TB-LIS upload, by the number above.{% else %}Answered by the site so far. Once the number above is entered, the TB-LIS upload's DST replaces it.{% endif %}</p></div>
             </header>
             {% if dst_values %}
             <ul class="mb-0">

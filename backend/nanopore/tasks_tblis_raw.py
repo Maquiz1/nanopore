@@ -1,6 +1,7 @@
 import csv
 import logging
 import os
+import re
 from decimal import Decimal, InvalidOperation
 from celery import shared_task
 from django.apps import apps
@@ -113,9 +114,12 @@ def mgit_result_value(text):
     """
     MGIT result (data dictionary): any "colon..." result is Positive, negative stays
     Negative, contaminated becomes Contamination, POSITIVE FOR NTM is MOTT.
+    "No colonies", "Nil", "0 colonies" and unknown texts give None: the merge lists them.
     """
     value = (text or "").strip().lower()
     if not value:
+        return None
+    if re.match(r"(no|nil|none|zero|0)\b", value):
         return None
     if value == "positive for ntm":
         return MGIT_MOTT
@@ -549,6 +553,13 @@ def apply_tblis_transformations(edcs_zonal, clean_row, labno):
         
     mgit_res_str = clean_row.get("mgit_res")
     mgit_res_val = mgit_result_value(mgit_res_str)
+    if mgit_res_str and mgit_res_val is None:
+        # Unknown MGIT text: left empty and listed with the mismatches for review, like LJ.
+        EdcsTblisMismatch.objects.create(
+            labno=labno, pid=edcs_zonal.screening.pid if edcs_zonal.screening_id else None,
+            field_name="mgit_results (unrecognised TBLIS value)",
+            edcs_value=str(edcs_zonal.mgit_results_id or ""), tblis_value=mgit_res_str,
+        )
     # Same MOTT rule as LJ (only when an MGIT culture was done).
     if is_mott(id_res) and (mgit_res_str or mgit_entry):
         mgit_res_val = MGIT_MOTT

@@ -22,6 +22,11 @@ REGIMEN_FIELDS = ["date", "drug", "changes", "reason", "specify"]
 PRIORITY_FIELDS = ["pid", "pid1", "pid2"]
 
 
+def blank_if_none(value):
+    """0 and False are answers; only a missing value is blank."""
+    return "" if value is None else value
+
+
 def is_coded(field):
     """An answer from an option list: its code is the `value` the codebook lists (the row id can differ)."""
     return any(f.name == "value" for f in field.related_model._meta.fields)
@@ -144,8 +149,10 @@ class ExportModelDataView(FeatureAccessMixin, View):
                     # 1. Priority fields — __dict__ fallback bypasses ORM
                     #    descriptors that can suppress editable=False values.
                     for field_name in active_priority:
-                        val = obj.__dict__.get(field_name) or getattr(obj, field_name, "") or ""
-                        row.append(val)
+                        val = obj.__dict__.get(field_name)
+                        if val in (None, ""):
+                            val = getattr(obj, field_name, "")
+                        row.append(blank_if_none(val))
 
                     # 2. Remaining model fields
                     for f in model._meta.fields:
@@ -155,26 +162,28 @@ class ExportModelDataView(FeatureAccessMixin, View):
                         if f.is_relation and not f.many_to_many:
                             row.extend(relation_cells(f, getattr(obj, f.name, None), mode))  # already selected
                         else:
-                            row.append(getattr(obj, f.name, "") or "")
+                            row.append(blank_if_none(getattr(obj, f.name, None)))
 
                     for f in many_fields:
                         row.extend(many_cells(f, list(getattr(obj, f.name).all()), mode))
 
-                    # 3. Regimen columns (screening only)
-                    if model._meta.model_name == "screening":
-                        regimens = list(obj.regimen_changes.all().order_by("date")) or [None]
-                        for regimen in regimens:
-                            for f in regimen_fields:
-                                if f.is_relation:
-                                    row.extend(relation_cells(f, getattr(regimen, f.name, None), mode))
-                                else:
-                                    row.append(getattr(regimen, f.name, "") or "")
-
+                    status = []
                     if found_by_screening is not None:
                         found = found_by_screening.get(obj.screening_id)
-                        row.append(found.label if found else "")
+                        status = [found.label if found else ""]
 
-                    writer.writerow(row)
+                    # 3. Screening: one row per regimen change (the participant's columns repeat)
+                    if model._meta.model_name == "screening":
+                        for regimen in list(obj.regimen_changes.all().order_by("date", "pk")) or [None]:
+                            cells = []
+                            for f in regimen_fields:
+                                if f.is_relation:
+                                    cells.extend(relation_cells(f, getattr(regimen, f.name, None), mode))
+                                else:
+                                    cells.append(blank_if_none(getattr(regimen, f.name, None)))
+                            writer.writerow(row + cells + status)
+                    else:
+                        writer.writerow(row + status)
                     yield buffer.getvalue()
                     buffer.seek(0)
                     buffer.truncate(0)

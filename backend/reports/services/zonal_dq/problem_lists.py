@@ -30,7 +30,7 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers):
         if key == "duplicate_unique_lab_no":
             problem_lists[key] = [
                 serialize_record(z, fields)
-                for z in qs.filter(unique_lab_no__in=duplicate_lab_numbers)[:10]
+                for z in qs.filter(unique_lab_no__in=duplicate_lab_numbers)
             ]
             continue
 
@@ -39,7 +39,7 @@ def get_zonal_problem_lists(qs, duplicate_lab_numbers):
         if q_filter:
             problem_lists[key] = [
                 serialize_record(z, fields)
-                for z in qs.filter(q_filter)[:10]
+                for z in qs.filter(q_filter)
             ]
         else:
             problem_lists[key] = []

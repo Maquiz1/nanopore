@@ -146,8 +146,10 @@ class CtrlIsolatesTests(AccessTestBase):
         self.client.force_login(self.ctrl_tech)
         self.assertEqual({r["z"].pk for r in self.client.get(reverse(PAGE)).context["rows"]}, {self.b_lab.pk})
         filled = {name: None for name in CTRL_FIELDS}
-        filled.update(isolate_unique_lab_no="ISO-2", phenotypic_performed=YesNo.objects.exclude(value=1).first()
-                      or YesNo.objects.create(name="No", value=2))
+        no = YesNo.objects.exclude(value=1).first() or YesNo.objects.create(name="No", value=2)
+        # Complete needs DST done: an isolate with DST = No stays a query
+        filled.update(isolate_unique_lab_no="ISO-2", phenotypic_performed=YesNo.objects.get(value=1),
+                      first_line_dst_performed=no, second_line_dst_performed=no)
         ZonalLaboratory.objects.filter(pk=self.b_lab.pk).update(**filled)
         self.assertEqual(self.client.get(reverse(PAGE)).context["rows"], [])
         self.assertEqual({r["z"].pk for r in self.client.get(reverse(PAGE), {"tab": "complete"}).context["rows"]}, {self.b_lab.pk})

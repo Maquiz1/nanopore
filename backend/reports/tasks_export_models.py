@@ -1,5 +1,6 @@
 import csv
 import os
+from collections import Counter
 from zoneinfo import ZoneInfo
 
 from celery import shared_task
@@ -259,12 +260,13 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
     def export_fields(model):
         return [f for f in (*model._meta.fields, *model._meta.many_to_many) if f.name not in exclude_fields]
 
-    # Headers
+    # Headers. A name two forms share (remarks, tb_regimen) gets the form in front.
+    shared = Counter(f.name for model in models.values() for f in export_fields(model))
     headers = ["pid"]
     for key, model in models.items():
         for f in export_fields(model):
             if f.name not in exclude_fields:
-                if f.name in ["remarks", "comments"]:
+                if f.name in ["remarks", "comments"] or shared[f.name] > 1:
                     headers.append(f"{key}_{f.name}")
                 else:
                     headers.append(f.name)

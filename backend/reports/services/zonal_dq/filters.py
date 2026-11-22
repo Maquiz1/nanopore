@@ -88,9 +88,9 @@ def _all_filters(model):
         if key == "missing_isolate_unique_lab_no":
             q &= Q(culture_isolate=1)
 
-        # PHENOTYPIC DST
+        # PHENOTYPIC DST: an isolate sent to CTRL stays a query until its DST is Yes (blank or No)
         if key == "missing_phenotypic_performed":
-            q &= Q(culture_isolate=1)
+            q = Q(culture_isolate=1) & ~Q(phenotypic_performed=1)
 
         if key == "missing_first_line_dst_performed":
             q &= Q(phenotypic_performed=1)

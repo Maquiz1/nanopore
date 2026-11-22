@@ -9,8 +9,6 @@ from django.conf import settings
 from django.http import JsonResponse, FileResponse, Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from nanopore.tasks_csv_export import export_edcs_tblis_csv
 
 
@@ -21,10 +19,6 @@ class TriggerCsvExportView(FormAccessMixin, View):
     POST: enqueue the background Excel export and return task_id.
     Accepts filters as JSON body OR as GET/POST params.
     """
-    @method_decorator(csrf_exempt)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
     def post(self, request, *args, **kwargs):
         # Try JSON body first, fall back to GET/POST params
         try:
