@@ -66,3 +66,35 @@ class TblisFollowUp(models.Model):
 
     def __str__(self):
         return f"TB-LIS follow-up: {self.labno}"
+
+
+class TblisLeftOut(models.Model):
+    """
+    A lab number a TB-LIS upload had but rejected (tblis_file.filter_reason). Kept
+    for every upload: it stops an older accepted result coming back (tblis_status.py).
+    """
+    labno = models.CharField(max_length=255, db_index=True)
+    reason = models.CharField(max_length=30)
+    upload_batch = models.ForeignKey("nanopore.TblisUploadBatch", on_delete=models.SET_NULL, null=True, blank=True)
+    seen_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["-seen_at", "labno"]
+
+    def __str__(self):
+        return f"TB-LIS left out: {self.labno}"
+
+
+class TblisIsolateDst(models.Model):
+    """
+    The DST answers TB-LIS put on another zone's Zonal Lab form, so they can be taken
+    back without touching the site's. values: {field: [TB-LIS value, what was there before]}.
+    """
+    zonal_lab = models.OneToOneField("nanopore.ZonalLaboratory", on_delete=models.CASCADE, related_name="+")
+    number = models.CharField(max_length=100)
+    values = models.JSONField(default=dict)
+    before_known = models.BooleanField(
+        default=True, help_text="False: merged before this was recorded, so the site's own values aren't known")
+
+    def __str__(self):
+        return f"Isolate DST from TB-LIS: {self.number}"

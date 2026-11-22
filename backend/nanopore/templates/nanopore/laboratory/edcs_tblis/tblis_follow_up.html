@@ -9,15 +9,29 @@
         <div>
             <div class="fs-eyebrow">Data quality · Latest TB-LIS upload</div>
             <h1 class="fs-title">TB-LIS follow-up</h1>
+            {% if shown == "rejected" %}
+            <div class="fs-meta">Study records whose newest TB-LIS row is rejected, so its results are not used. If that is wrong, correct TB-LIS and upload again.</div>
+            {% elif shown == "absent" %}
+            <div class="fs-meta">Study records missing from the latest file. They keep their last accepted result. Ask CTRL why they are no longer exported.</div>
+            {% else %}
             <div class="fs-meta">Rows left out of the merge because the specimen type or GeneXpert result wasn't recorded in TB-LIS. Correct them in TB-LIS; the next upload refreshes this list.</div>
+            {% endif %}
         </div>
     </section>
 
+    <nav class="fs-tabs">
+        {% for key, label in lists %}
+        <a href="?list={{ key }}" class="fs-tab {% if shown == key %}active{% endif %}"><span class="fs-tab-label">{{ label }}</span></a>
+        {% endfor %}
+    </nav>
+
     <form method="get" class="fs-filters">
+        <input type="hidden" name="list" value="{{ shown }}">
         <div>
-            <label class="form-label" for="fu-q">Lab no.</label>
+            <label class="form-label" for="fu-q">{% if shown == "not-recorded" %}Lab no.{% else %}PID or lab no.{% endif %}</label>
             <input type="search" name="q" id="fu-q" class="form-control form-control-sm" value="{{ selected.q }}">
         </div>
+        {% if shown == "not-recorded" %}
         <div>
             <label class="form-label" for="fu-reason">Why it's listed</label>
             <select name="reason" id="fu-reason" class="form-select form-select-sm">
@@ -32,9 +46,10 @@
                 {% for region in regions %}<option value="{{ region }}" {% if selected.region == region %}selected{% endif %}>{{ region }}</option>{% endfor %}
             </select>
         </div>
+        {% endif %}
         <div class="fs-filter-actions">
             <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
-            {% if filters_active %}<a href="{% url 'nanopore:tblis-follow-up' %}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+            {% if filters_active %}<a href="?list={{ shown }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
         </div>
     </form>
 
@@ -43,7 +58,24 @@
             <strong>{{ paginator.count|default:0|intcomma }} row{{ paginator.count|pluralize }}</strong>
             {% if is_paginated %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
         </div>
-        {% if rows %}
+        {% if rows and shown != "not-recorded" %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead><tr><th>PID</th><th>Lab No.</th><th>Type</th><th>Site</th><th>Why it's listed</th></tr></thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td class="fs-pid" data-label="PID">{{ row.lab.screening.pid }}</td>
+                        <td data-label="Lab No.">{{ row.number }}</td>
+                        <td data-label="Type">{{ row.kind }}</td>
+                        <td data-label="Site">{{ row.lab.screening.site.name }}</td>
+                        <td data-label="Why it's listed"><span class="fs-chip miss">{{ row.found.reason_label|default:row.found.label }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif rows %}
         <div class="table-responsive">
             <table class="table fs-table mb-0">
                 <thead>
@@ -67,7 +99,7 @@
         {% else %}
         <div class="fs-empty">
             <i class="fas fa-circle-check"></i>
-            <p>{% if total %}No rows match these filters.{% else %}Nothing to follow up. The list fills when a TB-LIS file is uploaded.{% endif %}</p>
+            <p>{% if shown != "not-recorded" %}No records in this list.{% elif total %}No rows match these filters.{% else %}Nothing to follow up. The list fills when a TB-LIS file is uploaded.{% endif %}</p>
         </div>
         {% endif %}
         {% if is_paginated %}

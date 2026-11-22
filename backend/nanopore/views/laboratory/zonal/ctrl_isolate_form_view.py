@@ -9,7 +9,9 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
 from nanopore.forms.laboratory.zonal.ctrl_isolate_form import CtrlIsolateForm
-from nanopore.tasks_tblis_raw import clear_isolate_dst, merge_isolate_from_raw, sync_zonal_laboratory_to_edcs
+from nanopore.tasks_tblis_raw import (
+    clear_isolate_dst, merge_isolate_from_raw, start_isolate_dst, sync_zonal_laboratory_to_edcs,
+)
 from nanopore.zonal_rules import CTRL_FIELDS, ctrl_answers, ctrl_records
 from utils import access
 from utils.access_mixins import FormAccessMixin
@@ -55,6 +57,8 @@ class CtrlIsolateFormView(FormAccessMixin, View):
             if old_number and old_number != record.isolate_unique_lab_no:
                 clear_isolate_dst(record, old_number)
             record.save()
+            if old_number != record.isolate_unique_lab_no:
+                start_isolate_dst(record)
             found = merge_isolate_from_raw(record)
         try:
             with transaction.atomic():  # EDCS/TBLIS and the exports mustn't keep the old number's DST until tonight

@@ -21,6 +21,11 @@
                         <strong>Read only.</strong> This record is rebuilt daily from the Zonal Lab form and the TB-LIS upload.
                         To fix it, correct the {% if zonal_lab %}<a href="{% url 'nanopore:zonal-laboratory-update' zonal_lab.pk %}">Zonal Lab form</a>{% else %}Zonal Lab form{% endif %} and, for TB-LIS results, upload TB-LIS again.
                     </div>
+                    {% if tblis.state == "not_in_latest" %}
+                    <div class="alert alert-warning"><strong>{{ tblis.label }}.</strong> The TB-LIS results shown are the last accepted ones from an earlier file.</div>
+                    {% elif tblis.state == "rejected" %}
+                    <div class="alert alert-warning"><strong>{{ tblis.label }}</strong> ({{ tblis.reason_label }}). TB-LIS results are not used for this record.</div>
+                    {% endif %}
                     <form onsubmit="return false;">
 
                         <!-- Screening info -->

@@ -15,7 +15,10 @@ from nanopore.models import (
     TblisUploadBatch,
     ZonalLaboratory,
 )
-from nanopore.models.discrepancies import TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch
+from nanopore import tblis_status
+from nanopore.models.discrepancies import (
+    TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch, TblisIsolateDst, TblisLeftOut,
+)
 from nanopore.zonal_rules import CTRL_FIELDS, LAB_NUMBER_ONLY_Q
 from options.models import (
     SampleAppearance, YesNo, CultureMethod, MicroscopyType, CultureMicroscopyResults,
@@ -27,7 +30,8 @@ from options.models import (
 )
 
 from nanopore.tblis_file import (
-    FILTER_REASONS, MAX_REPORTED_PROBLEMS, TblisFileError, filter_rows, follow_up_rows, is_isolate, read_tblis_file,
+    FILTER_REASONS, MAX_REPORTED_PROBLEMS, TblisFileError, filter_reason, filter_rows, follow_up_rows, is_isolate,
+    read_tblis_file,
 )
 # Helper functions from utils or duplicated logic (simplified for chunk processing)
 from utils.edcs_tblis_helpers import safe_int, safe_decimal, parse_date_field, get_foreign, split_m2m
@@ -297,26 +301,100 @@ def apply_tblis_dst(edcs_zonal, clean_row, log_mismatch):
     apply_dst("pretomanid", "mgitdst2_pretomanid")
 
 
-def merge_isolate_dst(z_lab, clean_row):
+def _plain(value):
+    """A field value as the JSON record of TB-LIS's DST keeps it."""
+    return value.isoformat() if hasattr(value, "isoformat") else value
+
+
+def _isolate_dst_fields():
+    names = (*CTRL_FIELDS[1:], "phenotypic_date_performed", *SITE_DST_COLUMNS)
+    return [ZonalLaboratory._meta.get_field(name) for name in names]
+
+
+def _take_back_dst(z_lab, values):
+    """Put back what the form had before TB-LIS, unless the site has changed the answer since."""
+    for field in _isolate_dst_fields():
+        if field.attname in values:
+            given, before = values[field.attname]
+            if _plain(getattr(z_lab, field.attname)) == given:
+                setattr(z_lab, field.attname, before if field.is_relation else field.to_python(before))
+
+
+def _isolate_source(z_lab, before_row=None):
+    """
+    What TB-LIS gave this form by its current number. DST merged before that was
+    recorded: an answer equal to what a stored row of this number gives came from it.
+    before_row: the row being merged now, which can't have given anything yet.
+    """
+    number = z_lab.isolate_unique_lab_no
+    source = TblisIsolateDst.objects.filter(zonal_lab=z_lab).first()
+    if source and source.number == number:
+        return source
+    if source:  # the number was changed outside CTRL's form
+        _take_back_dst(z_lab, source.values)
+    else:
+        source = TblisIsolateDst(zonal_lab=z_lab)
+    source.number, source.values, source.before_known = number, {}, False
+
+    stored = TblisRawData.objects.filter(labno=number, raw_data__spectype__iexact="isolate")
+    if before_row:
+        stored = stored.filter(pk__lt=before_row)
+    fields = _isolate_dst_fields()
+    for row in stored.values_list("raw_data", flat=True):
+        gives = ZonalLaboratory()
+        apply_tblis_dst(gives, row, lambda *args: None)
+        for field in fields:
+            value = getattr(gives, field.attname)
+            if value is not None and value == getattr(z_lab, field.attname):
+                source.values[field.attname] = [_plain(value), None]
+    return source
+
+
+def merge_isolate_dst(z_lab, clean_row, raw_id=None):
     """
     Another zone's isolate: CTRL's TBLIS row gives the DST section of its Zonal Lab
     form, saved there so the daily sync carries it to EDCS/TBLIS. The other sections
-    stay as the site entered them. A row without a DST date doesn't undo a Yes.
+    stay as the site entered them.
+
+    It starts from what the form had before TB-LIS, so a blank in TB-LIS takes back
+    only what TB-LIS gave, and a No doesn't undo the site's own Yes.
+    clean_row None: TB-LIS rejects the number now, so all it gave goes.
     """
-    answers = ("phenotypic_performed_id", "first_line_dst_performed_id", "second_line_dst_performed_id")
-    before = {name: getattr(z_lab, name) for name in answers}
-    apply_tblis_dst(z_lab, clean_row, mismatch_logger(z_lab, clean_row.get("labno")))
-    for name, value in before.items():
-        if value == 1 and getattr(z_lab, name) == 2:
-            setattr(z_lab, name, value)
-    z_lab.save()
+    fields = _isolate_dst_fields()
+    shown = {field.attname: getattr(z_lab, field.attname) for field in fields}
+    source = _isolate_source(z_lab, raw_id)
+    _take_back_dst(z_lab, source.values)
+    before = {field.attname: getattr(z_lab, field.attname) for field in fields}
+    if clean_row is not None:
+        apply_tblis_dst(z_lab, clean_row, lambda *args: None)
+        for name in ("phenotypic_performed_id", "first_line_dst_performed_id", "second_line_dst_performed_id"):
+            if before[name] == 1 and getattr(z_lab, name) == 2:
+                setattr(z_lab, name, 1)
+
+    log_mismatch = mismatch_logger(z_lab, z_lab.isolate_unique_lab_no)
+    source.values = {}
+    for name, was in before.items():
+        value = getattr(z_lab, name)
+        if value != was:
+            source.values[name] = [_plain(value), _plain(was)]
+        if value != shown[name]:
+            log_mismatch(name, shown[name], value)
+    with transaction.atomic():
+        z_lab.save()
+        source.save()
 
 
 def clear_isolate_dst(z_lab, old_number):
     """
     The isolate number was changed or cleared: the DST that came by the old number is
-    another isolate's. Drugs the site also enters go only if the old number's rows had them.
+    another isolate's, so the site's own answers come back. When those weren't recorded
+    the DST section is cleared; drugs the site also enters go only if the old number's rows had them.
     """
+    source = TblisIsolateDst.objects.filter(zonal_lab=z_lab, number=old_number).first()
+    if source:
+        _take_back_dst(z_lab, source.values)
+        if source.before_known:
+            return
     for name in (*CTRL_FIELDS[1:], "phenotypic_date_performed"):
         setattr(z_lab, name, None)
     old_rows = list(TblisRawData.objects.filter(labno=old_number, raw_data__spectype__iexact="isolate")
@@ -326,16 +404,24 @@ def clear_isolate_dst(z_lab, old_number):
             setattr(z_lab, name, None)
 
 
+def start_isolate_dst(z_lab):
+    """A number was just entered, changed or cleared: what's on the form now is the site's own."""
+    if z_lab.isolate_unique_lab_no:
+        TblisIsolateDst.objects.update_or_create(
+            zonal_lab=z_lab, defaults={"number": z_lab.isolate_unique_lab_no, "values": {}, "before_known": True},
+        )
+    else:
+        TblisIsolateDst.objects.filter(zonal_lab=z_lab).delete()
+
+
 def merge_isolate_from_raw(z_lab):
-    """Apply the latest uploaded isolate row with this form's isolate number. True when there was one."""
-    if not z_lab.isolate_unique_lab_no:
-        return False
-    raw_entry = (TblisRawData.objects.filter(labno=z_lab.isolate_unique_lab_no, raw_data__spectype__iexact="isolate")
-                 .order_by("-uploaded_at").first())
-    if raw_entry is None:
-        return False
-    merge_isolate_dst(z_lab, raw_entry.raw_data)
-    return True
+    """Apply what TB-LIS last said about this form's isolate number. True when it has an isolate row for it."""
+    found = tblis_status.status(z_lab.isolate_unique_lab_no, isolate=True)
+    if found.used:
+        merge_isolate_dst(z_lab, TblisRawData.objects.get(pk=found.raw_id).raw_data)
+    elif found.state:
+        merge_isolate_dst(z_lab, None)
+    return found.used
 
 
 def apply_tblis_transformations(edcs_zonal, clean_row, labno):
@@ -578,12 +664,12 @@ def sync_zonal_laboratory_to_edcs(z_lab, clean_row=None):
 
 
 def sync_with_latest_tblis(z_lab):
-    """Rebuild the EDCS/TBLIS record from the Zonal Lab form and, where it applies, the latest TBLIS row."""
+    """Rebuild the EDCS/TBLIS record from the Zonal Lab form and what TBLIS last said (nanopore/tblis_status.py)."""
     clean_row = None
     if any(z_lab.screening.pid.startswith(prefix) for prefix in CTRL_PREFIXES):
-        raw_entry = TblisRawData.objects.filter(labno=z_lab.unique_lab_no).order_by('-uploaded_at').first()
-        if raw_entry:
-            clean_row = raw_entry.raw_data
+        found = tblis_status.status(z_lab.unique_lab_no)
+        if found.used:
+            clean_row = TblisRawData.objects.get(pk=found.raw_id).raw_data
     else:
         merge_isolate_from_raw(z_lab)
     return sync_zonal_laboratory_to_edcs(z_lab, clean_row)
@@ -629,7 +715,7 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
 
     try:
         with transaction.atomic():
-            result = _merge_tblis_rows(self, kept_rows, prepared["columns"], user_id, source_filename)
+            result = _merge_tblis_rows(self, kept_rows, prepared["columns"], user_id, source_filename, prepared["rows"])
             result["follow_up_count"] = _save_follow_up(prepared["rows"], result.get("upload_batch_id"))
             if dry_run:
                 raise _PreviewRollback(result)
@@ -658,7 +744,35 @@ def _save_follow_up(rows, batch_id):
     return len(records)
 
 
-def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
+def _save_left_out(rows, upload_batch):
+    """The lab numbers this file rejects. One it also has an accepted row for isn't rejected."""
+    accepted, rejected = set(), {}
+    for row in rows:
+        reason = filter_reason(row)
+        if not row.get("labno"):
+            continue
+        if reason:
+            rejected.setdefault(row["labno"], reason)
+        elif not is_isolate(row):
+            accepted.add(row["labno"])
+    records = [
+        TblisLeftOut(labno=labno, reason=reason, upload_batch=upload_batch, seen_at=upload_batch.created_at)
+        for labno, reason in rejected.items() if labno not in accepted
+    ]
+    TblisLeftOut.objects.bulk_create(records, batch_size=1000)
+
+
+def _record_values(record):
+    if record is None:
+        return None
+    skip = ("created_at", "updated_at")
+    values = {field.attname: _plain(getattr(record, field.attname)) for field in record._meta.fields if field.name not in skip}
+    for field in record._meta.many_to_many:
+        values[field.name] = sorted(getattr(record, field.name).values_list("pk", flat=True))
+    return values
+
+
+def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
     total = len(rows)
     processed = 0
     row_errors = []
@@ -675,6 +789,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
     TblisNotInEdcs.objects.all().delete()
     EdcsNotInTblis.objects.all().delete()
     EdcsTblisMismatch.objects.all().delete()
+    _save_left_out(file_rows, upload_batch)
+    merged_labs = set()
 
     for idx, clean_row in enumerate(rows, start=1):
         if task.request.called_directly is False and getattr(task.request, "revoke", False):
@@ -698,7 +814,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
                 if is_isolate(clean_row):
                     z_lab = ZonalLaboratory.objects.exclude(LAB_NUMBER_ONLY_Q).filter(isolate_unique_lab_no=labno).first()
                     if z_lab:
-                        merge_isolate_dst(z_lab, clean_row)
+                        merge_isolate_dst(z_lab, clean_row, raw_entry.pk)
+                        merged_labs.add(z_lab.pk)
                         raw_entry.is_merged = True
                         raw_entry.save(update_fields=['is_merged'])
                         isolates_merged += 1
@@ -727,6 +844,7 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
                 if is_ctrl_lab:
                     # Apply TBLIS transformations on top of ZonalLaboratory data.
                     sync_zonal_laboratory_to_edcs(z_lab, clean_row)
+                    merged_labs.add(z_lab.pk)
                     raw_entry.is_merged = True
                     raw_entry.save(update_fields=['is_merged'])
                     updated += 1
@@ -741,14 +859,28 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
         if processed % 100 == 0:
             task.update_state(state="PROGRESS", meta={"current": processed, "total": total})
 
-    # 4. Sync all non-CTRL records from ZonalLaboratory without TBLIS transformations.
-    non_ctrl_labs = ZonalLaboratory.objects.exclude(get_ctrl_prefix_query())
-    for z_lab in non_ctrl_labs:
+    # 4. Every other record as the nightly sync would leave it: this file's rejections take
+    #    effect now, and records not in this file keep their last result (tblis_status.py).
+    found_by_screening = tblis_status.record_statuses(ZonalLaboratory.objects.all())
+    results_removed = not_in_latest = 0
+    for z_lab in ZonalLaboratory.objects.select_related("screening"):
+        found = found_by_screening.get(z_lab.screening_id, tblis_status.NEVER_SEEN)
+        not_in_latest += found.state == tblis_status.NOT_IN_LATEST
         try:
             with transaction.atomic():
-                sync_zonal_laboratory_to_edcs(z_lab, None)
+                if z_lab.pk in merged_labs:
+                    if not z_lab.screening.pid.startswith(tuple(CTRL_PREFIXES)):
+                        sync_zonal_laboratory_to_edcs(z_lab, None)
+                    continue
+                rejected = found.state == tblis_status.REJECTED
+                current = EdcsTblisZonal.objects.filter(screening=z_lab.screening).first() if rejected else None
+                before = _record_values(current)
+                sync_with_latest_tblis(z_lab)
+                if before is not None and before != _record_values(EdcsTblisZonal.objects.get(pk=current.pk)):
+                    results_removed += 1
         except Exception as e:
-            logger.error(f"Error syncing non-zonal {z_lab.unique_lab_no}: {e}")
+            logger.error(f"Error syncing Zonal Lab {z_lab.pk}: {e}")
+            row_errors.append(f"Could not update the record with lab number {z_lab.unique_lab_no}: {e}")
 
     # 5. Find CTRL EDCS records not in the uploaded TBLIS file (rows left out by
     #    the filter are not uploaded, so their records are listed here too).
@@ -806,6 +938,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename):
         "updated": updated,
         "isolates_merged": isolates_merged,
         "isolates_unmatched": isolates_unmatched,
+        "results_removed": results_removed,
+        "not_in_latest_count": not_in_latest,
         "errors": row_errors,
         "state": "SUCCESS",
         "upload_batch_id": upload_batch.id,

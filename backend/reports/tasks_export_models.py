@@ -101,8 +101,9 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
         
     if model_name == 'EdcsTblisZonal':
         from django.db.models import Q
-        from nanopore.models import TblisRawData, TblisUploadBatch
-        
+        from nanopore.models import EdcsTblisZonal
+        from nanopore.tblis_status import used_labnos
+
         ctrl_prefixes = [
             "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
             "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19",
@@ -111,16 +112,7 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
         for prefix in ctrl_prefixes:
             ctrl_q |= Q(screening__pid__startswith=prefix)
             
-        latest_batch = TblisUploadBatch.objects.first()
-        
-        if latest_batch:
-            merged_labnos = TblisRawData.objects.filter(
-                upload_batch=latest_batch, 
-                is_merged=True
-            ).values("labno")
-        else:
-            merged_labnos = []
-        
+        merged_labnos = used_labnos(EdcsTblisZonal.objects.filter(ctrl_q))
         qs = qs.exclude(
             ctrl_q & ~Q(unique_lab_no__in=merged_labnos)
         )
@@ -278,6 +270,8 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
                     headers.append(f.name)
     for f in REGIMEN_FIELDS:
         headers.append(f"regimen_{f}")
+    if mode == "edcs":
+        headers.append("tblis_status")
 
     screenings = _scope_for_user(Screening, Screening.objects.all(), user_id)
     total = screenings.count()
@@ -299,11 +293,13 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
     )
     
     unmerged = set()  # participants whose EDCS/TBLIS columns stay blank
+    found_by_screening, rejected = {}, set()
     if mode == "edcs":
         qs = qs.select_related('tblis_laboratory')
-        # Dar records the latest upload didn't merge show no lab results; the participant stays
+        # A Dar record shows its last accepted result, its Zonal Lab form when TB-LIS rejects it,
+        # and no lab results when TB-LIS never had it; the participant always stays
         from django.db.models import Q
-        from nanopore.models import TblisRawData, TblisUploadBatch
+        from nanopore import tblis_status
         ctrl_prefixes = [
             "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
             "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19",
@@ -311,17 +307,10 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
         ctrl_q = Q()
         for prefix in ctrl_prefixes:
             ctrl_q |= Q(pid__startswith=prefix)  # the participant's PID (rows are screenings)
-        latest_batch = TblisUploadBatch.objects.first()
-        if latest_batch:
-            merged_labnos = TblisRawData.objects.filter(
-                upload_batch=latest_batch,
-                is_merged=True
-            ).values_list("labno", flat=True)
-        else:
-            merged_labnos = []
-        unmerged = set(screenings.filter(
-            ctrl_q & ~Q(tblis_laboratory__unique_lab_no__in=merged_labnos)
-        ).values_list("pk", flat=True))
+        found_by_screening = tblis_status.record_statuses(models["lab"].objects.all())
+        dar = set(screenings.filter(ctrl_q).values_list("pk", flat=True))
+        unmerged = dar - set(found_by_screening)
+        rejected = {pk for pk in dar if pk in found_by_screening and not found_by_screening[pk].used}
     else:
         qs = qs.select_related('zonal_laboratory')
 
@@ -337,7 +326,12 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
             clinic     = getattr(screening, "clinic_laboratory", None)
             
             if mode == "edcs":
-                lab = None if screening.pk in unmerged else getattr(screening, "tblis_laboratory", None)
+                if screening.pk in unmerged:
+                    lab = None
+                elif screening.pk in rejected:  # the same fields, without TB-LIS values even before the next sync
+                    lab = getattr(screening, "zonal_laboratory", None)
+                else:
+                    lab = getattr(screening, "tblis_laboratory", None)
             else:
                 lab = getattr(screening, "zonal_laboratory", None)
                 
@@ -371,6 +365,9 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
                         row.append(get_value(regimen, RegimenChanges._meta.get_field(rf)))
                 else:
                     row.extend([""] * len(REGIMEN_FIELDS))
+                if mode == "edcs":
+                    found = found_by_screening.get(screening.pk)
+                    row.append(found.label if found else "")
 
                 writer.writerow(row)
             

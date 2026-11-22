@@ -96,13 +96,12 @@ def _get_edcs_tblis_count(request):
     """
     EdcsTblisZonal count uses two rules:
       - CTRL zone (PID prefixes DF_TZ_SS2_14 to DF_TZ_SS2_19):
-            count only records that were successfully merged from the *latest* TBLIS upload
-            (i.e., their unique_lab_no appears in TblisRawData with is_merged=True for the latest batch).
+            count only records with a TBLIS result in use (nanopore/tblis_status.py), like their export.
       - All other zones:
             count all records regardless of merge status.
     """
     from django.db.models import Q
-    from nanopore.models import TblisRawData, TblisUploadBatch
+    from nanopore.tblis_status import used_labnos
 
     ctrl_prefixes = [
         "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
@@ -112,15 +111,7 @@ def _get_edcs_tblis_count(request):
     for prefix in ctrl_prefixes:
         ctrl_q |= Q(screening__pid__startswith=prefix)
 
-    latest_batch = TblisUploadBatch.objects.first()
-    
-    if latest_batch:
-        merged_labnos = TblisRawData.objects.filter(
-            upload_batch=latest_batch, 
-            is_merged=True
-        ).values("labno")
-    else:
-        merged_labnos = []
+    merged_labnos = used_labnos(EdcsTblisZonal.objects.filter(ctrl_q))
 
     edcs = _scoped(request, EdcsTblisZonal)
     ctrl_merged_count = edcs.filter(

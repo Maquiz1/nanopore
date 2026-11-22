@@ -49,7 +49,7 @@ class ExportFileTests(DataSafetyBase):
                     handle.write("synthetic")
             response = self.client.get(reverse("nanopore:edcs-tblis-export-serve", args=[own]))
             self.assertEqual(response.status_code, 200)
-            response.close()
+            b"".join(response.streaming_content)  # the test client closes it; close() would also drop the database connection
             for name in others:
                 self.assertEqual(self.client.get(reverse("nanopore:edcs-tblis-export-serve", args=[name])).status_code, 404, name)
 
@@ -151,7 +151,7 @@ class CombinedExportTests(DataSafetyBase):
     def test_merged_dar_lab_is_shown(self):
         EdcsTblisZonal.objects.create(screening=self.dar, unique_lab_no="30001")
         TblisRawData.objects.create(labno="30001", upload_batch=TblisUploadBatch.objects.create(source_file_name="t.csv"),
-                                    is_merged=True, raw_data={})
+                                    is_merged=True, raw_data={"spectype": "Sputum", "peripheralres_genexpert": "MTB Detected"})
         self.assertEqual(self.export()[self.dar.pid]["unique_lab_no"], "30001")
 
 

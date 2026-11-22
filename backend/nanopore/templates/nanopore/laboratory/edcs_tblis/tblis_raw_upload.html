@@ -30,8 +30,9 @@
             {{ form.file }}
             <input type="hidden" name="preview" id="previewInput" value="0">
             <div class="form-text">
-                Only <strong>Sputum</strong> samples with GeneXpert <strong>MTB Detected</strong> or
-                <strong>MTB Trace Detected</strong> are merged; all other rows are left out.
+                <strong>Sputum</strong> samples with GeneXpert <strong>MTB Detected</strong> or
+                <strong>MTB Trace Detected</strong> are merged, and <strong>Isolate</strong> rows give the DST of other zones.
+                A record this file rejects loses its TB-LIS values; a record not in this file keeps its last accepted result.
                 Use <strong>Preview</strong> first: it shows exactly what the upload would do without saving anything.
             </div>
             <div class="mt-2 d-flex gap-2">
@@ -108,6 +109,8 @@ function showMergeSummary(data) {
         statCard("📋 To follow up (not recorded)", data.follow_up_count ?? 0, "warning") +
         statCard("Rows used", data.total ?? "—", "primary") +
         statCard(data.preview ? "🔄 Would merge into EDCS" : "🔄 Merged into EDCS", data.updated ?? "—", "info") +
+        statCard(data.preview ? "Would lose TB-LIS values (rejected)" : "Lost TB-LIS values (rejected)", data.results_removed ?? "—", "danger") +
+        statCard("Not in this file (last result kept)", data.not_in_latest_count ?? "—", "warning") +
         statCard("❌ Row errors", data.errors ? data.errors.length : 0, "danger") +
         statCard("📅 Unreadable dates", data.date_problems_count ?? 0, "danger");
 

@@ -9,6 +9,7 @@ import csv
 import io
 from django.apps import apps
 
+from nanopore.tblis_status import record_statuses
 from reports.tasks_export_models import export_date
 
 logger = logging.getLogger(__name__)
@@ -116,6 +117,10 @@ class ExportModelDataView(FeatureAccessMixin, View):
                     regimen_fields = [apps.get_model("nanopore", "RegimenChanges")._meta.get_field(f) for f in REGIMEN_FIELDS]
                     for f in regimen_fields:
                         headers.extend(field_headers(f, mode, f"regimen_{f.name}"))
+                found_by_screening = None
+                if model._meta.model_name == "edcstbliszonal":
+                    found_by_screening = record_statuses(model.objects.all())
+                    headers.append("tblis_status")
                 writer.writerow(headers)
                 yield buffer.getvalue()
                 buffer.seek(0)
@@ -164,6 +169,10 @@ class ExportModelDataView(FeatureAccessMixin, View):
                                     row.extend(relation_cells(f, getattr(regimen, f.name, None), mode))
                                 else:
                                     row.append(getattr(regimen, f.name, "") or "")
+
+                    if found_by_screening is not None:
+                        found = found_by_screening.get(obj.screening_id)
+                        row.append(found.label if found else "")
 
                     writer.writerow(row)
                     yield buffer.getvalue()
