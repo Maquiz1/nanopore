@@ -267,3 +267,48 @@ def filter_rows(rows):
         else:
             kept.append(row)
     return kept, dict(left_out)
+
+
+# ── rows stored before dates were read ─────────────────────────────────────
+
+def normalize_stored_dates(raw_model):
+    """
+    Uploads made before this module existed stored dates as written in the file
+    (3/24/2025). Rewrite them as yyyy-mm-dd, working out the order per upload with
+    detect_date_order; an upload whose order can't be decided is left as it is.
+    Each corrected row keeps the order it was read in under "_dates_read_as".
+    Returns {"rows": corrected rows, "dates": corrected dates, "skipped": [upload groups]}.
+    """
+    groups = {}
+    for row in raw_model.objects.only("pk", "upload_batch_id", "uploaded_at", "raw_data").iterator(chunk_size=2000):
+        key = row.upload_batch_id if row.upload_batch_id is not None else f"no upload ({row.uploaded_at.date()})"
+        groups.setdefault(key, []).append(row)
+
+    done = {"rows": 0, "dates": 0, "skipped": []}
+    for key, rows in groups.items():
+        values = [{col: str((row.raw_data or {}).get(col) or "") for col in DATE_COLUMNS} for row in rows]
+        if not any(SLASH_DATE.match(v) for row in values for v in row.values()):
+            continue
+        try:
+            order = detect_date_order(values)
+        except TblisFileError:
+            done["skipped"].append(key)
+            continue
+        changed = []
+        for row in rows:
+            data, fixed = dict(row.raw_data or {}), 0
+            for col in DATE_COLUMNS:
+                value = str(data.get(col) or "").strip()
+                if SLASH_DATE.match(value):
+                    iso = _to_iso(value, order)
+                    if iso:
+                        data[col], fixed = iso, fixed + 1
+            if fixed:
+                data["_dates_read_as"] = order
+                row.raw_data = data
+                changed.append(row)
+                done["dates"] += fixed
+        raw_model.objects.bulk_update(changed, ["raw_data"], batch_size=500)
+        done["rows"] += len(changed)
+    return done
+
