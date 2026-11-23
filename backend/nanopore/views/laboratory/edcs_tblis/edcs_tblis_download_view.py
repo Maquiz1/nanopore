@@ -1,10 +1,10 @@
-from utils import access
-from utils.access_mixins import FormAccessMixin
+from utils.access import export_queryset
 import csv
 from django.http import StreamingHttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from nanopore.models import EdcsTblisZonal
+from nanopore.views.laboratory.edcs_tblis.edcs_tblis_csv_export_views import ExportRoleMixin
 
 
 class Echo:
@@ -13,15 +13,16 @@ class Echo:
         return value
 
 
-class EdcsTblisDownloadCsvView(FormAccessMixin, View):
-    access_form = access.EDCS_TBLIS
+class EdcsTblisDownloadCsvView(ExportRoleMixin, View):
     """
     Streams EdcsTblisZonal data as CSV using StreamingHttpResponse
     to avoid memory/timeout issues in production with large datasets.
+    For roles that may export, over the sites their exports cover; answers as codebook codes.
     """
 
     def get(self, request, *args, **kwargs):
-        qs = EdcsTblisZonal.objects.select_related(
+        records = export_queryset(request.user, EdcsTblisZonal.objects.all(), "screening__site")
+        qs = records.select_related(
             "screening",
             "appearance",
             "culture_performed",
@@ -79,7 +80,11 @@ class EdcsTblisDownloadCsvView(FormAccessMixin, View):
         ).iterator(chunk_size=500)
 
         def fk_val(obj):
-            return obj.id if obj else ""
+            """The codebook code of an answer (an option's value; its row id can differ)."""
+            if not obj:
+                return ""
+            value = getattr(obj, "value", None)
+            return value if value is not None else obj.pk
 
         def row_gen(queryset):
             header = [
@@ -199,7 +204,7 @@ class EdcsTblisDownloadCsvView(FormAccessMixin, View):
         writer = csv.writer(pseudo_buffer)
 
         response = StreamingHttpResponse(
-            (writer.writerow(row) for row in row_gen(self.scope(qs))),
+            (writer.writerow(row) for row in row_gen(qs)),
             content_type="text/csv",
         )
         response["Content-Disposition"] = 'attachment; filename="edcs_tblis_zonal_data.csv"'

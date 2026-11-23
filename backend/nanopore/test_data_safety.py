@@ -234,3 +234,29 @@ class WriteScopeTests(DataSafetyBase):
         create = reverse("nanopore:enrollment-create")
         self.assertIn(f"{create}?screening={self.screenings['A1'].pk}\"", page)
         self.assertNotIn(f"{create}?screening={self.b.pk}\"", page)
+
+
+class FullCsvDownloadTests(DataSafetyBase):
+    URL = "nanopore:edcs-tblis-download-csv"
+
+    def rows(self, user):
+        self.client.force_login(user)
+        response = self.client.get(reverse(self.URL))
+        self.assertEqual(response.status_code, 200)
+        return list(csv.reader(b"".join(response.streaming_content).decode().splitlines()))
+
+    def test_export_roles_get_their_sites_with_codebook_codes(self):
+        from options.models import SampleAppearance
+        odd = SampleAppearance.objects.create(pk=6, name="Not found", value=95)
+        EdcsTblisZonal.objects.create(screening=self.screenings["A1"], unique_lab_no="LAB-A1", appearance=odd)
+        EdcsTblisZonal.objects.create(screening=self.screenings["B1"], unique_lab_no="LAB-B1")
+        header, *rows = self.rows(self.make_user("ds_csv", [access.DATA_SPECIALIST], zones=[self.zone_a]))
+        self.assertEqual([row[header.index("pid")] for row in rows], [self.pid("A1")])
+        self.assertEqual(rows[0][header.index("appearance")], "95")
+        header, *rows = self.rows(self.make_user("stat_csv", [access.STATISTICIAN], sites=[self.a1]))
+        self.assertEqual(len(rows), 2)  # statisticians export every site
+
+    def test_others_are_refused(self):
+        for roles in ([access.LABORATORY_TECHNICIAN], [access.NURSE], [access.REVIEWER]):
+            self.client.force_login(self.make_user(f"no_csv_{roles[0]}", roles, zones=[self.zone_a]))
+            self.assertEqual(self.client.get(reverse(self.URL)).status_code, 403, roles)
