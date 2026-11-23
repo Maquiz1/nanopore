@@ -1,4 +1,5 @@
 from django import forms
+from nanopore.forms.reason_for_change import ReasonForChangeMixin
 
 from common.labels.laboratory.zonal.zonal_labels import ZONAL_LABELS
 from nanopore.models import ZonalLaboratory
@@ -8,7 +9,7 @@ from options.models import YesNoNA
 YES = 1
 
 
-class CtrlIsolateForm(forms.ModelForm):
+class CtrlIsolateForm(ReasonForChangeMixin, forms.ModelForm):
     """
     Question 11 for another zone's form (CTRL or the site may answer it), and the number CTRL
     gives the isolate; the DST then comes from the TBLIS upload by that number.

@@ -1,4 +1,5 @@
 from django import forms
+from nanopore.forms.reason_for_change import ReasonForChangeMixin
 from datetime import date
 from django.core.exceptions import ValidationError
 from nanopore.models import Screening
@@ -24,7 +25,7 @@ class ReasonsSelectWidget(forms.Select):
         return option_dict
     
     
-class ScreeningForm(forms.ModelForm):
+class ScreeningForm(ReasonForChangeMixin, forms.ModelForm):
     sex = forms.ModelChoiceField(
         queryset=Sex.objects.all(),
         empty_label="Select",

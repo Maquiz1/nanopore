@@ -8,6 +8,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
 from nanopore.forms.laboratory.zonal.ctrl_dar_forms import DarLpaForm, DarNanoporeForm
+from nanopore import history
 from nanopore.tasks_tblis_raw import sync_with_latest_tblis
 from nanopore.zonal_rules import ctrl_dar_records
 from utils import access
@@ -53,10 +54,12 @@ class CtrlDarFormView(FormAccessMixin, View):
         record = form.save(commit=False)
         record.updated_by = request.user
         record.updated_at = timezone.now()
-        record.save()
+        record._history_source = f"CTRL {self.title} form"
+        form.apply_change_reason(record).save()
         form.save_m2m()
         try:
-            sync_with_latest_tblis(record)
+            with history.source(f"CTRL {self.title} form"):
+                sync_with_latest_tblis(record)
         except Exception:  # the daily sync tries again
             logger.exception("Could not sync Zonal Lab %s to EDCS/TBLIS", record.pk)
         messages.success(request, f"{self.title} saved for {obj.screening.pid}.")

@@ -99,7 +99,8 @@ class SmallFixTests(DataSafetyBase):
         EdcsTblisZonal.objects.create(screening=self.dar, unique_lab_no="30001")
         self.client.force_login(self.make_user("ctrl_save", [access.LABORATORY_TECHNICIAN], sites=[self.ctrl]))
         response = self.client.post(reverse("nanopore:zonal-laboratory-update", args=[lab.pk]),
-                                    {"screening": self.dar.pk, "unique_lab_no": "30009", "next": "/"})
+                                    {"screening": self.dar.pk, "unique_lab_no": "30009", "next": "/",
+                                     "reason_for_change": "Lab number typed wrongly"})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(EdcsTblisZonal.objects.get(screening=self.dar).unique_lab_no, "30009")
 
@@ -170,7 +171,8 @@ class DictionaryRuleTests(DataSafetyBase):
         self.client.post(url, {"culture_isolate": yes.pk, "isolate_date": "2025-05-01", "isolate_unique_lab_no": "50001"})
         lab.refresh_from_db()
         self.assertEqual((lab.culture_isolate, lab.isolate_date, lab.isolate_unique_lab_no), (yes, date(2025, 5, 1), "50001"))
-        self.client.post(url, {"culture_isolate": no.pk, "isolate_date": "2025-05-01", "isolate_unique_lab_no": "50001"})
+        self.client.post(url, {"culture_isolate": no.pk, "isolate_date": "2025-05-01", "isolate_unique_lab_no": "50001",
+                               "reason_for_change": "Isolate was not sent after all"})
         lab.refresh_from_db()
         self.assertEqual((lab.culture_isolate, lab.isolate_date, lab.isolate_unique_lab_no), (no, None, None))
 
@@ -196,7 +198,7 @@ class DataDictionaryTests(DataSafetyBase):
         from reports import data_dictionary as dd
         with tempfile.TemporaryDirectory() as folder, self.settings(DATA_DICTIONARY_DIR=folder):
             target, changed = dd.issue(self.workbook(folder))
-            self.assertEqual(target.name, f"Tanzania_Data_Dictionary_v{dd.VERSION}.xlsx")
+            self.assertEqual(target.name, f"Tanzania_Data_Dictionary_v{dd.EDITED_VERSION}.xlsx")
             sheet = load_workbook(target)["EDCS"]
             rows = {(r[0], str(r[1]).strip(), i): r for i, r in enumerate(sheet.iter_rows(min_row=2, values_only=True))}
             texts = [r[3] for (form, name, _), r in rows.items() if name == "first_line_drugs"]
@@ -210,12 +212,12 @@ class DataDictionaryTests(DataSafetyBase):
         from reports import data_dictionary as dd
         with tempfile.TemporaryDirectory() as folder, self.settings(DATA_DICTIONARY_DIR=folder):
             self.client.force_login(self.make_user("nurse_dict", [access.NURSE], sites=[self.a1]))
-            self.assertContains(self.client.get(reverse("reports:codebook")), "not on this server yet")
+            self.assertContains(self.client.get(reverse("reports:codebook")), reverse("reports:data-dictionary", args=[dd.VERSION]))
             dd.keep_as_issued(self.workbook(folder), "0.1")
             dd.issue(self.workbook(folder))
             page = self.client.get(reverse("reports:codebook"))
-            self.assertContains(page, reverse("reports:data-dictionary", args=[dd.VERSION]))
-            self.assertContains(page, reverse("reports:data-dictionary", args=["0.1"]))
+            for version in (dd.VERSION, dd.EDITED_VERSION, "0.1"):
+                self.assertContains(page, reverse("reports:data-dictionary", args=[version]))
             response = self.client.get(reverse("reports:data-dictionary", args=["0.1"]))
             self.assertEqual(response.status_code, 200)
             self.assertIn("Tanzania_Data_Dictionary_v0.1.xlsx", response["Content-Disposition"])
@@ -224,3 +226,22 @@ class DataDictionaryTests(DataSafetyBase):
             self.assertEqual(self.client.get("/reports/data-dictionary/v..%2F..%2Fsettings/").status_code, 404)
         self.client.logout()
         self.assertEqual(self.client.get(reverse("reports:data-dictionary", args=["0.1"])).status_code, 302)
+
+    def test_current_version_is_built_from_the_system(self):
+        import io
+        from openpyxl import load_workbook
+        from reports import data_dictionary as dd
+        from reports.dictionary_builder import DECISIONS
+        with tempfile.TemporaryDirectory() as folder, self.settings(DATA_DICTIONARY_DIR=folder):
+            self.client.force_login(self.make_user("nurse_dict3", [access.NURSE], sites=[self.a1]))
+            response = self.client.get(reverse("reports:data-dictionary", args=[dd.VERSION]))
+            self.assertIn(f"Tanzania_Data_Dictionary_v{dd.VERSION}.xlsx", response["Content-Disposition"])
+            book = load_workbook(io.BytesIO(b"".join(response.streaming_content)))
+        self.assertEqual(book.sheetnames, ["Summary", "Forms", "Data Dictionary", "Choices", "Mapping", "Decisions", "Change log"])
+        rows = list(book["Data Dictionary"].iter_rows(min_row=2, values_only=True))
+        variables = {(row[1], row[3]): row for row in rows}
+        self.assertIn("TB-LIS (by isolate number)", variables[("Zonal Laboratory", "rifampicin")][9])
+        self.assertIn("ljdst1_date", variables[("EDCS / TBLIS", "phenotypic_performed")][10])
+        self.assertIn("CTRL (Nanopore form)", variables[("Zonal Laboratory", "nanopore_done")][9])
+        self.assertEqual(len(list(book["Decisions"].iter_rows(min_row=3))), len(DECISIONS) + 1)
+        self.assertTrue(any(row[0] == "YesNo" for row in book["Choices"].iter_rows(min_row=2, values_only=True)))

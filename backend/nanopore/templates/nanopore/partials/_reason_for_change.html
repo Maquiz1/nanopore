@@ -1,0 +1,8 @@
+{% if object and form.reason_for_change and not read_only %}
+<div class="mb-3 reason-for-change">
+    <label class="form-label" for="{{ form.reason_for_change.id_for_label }}">{{ form.reason_for_change.label }}</label>
+    {{ form.reason_for_change }}
+    <div class="form-text">Needed only when you change an answer that was already saved. It is kept in the record's history.</div>
+    {% for error in form.reason_for_change.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,1 @@
+{% if object.pk %}<a href="{% url 'nanopore:record-history' history_key object.pk %}" class="btn btn-sm {{ history_class|default:'btn-outline-secondary' }}" title="Who changed what, when and why"><i class="fas fa-clock-rotate-left"></i> History</a>{% endif %}

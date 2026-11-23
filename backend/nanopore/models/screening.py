@@ -1,4 +1,6 @@
 from django.db import models
+
+from nanopore.history import tracked
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -17,6 +19,7 @@ three_digit_validator = RegexValidator(
 )
 
 class Screening(models.Model):
+    history = tracked(m2m_fields=())
     screening_date = models.DateField()
     pid1 = models.CharField(max_length=3, validators=[three_digit_validator])
     pid2 = models.CharField(max_length=3, validators=[three_digit_validator])

@@ -17,6 +17,7 @@
         </div>
         <div class="df-hero-actions">
             <a href="{{ next }}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Back</a>
+            {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" history_class="btn-light" %}
         </div>
     </section>
 
@@ -54,6 +55,7 @@
         </section>
 
         <!-- Save bar -->
+        {% include "nanopore/partials/_reason_for_change.html" %}
         <div class="df-savebar">
             <a href="{{ next }}" class="btn btn-outline-secondary">Cancel</a>
             {% if system_control.enable_form_submissions %}

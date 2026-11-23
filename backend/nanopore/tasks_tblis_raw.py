@@ -16,7 +16,7 @@ from nanopore.models import (
     TblisUploadBatch,
     ZonalLaboratory,
 )
-from nanopore import tblis_status
+from nanopore import history, tblis_status
 from nanopore.models.discrepancies import (
     TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch, TblisIsolateDst, TblisLeftOut,
 )
@@ -652,6 +652,11 @@ def sync_zonal_laboratory_to_edcs(z_lab, clean_row=None):
     if not e_zonal:
         e_zonal = EdcsTblisZonal(screening=z_lab.screening)
         
+    with history.one_change(e_zonal):
+        return _rebuild_edcs(e_zonal, z_lab, clean_row)
+
+
+def _rebuild_edcs(e_zonal, z_lab, clean_row):
     e_zonal.unique_lab_no = z_lab.unique_lab_no or f"SYNC-{z_lab.screening.pid}"
     
     # Copy all standard fields exactly as-is
@@ -740,7 +745,7 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
     }
 
     try:
-        with transaction.atomic():
+        with transaction.atomic(), history.source(f"TB-LIS upload: {source_filename}"):
             result = _merge_tblis_rows(self, kept_rows, prepared["columns"], user_id, source_filename, prepared["rows"])
             result["follow_up_count"] = _save_follow_up(prepared["rows"], result.get("upload_batch_id"))
             if dry_run:
@@ -987,7 +992,8 @@ def sync_zonal_laboratory_daily():
     updated_count = 0
     for z_lab in zonal_labs:
         try:
-            sync_with_latest_tblis(z_lab)
+            with history.source("Nightly sync"):
+                sync_with_latest_tblis(z_lab)
             updated_count += 1
             
         except Exception as e:

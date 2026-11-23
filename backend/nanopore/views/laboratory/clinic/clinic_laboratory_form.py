@@ -70,7 +70,7 @@ class ClinicLaboratoryFormView(FormAccessMixin, View):
                 lab.created_by = request.user
                 lab.screening = screening_instance  # assign manually
 
-            lab.save()
+            form.apply_change_reason(lab).save()
             form.save_m2m()
             
             messages.success(request, "Clinic lab saved successfully.")

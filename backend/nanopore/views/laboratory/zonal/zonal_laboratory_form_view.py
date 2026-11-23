@@ -92,7 +92,7 @@ class ZonalLabFormView(FormAccessMixin, View):
                 zonal_lab.screening = screening_instance
 
             try:
-                zonal_lab.save()
+                form.apply_change_reason(zonal_lab).save()
                 form.save_m2m()
             except Exception as e:
                 form.add_error(None, str(e))

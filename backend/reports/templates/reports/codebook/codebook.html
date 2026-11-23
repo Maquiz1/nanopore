@@ -23,12 +23,10 @@
             <div>
                 <strong>Data dictionary v{{ dictionary.0 }}</strong>
                 {% with log=dictionary_log|get_item:dictionary.0 %}{% if log %}<span class="text-muted">({{ log.0 }})</span>{% endif %}{% endwith %}
-                <div class="small text-muted">The study team's dictionary with the TB-LIS mapping rules, as issued.
+                <div class="small text-muted">Every form and variable, codes, who fills each one, how TB-LIS is merged and the study team's decisions; built from the system when you download it.
                     {% if dictionary_earlier %}Earlier versions: {% for version, path in dictionary_earlier %}<a href="{% url 'reports:data-dictionary' version %}">v{{ version }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}.{% endif %}</div>
             </div>
             <a href="{% url 'reports:data-dictionary' dictionary.0 %}" class="btn btn-primary">⬇ Data dictionary v{{ dictionary.0 }}</a>
-            {% else %}
-            <div class="text-muted"><strong>Data dictionary</strong>: not on this server yet.</div>
             {% endif %}
         </div>
     </div>

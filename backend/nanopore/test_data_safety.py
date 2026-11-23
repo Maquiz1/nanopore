@@ -87,7 +87,10 @@ class IsolateNumberTests(DataSafetyBase):
         self.client.force_login(self.make_user("ctrl_num", [access.LABORATORY_TECHNICIAN], sites=[self.ctrl]))
 
     def change_to(self, number):
-        response = self.client.post(reverse("nanopore:ctrl-isolate-update", args=[self.lab.pk]), {"isolate_unique_lab_no": number})
+        # What the form posts: the current question 11 answers, the number and, for a correction, a reason
+        lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
+        response = self.client.post(reverse("nanopore:ctrl-isolate-update", args=[self.lab.pk]), {"culture_isolate": lab.culture_isolate_id or "", "isolate_date": lab.isolate_date or "", "isolate_unique_lab_no": number,
+                 "reason_for_change": "Corrected from the CTRL register"})
         self.assertEqual(response.status_code, 302)
         return ZonalLaboratory.objects.get(pk=self.lab.pk), EdcsTblisZonal.objects.get(screening=self.lab.screening)
 

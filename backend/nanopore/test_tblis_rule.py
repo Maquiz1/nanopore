@@ -147,7 +147,10 @@ class IsolateRuleTests(RuleBase):
         ZonalLaboratory.objects.filter(pk=self.other.pk).update(culture_isolate=YesNoNA.objects.create(pk=1, name="Yes", value=1))
 
     def enter(self, number="50001"):
-        response = self.client.post(reverse("nanopore:ctrl-isolate-update", args=[self.other.pk]), {"isolate_unique_lab_no": number})
+        # What the form posts: the current question 11 answers, the number and, for a correction, a reason
+        lab = ZonalLaboratory.objects.get(pk=self.other.pk)
+        response = self.client.post(reverse("nanopore:ctrl-isolate-update", args=[self.other.pk]), {"culture_isolate": lab.culture_isolate_id or "", "isolate_date": lab.isolate_date or "", "isolate_unique_lab_no": number,
+                 "reason_for_change": "Corrected from the CTRL register"})
         self.assertEqual(response.status_code, 302)
 
     def site_has(self, **values):

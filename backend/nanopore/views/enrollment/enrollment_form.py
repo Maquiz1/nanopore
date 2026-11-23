@@ -58,7 +58,7 @@ class EnrollmentFormView(FormAccessMixin, View):
                 enrollment.created_by = request.user
                 enrollment.screening = screening_instance  # assign manually
 
-            enrollment.save()
+            form.apply_change_reason(enrollment).save()
             form.save_m2m()
             
             messages.success(request, "Enrollment saved successfully.")

@@ -1,4 +1,6 @@
 from django.db import models
+
+from nanopore.history import tracked
 from django.contrib.auth import get_user_model
 from nanopore.models import Screening
 from options.models import (
@@ -26,6 +28,7 @@ from options.models import (
 User = get_user_model()
 
 class EdcsTblisZonal(models.Model):
+    history = tracked(m2m_fields=('culture_method', 'first_line_drugs', 'lpa1_inh', 'second_line_drugs', 'sequencing_delayed_reasons'))
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="tblis_laboratory")
         
     # # NEW FIELDS

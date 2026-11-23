@@ -81,16 +81,16 @@ FIELD_RULES = [
     ("lpa2_kanamycin", "lpa2_low_kan", "LPA2 kanamycin result.", "lpa2"),
 ]
 
-NANOPORE_REASON = "Nanopore / EPI2ME results come from a separate Excel file; not merged for now."
+NANOPORE_REASON = "Not from TBLIS: entered by CTRL on its Nanopore form (Dar es Salaam) or by the zone's staff on the Zonal Lab form."
 DISCUSSION_REASON = "Needs discussion (data dictionary); not merged."
 NOT_FROM_TBLIS = {
     **{f: DISCUSSION_REASON for f in ("imipenem", "cilastatin", "meropenem", "amikacin", "streptomycin", "terizidone", "pyrazinamide")},
     "moxifloxacin": "No TBLIS mapping in the data dictionary.",
     "first_line_drugs": "LPA bands: TBLIS does not export bands. Ticked by CTRL (Dar es Salaam) or the zone's staff.",
     "second_line_drugs": "LPA bands: TBLIS does not export bands. Ticked by CTRL (Dar es Salaam) or the zone's staff.",
-    "culture_isolate": "Information from the zonal laboratory; OK to leave empty (data dictionary).",
-    "isolate_date": "Information from the zonal laboratory; OK to leave empty (data dictionary).",
-    "isolate_unique_lab_no": "Information from the zonal laboratory; OK to leave empty.",
+    "culture_isolate": "Dar es Salaam: Na (CTRL cultures every sample). Other zones: entered by the zone's staff or CTRL.",
+    "isolate_date": "Dar es Salaam: empty. Other zones: entered by the zone's staff or CTRL.",
+    "isolate_unique_lab_no": "Dar es Salaam: empty. Other zones: entered by CTRL; TBLIS Isolate rows are matched by it for the DST.",
     "phenotypic_date_results": "Not mapped from TBLIS.",
     "remarks": "Free text from the Zonal Lab form.",
 }

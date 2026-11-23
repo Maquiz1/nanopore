@@ -49,10 +49,17 @@ class DataDictionaryDownloadView(LoginRequiredMixin, View):
     """An issued data dictionary version, exactly as on the server (variables, codes and mapping rules; no participant data)."""
 
     def get(self, request, version):
-        path = dict(data_dictionary.versions()).get(version)
-        if path is None:
+        found = dict(data_dictionary.versions())
+        if version not in found:
             raise Http404("No such data dictionary version on this server.")
-        return FileResponse(path.open("rb"), as_attachment=True, filename=path.name)
+        if found[version] is None:  # the current version, built from the system
+            import io
+            from reports.dictionary_builder import build_workbook
+            buffer = io.BytesIO()
+            build_workbook().save(buffer)
+            buffer.seek(0)
+            return FileResponse(buffer, as_attachment=True, filename=data_dictionary.filename(version))
+        return FileResponse(found[version].open("rb"), as_attachment=True, filename=found[version].name)
 
 
 class DataExportView(FeatureAccessMixin, TemplateView):

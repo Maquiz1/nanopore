@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from . import Screening
-from simple_history.models import HistoricalRecords
+from nanopore.history import tracked
 from options.models import (
     XpertMTB,
     YesNo, # Assuming this model exists
@@ -18,7 +18,7 @@ from options.models import (
 User = get_user_model()
 
 class ClinicLaboratory(models.Model):
-    history = HistoricalRecords()
+    history = tracked()
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="clinic_laboratory")
         
     # Sputum sample

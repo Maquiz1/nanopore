@@ -1,5 +1,6 @@
 """CTRL's forms for Dar es Salaam: what TBLIS can't supply, each saved on its own (nanopore/zonal_rules.py)."""
 from django import forms
+from nanopore.forms.reason_for_change import ReasonForChangeMixin
 
 from common.labels.laboratory.zonal.zonal_labels import ZONAL_LABELS
 from nanopore.forms.laboratory.nanopore_rules import settle_nanopore
@@ -20,7 +21,7 @@ def _meta(names):
     }
 
 
-class DarNanoporeForm(forms.ModelForm):
+class DarNanoporeForm(ReasonForChangeMixin, forms.ModelForm):
     Meta = type("Meta", (), _meta(NANOPORE_FIELDS))
 
     def __init__(self, *args, **kwargs):
@@ -34,8 +35,10 @@ class DarNanoporeForm(forms.ModelForm):
         settle_nanopore(self, cleaned, require=True)
         return cleaned
 
+    has_answers = True
 
-class DarLpaForm(forms.ModelForm):
+
+class DarLpaForm(ReasonForChangeMixin, forms.ModelForm):
     """Only the checkboxes of the LPA lines TBLIS says were done; both are required then."""
     Meta = type("Meta", (), _meta(("first_line_drugs", "second_line_drugs")))
 
@@ -47,3 +50,7 @@ class DarLpaForm(forms.ModelForm):
                 self.fields[name].required = True
             else:
                 del self.fields[name]
+
+    @property
+    def has_answers(self):
+        return any(name != "reason_for_change" for name in self.fields)

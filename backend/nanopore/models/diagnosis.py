@@ -1,4 +1,6 @@
 from django.db import models
+
+from nanopore.history import tracked
 from django.contrib.auth import get_user_model
 from nanopore.models import Screening
 from options.models import (
@@ -19,6 +21,7 @@ from options.models import (
 User = get_user_model()
 
 class Diagnosis(models.Model):
+    history = tracked(m2m_fields=('tb_diagnosed_clinically',))
     screening = models.OneToOneField(Screening, on_delete=models.CASCADE, related_name="diagnosis")  
     
     # Final diagnosis

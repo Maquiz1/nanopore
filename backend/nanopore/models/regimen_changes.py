@@ -1,4 +1,6 @@
 from django.db import models
+
+from nanopore.history import tracked
 from django.contrib.auth import get_user_model
 from nanopore.models import Screening
 from options.models import RegimenTypeOfChange, RegimenReasonForChange
@@ -7,6 +9,7 @@ User = get_user_model()
 
 
 class RegimenChanges(models.Model):
+    history = tracked(m2m_fields=())
     screening = models.ForeignKey(
         Screening,
         on_delete=models.CASCADE,

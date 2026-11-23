@@ -1,4 +1,6 @@
 from django.db import models
+
+from nanopore.history import tracked
 from django.contrib.auth import get_user_model
 from nanopore.models.screening import Screening  # Linking to your Screening model
 from demographic.models import Sex
@@ -21,6 +23,7 @@ import datetime
 User = get_user_model()
 
 class Enrollment(models.Model):
+    history = tracked(m2m_fields=('diseases_medical',))
     # Link to Screening
     screening = models.OneToOneField(
         Screening, on_delete=models.CASCADE, related_name="enrollment"

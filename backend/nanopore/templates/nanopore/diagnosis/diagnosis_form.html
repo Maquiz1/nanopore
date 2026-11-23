@@ -17,6 +17,7 @@
         </div>
         <div class="df-hero-actions">
             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Forms</a>
+            {% include "nanopore/partials/_history_link.html" with history_key="diagnosis" history_class="btn-light" %}
             <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-light"><i class="fas fa-house"></i> Dashboard</a>
         </div>
     </section>
@@ -170,6 +171,7 @@
         <!-- Save bar -->
         <div class="df-savebar">
             <a href="{% url 'nanopore:form-status-list' %}" class="btn btn-outline-secondary">Cancel</a>
+            {% include "nanopore/partials/_reason_for_change.html" %}
             {% if access.edit.diagnosis and not read_only %}
                 {% if system_control.enable_form_submissions %}
                 <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save diagnosis</button>

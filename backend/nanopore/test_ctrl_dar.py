@@ -125,7 +125,7 @@ class CtrlDarFormsTests(AccessTestBase):
         self.assertContains(self.client.get(self.url("lpa")), "nothing to enter")
         EdcsTblisZonal.objects.filter(pk=self.edcs.pk).update(first_line_lpa=self.yes)
         page = self.client.get(self.url("lpa"))
-        self.assertEqual(set(page.context["form"].fields), {"first_line_drugs"})
+        self.assertEqual(set(page.context["form"].fields) - {"reason_for_change"}, {"first_line_drugs"})
         self.assertEqual(self.rows("lpa"), [self.edcs.pk])
         page = self.client.post(self.url("lpa"), {})
         self.assertIn("first_line_drugs", page.context["form"].errors)

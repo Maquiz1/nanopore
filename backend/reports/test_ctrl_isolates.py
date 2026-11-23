@@ -111,7 +111,8 @@ class CtrlIsolatesTests(AccessTestBase):
         yes = YesNo.objects.get(value=1)
         self.client.force_login(self.ctrl_tech)
         self.assertContains(self.client.get(self.form_url()), "id_isolate_unique_lab_no")
-        response = self.client.post(self.form_url(), {"isolate_unique_lab_no": "ISO-1", "phenotypic_performed": yes.pk})  # ignored
+        response = self.client.post(self.form_url(), {"culture_isolate": self.isolate_yes.pk, "isolate_unique_lab_no": "ISO-1",
+                                                      "phenotypic_performed": yes.pk})  # ignored
         self.assertRedirects(response, reverse(PAGE), fetch_redirect_response=False)
         lab = ZonalLaboratory.objects.get(pk=self.b_lab.pk)
         self.assertEqual(lab.isolate_unique_lab_no, "ISO-1")
@@ -127,7 +128,8 @@ class CtrlIsolatesTests(AccessTestBase):
         self.assertEqual(page.status_code, 200)
         self.assertIn("isolate_unique_lab_no", page.context["form"].errors)
         ZonalLaboratory.objects.filter(pk=self.b_lab.pk).update(culture_isolate=self.isolate_no, isolate_unique_lab_no="WRONG")
-        self.client.post(self.form_url(), {"culture_isolate": self.isolate_no.pk, "isolate_unique_lab_no": ""})
+        self.client.post(self.form_url(), {"culture_isolate": self.isolate_no.pk, "isolate_unique_lab_no": "",
+                                           "reason_for_change": "No isolate was sent"})
         self.assertIsNone(ZonalLaboratory.objects.get(pk=self.b_lab.pk).isolate_unique_lab_no)
 
     def test_ctrl_cannot_open_dar_records_on_this_form(self):
@@ -180,7 +182,7 @@ class CtrlIsolatesTests(AccessTestBase):
             "labno": "51000", "spectype": "Isolate", "ljdst1_date": "2025-06-01"})
         self.client.force_login(self.ctrl_tech)
         self.assertEqual(self.client.get(reverse(PAGE), {"tab": "not-in-tblis"}).context["rows"], [])
-        self.client.post(self.form_url(), {"isolate_unique_lab_no": "51000"})
+        self.client.post(self.form_url(), {"culture_isolate": self.isolate_yes.pk, "isolate_unique_lab_no": "51000"})
         lab = ZonalLaboratory.objects.get(pk=self.b_lab.pk)
         self.assertEqual(lab.first_line_dst_performed_id, 1)
         self.assertEqual(self.client.get(reverse(PAGE), {"tab": "not-in-tblis"}).context["rows"], [])

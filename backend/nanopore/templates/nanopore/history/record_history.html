@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}History · {{ title }} · {{ pid }}{% endblock %}
+
+{% block content %}
+<div class="fs">
+    <section class="fs-hero">
+        <div>
+            <div class="fs-eyebrow">{{ title }} · change history</div>
+            <h1 class="fs-title">{{ pid }}</h1>
+            <div class="fs-meta">Newest first. Each entry is one save: who made it, where it came from and, for corrections, why.</div>
+        </div>
+        <div class="fs-hero-actions">
+            <a href="javascript:history.back()" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+    </section>
+
+    {% if sources|length > 1 %}
+    <form method="get" class="fs-filters">
+        <div>
+            <label class="form-label" for="h-source">Came from</label>
+            <select name="source" id="h-source" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Everything</option>
+                {% for s in sources %}<option value="{{ s }}" {% if s == chosen %}selected{% endif %}>{{ s }}</option>{% endfor %}
+            </select>
+        </div>
+    </form>
+    {% endif %}
+
+    <section class="fs-card">
+        {% for e in entries %}
+        <div class="h-entry">
+            <div class="h-head">
+                <strong>{{ e.when|date:"Y-m-d H:i" }}</strong>
+                <span class="fs-chip {% if e.type == 'Deleted' %}miss{% elif e.type == 'Created' %}ok{% else %}na{% endif %}">{{ e.type }}</span>
+                <span>{{ e.who }}</span>
+                {% if e.source %}<span class="fs-muted">· {{ e.source }}</span>{% endif %}
+            </div>
+            {% if e.reason %}<div class="h-reason"><i class="fas fa-comment"></i> {{ e.reason }}</div>{% endif %}
+            {% if e.changes %}
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Question</th><th>Before</th><th>After</th></tr></thead>
+                    <tbody>
+                        {% for c in e.changes %}
+                        <tr><td>{{ c.question }} <span class="fs-muted">({{ c.name }})</span></td><td>{{ c.old }}</td><td>{{ c.new }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="fs-empty"><i class="fas fa-clock-rotate-left"></i><p>No history yet. It starts with the next change to this record.</p></div>
+        {% endfor %}
+    </section>
+</div>
+<style>
+    .h-entry { padding: .9rem 1rem; border-bottom: 1px solid #e9ecef; }
+    .h-entry:last-child { border-bottom: 0; }
+    .h-head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .35rem; }
+    .h-reason { background: #fff8e1; border-left: 3px solid #f0ad4e; padding: .35rem .6rem; margin-bottom: .4rem; font-size: .9rem; }
+</style>
+{% include "nanopore/partials/_list_styles.html" %}
+{% endblock %}

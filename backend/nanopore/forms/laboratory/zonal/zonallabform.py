@@ -2,12 +2,13 @@ from nanopore.forms.laboratory.lpa_rules import relax_lpa_lines, require_lpa_lin
 from nanopore.forms.laboratory.nanopore_rules import settle_nanopore
 from nanopore.zonal_rules import CTRL_FIELDS, LAB_NUMBER_ONLY_FIELDS, ctrl_answers, is_lab_number_only
 from django import forms
+from nanopore.forms.reason_for_change import REASON, ReasonForChangeMixin
 from django.core.exceptions import ValidationError
 from nanopore.models import ZonalLaboratory
 from options.models import YesNo,SampleAppearance, FirstLineDrugs, INHResultLPA, SecondLineDrugs, NanoporeSequencingResults, NanoporeSequencingDelayedReasons
 from common.labels.laboratory.zonal.zonal_labels import ZONAL_LABELS   # ✅ import from core app
 
-class ZonalLaboratoryForm(forms.ModelForm):
+class ZonalLaboratoryForm(ReasonForChangeMixin, forms.ModelForm):
     class Meta:
         model = ZonalLaboratory
         fields = [
@@ -304,7 +305,7 @@ class ZonalLaboratoryForm(forms.ModelForm):
         self.lab_number_only = is_lab_number_only(screening_instance)
         if self.lab_number_only:
             for name in list(self.fields):
-                if name not in LAB_NUMBER_ONLY_FIELDS:
+                if name not in LAB_NUMBER_ONLY_FIELDS and name != REASON:
                     del self.fields[name]
         else:
             # Other zones: these come from CTRL and TBLIS; here they are only shown.

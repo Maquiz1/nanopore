@@ -9,6 +9,7 @@
 
             <div class="d-flex justify-content-between mb-3 gap-2">
                 <a href="{% if access.view.edcs_tblis %}{% url 'nanopore:form-status-list' %}{% else %}{% url 'nanopore:edcs-tblis-laboratory-list' %}{% endif %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
+                {% include "nanopore/partials/_history_link.html" with history_key="edcs_tblis" %}
                 <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
             </div>
 

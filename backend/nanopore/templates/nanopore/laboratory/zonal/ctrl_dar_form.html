@@ -16,6 +16,7 @@
         </div>
         <div class="df-hero-actions">
             <a href="{{ next }}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Back</a>
+            {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" history_class="btn-light" %}
         </div>
     </section>
 
@@ -32,14 +33,15 @@
                 <p class="mb-0 text-muted">TB-LIS doesn't show first- or second-line LPA for this record, so there is nothing to enter.</p>
             {% else %}
                 <div class="df-grid">
-                    {% for field in form %}{% include "nanopore/partials/_field.html" with field=field %}{% endfor %}
+                    {% for field in form %}{% if field.name != "reason_for_change" %}{% include "nanopore/partials/_field.html" with field=field %}{% endif %}{% endfor %}
                 </div>
             {% endif %}
         </section>
 
+        {% include "nanopore/partials/_reason_for_change.html" %}
         <div class="df-savebar">
             <a href="{{ next }}" class="btn btn-outline-secondary">Cancel</a>
-            {% if access.edit.ctrl_isolates and form.fields and not read_only %}
+            {% if access.edit.ctrl_isolates and form.has_answers and not read_only %}
                 {% if system_control.enable_form_submissions %}
                 <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save</button>
                 {% else %}

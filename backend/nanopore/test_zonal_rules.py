@@ -30,7 +30,7 @@ class DarEsSalaamZonalLabTests(AccessTestBase):
     def test_dar_form_only_asks_for_lab_number_and_remarks(self):
         form = ZonalLaboratoryForm(screening_instance=self.dar_screening)
         self.assertTrue(form.lab_number_only)
-        self.assertEqual(set(form.fields), {"screening", "unique_lab_no", "remarks"})
+        self.assertEqual(set(form.fields), {"screening", "unique_lab_no", "remarks", "reason_for_change"})
         self.assertFalse(form.fields["remarks"].required)
 
     def test_edcs_record_is_read_only(self):

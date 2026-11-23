@@ -92,7 +92,7 @@ class DiagnosisFormView(FormAccessMixin, View):
             if not diagnosis.pk:
                 diagnosis.created_by = request.user
 
-            diagnosis.save()
+            form.apply_change_reason(diagnosis).save()
             form.save_m2m()
             messages.success(request, "Diagnosis saved successfully!")
             # return redirect(self.success_url)

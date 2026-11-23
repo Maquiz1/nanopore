@@ -1,11 +1,12 @@
 from django import forms
+from nanopore.forms.reason_for_change import ReasonForChangeMixin
 from nanopore.models import Enrollment
 from django.core.exceptions import ValidationError
 import datetime
 from common.labels.enrollment.labels import Enrollment_LABELS   # ✅ import from core app
 from options.models import DiseasesMedicalConditions,YesNoUnknown,PositiveNegativeUnknown,CategoryTreated
 
-class EnrollmentForm(forms.ModelForm):
+class EnrollmentForm(ReasonForChangeMixin, forms.ModelForm):
         
     class Meta:
         model = Enrollment

@@ -1,4 +1,5 @@
 from django import forms
+from nanopore.forms.reason_for_change import ReasonForChangeMixin
 from django.core.exceptions import ValidationError
 from nanopore.models import Diagnosis, Screening,RegimenChanges
 from options.models import (
@@ -6,7 +7,7 @@ from options.models import (
     TBTreatmentStarted, RegimenPrescribed, TBTreatmentOutcome,TBOtherDiagnosis,TBOtherDiagnosisMade
 )
 
-class DiagnosisForm(forms.ModelForm):
+class DiagnosisForm(ReasonForChangeMixin, forms.ModelForm):
     class Meta:
         model = Diagnosis
         fields = [

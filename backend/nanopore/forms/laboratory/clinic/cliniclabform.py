@@ -1,11 +1,12 @@
 from django import forms
+from nanopore.forms.reason_for_change import ReasonForChangeMixin
 from django.core.exceptions import ValidationError
 from nanopore.models import ClinicLaboratory
 from common.labels.laboratory.clinic.clinic_labels import CLINIC_LABELS
 from options.models import SampleReason
 
 
-class ClinicLaboratoryForm(forms.ModelForm):
+class ClinicLaboratoryForm(ReasonForChangeMixin, forms.ModelForm):
 
     reason_for_change = forms.CharField(
         required=False,

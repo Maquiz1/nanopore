@@ -128,7 +128,7 @@ class ScreeningFormView(FormAccessMixin, View):
 
             # Eligibility is worked out in Screening.save()
             try:
-                obj.save()
+                form.apply_change_reason(obj).save()
                 form.save_m2m()
             except ValidationError as e:
                 form.add_error(None, e)

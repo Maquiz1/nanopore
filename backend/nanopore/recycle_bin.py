@@ -33,6 +33,7 @@ from django.db import DEFAULT_DB_ALIAS, IntegrityError, router, transaction
 from django.db.models.deletion import Collector
 from django.utils import timezone
 
+from nanopore import history
 from nanopore.models import (
     ClinicLaboratory, DeletedRecord, Diagnosis, EdcsTblisZonal, RegimenChanges, Screening, ZonalLaboratory,
 )
@@ -117,9 +118,10 @@ def soft_delete(obj, user, reason=""):
         reason=reason,
         deleted_by=user if getattr(user, "is_authenticated", False) else None,
     )
-    for instance in _extra_dependents(obj):
-        instance.delete()
-    obj.delete()  # the database cascades the rest
+    with history.source("Recycle Bin: deleted"):
+        for instance in _extra_dependents(obj):
+            instance.delete()
+        obj.delete()  # the database cascades the rest
     return entry
 
 
@@ -151,8 +153,11 @@ def restore(entry, user):
 
     try:
         with transaction.atomic():
-            for record in records:
-                record.save()  # raw save: same pk, values and many-to-many choices
+            with history.source("Recycle Bin: restored"):
+                for record in records:
+                    record.save()  # raw save: same pk, values and many-to-many choices
+                for record in records:
+                    history.record_restored(record.object)
     except IntegrityError as exc:
         raise RestoreError(
             "Cannot restore: a newer record now uses the same participant, lab number or form "

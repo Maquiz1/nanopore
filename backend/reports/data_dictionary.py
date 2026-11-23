@@ -5,10 +5,9 @@ Each version is a file Tanzania_Data_Dictionary_v<version>.xlsx in DATA_DICTIONA
 (the data_dictionary/ folder next to backend/, kept out of git). The Codebook page offers
 the newest for download, and earlier ones as issued.
 
-To issue a new version: raise VERSION, add a line to CHANGE_LOG and the corrections to
-CORRECTIONS, then on your computer
-    python manage.py issue_data_dictionary --source <previous version .xlsx>
-and copy the folder to the server with copy-dictionary-to-server.sh.
+From v0.3 the current version is built from the system when it is downloaded
+(reports/dictionary_builder.py), so it needs no copying. Issued earlier versions (v0.1 as
+received, v0.2 corrected by issue() below) are files copied with copy-dictionary-to-server.sh.
 """
 import re
 import shutil
@@ -16,8 +15,9 @@ from pathlib import Path
 
 from django.conf import settings
 
-VERSION = "0.2"
+VERSION = "0.3"  # built from the system when downloaded (reports/dictionary_builder.py)
 VERSION_DATE = "2026-11-23"
+EDITED_VERSION = "0.2"  # the last version made by correcting the study team's workbook (issue())
 PREFIX = "Tanzania_Data_Dictionary_v"
 SHEET = "EDCS"
 FORM = "zonal_lab_ctrl"
@@ -87,11 +87,11 @@ def filename(version=VERSION):
 
 
 def versions():
-    """[(version, path)] of the issued versions on this server, newest first."""
-    found = []
+    """[(version, path)] newest first: the current version (path None: built when downloaded) and the issued files."""
+    found = [((tuple(int(part) for part in VERSION.split(".")), VERSION, None))]
     for path in folder().glob(f"{PREFIX}*.xlsx"):
         version = path.stem[len(PREFIX):]
-        if re.fullmatch(r"\d+(\.\d+)*", version):
+        if version != VERSION and re.fullmatch(r"\d+(\.\d+)*", version):
             found.append((tuple(int(part) for part in version.split(".")), version, path))
     return [(version, path) for _, version, path in sorted(found, reverse=True)]
 
@@ -105,7 +105,7 @@ def keep_as_issued(source, version):
 
 
 def issue(source):
-    """Write VERSION: the source workbook with CORRECTIONS applied and the change log. Returns (path, cells changed)."""
+    """Write EDITED_VERSION: the source workbook with CORRECTIONS applied and the change log. Returns (path, cells changed)."""
     from openpyxl import load_workbook
 
     book = load_workbook(source)
@@ -139,6 +139,15 @@ def issue(source):
     log.column_dimensions["C"].width = 120
 
     folder().mkdir(parents=True, exist_ok=True)
-    target = folder() / filename()
+    target = folder() / filename(EDITED_VERSION)
     book.save(target)
     return target, changed
+
+
+def write_current():
+    """Save the current version as a file, e.g. to keep it as issued before the next version."""
+    from reports.dictionary_builder import build_workbook
+    folder().mkdir(parents=True, exist_ok=True)
+    target = folder() / filename()
+    build_workbook().save(target)
+    return target
