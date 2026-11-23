@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -8,6 +8,7 @@ from django.apps import apps
 from utils import access
 from utils.access import export_queryset, exports_all_sites
 from utils.access_mixins import FeatureAccessMixin
+from reports import data_dictionary
 from reports.codebook import CODEBOOK_FORMS, build_codebook, codebook_version, to_excel, to_pdf
 
 CONTENT_TYPES = {
@@ -37,7 +38,21 @@ class CodebookView(LoginRequiredMixin, TemplateView):
         context["page"] = "codebook"
         context["forms"] = [(key, title) for key, (title, _) in CODEBOOK_FORMS.items()]
         context["version"] = codebook_version()
+        issued = data_dictionary.versions()
+        context["dictionary"] = issued[0] if issued else None
+        context["dictionary_earlier"] = issued[1:]
+        context["dictionary_log"] = dict((version, (date, text)) for version, date, text in data_dictionary.CHANGE_LOG)
         return context
+
+
+class DataDictionaryDownloadView(LoginRequiredMixin, View):
+    """An issued data dictionary version, exactly as on the server (variables, codes and mapping rules; no participant data)."""
+
+    def get(self, request, version):
+        path = dict(data_dictionary.versions()).get(version)
+        if path is None:
+            raise Http404("No such data dictionary version on this server.")
+        return FileResponse(path.open("rb"), as_attachment=True, filename=path.name)
 
 
 class DataExportView(FeatureAccessMixin, TemplateView):

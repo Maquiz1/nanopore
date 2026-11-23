@@ -38,7 +38,7 @@ class DataSafetyBase(AccessTestBase):
 
 class ExportFileTests(DataSafetyBase):
     def test_edcs_route_serves_only_the_users_own_export(self):
-        user = self.make_user("lab_file", [access.LABORATORY_TECHNICIAN], zones=[self.zone_a])
+        user = self.make_user("lab_file", [access.DATA_SPECIALIST], zones=[self.zone_a])
         self.client.force_login(user)
         own = f"export_merged_20261122_abcd1234_u{user.pk}.xlsx"
         others = ("export_merged_20261122_abcd1234.xlsx", f"export_merged_20261122_abcd1234_u9{user.pk}.xlsx",
@@ -54,7 +54,7 @@ class ExportFileTests(DataSafetyBase):
                 self.assertEqual(self.client.get(reverse("nanopore:edcs-tblis-export-serve", args=[name])).status_code, 404, name)
 
     def test_export_is_named_for_the_user_who_asked(self):
-        user = self.make_user("lab_name", [access.LABORATORY_TECHNICIAN], zones=[self.zone_a])
+        user = self.make_user("lab_name", [access.DATA_SPECIALIST], zones=[self.zone_a])
         self.client.force_login(user)
         with mock.patch("nanopore.views.laboratory.edcs_tblis.edcs_tblis_csv_export_views.export_edcs_tblis_csv.delay") as delay:
             delay.return_value.id = "task"
@@ -106,7 +106,7 @@ class IsolateNumberTests(DataSafetyBase):
     def test_row_without_dst_does_not_bring_the_old_yes_back(self):
         TblisRawData.objects.create(labno="RIGHT", raw_data={"spectype": "Isolate", "labno": "RIGHT"})
         for record in self.change_to("RIGHT"):
-            self.assertEqual(record.phenotypic_performed, self.no)
+            self.assertIsNone(record.phenotypic_performed)  # 12a: empty without a DST date
             self.assertIsNone(record.rifampicin)
 
     def test_new_numbers_results_replace_the_old(self):

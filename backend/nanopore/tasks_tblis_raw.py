@@ -177,6 +177,8 @@ lpa2_results_map = {
     "Resistance Inferred": 4, "MTB Not Detected": None
 }
 
+NA_VALUE = 98  # the "Na" answer of Yes/No/Na questions (codebook)
+
 CTRL_PREFIXES = [
     "DF_TZ_SS2_14", "DF_TZ_SS2_15", "DF_TZ_SS2_16",
     "DF_TZ_SS2_17", "DF_TZ_SS2_18", "DF_TZ_SS2_19"
@@ -215,8 +217,19 @@ def mismatch_logger(record, labno):
     return log_mismatch
 
 
-def apply_tblis_dst(edcs_zonal, clean_row, log_mismatch):
-    """The phenotypic DST section of a TBLIS row: performed, dates and results."""
+def apply_tblis_dst(edcs_zonal, clean_row, log_mismatch, keep_unanswered=False):
+    """
+    The phenotypic DST section of a TBLIS row: performed, dates and results (data dictionary 12-14).
+    "Performed" is Yes when there is a DST date; without one it is empty, or, with
+    keep_unanswered (another zone's form), the site's own answer stays.
+    """
+    def performed(name, done):
+        if done:
+            log_mismatch(name, getattr(edcs_zonal, name), 1)
+            setattr(edcs_zonal, name, 1)
+        elif not keep_unanswered:
+            setattr(edcs_zonal, name, None)
+
     # Phenotypic DST Date
     mgitdst1_date = clean_row.get("mgitdst1_date")
     mgitdst2_date = clean_row.get("mgitdst2_date")
@@ -227,48 +240,40 @@ def apply_tblis_dst(edcs_zonal, clean_row, log_mismatch):
     ljdst1_setupdate = clean_row.get("LJDST1_SETUPDATE")
     ljdst2_setupdate = clean_row.get("LJDST2_SETUPDATE")
     
-    pheno_date = mgitdst1_date or mgitdst2_date or ljdst1_date or ljdst2_date
-    pheno_perf_val = 1 if pheno_date else 2
-    log_mismatch("phenotypic_performed_id", edcs_zonal.phenotypic_performed_id, pheno_perf_val)
-    edcs_zonal.phenotypic_performed_id = pheno_perf_val
+    pheno_date = ljdst1_date or mgitdst1_date or ljdst2_date or mgitdst2_date
+    performed("phenotypic_performed_id", pheno_date)
     if pheno_date:
         parsed_pheno_date = parse_date_field(pheno_date)
         log_mismatch("phenotypic_date_performed", edcs_zonal.phenotypic_date_performed, parsed_pheno_date)
         edcs_zonal.phenotypic_date_performed = parsed_pheno_date
 
     # First and Second Line DST Performed (data dictionary): performed when there is
-    # a DST result date. The performed DATE is the DST set-up date
-    # (LJDST1_SETUPDATE / LJDST2_SETUPDATE), not the TBLIS data-entry date; MGIT
-    # DST has no set-up date in TBLIS, so it stays empty for MGIT-only DST.
-    first_line_perf_date = ljdst1_setupdate
-    first_perf_val = 1 if (mgitdst1_date or ljdst1_date) else 2
-    log_mismatch("first_line_dst_performed_id", edcs_zonal.first_line_dst_performed_id, first_perf_val)
-    edcs_zonal.first_line_dst_performed_id = first_perf_val
+    # a DST result date. The performed DATE is the LJ set-up date; without one, MGIT:
+    # its DST entry date, else its result date (TBLIS has no MGIT set-up date and
+    # has so far left the entry date empty).
+    first_line_perf_date = ljdst1_setupdate or clean_row.get("mgitdst1_entrydate") or mgitdst1_date
+    performed("first_line_dst_performed_id", ljdst1_date or mgitdst1_date)
     if first_line_perf_date:
         parsed_first_perf = parse_date_field(first_line_perf_date)
         log_mismatch("first_line_dst_performed_date", edcs_zonal.first_line_dst_performed_date, parsed_first_perf)
         edcs_zonal.first_line_dst_performed_date = parsed_first_perf
 
-    second_line_perf_date = ljdst2_setupdate
-    second_perf_val = 1 if (mgitdst2_date or ljdst2_date) else 2
-    log_mismatch("second_line_dst_performed_id", edcs_zonal.second_line_dst_performed_id, second_perf_val)
-    edcs_zonal.second_line_dst_performed_id = second_perf_val
+    second_line_perf_date = ljdst2_setupdate or clean_row.get("mgitdst2_entrydate") or mgitdst2_date
+    performed("second_line_dst_performed_id", ljdst2_date or mgitdst2_date)
     if second_line_perf_date:
         parsed_second_perf = parse_date_field(second_line_perf_date)
         log_mismatch("second_line_dst_performed_date", edcs_zonal.second_line_dst_performed_date, parsed_second_perf)
         edcs_zonal.second_line_dst_performed_date = parsed_second_perf
 
 
-    # First and Second Line DST Results Dates. Each date comes from the same source
-    # as the results shown: first-line results prefer LJ (MGIT as fallback), so
-    # does the date; second-line results come from MGIT.
+    # First and Second Line DST Results Dates (data dictionary 12e, 12h): LJ, otherwise MGIT.
     first_line_res_date = ljdst1_date or mgitdst1_date
     if first_line_res_date:
         parsed_first_res = parse_date_field(first_line_res_date)
         log_mismatch("first_line_dst_results_date", edcs_zonal.first_line_dst_results_date, parsed_first_res)
         edcs_zonal.first_line_dst_results_date = parsed_first_res
 
-    second_line_res_date = mgitdst2_date or ljdst2_date
+    second_line_res_date = ljdst2_date or mgitdst2_date
     if second_line_res_date:
         parsed_second_res = parse_date_field(second_line_res_date)
         log_mismatch("second_line_dst_results_date", edcs_zonal.second_line_dst_results_date, parsed_second_res)
@@ -370,10 +375,7 @@ def merge_isolate_dst(z_lab, clean_row, raw_id=None):
     _take_back_dst(z_lab, source.values)
     before = {field.attname: getattr(z_lab, field.attname) for field in fields}
     if clean_row is not None:
-        apply_tblis_dst(z_lab, clean_row, lambda *args: None)
-        for name in ("phenotypic_performed_id", "first_line_dst_performed_id", "second_line_dst_performed_id"):
-            if before[name] == 1 and getattr(z_lab, name) == 2:
-                setattr(z_lab, name, 1)
+        apply_tblis_dst(z_lab, clean_row, lambda *args: None, keep_unanswered=True)
 
     log_mismatch = mismatch_logger(z_lab, z_lab.isolate_unique_lab_no)
     source.values = {}
@@ -451,7 +453,7 @@ def apply_tblis_transformations(edcs_zonal, clean_row, labno):
 
     # Culture logic: if LJ innocdate exists, culture performed is 1, else 2
     lj_date = clean_row.get("lj_innocdate")
-    culture_val = 1 if lj_date else 2
+    culture_val = 1 if (lj_date or clean_row.get("mgit_entrydate")) else 2  # data dictionary 6a: LJ, else MGIT
     log_mismatch("culture_performed_id", edcs_zonal.culture_performed_id, culture_val)
     edcs_zonal.culture_performed_id = culture_val
 
@@ -658,6 +660,12 @@ def sync_zonal_laboratory_to_edcs(z_lab, clean_row=None):
         if field.name not in exclude_fields:
             val = getattr(z_lab, field.name)
             setattr(e_zonal, field.name, val)
+    if z_lab.screening.pid.startswith(tuple(CTRL_PREFIXES)):
+        # Dar es Salaam: CTRL cultures every sample and TB-LIS merges by lab number,
+        # so question 11 (isolate sent, its date and number) is Na.
+        e_zonal.culture_isolate = YesNoNA.objects.filter(value=NA_VALUE).first()
+        e_zonal.isolate_date = None
+        e_zonal.isolate_unique_lab_no = None
     e_zonal.save()
     
     # Copy ManyToMany fields exactly as-is
@@ -712,6 +720,11 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
         return {"state": "SUCCESS", "file_error": str(exc), "preview": dry_run, "errors": []}
 
     kept_rows, left_out = filter_rows(prepared["rows"])
+    # A file older than the last upload would become the latest and undo newer results
+    latest = TblisUploadBatch.objects.first()
+    file_newest = max((row.get("rctdate", "")[:10] for row in kept_rows), default="")
+    latest_newest = max((str(d or "")[:10] for d in TblisRawData.objects.filter(upload_batch=latest)
+                         .values_list("raw_data__rctdate", flat=True)), default="") if latest else ""
     file_info = {
         "preview": dry_run,
         "sheet": prepared["sheet"],
@@ -722,6 +735,8 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
         "left_out_by_reason": {FILTER_REASONS[key]: count for key, count in left_out.items()},
         "date_problems": prepared["problems"][:MAX_REPORTED_PROBLEMS],
         "date_problems_count": len(prepared["problems"]),
+        "older_than_latest": ({"file": file_newest, "latest": latest_newest}
+                              if file_newest and latest_newest and file_newest < latest_newest else None),
     }
 
     try:

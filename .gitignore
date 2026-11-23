@@ -1,3 +1,6 @@
 
 # Raw TB-LIS exports contain participant names, NIN and addresses: never commit
 documentations/TBLIS_RAW_DATA/
+
+# Issued data dictionary versions (reports/data_dictionary.py): copied to the server with copy-dictionary-to-server.sh
+data_dictionary/

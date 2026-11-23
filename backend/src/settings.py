@@ -145,6 +145,8 @@ MEDIA_ROOT = BASE_DIR / "uploads"
 # reachable through the download views, which check login and roles. Never point the
 # web server at this folder.
 PRIVATE_ROOT = Path(env("PRIVATE_ROOT", default=str(BASE_DIR / "private")))
+# Issued data dictionary versions (reports/data_dictionary.py), kept out of git
+DATA_DICTIONARY_DIR = Path(env("DATA_DICTIONARY_DIR", default=str(BASE_DIR.parent / "data_dictionary")))
 PRIVATE_EXPORTS_DIR = PRIVATE_ROOT / "exports"
 PRIVATE_IMPORTS_DIR = PRIVATE_ROOT / "imports"
 

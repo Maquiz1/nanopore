@@ -3,6 +3,13 @@ from reports.constants.zona_mapping import CTRL_QUERIES, ZONAL_DQ_FIELD_MAPPING
 from nanopore.models import ZonalLaboratory
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q, NANOPORE_PREFIXES
 
+DST_AFTER_12A = (
+    "missing_first_line_dst_performed", "missing_first_line_dst_performed_date", "missing_first_line_dst_results_date",
+    "missing_first_line_dst_results", "missing_second_line_dst_performed", "missing_second_line_dst_performed_date",
+    "missing_second_line_dst_results_date", "missing_second_line_dst_results",
+)
+
+
 def get_zonal_dq_filters(model):
     """
     Q objects for the queries of a form's page: the single source of truth for
@@ -111,6 +118,13 @@ def _all_filters(model):
             "missing_second_line_dst_results"
         ]:
             q &= Q(second_line_dst_performed=1)
+
+        # 12a = No: none of the DST questions after it are asked (12a itself stays a query above).
+        # Other zones are asked about DST only for an isolate sent to CTRL; Dar es Salaam always (its isolate answer is Na).
+        if key in DST_AFTER_12A:
+            q &= Q(phenotypic_performed=1)
+            if model is ZonalLaboratory:
+                q &= Q(culture_isolate=1)
 
         # XPERT XDR
         if key in ["missing_xpert_xdr_date_performed", "missing_xpert_xdr_results"]:

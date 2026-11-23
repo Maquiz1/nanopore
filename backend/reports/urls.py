@@ -79,7 +79,7 @@ from reports.views import (
     SubstudyDownloadView
     )
 
-from reports.views.codebook_views import CodebookDownloadView, CodebookView, DataExportView
+from reports.views.codebook_views import CodebookDownloadView, CodebookView, DataDictionaryDownloadView, DataExportView
 
 app_name = "reports"
 
@@ -200,6 +200,7 @@ urlpatterns = [
     ),
 
     path("codebook/", CodebookView.as_view(), name="codebook"),
+    path("data-dictionary/v<str:version>/", DataDictionaryDownloadView.as_view(), name="data-dictionary"),
     path("data-export/", DataExportView.as_view(), name="data-export"),
     path("codebook/download/<str:form_key>/<str:fmt>/", CodebookDownloadView.as_view(), name="codebook-download"),
 ]

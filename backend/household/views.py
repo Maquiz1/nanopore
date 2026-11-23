@@ -1,11 +1,13 @@
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+
+from utils.access_mixins import SuperuserRequiredMixin
 from django.views.generic import ListView,CreateView
 from .models import Household
 from .forms import HouseholdForm
 
 
-class HouseholdListView(LoginRequiredMixin, ListView):
+class HouseholdListView(SuperuserRequiredMixin, ListView):
     model = Household
     template_name = 'household/list.html'
     context_object_name = 'households'
@@ -15,7 +17,7 @@ class HouseholdListView(LoginRequiredMixin, ListView):
         return Household.objects.filter(veo=self.request.user)
     
     
-class HouseholdCreateView(LoginRequiredMixin, CreateView):
+class HouseholdCreateView(SuperuserRequiredMixin, CreateView):
     model = Household
     form_class = HouseholdForm
     template_name = 'household/create.html'

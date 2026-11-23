@@ -170,10 +170,11 @@ class DstDateTests(AccessTestBase):
         self.assertEqual(edcs.first_line_dst_performed_id, 1)
         self.assertEqual(edcs.second_line_dst_performed_id, 1)
 
-    def test_mgit_only_dst_is_performed_without_a_date(self):
+    def test_mgit_only_dst_is_dated_by_mgit(self):
+        # No LJ set-up date: the MGIT date is used (TBLIS has no MGIT set-up date)
         edcs = self.merge(mgitdst1_date="2025-03-13")
         self.assertEqual(edcs.first_line_dst_performed_id, 1)
-        self.assertIsNone(edcs.first_line_dst_performed_date)
+        self.assertEqual(str(edcs.first_line_dst_performed_date), "2025-03-13")
         self.assertEqual(str(edcs.first_line_dst_results_date), "2025-03-13")
 
     def test_results_date_prefers_lj_like_the_results(self):
@@ -182,8 +183,8 @@ class DstDateTests(AccessTestBase):
 
     def test_no_dst_is_not_performed(self):
         edcs = self.merge(rctdate="2025-01-01")
-        self.assertEqual(edcs.first_line_dst_performed_id, 2)
-        self.assertEqual(edcs.second_line_dst_performed_id, 2)
+        self.assertIsNone(edcs.first_line_dst_performed_id)  # data dictionary 12c/12f: empty without a DST date
+        self.assertIsNone(edcs.second_line_dst_performed_id)
 
 
 class LjScantyRuleTests(AccessTestBase):

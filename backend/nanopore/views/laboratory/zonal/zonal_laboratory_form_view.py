@@ -1,3 +1,8 @@
+import logging
+
+from django.db import transaction
+
+from nanopore.tasks_tblis_raw import sync_with_latest_tblis
 from utils import access
 from utils.access_mixins import FormAccessMixin
 from django.utils import timezone
@@ -18,6 +23,9 @@ from django.urls import reverse_lazy
 from nanopore.models import ZonalLaboratory, Screening
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib import messages
+
+logger = logging.getLogger(__name__)
+
 
 class ZonalLabFormView(FormAccessMixin, View):
     access_form = access.ZONAL_LAB
@@ -93,6 +101,12 @@ class ZonalLabFormView(FormAccessMixin, View):
                     self.template_name,
                     {"form": form, "object": obj, "screening": screening_instance}
                 )
+
+            try:
+                with transaction.atomic():
+                    sync_with_latest_tblis(zonal_lab)
+            except Exception:  # the nightly sync tries again
+                logger.exception("Could not sync Zonal Lab %s to EDCS/TBLIS", zonal_lab.pk)
 
             messages.success(request, "Zonal Lab saved successfully.")
 

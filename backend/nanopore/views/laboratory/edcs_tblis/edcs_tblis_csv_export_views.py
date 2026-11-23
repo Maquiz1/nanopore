@@ -12,8 +12,15 @@ from django.views import View
 from nanopore.tasks_csv_export import export_edcs_tblis_csv
 
 
-class TriggerCsvExportView(FormAccessMixin, View):
+class ExportRoleMixin(FormAccessMixin):
+    """EDCS/TBLIS records for those who may export data (utils.access.EXPORTS), within what they may see."""
     access_form = access.EDCS_TBLIS
+
+    def has_form_access(self, request, kwargs):
+        return super().has_form_access(request, kwargs) and access.has_feature(request.user, access.EXPORTS)
+
+
+class TriggerCsvExportView(ExportRoleMixin, View):
     access_safe_post = True
     """
     POST: enqueue the background Excel export and return task_id.
@@ -47,8 +54,7 @@ class TriggerCsvExportView(FormAccessMixin, View):
         return JsonResponse({"task_id": task.id, "filename": filename})
 
 
-class ServeCsvExportView(FormAccessMixin, View):
-    access_form = access.EDCS_TBLIS
+class ServeCsvExportView(ExportRoleMixin, View):
     """
     GET: serve the generated Excel file for download once ready.
     """

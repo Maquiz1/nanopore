@@ -67,7 +67,7 @@
             <div class="et-stat tone-{{ item.card.tone }} {% if item.card.key == active_card.key %}active{% endif %}">
                 <a class="et-stat-link" href="?card_type={{ item.card.key }}{% if filter_params %}&{{ filter_params }}{% endif %}#records"
                    aria-label="List {{ item.card.label }}"></a>
-                {% if access.view.edcs_tblis %}<button type="button" class="et-export" title="Export to Excel"
+                {% if access.exports %}<button type="button" class="et-export" title="Export to Excel"
                         onclick="startCardExport('{{ item.card.key }}', this)"><i class="fas fa-download"></i></button>{% endif %}
                 <div class="et-stat-value">{{ item.count|intcomma }}</div>
                 <div class="et-stat-label">{{ item.card.label }}</div>
@@ -85,7 +85,7 @@
                 <h2>{{ active_card.label }}</h2>
                 <span class="et-sub">{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}{% if has_filters %} matching the filters{% endif %}</span>
             </div>
-            {% if access.view.edcs_tblis %}
+            {% if access.exports %}
             <button type="button" class="btn btn-sm btn-outline-success" onclick="startCardExport('{{ active_card.key }}', this)">
                 <i class="fas fa-file-excel"></i> Export list
             </button>

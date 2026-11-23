@@ -123,11 +123,11 @@ class CtrlIsolatesTests(AccessTestBase):
 
     def test_number_is_required_only_when_the_isolate_went_to_ctrl(self):
         self.client.force_login(self.ctrl_tech)
-        page = self.client.post(self.form_url(), {"isolate_unique_lab_no": ""})
+        page = self.client.post(self.form_url(), {"culture_isolate": self.isolate_yes.pk, "isolate_unique_lab_no": ""})
         self.assertEqual(page.status_code, 200)
         self.assertIn("isolate_unique_lab_no", page.context["form"].errors)
         ZonalLaboratory.objects.filter(pk=self.b_lab.pk).update(culture_isolate=self.isolate_no, isolate_unique_lab_no="WRONG")
-        self.client.post(self.form_url(), {"isolate_unique_lab_no": ""})
+        self.client.post(self.form_url(), {"culture_isolate": self.isolate_no.pk, "isolate_unique_lab_no": ""})
         self.assertIsNone(ZonalLaboratory.objects.get(pk=self.b_lab.pk).isolate_unique_lab_no)
 
     def test_ctrl_cannot_open_dar_records_on_this_form(self):

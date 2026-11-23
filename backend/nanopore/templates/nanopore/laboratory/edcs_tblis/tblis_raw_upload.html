@@ -115,7 +115,11 @@ function showMergeSummary(data) {
         statCard("📅 Unreadable dates", data.date_problems_count ?? 0, "danger");
 
     const extra = document.getElementById("mergeSummaryExtra");
-    let extraHtml = `<div class="small text-muted">Sheet: ${escapeHtml(data.sheet || "—")} · Dates read as: ${escapeHtml(data.date_order || "—")}</div>`;
+    let extraHtml = "";
+    if (data.older_than_latest) {
+        extraHtml += `<div class="alert alert-danger"><strong>This file looks older than the last upload.</strong> Its newest sample was received ${escapeHtml(data.older_than_latest.file)}, the last upload's ${escapeHtml(data.older_than_latest.latest)}. Uploading it makes it the latest file and can undo newer results.</div>`;
+    }
+    extraHtml += `<div class="small text-muted">Sheet: ${escapeHtml(data.sheet || "—")} · Dates read as: ${escapeHtml(data.date_order || "—")}</div>`;
 
     const reasons = data.left_out_by_reason || {};
     if (Object.keys(reasons).length) {

@@ -162,7 +162,7 @@ class IsolateRuleTests(RuleBase):
         self.assertEqual(self.both()[0].rifampicin, self.resistant)
         self.upload(isolate(dst="", rifampicin=""))
         for record in self.both():
-            self.assertEqual(record.phenotypic_performed, self.no)
+            self.assertEqual(record.phenotypic_performed, None)  # 12a: empty without a DST date
             self.assertIsNone(record.rifampicin)
             self.assertIsNone(record.first_line_dst_results_date)
 
@@ -223,7 +223,7 @@ class IsolateRuleTests(RuleBase):
         TblisIsolateDst.objects.all().delete()  # as if merged by the earlier code
         self.upload(isolate(dst="", rifampicin=""))
         self.assertIsNone(self.both()[0].rifampicin)
-        self.assertEqual(self.both()[0].phenotypic_performed, self.no)
+        self.assertIsNone(self.both()[0].phenotypic_performed)  # 12a: empty without a DST date
 
     def test_dst_merged_before_with_no_stored_row_is_left_alone(self):
         self.site_has(isolate_unique_lab_no="50001", rifampicin=self.resistant)

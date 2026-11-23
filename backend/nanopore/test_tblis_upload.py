@@ -241,7 +241,7 @@ class IsolateMergeTests(AccessTestBase):
         self.upload(self.isolate_row(dst_date=""))
         lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
         self.assertEqual(lab.first_line_dst_performed_id, 1)
-        self.assertEqual(lab.second_line_dst_performed_id, 2)
+        self.assertIsNone(lab.second_line_dst_performed_id)  # no second-line DST date: left as the site had it
 
     def test_unmatched_isolate_is_reported(self):
         result = self.upload(self.isolate_row(labno="50002"))
