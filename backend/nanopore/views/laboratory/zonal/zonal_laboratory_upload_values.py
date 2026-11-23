@@ -1,8 +1,11 @@
+from nanopore import history
+from nanopore.tasks_tblis_raw import sync_with_latest_tblis
 from utils import access
 from utils.access_mixins import FeatureAccessMixin
 import csv
 import io
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import render, redirect
 from django.views import View
 from django.utils.dateparse import parse_date
@@ -221,15 +224,19 @@ class ZonalLabCsvUploadView(FeatureAccessMixin, View):
                     "remarks": row.get("Remarks") or None,
                 }
 
-                lab, created = ZonalLaboratory.objects.update_or_create(
-                    screening=screening, defaults=defaults
-                )
+                with transaction.atomic(), history.source("Zonal Lab CSV upload"):  # a row saves whole or not at all
+                    lab, created = ZonalLaboratory.objects.update_or_create(
+                        screening=screening, defaults=defaults
+                    )
 
-                # ManyToMany
-                lab.culture_method.set(split_m2m(CultureMethod, row.get("CultureMethod")))
-                lab.first_line_drugs.set(split_m2m(FirstLineDrugs, row.get("FirstLineDrugs")))
-                lab.second_line_drugs.set(split_m2m(SecondLineDrugs, row.get("SecondLineDrugs")))
-                lab.lpa1_inh.set(split_m2m(INHResultLPA, row.get("LPA1INH")))
+                    # ManyToMany
+                    lab.culture_method.set(split_m2m(CultureMethod, row.get("CultureMethod")))
+                    lab.first_line_drugs.set(split_m2m(FirstLineDrugs, row.get("FirstLineDrugs")))
+                    lab.second_line_drugs.set(split_m2m(SecondLineDrugs, row.get("SecondLineDrugs")))
+                    lab.lpa1_inh.set(split_m2m(INHResultLPA, row.get("LPA1INH")))
+
+                    # EDCS/TBLIS follows at once (a new lab number brings that number's TB-LIS results)
+                    sync_with_latest_tblis(lab)
 
                 count_created += int(created)
                 count_updated += int(not created)

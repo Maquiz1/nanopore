@@ -245,3 +245,54 @@ class DataDictionaryTests(DataSafetyBase):
         self.assertIn("CTRL (Nanopore form)", variables[("Zonal Laboratory", "nanopore_done")][9])
         self.assertEqual(len(list(book["Decisions"].iter_rows(min_row=3))), len(DECISIONS) + 1)
         self.assertTrue(any(row[0] == "YesNo" for row in book["Choices"].iter_rows(min_row=2, values_only=True)))
+
+
+class DarLabNumberTests(DataSafetyBase):
+    """Correcting a Dar es Salaam lab number shows the right TB-LIS results at once, not after the nightly sync."""
+
+    def setUp(self):
+        super().setUp()
+        from options.models import MGITCultureResult
+        self.positive = MGITCultureResult.objects.create(pk=1, name="Positive", value=1)
+        self.negative = MGITCultureResult.objects.create(pk=2, name="Negative", value=2)
+        YesNoNA.objects.create(pk=3, name="Na", value=98)
+        accepted = {"spectype": "Sputum", "peripheralres_genexpert": "MTB Detected"}
+        TblisRawData.objects.create(labno="30001", raw_data={**accepted, "labno": "30001", "mgit_res": "POSITIVE"})
+        TblisRawData.objects.create(labno="30002", raw_data={**accepted, "labno": "30002", "mgit_res": "NEGATIVE"})
+        self.lab = ZonalLaboratory.objects.create(screening=self.dar, unique_lab_no="30001")
+        sync_with_latest_tblis(self.lab)
+        self.assertEqual(self.edcs().mgit_results, self.positive)
+
+    def edcs(self):
+        return EdcsTblisZonal.objects.get(screening=self.dar)
+
+    def correct(self, number):
+        self.client.force_login(self.make_user(f"ctrl_{number}", [access.LABORATORY_TECHNICIAN], sites=[self.ctrl]))
+        response = self.client.post(reverse("nanopore:zonal-laboratory-update", args=[self.lab.pk]),
+                                    {"screening": self.dar.pk, "unique_lab_no": number, "next": "/",
+                                     "reason_for_change": "Lab number typed wrongly"})
+        self.assertEqual(response.status_code, 302)
+
+    def test_corrected_number_brings_its_own_results(self):
+        self.correct("30002")
+        record = self.edcs()
+        self.assertEqual((record.unique_lab_no, record.mgit_results), ("30002", self.negative))
+
+    def test_number_tblis_doesnt_have_drops_the_old_results(self):
+        self.correct("30009")
+        record = self.edcs()
+        self.assertEqual((record.unique_lab_no, record.mgit_results), ("30009", None))
+
+    def test_bulk_csv_upload_also_updates_at_once(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        self.client.force_login(self._superuser())
+        upload = SimpleUploadedFile("zonal.csv", f"PID,UniqueLabNo\n{self.dar.pid},30002\n".encode(), content_type="text/csv")
+        self.client.post(reverse("nanopore:zonal-upload-csv"), {"file": upload})
+        record = self.edcs()
+        self.assertEqual((record.unique_lab_no, record.mgit_results), ("30002", self.negative))
+        self.assertEqual(record.history.order_by("-history_date", "-history_id").first().history_source, "Zonal Lab CSV upload")
+
+    def _superuser(self):
+        from django.contrib.auth.models import User
+        return User.objects.create_superuser("super_csv", "super@example.org", "x")
+
