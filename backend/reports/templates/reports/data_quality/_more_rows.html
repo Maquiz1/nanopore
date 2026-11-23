@@ -1,0 +1,7 @@
+{% load humanize %}
+{% if total and shown < total %}
+<div class="dq-more small">
+    Showing {{ shown|intcomma }} of {{ total|intcomma }} ·
+    <a href="?query={{ key }}{% if filter_query %}&{{ filter_query }}{% endif %}">See all {{ total|intcomma }} <i class="fas fa-arrow-right"></i></a>
+</div>
+{% endif %}

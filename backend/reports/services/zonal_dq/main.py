@@ -10,8 +10,9 @@ def get_zonal_counts(user, ZonalModel, zone_id=None, site_id=None):
     return stats, total
 
 
-def get_zonal_dq(user, ZonalModel, zone_id=None, site_id=None):
+def get_zonal_dq(user, ZonalModel, zone_id=None, site_id=None, limit=None):
+    """limit: list only the first records of each query (the page links to each query's full list)."""
     qs = get_zonal_queryset(user, ZonalModel, zone_id, site_id)
     stats, total, duplicates = get_zonal_stats(qs)
-    problems = get_zonal_problem_lists(qs, duplicates)
+    problems = get_zonal_problem_lists(qs, duplicates, limit)
     return qs, stats, total, problems

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ label }} · EDCS / TB-LIS queries{% endblock %}
+
+{% block content %}
+<div class="fs">
+    <section class="fs-hero">
+        <div>
+            <div class="fs-eyebrow">Queries · EDCS / TB-LIS</div>
+            <h1 class="fs-title">{{ label }}</h1>
+            <div class="fs-meta">Every record with this query, {{ page_obj.paginator.per_page }} per page. Click a PID to open the form that fixes it.</div>
+        </div>
+        <div class="fs-hero-actions">
+            <a href="{% url 'reports:edcs_tblis_quality_report' %}{% if back_query %}?{{ back_query }}{% endif %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> All EDCS / TB-LIS queries</a>
+        </div>
+    </section>
+
+    <form method="get" class="fs-filters">
+        <input type="hidden" name="query" value="{{ key }}">
+        <div>
+            <label class="form-label" for="ql-zone">Zone</label>
+            <select name="zone" id="ql-zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for id, name in zones.items %}<option value="{{ id }}" {% if id == selected_zone %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="ql-site">Site</label>
+            <select name="site" id="ql-site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for id, name in sites.items %}<option value="{{ id }}" {% if id == selected_site %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+        </div>
+    </form>
+
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}</strong>
+            {% if page_obj.has_other_pages %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
+        {% if rows %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead><tr><th>No.</th><th>PID</th><th>Lab No.</th><th>Zone</th><th>Site</th></tr></thead>
+                <tbody>
+                    {% for item in rows %}
+                    <tr>
+                        <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                        <td class="fs-pid">{% if item.fix_url %}<a href="{{ item.fix_url }}?next={{ request.get_full_path|urlencode }}">{{ item.pid }}</a>{% else %}{{ item.pid }}{% endif %}</td>
+                        <td>{{ item.lab_no|default:"—" }}</td>
+                        <td>{{ item.zone_name }}</td>
+                        <td>{{ item.site_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>No records with this query.</p></div>
+        {% endif %}
+        {% if page_obj.has_other_pages %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{{ filter_query }}&page={{ page_obj.previous_page_number }}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{{ filter_query }}&page={{ page_obj.next_page_number }}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% include "nanopore/partials/_list_styles.html" %}
+{% endblock %}

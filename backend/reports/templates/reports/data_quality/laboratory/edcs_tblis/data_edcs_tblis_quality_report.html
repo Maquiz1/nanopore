@@ -35,6 +35,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_date_sputum_received" shown=missing_date_sputum_received|length total=count_missing_date_sputum_received %}
                     </div>
                 </div>
             </div>
@@ -67,6 +68,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_appearance" shown=missing_appearance|length total=count_missing_appearance %}
                     </div>
                 </div>
             </div>
@@ -99,6 +101,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_sample_volume" shown=missing_sample_volume|length total=count_missing_sample_volume %}
                     </div>
                 </div>
             </div>
@@ -131,6 +134,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_unique_lab_no" shown=missing_unique_lab_no|length total=count_missing_unique_lab_no %}
                     </div>
                 </div>
             </div>
@@ -163,6 +167,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="duplicate_unique_lab_no" shown=duplicate_unique_lab_no|length total=count_duplicate_unique_lab_no %}
                     </div>
                 </div>
             </div>
@@ -194,6 +199,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_culture_performed" shown=missing_culture_performed|length total=count_missing_culture_performed %}
                     </div>
                 </div>
             </div>
@@ -224,6 +230,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_culture_method" shown=missing_culture_method|length total=count_missing_culture_method %}
                     </div>
                 </div>
             </div>
@@ -254,6 +261,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_microscopy_type" shown=missing_microscopy_type|length total=count_missing_microscopy_type %}
                     </div>
                 </div>
             </div>
@@ -284,6 +292,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_microscopy_date" shown=missing_microscopy_date|length total=count_missing_microscopy_date %}
                     </div>
                 </div>
             </div>
@@ -314,6 +323,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_microscopy_results" shown=missing_microscopy_results|length total=count_missing_microscopy_results %}
                     </div>
                 </div>
             </div>
@@ -345,6 +355,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lj_inoculation_date" shown=missing_lj_inoculation_date|length total=count_missing_lj_inoculation_date %}
                     </div>
                 </div>
             </div>
@@ -375,6 +386,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lj_results_date" shown=missing_lj_results_date|length total=count_missing_lj_results_date %}
                     </div>
                 </div>
             </div>
@@ -405,6 +417,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lj_results" shown=missing_lj_results|length total=count_missing_lj_results %}
                     </div>
                 </div>
             </div>
@@ -436,6 +449,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_mgit_inoculation_date" shown=missing_mgit_inoculation_date|length total=count_missing_mgit_inoculation_date %}
                     </div>
                 </div>
             </div>
@@ -466,6 +480,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_mgit_results_date" shown=missing_mgit_results_date|length total=count_missing_mgit_results_date %}
                     </div>
                 </div>
             </div>
@@ -496,6 +511,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_mgit_results" shown=missing_mgit_results|length total=count_missing_mgit_results %}
                     </div>
                 </div>
             </div>
@@ -531,6 +547,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_phenotypic_performed" shown=missing_phenotypic_performed|length total=count_missing_phenotypic_performed %}
                     </div>
                 </div>
             </div>
@@ -561,6 +578,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_phenotypic_date_performed" shown=missing_phenotypic_date_performed|length total=count_missing_phenotypic_date_performed %}
                     </div>
                 </div>
             </div>
@@ -591,6 +609,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_phenotypic_date_results" shown=missing_phenotypic_date_results|length total=count_missing_phenotypic_date_results %}
                     </div>
                 </div>
             </div>
@@ -621,6 +640,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_phenotypic_dst_results" shown=missing_phenotypic_dst_results|length total=count_missing_phenotypic_dst_results %}
                     </div>
                 </div>
             </div>
@@ -652,6 +672,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_xpert_xdr_performed" shown=missing_xpert_xdr_performed|length total=count_missing_xpert_xdr_performed %}
                     </div>
                 </div>
             </div>
@@ -682,6 +703,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_xpert_xdr_date_performed" shown=missing_xpert_xdr_date_performed|length total=count_missing_xpert_xdr_date_performed %}
                     </div>
                 </div>
             </div>
@@ -712,6 +734,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_xpert_xdr_results" shown=missing_xpert_xdr_results|length total=count_missing_xpert_xdr_results %}
                     </div>
                 </div>
             </div>
@@ -742,6 +765,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa" shown=missing_lpa|length total=count_missing_lpa %}
                     </div>
                 </div>
             </div>
@@ -772,6 +796,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_first_line_lpa" shown=missing_first_line_lpa|length total=count_missing_first_line_lpa %}
                     </div>
                 </div>
             </div>
@@ -802,6 +827,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_first_line_lpa_date" shown=missing_first_line_lpa_date|length total=count_missing_first_line_lpa_date %}
                     </div>
                 </div>
             </div>
@@ -832,6 +858,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_first_line_drugs" shown=missing_first_line_drugs|length total=count_missing_first_line_drugs %}
                     </div>
                 </div>
             </div>
@@ -862,6 +889,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa1_mtb" shown=missing_lpa1_mtb|length total=count_missing_lpa1_mtb %}
                     </div>
                 </div>
             </div>
@@ -892,6 +920,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa1_rif" shown=missing_lpa1_rif|length total=count_missing_lpa1_rif %}
                     </div>
                 </div>
             </div>
@@ -922,6 +951,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa1_inh" shown=missing_lpa1_inh|length total=count_missing_lpa1_inh %}
                     </div>
                 </div>
             </div>
@@ -952,6 +982,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_second_line_lpa" shown=missing_second_line_lpa|length total=count_missing_second_line_lpa %}
                     </div>
                 </div>
             </div>
@@ -982,6 +1013,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_second_line_lpa_date" shown=missing_second_line_lpa_date|length total=count_missing_second_line_lpa_date %}
                     </div>
                 </div>
             </div>
@@ -1012,6 +1044,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_second_line_drugs" shown=missing_second_line_drugs|length total=count_missing_second_line_drugs %}
                     </div>
                 </div>
             </div>
@@ -1042,6 +1075,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa2_mtb" shown=missing_lpa2_mtb|length total=count_missing_lpa2_mtb %}
                     </div>
                 </div>
             </div>
@@ -1072,6 +1106,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa2_rfluoroquinolones" shown=missing_lpa2_rfluoroquinolones|length total=count_missing_lpa2_rfluoroquinolones %}
                     </div>
                 </div>
             </div>
@@ -1102,6 +1137,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa2_aminoglycosides" shown=missing_lpa2_aminoglycosides|length total=count_missing_lpa2_aminoglycosides %}
                     </div>
                 </div>
             </div>
@@ -1132,6 +1168,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_lpa2_kanamycin" shown=missing_lpa2_kanamycin|length total=count_missing_lpa2_kanamycin %}
                     </div>
                 </div>
             </div>
@@ -1162,6 +1199,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_nanopore_done" shown=missing_nanopore_done|length total=count_missing_nanopore_done %}
                     </div>
                 </div>
             </div>
@@ -1192,6 +1230,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_nanopore_sequencing_date" shown=missing_nanopore_sequencing_date|length total=count_missing_nanopore_sequencing_date %}
                     </div>
                 </div>
             </div>
@@ -1222,6 +1261,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_nanopore_results" shown=missing_nanopore_results|length total=count_missing_nanopore_results %}
                     </div>
                 </div>
             </div>
@@ -1252,6 +1292,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_epi_to_me" shown=missing_epi_to_me|length total=count_missing_epi_to_me %}
                     </div>
                 </div>
             </div>
@@ -1282,6 +1323,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_epi_to_me_date" shown=missing_epi_to_me_date|length total=count_missing_epi_to_me_date %}
                     </div>
                 </div>
             </div>
@@ -1312,6 +1354,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_epi_to_me_version" shown=missing_epi_to_me_version|length total=count_missing_epi_to_me_version %}
                     </div>
                 </div>
             </div>
@@ -1342,6 +1385,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_sequencing_results" shown=missing_sequencing_results|length total=count_missing_sequencing_results %}
                     </div>
                 </div>
             </div>
@@ -1372,6 +1416,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_sequencing_delayed" shown=missing_sequencing_delayed|length total=count_missing_sequencing_delayed %}
                     </div>
                 </div>
             </div>
@@ -1402,6 +1447,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_sequencing_delayed_days" shown=missing_sequencing_delayed_days|length total=count_missing_sequencing_delayed_days %}
                     </div>
                 </div>
             </div>
@@ -1432,6 +1478,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_sequencing_delayed_reasons" shown=missing_sequencing_delayed_reasons|length total=count_missing_sequencing_delayed_reasons %}
                     </div>
                 </div>
             </div>
@@ -1462,6 +1509,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_sequencing_delayed_others" shown=missing_sequencing_delayed_others|length total=count_missing_sequencing_delayed_others %}
                     </div>
                 </div>
             </div>
@@ -1492,6 +1540,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% include "reports/data_quality/_more_rows.html" with key="missing_nanopore_drug_results" shown=missing_nanopore_drug_results|length total=count_missing_nanopore_drug_results %}
                     </div>
                 </div>
             </div>
