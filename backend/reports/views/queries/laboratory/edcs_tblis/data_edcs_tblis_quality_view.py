@@ -2,28 +2,20 @@
 
 from utils import access
 from utils.access_mixins import AnyFormAccessMixin
-from django.core.paginator import Paginator
-from django.http import Http404
-from django.utils.http import urlencode
 from django.views import View
 from django.shortcuts import render
 from django.apps import apps
 
 from reports.services.zonal_dq import get_zonal_dq
-from reports.services.zonal_dq.main import get_zonal_queryset
-from reports.services.zonal_dq.problem_lists import query_label, query_records, serialize_rows
-from reports.services.zonal_dq.stats import get_zonal_stats
+from reports.views.queries.laboratory.query_pages import PREVIEW_ROWS, QueryPagesMixin
 from utils.roles import get_role_context
 
-PREVIEW_ROWS = 25  # records shown under each query; "See all" opens the query's own pages
-PAGE_ROWS = 50
 
-
-class EdcsTBLISDataQualityView(AnyFormAccessMixin, View):
+class EdcsTBLISDataQualityView(QueryPagesMixin, AnyFormAccessMixin, View):
     access_forms = (access.EDCS_TBLIS,)
+    form_label, report_url_name = "EDCS / TB-LIS", "reports:edcs_tblis_quality_report"
 
     template_name = "reports/data_quality/laboratory/edcs_tblis/data_edcs_tblis_quality_report.html"
-    list_template_name = "reports/data_quality/laboratory/edcs_tblis/edcs_tblis_query_list.html"
 
     def get(self, request, *args, **kwargs):
 
@@ -77,24 +69,8 @@ class EdcsTBLISDataQualityView(AnyFormAccessMixin, View):
             "stats": stats,
             **{f"count_{k}": v for k, v in stats.items()},
             "total_issues": total_issues,
-            "preview_rows": PREVIEW_ROWS,
-            "filter_query": urlencode({k: v for k, v in (("zone", zone_id), ("site", site_id)) if v}),
+            **self.preview_context(zone_id, site_id),
             **problem_lists,
         }
 
         return render(request, self.template_name, context)
-
-    def query_list(self, request, Zonal, key, zone_id, site_id, zones, sites):
-        """Every record of one query, a page at a time."""
-        qs = get_zonal_queryset(request.user, Zonal, zone_id, site_id)
-        duplicates = get_zonal_stats(qs)[2] if key == "duplicate_unique_lab_no" else []
-        records = query_records(qs, key, duplicates)
-        if records is None:
-            raise Http404("No such query.")
-        page = Paginator(records, PAGE_ROWS).get_page(request.GET.get("page"))
-        filters = {k: v for k, v in (("zone", zone_id), ("site", site_id)) if v}
-        return render(request, self.list_template_name, {
-            "label": query_label(key), "key": key, "page_obj": page, "rows": serialize_rows(page.object_list, key),
-            "zones": zones, "sites": sites, "selected_zone": zone_id, "selected_site": site_id,
-            "filter_query": urlencode({"query": key, **filters}), "back_query": urlencode(filters),
-        })

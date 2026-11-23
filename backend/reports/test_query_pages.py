@@ -60,3 +60,44 @@ class EdcsQueryPagesTests(AccessTestBase):
         self.client.force_login(self.make_user("ds_pages", [access.DATA_SPECIALIST], zones=[self.zone_a]))
         page = self.client.get(reverse(URL), {"query": "missing_date_sputum_received"})
         self.assertEqual(page.context["page_obj"].paginator.count, 0)
+
+
+class ZonalQueryPagesTests(AccessTestBase):
+    URL = "reports:zonal_quality_report"
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        for i in range(55):
+            screening = Screening.objects.create(screening_date=date(2025, 3, 1), pid1=f"5{i:02}", pid2=f"5{i:02}",
+                                                 site=cls.b1, eligible=True)
+            ZonalLaboratory.objects.create(screening=screening, unique_lab_no=f"Z{i:04}")  # no date received
+
+    def setUp(self):
+        cache.clear()
+        self.client.force_login(self.make_user("admin_zpages", [access.ADMIN]))
+
+    def test_each_list_shows_its_first_records_and_a_link_to_all(self):
+        page = self.client.get(reverse(self.URL))
+        total = page.context["count_missing_date_sputum_received"]
+        self.assertGreater(total, 25)
+        self.assertEqual(len(page.context["missing_date_sputum_received"]), 25)
+        self.assertContains(page, f"Showing 25 of {total}")
+        self.assertContains(page, "?query=missing_date_sputum_received")
+
+    def test_a_query_has_its_own_pages_with_zonal_lab_links(self):
+        page = self.client.get(reverse(self.URL), {"query": "missing_date_sputum_received"})
+        total = page.context["page_obj"].paginator.count
+        self.assertEqual((len(page.context["rows"]), page.context["page_obj"].paginator.num_pages), (50, 2))
+        last = self.client.get(reverse(self.URL), {"query": "missing_date_sputum_received", "page": 2})
+        self.assertEqual(len(last.context["rows"]), total - 50)
+        lab = ZonalLaboratory.objects.get(unique_lab_no="Z0000")
+        both = page.content.decode() + last.content.decode()
+        self.assertIn(reverse("nanopore:zonal-laboratory-update", args=[lab.pk]), both)
+        self.assertContains(page, "Isolate Lab No.")
+        self.assertContains(page, reverse(self.URL))
+
+    def test_filters_and_unknown_queries(self):
+        page = self.client.get(reverse(self.URL), {"query": "missing_date_sputum_received", "zone": self.zone_a.pk})
+        self.assertNotIn("Z0000", page.content.decode())
+        self.assertEqual(self.client.get(reverse(self.URL), {"query": "missing_isolate_unique_lab_no"}).status_code, 404)  # a CTRL query

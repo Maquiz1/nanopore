@@ -5,14 +5,20 @@ from utils.access_mixins import AnyFormAccessMixin
 from django.views import View
 from django.shortcuts import render
 from django.apps import apps
+from django.urls import reverse
 
 from reports.services.zonal_dq import get_zonal_dq
 from reports.services.substudy_queries import substudy_query_qs, visible_queries
+from reports.views.queries.laboratory.query_pages import PREVIEW_ROWS, QueryPagesMixin
 
 from utils.roles import get_role_context
 
-class ZonalDataQualityView(AnyFormAccessMixin, View):
+class ZonalDataQualityView(QueryPagesMixin, AnyFormAccessMixin, View):
     access_forms = (access.ZONAL_LAB,)
+    form_label, report_url_name, show_isolate = "Zonal Lab", "reports:zonal_quality_report", True
+
+    def row_link(self, item):
+        return reverse("nanopore:zonal-laboratory-update", args=[item["id"]])
 
     template_name = "reports/data_quality/laboratory/zonal/data_zonal_quality_report.html"
 
@@ -46,11 +52,15 @@ class ZonalDataQualityView(AnyFormAccessMixin, View):
         if site_id and site_id not in sites:
             site_id = None
 
+        if request.GET.get("query"):
+            return self.query_list(request, Zonal, request.GET["query"], zone_id, site_id, zones, sites)
+
         qs, stats, total_issues, problem_lists = get_zonal_dq(
             request.user,
             Zonal,
             zone_id,
             site_id,
+            limit=PREVIEW_ROWS,
         )
 
         context = {
@@ -64,6 +74,7 @@ class ZonalDataQualityView(AnyFormAccessMixin, View):
             "stats": stats,
             **{f"count_{k}": v for k, v in stats.items()},
             "total_issues": total_issues,
+            **self.preview_context(zone_id, site_id),
             **problem_lists,
             "substudy_checks": [
                 (query, substudy_query_qs(request.user, query, zone_id, site_id).count())

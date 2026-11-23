@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% load humanize %}
 
-{% block title %}{{ label }} · EDCS / TB-LIS queries{% endblock %}
+{% block title %}{{ label }} · {{ form_label }} queries{% endblock %}
 
 {% block content %}
 <div class="fs">
     <section class="fs-hero">
         <div>
-            <div class="fs-eyebrow">Queries · EDCS / TB-LIS</div>
+            <div class="fs-eyebrow">Queries · {{ form_label }}</div>
             <h1 class="fs-title">{{ label }}</h1>
             <div class="fs-meta">Every record with this query, {{ page_obj.paginator.per_page }} per page. Click a PID to open the form that fixes it.</div>
         </div>
         <div class="fs-hero-actions">
-            <a href="{% url 'reports:edcs_tblis_quality_report' %}{% if back_query %}?{{ back_query }}{% endif %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> All EDCS / TB-LIS queries</a>
+            <a href="{{ report_url }}{% if back_query %}?{{ back_query }}{% endif %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> All {{ form_label }} queries</a>
         </div>
     </section>
 
@@ -45,13 +45,14 @@
         {% if rows %}
         <div class="table-responsive">
             <table class="table fs-table mb-0">
-                <thead><tr><th>No.</th><th>PID</th><th>Lab No.</th><th>Zone</th><th>Site</th></tr></thead>
+                <thead><tr><th>No.</th><th>PID</th><th>Lab No.</th>{% if show_isolate %}<th>Isolate Lab No.</th>{% endif %}<th>Zone</th><th>Site</th></tr></thead>
                 <tbody>
                     {% for item in rows %}
                     <tr>
                         <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
                         <td class="fs-pid">{% if item.fix_url %}<a href="{{ item.fix_url }}?next={{ request.get_full_path|urlencode }}">{{ item.pid }}</a>{% else %}{{ item.pid }}{% endif %}</td>
                         <td>{{ item.lab_no|default:"—" }}</td>
+                        {% if show_isolate %}<td>{{ item.isolate_no }}</td>{% endif %}
                         <td>{{ item.zone_name }}</td>
                         <td>{{ item.site_name }}</td>
                     </tr>

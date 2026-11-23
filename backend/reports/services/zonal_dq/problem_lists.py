@@ -24,12 +24,18 @@ def query_records(qs, key, duplicate_lab_numbers):
     return qs.filter(q_filter) if q_filter else None
 
 
-def serialize_rows(records, key):
-    """Rows for a query's list, each with the link to the form that fixes it."""
+def serialize_rows(records, key, link=None):
+    """
+    Rows for a query's list, each with the link to the form that fixes it: by default the
+    Dar es Salaam form for the query (EDCS/TBLIS); link(row) gives another (Zonal Lab).
+    """
     name = fix_url_name(key)
     rows = [serialize_record(z, ZONAL_DQ_FIELD_MAPPING[key]) for z in records]
     for item in rows:
-        item["fix_url"] = reverse(name, args=[item["zonal_id"]]) if item["zonal_id"] else ""
+        if link is not None:
+            item["fix_url"] = link(item)
+        else:
+            item["fix_url"] = reverse(name, args=[item["zonal_id"]]) if item["zonal_id"] else ""
     return rows
 
 
