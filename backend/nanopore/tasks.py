@@ -35,6 +35,7 @@ def import_edcs_tblis(self, filepath):
     Screening = apps.get_model("nanopore", "Screening")
     EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
 
+    self.update_state(state="PROGRESS", meta={"current": 0, "total": 0, "stage": "Reading the file"})
     total = sum(1 for _ in open(filepath)) - 1
     processed = 0
     row_errors = []

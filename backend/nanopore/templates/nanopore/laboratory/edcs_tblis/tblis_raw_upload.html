@@ -78,7 +78,8 @@ const mergeSummaryStats = document.getElementById("mergeSummaryStats");
 let intervalId = null;
 let currentTaskId = null;
 let pendingCount = 0;         
-const MAX_PENDING_POLLS = 8; 
+const MAX_PENDING_POLLS = 300;    // 300 × 2 s = 10 minutes in the queue
+const QUEUED_NOTICE_POLLS = 8;   // after 16 s, say it is queued
 
 function statCard(label, value, color) {
     return `
@@ -232,6 +233,11 @@ uploadForm.addEventListener("submit", function(e){
                 .then(data => {
                     if(data.state === "PENDING"){
                         pendingCount++;
+                        if(pendingCount === QUEUED_NOTICE_POLLS){
+                            uploadProgressWrapper.style.display = "block";
+                            uploadProgress.style.width = "100%";
+                            uploadProgress.innerText = "Waiting for the worker: it is busy with another task. The file is queued and will be processed.";
+                        }
                         if(pendingCount >= MAX_PENDING_POLLS){
                             clearInterval(intervalId);
                             uploadBtn.disabled = false; previewBtn.disabled = false;
@@ -240,13 +246,21 @@ uploadForm.addEventListener("submit", function(e){
                             uploadProgressWrapper.style.display = "none";
                             errorTableWrapper.innerHTML = `
                                 <div class="alert alert-warning">
-                                    <strong>⚠ Celery worker is not running.</strong>
+                                    <strong>⚠ The worker has not started this file after 10 minutes.</strong><br>
+                                    It may still be queued behind a long task, so don't upload it again yet.
+                                    Ask the server admin to check that the Celery worker service is running.
                                 </div>`;
                         }
                         return;
                     }
 
                     pendingCount = 0;
+
+                    if(data.stage && !data.total){
+                        uploadProgressWrapper.style.display = "block";
+                        uploadProgress.style.width = "100%";
+                        uploadProgress.innerText = data.stage + "…";
+                    }
 
                     if(data.current && data.total){
                         let pct = Math.round((data.current / data.total) * 100);

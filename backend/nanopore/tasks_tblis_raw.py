@@ -719,6 +719,8 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
     database changes are rolled back and only the numbers are returned.
     """
     source_filename = source_filename or os.path.basename(filepath)
+    # Tell the page at once that the worker has it: reading a full file takes a while
+    self.update_state(state="PROGRESS", meta={"current": 0, "total": 0, "stage": "Reading the file"})
     try:
         prepared = read_tblis_file(filepath)
     except TblisFileError as exc:
