@@ -58,7 +58,8 @@
             <h2>{{ selected.title }}</h2>
             <span class="sq-muted">{{ page_obj.paginator.count|intcomma }} participant{{ page_obj.paginator.count|pluralize }}</span>
         </div>
-        <p class="sq-help">{{ selected.help }}</p>
+        <p class="sq-help">{{ selected.help }} If the record is right as it is (e.g. lost to follow-up, so no outcome is possible), <strong>Accept</strong> it with the reason.</p>
+        {% include "reports/partials/_accept_switch.html" with base=accept_base %}
         {% if selected.key == "ss2_no_zonal" %}
         <p class="sq-note">These are the same participants as Queries → Missing forms → Zonal Lab.</p>
         {% endif %}
@@ -96,11 +97,11 @@
                                 {% else %}
                                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:clinic-laboratory-detail' clinic.pk %}">Clinic Lab</a>
                                 {% endif %}
-                            {% elif access.edit.clinic_lab and r.site_id in access.write_sites %}
+                            {% elif access.add.clinic_lab and r.site_id in access.write_sites %}
                                 <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ r.pk }}">+ Clinic Lab</a>
                             {% endif %}
 
-                            {% if selected.key == "ss2_no_zonal" and access.edit.zonal_lab and r.site_id in access.write_sites %}
+                            {% if selected.key == "ss2_no_zonal" and access.add.zonal_lab and r.site_id in access.write_sites %}
                                 <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ r.pk }}">+ Zonal Lab</a>
                             {% elif zonal %}
                                 {% if access.edit.zonal_lab %}
@@ -120,9 +121,10 @@
                                 {% elif access.view.diagnosis %}
                                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:diagnosis-detail' diagnosis.pk %}">Diagnosis</a>
                                 {% endif %}
-                            {% elif selected.key == "ss2_no_outcome" and access.edit.diagnosis and r.site_id in access.write_sites %}
+                            {% elif selected.key == "ss2_no_outcome" and access.add.diagnosis and r.site_id in access.write_sites %}
                                 <a class="btn btn-sm btn-outline-success" href="{% url 'nanopore:diagnosis-create' %}?screening={{ r.pk }}">+ Diagnosis</a>
                             {% endif %}
+                            {% include "reports/partials/_accept.html" with list="substudy" check=selected.key oid=r.pk accepted=r.accepted_item lapsed=r.accept_lapsed %}
                         </td>
                     </tr>
                     {% endwith %}
@@ -145,11 +147,12 @@
         </nav>
         {% endif %}
         {% else %}
-        <div class="sq-empty"><i class="fas fa-circle-check"></i> Nothing to fix here.</div>
+        <div class="sq-empty"><i class="fas fa-circle-check"></i> {% if show_accepted %}Nothing accepted here.{% else %}Nothing to fix here.{% endif %}</div>
         {% endif %}
     </div>
 </div>
 
+{% include "reports/partials/_accept_styles.html" %}
 <style>
     .sq {
         --ink: #14213d; --ink-2: #4a5872; --muted: #7d8aa3; --line: #e6eaf2; --surface: #fff;

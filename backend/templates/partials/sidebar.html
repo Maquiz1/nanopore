@@ -178,6 +178,11 @@
             {% if context_nanopore_failed_total %}<span class="sb-badge sb-badge-sm sb-badge-info" title="For information, not queries">{{ context_nanopore_failed_total|intcomma }}</span>{% endif %}
         </a>
         {% endif %}
+        {% if access.verify_records %}
+        <a href="{% url 'nanopore:verification' %}" class="sb-link" title="Verification: records checked and locked">
+            <i class="fas fa-user-check"></i><span>Verification</span>
+        </a>
+        {% endif %}
 
         {% if access.tblis_follow_up %}
         <a href="{% url 'nanopore:tblis-follow-up' %}" class="sb-link" title="TB-LIS follow-up">
@@ -264,7 +269,15 @@
         {% if access.system_admin %}
         <a href="{% url 'nanopore:system-controls' %}" class="sb-link" title="System Controls">
             <i class="fas fa-sliders"></i><span>System Controls</span>
+            {% if system_control.study_locked %}<span class="sb-badge sb-badge-sm" title="The study is locked"><i class="fas fa-lock"></i></span>{% endif %}
         </a>
+        {% endif %}
+        {% if user.is_superuser %}
+        <a href="{% url 'nanopore:post-lock-corrections' %}" class="sb-link" title="Post-lock corrections">
+            <i class="fas fa-file-pen"></i><span>Post-lock corrections</span>
+        </a>
+        {% endif %}
+        {% if access.system_admin %}
         <div class="sb-group">
             <button type="button" class="sb-link sb-toggle" title="Locations & targets">
                 <i class="fas fa-map-location-dot"></i><span>Locations &amp; targets</span><i class="fas fa-chevron-right sb-chevron"></i>

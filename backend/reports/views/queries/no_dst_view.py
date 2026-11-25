@@ -22,13 +22,24 @@ class NoDstView(FeatureAccessMixin, View):
         zones, sites = zones_and_sites(request.user)
         pick = lambda key, allowed: int(request.GET[key]) if request.GET.get(key, "").isdigit() and int(request.GET[key]) in allowed else None
         zone_id, site_id = pick("zone", zones), pick("site", sites)
-        records = no_dst_records(request.user, group, zone_id, site_id).select_related(
+        show_accepted = request.GET.get("show") == "accepted"
+        records = no_dst_records(request.user, group, zone_id, site_id, accepted=show_accepted).select_related(
             "screening__site__district__region__zone", "lj_results", "mgit_results")
         if search:
             records = records.filter(Q(screening__pid__icontains=search) | Q(unique_lab_no__icontains=search))
         counts = no_dst_counts(request.user, zone_id, site_id)
         page = Paginator(records, self.paginate_by).get_page(request.GET.get("page"))
+        from reports.services.accepted import NO_DST, holding, lapsed
+        from reports.services.no_dst import no_dst_values
+        on_page = list(page.object_list)
+        found = holding(NO_DST, group, on_page, no_dst_values) if show_accepted else {}
+        changed = set() if show_accepted else lapsed(NO_DST, group, on_page, no_dst_values)
+        for obj in on_page:
+            obj.accepted_item, obj.accept_lapsed = found.get(str(obj.pk)), str(obj.pk) in changed
+        base = {k: v for k, v in (("group", group), ("zone", zone_id), ("site", site_id), ("q", search)) if v}
         return render(request, self.template_name, {
+            "show_accepted": show_accepted, "accept_base": urlencode(base),
+            "accepted_total": no_dst_records(request.user, group, zone_id, site_id, accepted=True).count(),
             "groups": [{"key": key, "label": label, "count": counts[key]} for key, label in GROUPS],
             "group": group, "page_obj": page, "search": search,
             "zones": zones, "sites": sites, "selected_zone": zone_id, "selected_site": site_id,

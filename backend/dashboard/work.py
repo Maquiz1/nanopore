@@ -77,8 +77,7 @@ def work_groups(request, compare_to=None):
 
     # Start here: what the person does first
     start = []
-    control = SystemControl.objects.first()
-    if flags.edit.screening and (control is None or control.enable_new_screening):
+    if flags.add.screening:
         start.append(Tile("New screening", reverse("nanopore:screening-create"), "fa-user-plus"))
     if flags.view.screening:
         start.append(Tile("Find a participant", reverse("nanopore:form-status-list"), "fa-magnifying-glass"))

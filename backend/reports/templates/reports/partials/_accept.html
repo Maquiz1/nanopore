@@ -1,0 +1,27 @@
+{# Accept / Undo for one item of a check list (reports/services/accepted.py).
+   with list=<list key> check=<check key> oid=<record id> accepted=<AcceptedCheck or None> lapsed=<bool> #}
+{% if accepted %}
+<div class="acc-note"><i class="fas fa-circle-check"></i> Accepted by {{ accepted.accepted_by.get_full_name|default:accepted.accepted_by.username }} · {{ accepted.accepted_at|date:"d M Y" }}<br><span class="acc-reason">{{ accepted.reason }}</span></div>
+{% if access.accept_checks and not system_control.study_locked %}
+<form method="post" action="{% url 'reports:accept_check' %}" class="d-inline">{% csrf_token %}
+    <input type="hidden" name="list" value="{{ list }}"><input type="hidden" name="check" value="{{ check }}">
+    <input type="hidden" name="oid" value="{{ oid }}"><input type="hidden" name="action" value="undo">
+    <input type="hidden" name="back" value="{{ request.get_full_path }}">
+    <button type="submit" class="btn btn-sm btn-outline-primary" title="Put it back on the list">Undo</button>
+</form>
+{% endif %}
+{% else %}
+{% if lapsed %}<div class="acc-lapsed" title="It was accepted, then the data changed: check it again"><i class="fas fa-rotate"></i> Data changed since it was accepted</div>{% endif %}
+{% if access.accept_checks and not system_control.study_locked %}
+<details class="acc-box">
+    <summary class="btn btn-sm btn-outline-success" title="The data is correct as it is: take it off the list">Accept</summary>
+    <form method="post" action="{% url 'reports:accept_check' %}" class="acc-form">{% csrf_token %}
+        <input type="hidden" name="list" value="{{ list }}"><input type="hidden" name="check" value="{{ check }}">
+        <input type="hidden" name="oid" value="{{ oid }}"><input type="hidden" name="action" value="accept">
+        <input type="hidden" name="back" value="{{ request.get_full_path }}">
+        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Why is it correct? (e.g. checked with the site)" required maxlength="500">
+        <button type="submit" class="btn btn-sm btn-success">Confirm</button>
+    </form>
+</details>
+{% endif %}
+{% endif %}

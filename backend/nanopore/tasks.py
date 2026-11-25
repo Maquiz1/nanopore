@@ -32,6 +32,9 @@ from nanopore.models import ZonalLaboratory
 
 @shared_task(bind=True)
 def import_edcs_tblis(self, filepath):
+    from nanopore import study_lock
+    if not study_lock.job_allowed("EDCS/TBLIS upload"):
+        return {"state": "SUCCESS", "file_error": "The study is locked: uploads are closed.", "errors": []}
     Screening = apps.get_model("nanopore", "Screening")
     EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
 

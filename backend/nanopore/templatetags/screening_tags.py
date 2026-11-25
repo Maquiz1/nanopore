@@ -23,6 +23,7 @@ def eligible_link(screening, field_name, user):
     can_edit_clinic = can_edit(user, access.CLINIC_LAB)
     can_edit_diagnosis = can_edit(user, access.DIAGNOSIS)
     can_edit_zonal = can_edit(user, access.ZONAL_LAB)
+    from nanopore.study_lock import allows_new
 
     # Enrollment
     if field_name == "enrollment":
@@ -32,7 +33,7 @@ def eligible_link(screening, field_name, user):
                 return f'<a href="{url}">✅ Enrolled</a><br>{screening.enrollment.enrollment_date.strftime("%Y-%m-%d")}'
             return f"✅ Enrolled<br>{screening.enrollment.enrollment_date.strftime('%Y-%m-%d')}"
         else:
-            if can_edit_enrollment:
+            if can_edit_enrollment and allows_new(access.ENROLLMENT):
                 url = reverse("nanopore:enrollment-create") + f"?screening={screening.pk}"
                 return f'<a href="{url}">❌ Not Enrolled</a>'
             return "❌ Not Enrolled"
@@ -45,7 +46,7 @@ def eligible_link(screening, field_name, user):
                 return f'<a href="{url}">✅ DONE</a>'
             return "✅ DONE"
         else:
-            if can_edit_clinic:
+            if can_edit_clinic and allows_new(access.CLINIC_LAB):
                 url = reverse("nanopore:clinic-laboratory-create") + f"?screening={screening.pk}"
                 return f'<a href="{url}">❌ Add</a>'
             return "❌ Add"
@@ -58,7 +59,7 @@ def eligible_link(screening, field_name, user):
                 return f'<a href="{url}">✅ DONE</a>'
             return "✅ DONE"
         else:
-            if can_edit_diagnosis:
+            if can_edit_diagnosis and allows_new(access.DIAGNOSIS):
                 url = reverse("nanopore:diagnosis-create") + f"?screening={screening.pk}"
                 return f'<a href="{url}">❌ Add</a>'
             return "❌ Add"
@@ -72,7 +73,7 @@ def eligible_link(screening, field_name, user):
                     return f'<a href="{url}">✅ DONE</a>'
                 return "✅ DONE"
             else:
-                if can_edit_zonal:
+                if can_edit_zonal and allows_new(access.ZONAL_LAB):
                     url = reverse("nanopore:zonal-laboratory-create") + f"?screening={screening.pk}"
                     return f'<a href="{url}">❌ Add</a>'
                 return "❌ Add"

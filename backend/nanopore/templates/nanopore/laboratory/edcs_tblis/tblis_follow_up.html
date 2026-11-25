@@ -53,6 +53,7 @@
         </div>
     </form>
 
+    {% include "reports/partials/_accept_switch.html" with base=accept_base %}
     <section class="fs-card">
         <div class="fs-card-head">
             <strong>{{ paginator.count|default:0|intcomma }} row{{ paginator.count|pluralize }}</strong>
@@ -61,7 +62,7 @@
         {% if rows and shown != "not-recorded" %}
         <div class="table-responsive">
             <table class="table fs-table mb-0">
-                <thead><tr><th>PID</th><th>Lab No.</th><th>Type</th><th>Site</th><th>Why it's listed</th></tr></thead>
+                <thead><tr><th>PID</th><th>Lab No.</th><th>Type</th><th>Site</th><th>Why it's listed</th><th></th></tr></thead>
                 <tbody>
                     {% for row in rows %}
                     <tr>
@@ -70,6 +71,7 @@
                         <td data-label="Type">{{ row.kind }}</td>
                         <td data-label="Site">{{ row.lab.screening.site.name }}</td>
                         <td data-label="Why it's listed"><span class="fs-chip miss">{{ row.found.reason_label|default:row.found.label }}</span></td>
+                        <td class="text-end">{% include "reports/partials/_accept.html" with list="tblis_follow_up" check=shown oid=row.oid accepted=row.accepted %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -79,7 +81,7 @@
         <div class="table-responsive">
             <table class="table fs-table mb-0">
                 <thead>
-                    <tr><th>Lab No.</th><th>PID</th><th>Facility</th><th>Region</th><th>Received</th><th>Why it's listed</th><th>DST in TB-LIS</th></tr>
+                    <tr><th>Lab No.</th><th>PID</th><th>Facility</th><th>Region</th><th>Received</th><th>Why it's listed</th><th>DST in TB-LIS</th><th></th></tr>
                 </thead>
                 <tbody>
                     {% for row in rows %}
@@ -91,6 +93,7 @@
                         <td data-label="Received">{{ row.received|default:"—" }}</td>
                         <td data-label="Why it's listed"><span class="fs-chip miss">{{ row.reason_label }}</span></td>
                         <td data-label="DST in TB-LIS">{% if row.has_dst %}<span class="fs-chip ok">Yes</span>{% else %}<span class="fs-chip na">No</span>{% endif %}</td>
+                        <td class="text-end">{% include "reports/partials/_accept.html" with list="tblis_follow_up" check=shown oid=row.labno accepted=row.accepted %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -112,4 +115,5 @@
     </section>
 </div>
 {% include "nanopore/partials/_list_styles.html" %}
+{% include "reports/partials/_accept_styles.html" %}
 {% endblock %}

@@ -16,7 +16,7 @@ from nanopore.models import (
     TblisUploadBatch,
     ZonalLaboratory,
 )
-from nanopore import history, tblis_status
+from nanopore import history, study_lock, tblis_status
 from nanopore.models.discrepancies import (
     TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch, TblisIsolateDst, TblisLeftOut,
 )
@@ -721,6 +721,8 @@ def process_raw_tblis_upload(self, filepath, user_id=None, source_filename=None,
     database changes are rolled back and only the numbers are returned.
     """
     source_filename = source_filename or os.path.basename(filepath)
+    if not study_lock.job_allowed("TB-LIS upload"):
+        return {"state": "SUCCESS", "file_error": "The study is locked: uploads are closed.", "preview": dry_run, "errors": []}
     # Tell the page at once that the worker has it: reading a full file takes a while
     self.update_state(state="PROGRESS", meta={"current": 0, "total": 0, "stage": "Reading the file"})
     try:
@@ -828,6 +830,10 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
     EdcsTblisMismatch.objects.all().delete()
     _save_left_out(file_rows, upload_batch)
     merged_labs = set()
+    # Verified Zonal Lab records, and those with an accepted lab check, are already clean:
+    # the upload leaves them as they are and lists their rows (nanopore/study_lock.py)
+    frozen = study_lock.frozen_screening_ids()
+    skipped_frozen = []
 
     for idx, clean_row in enumerate(rows, start=1):
         if task.request.called_directly is False and getattr(task.request, "revoke", False):
@@ -850,7 +856,10 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
                 # Other zones' isolates match on the number CTRL entered, and give the DST only
                 if is_isolate(clean_row):
                     z_lab = ZonalLaboratory.objects.exclude(LAB_NUMBER_ONLY_Q).filter(isolate_unique_lab_no=labno).first()
-                    if z_lab:
+                    if z_lab and z_lab.screening_id in frozen:
+                        skipped_frozen.append(labno)
+                        merged_labs.add(z_lab.pk)
+                    elif z_lab:
                         merge_isolate_dst(z_lab, clean_row, raw_entry.pk)
                         merged_labs.add(z_lab.pk)
                         raw_entry.is_merged = True
@@ -873,6 +882,12 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
                     # TBLIS row not in ZonalLaboratory
                     TblisNotInEdcs.objects.create(labno=labno, raw_data=clean_row)
                     row_errors.append(f"Row {idx}: labno {labno} not found in ZonalLaboratory records.")
+                    continue
+
+                if z_lab.screening_id in frozen:
+                    skipped_frozen.append(labno)
+                    merged_labs.add(z_lab.pk)
+                    processed += 1
                     continue
 
                 # 3. Apply TBLIS values only to CTRL laboratory records.
@@ -907,6 +922,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
     for z_lab in ZonalLaboratory.objects.select_related("screening"):
         found = found_by_screening.get(z_lab.screening_id, tblis_status.NEVER_SEEN)
         not_in_latest += found.state == tblis_status.NOT_IN_LATEST
+        if z_lab.screening_id in frozen:
+            continue
         try:
             with transaction.atomic():
                 if z_lab.pk in merged_labs:
@@ -988,6 +1005,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
         "tblis_not_in_edcs_count": tblis_not_in_edcs_count,
         "set_aside_substudy4_count": set_aside_rows,
         "mismatches_count": mismatches_count,
+        "skipped_frozen_count": len(skipped_frozen),
+        "skipped_frozen": skipped_frozen[:200],
     }
 
 
@@ -998,8 +1017,11 @@ def sync_zonal_laboratory_daily():
     to EdcsTblisZonal. It applies TBLIS transformations logic (from the latest raw data)
     for records that match Zonal prefixes.
     """
-    zonal_labs = ZonalLaboratory.objects.all()
-    
+    if not study_lock.job_allowed("Nightly sync"):
+        return {"status": "SKIPPED", "reason": "study locked"}
+    frozen = study_lock.frozen_screening_ids()
+    zonal_labs = ZonalLaboratory.objects.exclude(screening_id__in=frozen)
+
     updated_count = 0
     for z_lab in zonal_labs:
         try:

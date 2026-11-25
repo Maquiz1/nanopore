@@ -116,6 +116,15 @@ def forms_report_total(request):
         "zonal": missing_zonal_count,
     })
 
+    # A form closed to new records (System Controls) has nothing missing
+    from nanopore.study_lock import closed_forms
+    closed = {key for key, form in access.MISSING_FORM_TYPES.items() if form in closed_forms()}
+    missing_enrollment_count = 0 if "enrollment" in closed else missing_enrollment_count
+    missing_clinic_count = 0 if "clinic" in closed else missing_clinic_count
+    missing_diagnosis_count = 0 if "diagnosis" in closed else missing_diagnosis_count
+    missing_regimen_count = 0 if "regimen" in closed else missing_regimen_count
+    missing_zonal_count = 0 if "zonal" in closed else missing_zonal_count
+
     result = {
         "context_total_form_missing":       total_form_missing,
         "context_missing_enrollment_count": missing_enrollment_count,

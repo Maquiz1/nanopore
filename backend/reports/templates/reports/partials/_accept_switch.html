@@ -1,0 +1,5 @@
+{# "To check / Accepted (n)" above a check list. with base=<query string without show=> #}
+<div class="acc-switch">
+    <a href="?{% if base %}{{ base }}{% endif %}" class="btn btn-sm {% if not show_accepted %}btn-primary{% else %}btn-outline-secondary{% endif %}">To check</a>
+    <a href="?show=accepted{% if base %}&{{ base }}{% endif %}" class="btn btn-sm {% if show_accepted %}btn-success{% else %}btn-outline-secondary{% endif %}"><i class="fas fa-circle-check"></i> Accepted ({{ accepted_total }})</a>
+</div>

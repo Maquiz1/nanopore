@@ -7,6 +7,7 @@ from reports.views.queries.substudy_queries_view import SubstudyQueriesView
 from reports.views.queries.queries_overview_view import QueriesOverviewView
 from reports.views.queries.laboratory.zonal.ctrl_isolates_view import CtrlIsolatesView
 from reports.views.queries.laboratory.zonal.ctrl_dar_work_view import CtrlDarWorkView
+from reports.views.queries.accept_view import AcceptCheckView
 from reports.views.queries.date_issues_view import DateIssuesView, DsDrChecksView, OutcomeWithoutTreatmentView
 from . import views
 
@@ -195,6 +196,7 @@ urlpatterns = [
     path("positive-culture-no-dst/", NoDstView.as_view(), name="no_dst"),
     path("nanopore-failed/", NanoporeFailedView.as_view(), name="nanopore_failed"),
     path("substudy-queries/", SubstudyQueriesView.as_view(), name="substudy_queries"),
+    path("accept-check/", AcceptCheckView.as_view(), name="accept_check"),
     path("substudy-queries/<slug:key>/", SubstudyQueriesView.as_view(), name="substudy_queries"),
 
     path(

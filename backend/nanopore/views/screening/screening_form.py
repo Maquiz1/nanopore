@@ -21,16 +21,6 @@ class ScreeningFormView(FormAccessMixin, View):
     form_class = ScreeningForm
     model = Screening
 
-    def dispatch(self, request, *args, **kwargs):
-        # System Controls can close new screenings; saved ones stay editable
-        if request.user.is_authenticated and not kwargs.get("pk") and not self.view_only:
-            from nanopore.models.system_control import SystemControl
-            control = SystemControl.objects.first()
-            if control is not None and not control.enable_new_screening:
-                messages.info(request, "New screenings are turned off in System Controls.")
-                return redirect("nanopore:screening-list")
-        return super().dispatch(request, *args, **kwargs)
-
     def get_object(self, pk=None):
         if pk:
             return get_object_or_404(self.scope(Screening.objects.all()), pk=pk)

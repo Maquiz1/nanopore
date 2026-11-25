@@ -1,54 +1,145 @@
 {% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}System Controls · Dream Fund - Nanopore{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="fas fa-cogs"></i> System Controls</h4>
+<div class="sc">
+    <section class="sc-hero">
+        <div class="sc-eyebrow">Administration</div>
+        <h1 class="sc-title"><i class="fas fa-cogs"></i> System Controls</h1>
+        <div class="sc-meta">Switch forms on and off, and lock the study when data collection ends.</div>
+    </section>
+
+    <!-- Study status -->
+    <section class="sc-card {% if control.study_locked %}sc-locked{% endif %}">
+        <div class="sc-card-head">
+            <h2>Study status</h2>
+            {% if control.study_locked %}<span class="sc-pill sc-pill-locked"><i class="fas fa-lock"></i> Locked</span>
+            {% else %}<span class="sc-pill sc-pill-active"><i class="fas fa-circle-play"></i> Active</span>{% endif %}
         </div>
-        <div class="card-body">
-            <p class="text-muted mb-4">Use these settings to globally enable or disable specific functionalities across the system.</p>
-            
-            <form method="POST">
-                {% csrf_token %}
-                
-                <div class="list-group mb-4">
-                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h5 class="mb-1">Enable Form Submissions</h5>
-                            <small class="text-muted">If turned off, users will not be able to submit or update records (Screening, Clinic, Enrollment, etc). The submit buttons will be disabled.</small>
-                        </div>
-                        <div class="form-check form-switch fs-4">
-                            <input class="form-check-input" type="checkbox" name="enable_form_submissions" id="enableFormSubmissions" {% if control.enable_form_submissions %}checked{% endif %}>
-                        </div>
-                    </div>
-                    
-                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h5 class="mb-1">Enable "New Screening" Button</h5>
-                            <small class="text-muted">If turned off, the "New Screening" button will be completely hidden from the Form Status dashboard.</small>
-                        </div>
-                        <div class="form-check form-switch fs-4">
-                            <input class="form-check-input" type="checkbox" name="enable_new_screening" id="enableNewScreening" {% if control.enable_new_screening %}checked{% endif %}>
-                        </div>
-                    </div>
-
-                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h5 class="mb-1">Zonal Lab by section</h5>
-                            <small class="text-muted">If turned on, Edit opens a participant's Zonal Lab as seven sections (reception, microscopy, culture, isolate, Xpert XDR, LPA, Nanopore) and query links open the section that fixes them. Turn it off to go back to the single full form for everyone; admins, data managers and data specialists can always use "Edit all sections".</small>
-                        </div>
-                        <div class="form-check form-switch fs-4">
-                            <input class="form-check-input" type="checkbox" name="zonal_lab_by_section" id="zonalLabBySection" {% if control.zonal_lab_by_section %}checked{% endif %}>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save"></i> Save Settings</button>
-                </div>
+        {% if control.study_locked %}
+        <p>Locked on {{ control.study_locked_at|date:"d M Y H:i" }} {% if control.study_locked_by %}by {{ control.study_locked_by.get_full_name|default:control.study_locked_by.username }}{% endif %}: <em>{{ control.study_lock_reason }}</em></p>
+        <ul class="sc-list">
+            <li>Records can be viewed and exported; nobody can add, change, delete or restore them.</li>
+            <li>TB-LIS and CSV uploads are closed; the nightly sync, the query snapshot and the weekly emails have stopped.</li>
+            <li>A superuser corrects a participant through a <a href="{% url 'nanopore:post-lock-corrections' %}">post-lock correction window</a> (30 days, with a reason). {{ open_windows }} open now.</li>
+        </ul>
+        {% if request.user.is_superuser %}
+        <details class="sc-danger">
+            <summary class="btn btn-outline-danger btn-sm"><i class="fas fa-lock-open"></i> Reopen the study</summary>
+            <form method="post" class="sc-inline">{% csrf_token %}
+                <input type="hidden" name="action" value="reopen">
+                <input type="text" name="reason" class="form-control form-control-sm" placeholder="Why is the study reopened?" required maxlength="2000">
+                <button type="submit" class="btn btn-danger btn-sm">Reopen</button>
             </form>
+        </details>
+        {% endif %}
+        {% else %}
+        <p class="sc-muted">When data collection ends, lock the study: read and export only. Check the list below first.</p>
+        <div class="sc-checklist">
+            <div class="sc-check {% if context_total_issues %}warn{% endif %}"><span>{{ context_total_issues|default:0|intcomma }}</span>open queries and missing forms</div>
+            <div class="sc-check {% if unverified %}warn{% endif %}"><span>{{ unverified|intcomma }}</span>records not verified</div>
+            <div class="sc-check"><span>{% if last_upload %}{{ last_upload.created_at|date:"d M Y" }}{% else %}—{% endif %}</span>last TB-LIS upload</div>
         </div>
-    </div>
+        <table class="table table-sm sc-table">
+            <thead><tr><th>Form</th><th class="text-end">Records</th><th class="text-end">Verified</th><th></th></tr></thead>
+            <tbody>
+            {% for row in progress %}
+            <tr><td>{{ row.label }}</td><td class="text-end">{{ row.total|intcomma }}</td><td class="text-end">{{ row.verified|intcomma }}</td>
+                <td class="sc-bar-cell"><div class="sc-bar"><div style="width: {{ row.percent }}%"></div></div><span class="sc-muted">{{ row.percent }}%</span></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <p class="sc-muted mb-2">Accepted checks: {% for label, n in accepted %}{{ label }} {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+        <details class="sc-danger">
+            <summary class="btn btn-danger btn-sm"><i class="fas fa-lock"></i> Lock the study</summary>
+            <form method="post" class="sc-lock-form">{% csrf_token %}
+                <input type="hidden" name="action" value="lock">
+                <label class="form-label">Reason</label>
+                <input type="text" name="reason" class="form-control form-control-sm" placeholder="e.g. End of data collection, database lock for analysis" required maxlength="2000">
+                <label class="form-label mt-2">Type {{ lock_word }} to confirm</label>
+                <input type="text" name="confirm" class="form-control form-control-sm" required autocomplete="off">
+                <button type="submit" class="btn btn-danger btn-sm mt-2">Lock the study</button>
+                <p class="sc-muted mt-2 mb-0">A last query snapshot is taken now. Exports stay available.{% if not request.user.is_superuser %} Only a superuser can reopen it.{% endif %}</p>
+            </form>
+        </details>
+        {% endif %}
+        {% if events %}
+        <div class="sc-events">
+            {% for e in events %}<div><strong>{{ e.get_action_display }}</strong> {{ e.at|date:"d M Y H:i" }} · {{ e.by.get_full_name|default:e.by.username }}: {{ e.reason }}</div>{% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Switches -->
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="switches">
+        <section class="sc-card">
+            <div class="sc-card-head"><h2>New records by form</h2></div>
+            <p class="sc-muted">Off: the form's Add buttons disappear and no new record of it can be added. Saved records stay editable, and the form's "forms missing" count stops (the sidebar can take up to 5 minutes to catch up).</p>
+            <div class="sc-switches">
+                {% for s in switches %}
+                <label class="sc-switch">
+                    <span>Allow new {{ s.label }}</span>
+                    <input class="form-check-input" type="checkbox" role="switch" name="{{ s.field }}" {% if s.on %}checked{% endif %} {% if control.study_locked %}disabled{% endif %}>
+                </label>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="sc-card">
+            <div class="sc-card-head"><h2>Other settings</h2></div>
+            <label class="sc-switch sc-switch-wide">
+                <span><strong>Enable form submissions</strong><br><small class="sc-muted">Off: nobody but superusers can save any form (Screening, Clinic, Enrollment, etc.); the Save buttons are disabled.</small></span>
+                <input class="form-check-input" type="checkbox" role="switch" name="enable_form_submissions" {% if control.enable_form_submissions %}checked{% endif %} {% if control.study_locked %}disabled{% endif %}>
+            </label>
+            <label class="sc-switch sc-switch-wide">
+                <span><strong>Zonal Lab by section</strong><br><small class="sc-muted">On: Edit opens a participant's Zonal Lab as seven sections and query links open the section that fixes them. Off: the single full form for everyone; admins, data managers and data specialists can always use "Edit all sections".</small></span>
+                <input class="form-check-input" type="checkbox" role="switch" name="zonal_lab_by_section" {% if control.zonal_lab_by_section %}checked{% endif %} {% if control.study_locked %}disabled{% endif %}>
+            </label>
+        </section>
+
+        {% if not control.study_locked %}
+        <div class="d-flex justify-content-end mb-4">
+            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save"></i> Save settings</button>
+        </div>
+        {% endif %}
+    </form>
 </div>
+
+<style>
+    .sc { display: grid; gap: 14px; padding: 8px 0 24px; }
+    .sc-hero { padding: 4px 2px; }
+    .sc-eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: #6c757d; font-weight: 700; }
+    .sc-title { font-size: 1.5rem; font-weight: 700; margin: 2px 0; }
+    .sc-meta, .sc-muted { color: #6c757d; font-size: .88rem; }
+    .sc-card { background: #fff; border: 1px solid #dee2e6; border-radius: 14px; padding: 16px; }
+    .sc-card.sc-locked { border-color: #dc3545; background: #fff8f8; }
+    .sc-card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .sc-card-head h2 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+    .sc-pill { border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 700; }
+    .sc-pill-active { background: #d1e7dd; color: #0f5132; }
+    .sc-pill-locked { background: #f8d7da; color: #842029; }
+    .sc-list { font-size: .9rem; padding-left: 18px; }
+    .sc-checklist { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+    .sc-check { border: 1px solid #dee2e6; border-radius: 10px; padding: 8px 10px; font-size: .85rem; color: #495057; }
+    .sc-check span { display: block; font-size: 1.2rem; font-weight: 700; color: #0f5132; }
+    .sc-check.warn span { color: #b45309; }
+    .sc-table { font-size: .88rem; }
+    .sc-bar-cell { width: 40%; white-space: nowrap; }
+    .sc-bar { display: inline-block; width: calc(100% - 48px); height: 8px; border-radius: 4px; background: #e9ecef; vertical-align: middle; overflow: hidden; }
+    .sc-bar div { height: 100%; background: #198754; border-radius: 4px; }
+    .sc-danger summary { list-style: none; display: inline-block; }
+    .sc-danger summary::-webkit-details-marker { display: none; }
+    .sc-inline { display: flex; gap: 6px; margin-top: 8px; max-width: 560px; }
+    .sc-lock-form { margin-top: 10px; max-width: 480px; }
+    .sc-events { margin-top: 12px; border-top: 1px solid #dee2e6; padding-top: 8px; font-size: .82rem; color: #495057; }
+    .sc-switches { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; }
+    .sc-switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid #dee2e6; border-radius: 10px; padding: 10px 12px; cursor: pointer; margin-bottom: 0; }
+    .sc-switch-wide { margin-bottom: 8px; }
+    .sc-switch .form-check-input { width: 2.6em; height: 1.4em; flex-shrink: 0; margin: 0; }
+    @media (max-width: 575.98px) { .sc-inline { flex-direction: column; } .sc-bar-cell { width: auto; } }
+</style>
 {% endblock %}

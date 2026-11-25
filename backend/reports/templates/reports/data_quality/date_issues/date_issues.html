@@ -69,7 +69,9 @@
                 {% if selected.fields %}Dates outside today and the study start; correct the date on the form.
                 {% elif selected.between_forms %}<span class="dq-pill">Between forms</span> One of the two {% if is_dates %}dates{% else %}answers{% endif %} is wrong; open either form to correct it.
                 {% else %}<span class="dq-pill">Within the form</span> Correct one of the two {% if is_dates %}dates{% else %}answers{% endif %} on the form.{% endif %}
+                If the {% if is_dates %}dates are{% else %}answers are{% endif %} right after all, <strong>Accept</strong> it with the reason: it leaves the list, and comes back if the data changes.
             </p>
+            {% include "reports/partials/_accept_switch.html" with base=accept_base %}
 
             {% if rows %}
             <div class="table-responsive">
@@ -92,6 +94,7 @@
                                 <a class="btn btn-sm {% if link.edit %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}"
                                    href="{% url link.url_name link.pk %}{{ link.anchor }}">{% if link.edit %}<i class="fas fa-pen"></i> {% endif %}{{ link.label }}</a>
                                 {% endfor %}
+                                {% include "reports/partials/_accept.html" with list=accept_list check=selected.key oid=row.obj.pk accepted=row.accepted lapsed=row.lapsed %}
                             </td>
                         </tr>
                     {% endfor %}
@@ -108,13 +111,14 @@
             </nav>
             {% endif %}
             {% else %}
-            <div class="dq-empty"><i class="fas fa-circle-check"></i> {{ empty }}</div>
+            <div class="dq-empty"><i class="fas fa-circle-check"></i> {% if show_accepted %}Nothing accepted for this check.{% else %}{{ empty }}{% endif %}</div>
             {% endif %}
         </div>
     </div>
 </div>
 
 {% include "reports/data_quality/date_issues/_styles.html" %}
+{% include "reports/partials/_accept_styles.html" %}
 <style>
     .di-layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 14px; align-items: start; }
     .di-checks { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 6px; }

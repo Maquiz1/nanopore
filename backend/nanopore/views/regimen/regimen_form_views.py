@@ -26,6 +26,9 @@ class RegimenChangesFormView(FormAccessMixin, View):
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
+        from nanopore import study_lock
+        if obj is None and not study_lock.allows_new(access.REGIMEN):
+            return study_lock.refuse(request, "New regimen changes are turned off in System Controls.")
         form = self.form_class(request.POST, instance=obj)
 
         self.limit_choices(form)

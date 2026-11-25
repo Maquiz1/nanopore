@@ -84,8 +84,31 @@ def visible_queries(user):
     return [query for query in QUERIES if any(can_see_queries(user, form) for form in query.forms)]
 
 
-def substudy_query_qs(user, query, zone_id=None, site_id=None):
-    """Eligible screenings matching one substudy query, limited to the user's sites."""
+def substudy_values(screening):
+    """What an acceptance holds on: the answers that decide the substudy and what it needs."""
+    def get(path):
+        obj = screening
+        for part in path.split("."):
+            try:
+                obj = getattr(obj, part)
+            except Exception:
+                return None
+            if obj is None:
+                return None
+        return obj
+    return {"xpert_conducted": get("clinic_laboratory.xpert_mtb_rif_conducted_id"), "xpert_mtb": get("clinic_laboratory.xpert_mtb_id"),
+            "zonal": get("zonal_laboratory.pk"), "enrollment": get("enrollment.pk"), "outcome": get("diagnosis.tb_outcome2_id")}
+
+
+def substudy_query_qs(user, query, zone_id=None, site_id=None, accepted=False):
+    """Eligible screenings matching one substudy query, limited to the user's sites: still to fix,
+    or (accepted=True) confirmed as correct (e.g. Substudy 2 lost to follow-up: no outcome possible)."""
+    from reports.services.accepted import SUBSTUDY, split
+    to_check, done = split(all_substudy_query(user, query, zone_id, site_id), SUBSTUDY, query.key, substudy_values)
+    return done if accepted else to_check
+
+
+def all_substudy_query(user, query, zone_id=None, site_id=None):
     Screening = apps.get_model("nanopore", "Screening")
     qs = scope_queryset(user, Screening.objects.filter(eligible=True), "site").filter(query.q)
     if zone_id:

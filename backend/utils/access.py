@@ -61,6 +61,8 @@ TBLIS_UPLOAD = "tblis_upload"  # TBLIS raw upload
 BULK_UPLOAD = "bulk_upload"    # CSV imports of whole forms (superusers only: no role grants it)
 DELETE_RECORDS = "delete_records"  # delete form records to the recycle bin, and restore them
 TBLIS_FOLLOW_UP = "tblis_follow_up"  # TB-LIS rows left out because specimen/GeneXpert wasn't recorded
+VERIFY_RECORDS = "verify_records"  # mark form records Verified (read only) and unlock them with a reason
+ACCEPT_CHECKS = "accept_checks"    # accept a check-list item as correct (date issues, DS/DR, No DST...)
 
 ROLE_FORMS_EDIT = {
     NURSE: CLINICAL_FORMS,
@@ -79,12 +81,13 @@ ROLE_FORMS_VIEW = {
     COORDINATOR: ALL_FORMS,
 }
 ROLE_FEATURES = {
-    DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS]),
-    DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS]),
+    DATA_SPECIALIST: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS, VERIFY_RECORDS, ACCEPT_CHECKS]),
+    DATA_MANAGER: frozenset([REPORTS, EXPORTS, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, SNAPSHOTS, VERIFY_RECORDS, ACCEPT_CHECKS]),
     COORDINATOR: frozenset([REPORTS, EXPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),  # of the zones/sites they are assigned
     STATISTICIAN: frozenset([REPORTS, EXPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),
     REVIEWER: frozenset([REPORTS, SNAPSHOTS, TBLIS_FOLLOW_UP]),
-    ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, DELETE_RECORDS]),
+    ADMIN: frozenset([REPORTS, EXPORTS, MODEL_EXPORT, SNAPSHOTS, SYSTEM_ADMIN, TBLIS_UPLOAD, TBLIS_FOLLOW_UP, DELETE_RECORDS,
+                      VERIFY_RECORDS, ACCEPT_CHECKS]),
 }
 UNSCOPED_ROLES = frozenset([ADMIN, REVIEWER])
 CTRL_LAB_SITE = "ctrl laboratory"
@@ -298,8 +301,12 @@ MISSING_FORM_TYPES = {
 
 
 def visible_missing_total(user, counts):
-    """Sum of missing-form counts ({"enrollment": n, ...}) for the forms the user can view."""
-    return sum(n for key, n in counts.items() if can_see_queries(user, MISSING_FORM_TYPES[key]))
+    """Sum of missing-form counts ({"enrollment": n, ...}) for the forms the user can view.
+    A form closed to new records in System Controls counts no missing forms."""
+    from nanopore.study_lock import closed_forms
+    closed = closed_forms()
+    return sum(n for key, n in counts.items()
+               if can_see_queries(user, MISSING_FORM_TYPES[key]) and MISSING_FORM_TYPES[key] not in closed)
 
 
 def assigned_locations(user):
@@ -313,6 +320,11 @@ def assigned_locations(user):
     else:
         sites = profile.sites.all()
     return zones, sorted(sites, key=lambda site: site.name)
+
+
+def _can_add(user, form):
+    from nanopore.study_lock import allows_new
+    return can_edit(user, form) and allows_new(form)
 
 
 class AccessFlags:
@@ -332,6 +344,8 @@ class AccessFlags:
         self.view = self._Lookup(user, can_view)
         self.edit = self._Lookup(user, can_edit)
         self.queries = self._Lookup(user, can_see_queries)
+        # {{ access.add.diagnosis }}: may edit the form, and new ones are allowed now (System Controls)
+        self.add = self._Lookup(user, _can_add)
         self.roles = get_user_roles(user)
         self.is_admin = bool(getattr(user, "is_superuser", False)) or ADMIN in self.roles
         self.is_unscoped = is_unscoped(user)

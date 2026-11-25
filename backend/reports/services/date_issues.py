@@ -52,6 +52,7 @@ class DateCheck:
     b: tuple = ()              # (lookup, label) it is compared with
     b_form: str = ""           # form holding date B, when it is another form
     fields: tuple = field(default=())  # future / too-early checks: the date fields looked at
+    list_key: str = "date_issues"      # reports/services/accepted.py: the list an acceptance belongs to
 
     @property
     def between_forms(self):
@@ -177,8 +178,27 @@ def visible_checks(user, builder=None):
     return [check for check in (builder or build_checks)() if can_see_queries(user, check.form)]
 
 
-def check_queryset(user, check, zone_id=None, site_id=None):
-    """Records failing one check, limited to the user's sites."""
+def check_values(check, obj):
+    """What the check looks at on a record: an acceptance holds while these stay the same."""
+    if check.fields:
+        return {name: getattr(obj, name, None) for name in check.fields}
+    return {check.a[0]: resolve(obj, check.a[0]), check.b[0]: resolve(obj, check.b[0])}
+
+
+def is_lab_check(check):
+    return bool({check.form, check.b_form} & {access.ZONAL_LAB, access.EDCS_TBLIS})
+
+
+def check_queryset(user, check, zone_id=None, site_id=None, accepted=False):
+    """Records failing one check, limited to the user's sites: those still to check, or
+    (accepted=True) those accepted as correct (reports/services/accepted.py)."""
+    from reports.services.accepted import split
+    to_check, done = split(_failing(user, check, zone_id, site_id), check.list_key, check.key,
+                           lambda obj: check_values(check, obj))
+    return done if accepted else to_check
+
+
+def _failing(user, check, zone_id=None, site_id=None):
     model_name = FORMS[check.form][1]
     model = apps.get_model("nanopore", model_name)
     site = "site" if model_name == "Screening" else "screening__site"

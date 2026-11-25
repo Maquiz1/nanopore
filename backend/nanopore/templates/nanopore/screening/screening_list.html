@@ -82,7 +82,7 @@
 
      <div>
         <!-- Add New Screening button -->
-        {% if access.edit.screening and system_control.enable_new_screening %}
+        {% if access.add.screening %}
         <a href="{% url 'nanopore:screening-create' %}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add New Screening
         </a>

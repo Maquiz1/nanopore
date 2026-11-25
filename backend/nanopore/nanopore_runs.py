@@ -144,10 +144,16 @@ def legacy_run(record):
 def runs_formset(record, data=None, read_only=False):
     """The runs of a Zonal Lab record; one run to start with when there are none yet (filled with an
     older record's answers, so only the run number is left to add)."""
+    from nanopore import study_lock
     has_runs = record.pk is not None and record.nanopore_runs.exists()
-    factory = RunFormSet if has_runs or read_only else FirstRunFormSet
-    start = None if has_runs else legacy_run(record)
+    open_to_new = study_lock.allows_new(study_lock.NANOPORE_RUN)
+    factory = RunFormSet if has_runs or read_only or not open_to_new else FirstRunFormSet
+    start = None if has_runs or not open_to_new else legacy_run(record)
     formset = factory(data, instance=record, prefix="runs", initial=[start] if start else None)
+    if not open_to_new:
+        # System Controls: no new runs; the saved ones stay editable
+        formset.max_num = formset.initial_form_count()
+        formset.validate_max = True
     if read_only:
         for form in formset.forms:
             for field in form.fields.values():

@@ -42,7 +42,9 @@
         {% endfor %}
     </div>
     {% if not read_only %}
+    {% if not system_control.study_locked and system_control.allow_new_nanopore_run %}
     <button type="button" class="btn btn-sm btn-outline-primary" data-add-run><i class="fas fa-plus"></i> Add run</button>
+    {% else %}<span class="text-muted small">New runs are turned off in System Controls.</span>{% endif %}
     <p class="nano-runs-help" data-runs-done hidden><i class="fas fa-circle-check"></i> A run has a result, so no further run is needed. To add one, set that run's result to Failed first.</p>
     <template data-run-template>
         {% with run=runs_formset.empty_form %}

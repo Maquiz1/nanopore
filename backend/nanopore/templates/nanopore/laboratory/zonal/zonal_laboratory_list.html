@@ -13,7 +13,7 @@
     {% include "partials/filter_form.html" %}
 
     <div>
-        {% if access.edit.zonal_lab %}
+        {% if access.add.zonal_lab %}
         <a href="{% url 'nanopore:zonal-laboratory-create' %}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add Zonal Lab Test
         </a>

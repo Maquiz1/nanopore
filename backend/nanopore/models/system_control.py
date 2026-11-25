@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 class SystemControl(models.Model):
@@ -13,6 +14,20 @@ class SystemControl(models.Model):
         default=True,
         help_text="If checked, Zonal Lab records open section by section; if unchecked, as the single full form.",
     )
+
+    # Per-form switches: off = no new records of that form (saved ones stay editable)
+    allow_new_enrollment = models.BooleanField(default=True)
+    allow_new_clinic_lab = models.BooleanField(default=True)
+    allow_new_zonal_lab = models.BooleanField(default=True)
+    allow_new_diagnosis = models.BooleanField(default=True)
+    allow_new_regimen = models.BooleanField(default=True)
+    allow_new_nanopore_run = models.BooleanField(default=True)
+
+    # Study status (nanopore/study_lock.py): locked = read and export only
+    study_locked = models.BooleanField(default=False)
+    study_locked_at = models.DateTimeField(null=True, blank=True)
+    study_locked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    study_lock_reason = models.TextField(blank=True)
 
     updated_at = models.DateTimeField(auto_now=True)
 

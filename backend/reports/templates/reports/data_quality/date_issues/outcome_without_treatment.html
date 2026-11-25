@@ -53,6 +53,7 @@
     </nav>
 
     <div class="dq-card">
+        {% include "reports/partials/_accept_switch.html" with base=accept_base %}
         {% if page_obj.object_list %}
         <div class="table-responsive">
             <table class="table table-sm align-middle dq-table dq-stack">
@@ -77,6 +78,7 @@
                             {% else %}
                             <a class="btn btn-sm btn-outline-secondary" href="{% url 'nanopore:diagnosis-detail' r.diagnosis.pk %}">Diagnosis</a>
                             {% endif %}
+                            {% include "reports/partials/_accept.html" with list=accept_list check=accept_list oid=r.pk accepted=r.accepted_item lapsed=r.accept_lapsed %}
                         </td>
                     </tr>
                 {% endfor %}
@@ -93,9 +95,10 @@
         </nav>
         {% endif %}
         {% else %}
-        <div class="dq-empty"><i class="fas fa-circle-check"></i> Nobody here.</div>
+        <div class="dq-empty"><i class="fas fa-circle-check"></i> {% if show_accepted %}Nothing accepted here.{% else %}Nobody here.{% endif %}</div>
         {% endif %}
     </div>
 </div>
 {% include "reports/data_quality/date_issues/_styles.html" %}
+{% include "reports/partials/_accept_styles.html" %}
 {% endblock %}

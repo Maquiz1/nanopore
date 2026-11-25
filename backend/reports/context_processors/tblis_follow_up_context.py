@@ -15,10 +15,17 @@ def follow_up_participants(user):
     labs = ZonalLaboratory.objects.all()
     if not (getattr(user, "is_superuser", False) or access.is_unscoped(user) or access.is_ctrl_lab(user)):
         labs = access.scope_queryset(user, labs, "screening__site")
+    from nanopore.views.laboratory.edcs_tblis.tblis_follow_up_view import (
+        NOT_RECORDED, RECORD_LISTS, accepted_labs, accepted_rows)
     found = tblis_status.record_statuses(labs)
-    wanted = {tblis_status.REJECTED, tblis_status.NOT_IN_LATEST}
-    ids = {pk for pk, status in found.items() if status.state in wanted}
-    not_recorded = TblisFollowUp.objects.values("labno")
+    ids = set()
+    for list_key, state in RECORD_LISTS.items():
+        on_list = labs.filter(screening_id__in=[pk for pk, status in found.items() if status.state == state])
+        kept = accepted_labs(list_key, on_list, found)  # accepted: followed up, nothing to change
+        ids |= set(on_list.exclude(pk__in=[int(pk) for pk in kept]).values_list("screening_id", flat=True))
+    rows = list(TblisFollowUp.objects.filter(labno__in=labs.values("unique_lab_no")))
+    kept = accepted_rows(rows)
+    not_recorded = [row.labno for row in rows if row.labno not in kept]
     ids |= set(labs.filter(unique_lab_no__in=not_recorded).values_list("screening_id", flat=True))
     return ids
 

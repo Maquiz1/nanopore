@@ -151,7 +151,7 @@
                     <td class="text-center">
                         {% if s.id %}
                             <a href="{% url 'nanopore:screening-update' s.id %}" class="btn btn-sm btn-outline-primary">View</a>
-                            {% if access.edit.enrollment %}
+                            {% if access.add.enrollment %}
                                 <a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}" class="btn btn-sm btn-success ms-1">Add Enrollment Form</a>
                             {% else %}
                                 <a href="{% url 'nanopore:screening-detail' s.id %}" class="btn btn-sm btn-outline-secondary ms-1">Details</a>

@@ -13,7 +13,7 @@
     {% include "partials/filter_form.html" %}
 
     <div>
-        {% if access.edit.enrollment %}
+        {% if access.add.enrollment %}
         <a href="{% url 'nanopore:enrollment-create' %}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add Enrollment
         </a>

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Post-lock corrections · Dream Fund - Nanopore{% endblock %}
+{% block content %}
+<div class="fs">
+    <section class="fs-hero"><div>
+        <div class="fs-eyebrow">Administration · Superusers</div>
+        <h1 class="fs-title">Post-lock corrections</h1>
+        <div class="fs-meta">After the study is locked, a superuser can correct one participant by opening a correction window with a reason.
+            For {{ days }} days (or until it is closed) the superuser can change that participant's forms; every change is saved in the history as
+            "Post-lock correction: &lt;reason&gt;" and listed below.</div>
+    </div></section>
+
+    {% if locked %}
+    <section class="fs-card">
+        <div class="fs-card-head"><strong>Open a correction window</strong></div>
+        <form method="post" class="pl-form">{% csrf_token %}
+            <input type="hidden" name="action" value="open">
+            <div><label class="form-label" for="pl-pid">PID</label><input type="text" name="pid" id="pl-pid" class="form-control form-control-sm" required></div>
+            <div class="pl-grow"><label class="form-label" for="pl-reason">Reason</label><input type="text" name="reason" id="pl-reason" class="form-control form-control-sm" placeholder="e.g. Outcome confirmed by the site after the lock" required maxlength="1000"></div>
+            <div><button type="submit" class="btn btn-primary btn-sm">Open window</button></div>
+        </form>
+    </section>
+    {% else %}
+    <div class="alert alert-info">The study is active: records are corrected as usual. Correction windows are only needed after the study is locked.</div>
+    {% endif %}
+
+    <section class="fs-card">
+        <div class="fs-card-head"><strong>Correction windows</strong></div>
+        {% if windows %}
+        <div class="table-responsive"><table class="table fs-table mb-0">
+            <thead><tr><th>PID</th><th>Reason</th><th>Opened</th><th>Until</th><th>Status</th><th></th></tr></thead>
+            <tbody>{% for w in windows %}
+            <tr><td class="fs-pid" data-label="PID">{{ w.screening.pid }}</td><td data-label="Reason">{{ w.reason }}</td>
+                <td data-label="Opened">{{ w.opened_at|date:"d M Y" }} · {{ w.opened_by.get_full_name|default:w.opened_by.username }}</td>
+                <td data-label="Until">{{ w.expires_at|date:"d M Y" }}</td>
+                <td data-label="Status">{% if w.is_open %}<span class="fs-chip ok">Open</span>{% elif w.closed_at %}<span class="fs-chip na">Closed {{ w.closed_at|date:"d M Y" }}</span>{% else %}<span class="fs-chip na">Expired</span>{% endif %}</td>
+                <td class="text-end">{% if w.is_open %}
+                    <a href="{% url 'nanopore:form-status-list' %}?pid={{ w.screening.pid|urlencode }}" class="btn btn-sm btn-outline-primary">Open forms</a>
+                    <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="close"><input type="hidden" name="window" value="{{ w.pk }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Close</button></form>{% endif %}</td></tr>
+            {% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="fs-empty"><i class="fas fa-circle-info"></i><p>No correction window yet.</p></div>{% endif %}
+    </section>
+
+    <section class="fs-card">
+        <div class="fs-card-head"><strong>Changes made after the lock</strong></div>
+        {% if changes %}
+        <div class="table-responsive"><table class="table fs-table mb-0">
+            <thead><tr><th>When</th><th>PID</th><th>Form</th><th>Change</th><th>By</th><th>Reason</th></tr></thead>
+            <tbody>{% for c in changes %}
+            <tr><td data-label="When">{{ c.when|date:"d M Y H:i" }}</td><td class="fs-pid" data-label="PID">{{ c.pid|default:"—" }}</td><td data-label="Form">{{ c.model }}</td>
+                <td data-label="Change">{{ c.kind }}</td><td data-label="By">{% if c.user %}{{ c.user.get_full_name|default:c.user.username }}{% else %}—{% endif %}</td><td data-label="Reason">{{ c.reason }}</td></tr>
+            {% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="fs-empty"><i class="fas fa-circle-check"></i><p>No change after the lock.</p></div>{% endif %}
+    </section>
+</div>
+{% include "nanopore/partials/_list_styles.html" %}
+<style>.pl-form { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; } .pl-grow { flex: 1 1 280px; }</style>
+{% endblock %}

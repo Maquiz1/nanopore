@@ -28,7 +28,7 @@ LPA_SUSCEPTIBLE = 2
 def _conflict(key, form, label, q, a, b, b_form=""):
     """a and b are (lookup, label); b's lookup is on b_form when given."""
     path = TO_FORM[b_form] + b[0] if b_form else b[0]
-    return DateCheck(key, form, label, q, a, (path, b[1]), b_form)
+    return DateCheck(key, form, label, q, a, (path, b[1]), b_form, list_key="dsdr")
 
 
 def build_checks():

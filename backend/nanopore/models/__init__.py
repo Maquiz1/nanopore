@@ -11,3 +11,4 @@ from .discrepancies import TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTb
 from .edcs_tblis_merge_summary import EdcsTblisMergeSummary
 from .system_control import SystemControl
 from .recycle_bin import DeletedRecord
+from .study_lock import StudyLockEvent, PostLockCorrection, RecordVerification, VerificationEvent, AcceptedCheck

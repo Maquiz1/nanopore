@@ -19,7 +19,7 @@
             <div class="fs-meta">{{ page_note }}</div>
         </div>
         <div class="fs-hero-actions">
-            {% if access.edit.screening and system_control.enable_new_screening %}
+            {% if access.add.screening %}
             <a href="{% url 'nanopore:screening-create' %}" class="btn btn-sm btn-light"><i class="fas fa-plus"></i> New screening</a>
             {% endif %}
             <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-light"><i class="fas fa-house"></i> Dashboard</a>
@@ -152,7 +152,7 @@
                             {% if s.enrollment %}
                                 <a class="fs-chip ok" href="{% url 'nanopore:enrollment-update' s.enrollment.pk %}"><i class="fas fa-circle-check"></i> {{ s.enrollment.enrollment_date|date:"d M Y"|default:"Done" }}</a>
                             {% elif not open %}<span class="fs-chip na">N/A</span>
-                            {% elif access.edit.enrollment and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:enrollment-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                            {% elif access.add.enrollment and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:enrollment-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
                             {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
                         </td>
                         {% endif %}
@@ -162,7 +162,7 @@
                             {% if s.clinic_laboratory %}
                                 <a class="fs-chip ok" href="{% url 'nanopore:clinic-laboratory-update' s.clinic_laboratory.pk %}"><i class="fas fa-circle-check"></i> Done</a>
                             {% elif not open %}<span class="fs-chip na">N/A</span>
-                            {% elif access.edit.clinic_lab and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                            {% elif access.add.clinic_lab and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
                             {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
                         </td>
                         {% endif %}
@@ -172,7 +172,7 @@
                             {% if s.diagnosis %}
                                 <a class="fs-chip ok" href="{% url 'nanopore:diagnosis-update' s.diagnosis.pk %}"><i class="fas fa-circle-check"></i> Done</a>
                             {% elif not open %}<span class="fs-chip na">N/A</span>
-                            {% elif access.edit.diagnosis and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                            {% elif access.add.diagnosis and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
                             {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
                         </td>
                         {% endif %}
@@ -183,7 +183,7 @@
                                 <a class="fs-chip ok" href="{% url 'nanopore:zonal-laboratory-update' s.zonal_laboratory.pk %}"><i class="fas fa-circle-check"></i> {{ s.zonal_laboratory.unique_lab_no|default:"Done" }}</a>
                             {% elif not open %}<span class="fs-chip na">N/A</span>
                             {% elif s.substudy_case == "Substudy 2" %}
-                                {% if access.edit.zonal_lab and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
+                                {% if access.add.zonal_lab and s.site_id in access.write_sites %}<a class="fs-chip add" href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.pk }}"><i class="fas fa-plus"></i> Add</a>
                                 {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
                             {% elif s.substudy_case == "Substudy 4" %}<span class="fs-chip na" title="Only Substudy 2 goes to the zonal lab">N/A</span>
                             {% else %}<span class="fs-chip wait" title="The Clinic Lab Xpert result decides the substudy">Waiting for Clinic Lab</span>{% endif %}

@@ -84,8 +84,8 @@
                                     <td>{{ s.sex }}</td>
                                     <td>{{ s.age }}</td>
                                     <td>
-                                        <a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
-                                           class="btn btn-sm btn-outline-success">➕ Enrollment</a>
+                                        {% if access.add.enrollment %}<a href="{% url 'nanopore:enrollment-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
+                                           class="btn btn-sm btn-outline-success">➕ Enrollment</a>{% else %}<span class="text-muted small">Closed to new forms</span>{% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -124,8 +124,8 @@
                                     <td>{{ s.sex }}</td>
                                     <td>{{ s.age }}</td>
                                     <td>
-                                        <a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
-                                           class="btn btn-sm btn-outline-success">➕ Clinic Lab</a>
+                                        {% if access.add.clinic_lab %}<a href="{% url 'nanopore:clinic-laboratory-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
+                                           class="btn btn-sm btn-outline-success">➕ Clinic Lab</a>{% else %}<span class="text-muted small">Closed to new forms</span>{% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -164,8 +164,8 @@
                                     <td>{{ s.sex }}</td>
                                     <td>{{ s.age }}</td>
                                     <td>
-                                        <a href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
-                                           class="btn btn-sm btn-outline-success">➕ Diagnosis</a>
+                                        {% if access.add.diagnosis %}<a href="{% url 'nanopore:diagnosis-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
+                                           class="btn btn-sm btn-outline-success">➕ Diagnosis</a>{% else %}<span class="text-muted small">Closed to new forms</span>{% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -245,8 +245,8 @@
                                         <td>{{ s.sex }}</td>
                                         <td>{{ s.age }}</td>
                                         <td>
-                                            <a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
-                                               class="btn btn-sm btn-outline-success">➕ Zonal Lab</a>
+                                            {% if access.add.zonal_lab %}<a href="{% url 'nanopore:zonal-laboratory-create' %}?screening={{ s.id }}&next={{ request.get_full_path|urlencode }}"
+                                               class="btn btn-sm btn-outline-success">➕ Zonal Lab</a>{% else %}<span class="text-muted small">Closed to new forms</span>{% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}

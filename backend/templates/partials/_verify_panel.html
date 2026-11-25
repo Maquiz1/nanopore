@@ -1,0 +1,25 @@
+{# Verified badge, Verify and Unlock on a View page (utils/access_mixins.py verify_panel, nanopore/views/study_views.py) #}
+{% with p=request.verify_panel %}{% if p %}
+<span class="verify-panel">
+    {% if p.verified %}
+    <span class="verify-badge" title="Read only until a verifier unlocks it"><i class="fas fa-circle-check"></i> Verified · {{ p.verified.verified_by.get_full_name|default:p.verified.verified_by.username }} · {{ p.verified.verified_at|date:"d M Y" }}</span>
+    {% if p.may_verify %}
+    <details>
+        <summary class="btn btn-sm btn-outline-danger"><i class="fas fa-lock-open"></i> Unlock</summary>
+        <form method="post" action="{% url 'nanopore:record-verify' %}" class="verify-unlock-form">{% csrf_token %}
+            <input type="hidden" name="form" value="{{ p.form }}"><input type="hidden" name="pk" value="{{ p.pk }}">
+            <input type="hidden" name="action" value="unlock"><input type="hidden" name="back" value="{{ request.get_full_path }}">
+            <input type="text" name="reason" class="form-control form-control-sm" placeholder="Why does it need a correction?" required maxlength="500">
+            <button type="submit" class="btn btn-sm btn-danger">Unlock</button>
+        </form>
+    </details>
+    {% endif %}
+    {% elif p.may_verify %}
+    <form method="post" action="{% url 'nanopore:record-verify' %}" class="d-inline">{% csrf_token %}
+        <input type="hidden" name="form" value="{{ p.form }}"><input type="hidden" name="pk" value="{{ p.pk }}">
+        <input type="hidden" name="action" value="verify"><input type="hidden" name="back" value="{{ request.get_full_path }}">
+        <button type="submit" class="btn btn-sm btn-success" title="Checked against the source: make it read only"><i class="fas fa-circle-check"></i> Mark verified</button>
+    </form>
+    {% endif %}
+</span>
+{% endif %}{% endwith %}

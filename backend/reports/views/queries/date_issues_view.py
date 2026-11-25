@@ -43,9 +43,10 @@ def _zone_site(request):
     return zones, sites, pick("zone", zones), pick("site", sites)
 
 
-def _filter_query(request):
+def _filter_query(request, *drop):
     params = request.GET.copy()
-    params.pop("page", None)
+    for name in ("page", *drop):
+        params.pop(name, None)
     return params.urlencode()
 
 
@@ -79,9 +80,18 @@ class DateIssuesView(LoginRequiredMixin, View):
             for label, items in groups.items()
         ]
 
-        page = Paginator(check_queryset(request.user, selected, zone_id, site_id), self.paginate_by).get_page(request.GET.get("page"))
+        show_accepted = request.GET.get("show") == "accepted"
+        page = Paginator(check_queryset(request.user, selected, zone_id, site_id, accepted=show_accepted),
+                         self.paginate_by).get_page(request.GET.get("page"))
+        accepted_total = check_queryset(request.user, selected, zone_id, site_id, accepted=True).count()
+        from reports.services.accepted import holding, lapsed
+        from reports.services.date_issues import check_values
+        on_page = list(page.object_list)
+        values_of = lambda obj: check_values(selected, obj)  # noqa: E731
+        found = holding(selected.list_key, selected.key, on_page, values_of) if show_accepted else {}
+        changed = set() if show_accepted else lapsed(selected.list_key, selected.key, on_page, values_of)
         rows = []
-        for obj in page:
+        for obj in on_page:
             screening = obj if obj.__class__.__name__ == "Screening" else obj.screening
             if selected.fields:  # future / too early: show the dates that are out of range
                 dates = [
@@ -104,7 +114,8 @@ class DateIssuesView(LoginRequiredMixin, View):
                 links.append({"label": "Diagnosis (regimen changes)" if regimen else FORMS[form][0],
                               "url_name": edit_url if can_edit else view_url, "pk": record.pk, "edit": can_edit,
                               "anchor": REGIMEN_ANCHOR if regimen else ""})
-            rows.append({"obj": obj, "screening": screening, "dates": dates, "links": links})
+            rows.append({"obj": obj, "screening": screening, "dates": dates, "links": links,
+                         "accepted": found.get(str(obj.pk)), "lapsed": str(obj.pk) in changed})
 
         return render(request, self.template_name, {
             "groups": groups, "selected": selected, "selected_form_label": FORMS[selected.form][0],
@@ -113,6 +124,8 @@ class DateIssuesView(LoginRequiredMixin, View):
             "filter_query": _filter_query(request),
             "url_name": self.url_name, "title": self.title, "intro": self.intro, "empty": self.empty,
             "is_dates": self.builder is None,
+            "show_accepted": show_accepted, "accepted_total": accepted_total, "accept_list": selected.list_key,
+            "accept_base": _filter_query(request, "show"),
         })
 
 
@@ -136,18 +149,32 @@ class OutcomeWithoutTreatmentView(LoginRequiredMixin, View):
     paginate_by = 50
 
     @staticmethod
-    def records(user):
+    def all_records(user):
         Screening = apps.get_model("nanopore", "Screening")
         # Treatment started: 1 Yes, 2 Referred elsewhere, 3 Not started. Anything but Yes with an outcome needs
         # following up: referred participants are listed so the site can confirm the outcome with the facility.
         qs = Screening.objects.filter(diagnosis__tb_outcome2__in=OUTCOMES).exclude(diagnosis__tb_treatment=1)
         return scope_queryset(user, qs, "site").annotate(substudy=substudy_case())
 
+    @classmethod
+    def records(cls, user, accepted=False):
+        """Still to follow up, or (accepted=True) confirmed (e.g. treated elsewhere, outcome confirmed)."""
+        from reports.services.accepted import UNTREATED, split
+        from reports.services.accepted_lists import untreated_values
+        to_check, done = split(cls.all_records(user).select_related("diagnosis"), UNTREATED, UNTREATED, untreated_values)
+        return done if accepted else to_check
+
     def get(self, request):
         if not can_see_queries(request.user, access.DIAGNOSIS):
             raise PermissionDenied
         zones, sites, zone_id, site_id = _zone_site(request)
-        qs = self.records(request.user)
+        show_accepted = request.GET.get("show") == "accepted"
+        qs = self.records(request.user, accepted=show_accepted)
+        accepted_total = self.records(request.user, accepted=True)
+        if zone_id:
+            accepted_total = accepted_total.filter(site__district__region__zone_id=zone_id)
+        if site_id:
+            accepted_total = accepted_total.filter(site_id=site_id)
         if zone_id:
             qs = qs.filter(site__district__region__zone_id=zone_id)
         if site_id:
@@ -161,7 +188,17 @@ class OutcomeWithoutTreatmentView(LoginRequiredMixin, View):
             "clinic_laboratory__xpert_mtb",
         ).order_by("site__district__region__zone__name", "site__name", "pid")
         page = Paginator(qs, self.paginate_by).get_page(request.GET.get("page"))
+        from reports.services.accepted import UNTREATED, holding, lapsed
+        from reports.services.accepted_lists import untreated_values
+        on_page = list(page.object_list)
+        found = holding(UNTREATED, UNTREATED, on_page, untreated_values) if show_accepted else {}
+        changed = set() if show_accepted else lapsed(UNTREATED, UNTREATED, on_page, untreated_values)
+        for obj in on_page:
+            obj.accepted_item = found.get(str(obj.pk))
+            obj.accept_lapsed = str(obj.pk) in changed
         return render(request, self.template_name, {
+            "show_accepted": show_accepted, "accepted_total": accepted_total.count(), "accept_list": UNTREATED,
+            "accept_base": _filter_query(request, "show"),
             "page_obj": page, "counts": counts, "total": sum(counts.values()), "selected_substudy": substudy or "",
             "zones": zones, "sites": sites, "selected_zone": zone_id, "selected_site": site_id,
             "filter_query": _filter_query(request),

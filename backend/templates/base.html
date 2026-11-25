@@ -37,8 +37,15 @@
                     <i class="fas fa-arrow-left"></i> Go back
                 </a>
                 {% if request.view_edit_url %}<a href="{{ request.view_edit_url }}" class="btn btn-sm btn-warning page-edit-btn" title="Change this record"><i class="fas fa-pen-to-square"></i> Edit</a>{% endif %}
+                {% include "partials/_verify_panel.html" %}
             </div>
             {% endif %}{% endblock %}
+            {% if system_control.study_locked %}
+            <div class="study-locked-banner"><i class="fas fa-lock"></i> <strong>The study is locked</strong> ({{ system_control.study_locked_at|date:"d M Y" }}): records can be viewed and exported, not changed.</div>
+            {% endif %}
+            {% if request.record_notice %}
+            <div class="record-notice"><i class="fas fa-circle-check"></i> {{ request.record_notice }}</div>
+            {% endif %}
             {% if messages %}
             <div class="messages">
                 {% for message in messages %}
@@ -194,6 +201,13 @@
     <style>
         .page-back { margin: 14px 0 -6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .page-edit-btn { border-radius: 9px; font-weight: 600; }
+        .study-locked-banner { margin: 14px 0 0; padding: 9px 14px; border-radius: 10px; background: #f8d7da; color: #842029; font-size: .9rem; }
+        .record-notice { margin: 14px 0 0; padding: 9px 14px; border-radius: 10px; background: #d1e7dd; color: #0f5132; font-size: .9rem; }
+        .verify-panel { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+        .verify-badge { background: #d1e7dd; color: #0f5132; border-radius: 9px; padding: 4px 10px; font-size: .82rem; font-weight: 600; }
+        .verify-panel details summary { list-style: none; display: inline-block; }
+        .verify-panel details summary::-webkit-details-marker { display: none; }
+        .verify-unlock-form { display: flex; gap: 6px; margin-top: 6px; min-width: 280px; }
         .page-back-btn { color: #134074; background: #fff; border: 1px solid #d5dcea; border-radius: 9px; font-weight: 600; }
         .page-back-btn:hover { color: #fff; background: #134074; border-color: #134074; }
     </style>

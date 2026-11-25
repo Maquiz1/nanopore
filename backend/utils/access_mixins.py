@@ -38,11 +38,48 @@ class FormAccessMixin(AccessMixin):
             return self.handle_no_permission()
         if not self.has_form_access(request, kwargs):
             raise PermissionDenied
+        if self.access_is_form and not kwargs.get("pk") and not self.view_only:
+            refused = self.refuse_new(request)
+            if refused:
+                return refused
         if self.view_only:
             if request.method not in SAFE_METHODS:
                 return HttpResponseNotAllowed(["GET"])
             request.view_edit_url = self.view_edit_url(kwargs.get("pk"))
+            request.verify_panel = self.verify_panel(kwargs.get("pk"))
         return super().dispatch(request, *args, **kwargs)
+
+    new_form = None  # the "allow new" switch of a create page (default: access_form)
+
+    def refuse_new(self, request):
+        """System Controls can close a form to new records (or the study is locked): saved ones stay editable."""
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        from nanopore import study_lock
+        form = self.new_form or self.access_form
+        if study_lock.allows_new(form):
+            return None
+        if study_lock.is_locked():
+            messages.info(request, "The study is locked: no new records can be added.")
+        else:
+            messages.info(request, f"New {study_lock.form_label(form)} forms are turned off in System Controls.")
+        lists = {"screening": "nanopore:screening-list", "enrollment": "nanopore:enrollment-list",
+                 "clinic_lab": "nanopore:clinic-laboratory-list", "zonal_lab": "nanopore:zonal-laboratory-list",
+                 "diagnosis": "nanopore:diagnosis-list"}
+        return study_lock._back(request, lists.get(form, "dashboard:dashboard"))
+
+    def verify_panel(self, pk):
+        """Verified badge and the Verify / Unlock buttons of a View page (nanopore/views/verification_view.py)."""
+        from nanopore import study_lock
+        from utils.access import VERIFY_RECORDS
+        if not pk or self.access_form not in study_lock.VERIFIABLE_FORMS:
+            return None
+        records = scope_queryset(self.request.user, self.view_model._default_manager.filter(pk=pk), self.access_site_field) if self.view_model else None
+        if records is None or not records.exists():
+            return None
+        found = study_lock.verification(self.access_form, pk)
+        return {"form": self.access_form, "pk": pk, "verified": found,
+                "may_verify": has_feature(self.request.user, VERIFY_RECORDS) and not study_lock.is_locked()}
 
     def view_edit_url(self, pk):
         """The Edit button of a View page (base.html), when this user may change the record."""
@@ -51,6 +88,9 @@ class FormAccessMixin(AccessMixin):
         records = self.view_model._default_manager.filter(pk=pk)
         if not writable_queryset(self.request.user, records, self.access_site_field).exists():
             return None
+        from nanopore import study_lock
+        if study_lock.edit_block(self.request.user, self.access_form, records.first()):
+            return None  # verified, or the study is locked
         return reverse(self.edit_url_name, args=[pk])
 
     def needs_edit(self, request, kwargs):
@@ -78,7 +118,14 @@ class FormAccessMixin(AccessMixin):
         if obj is None:
             return False
         records = type(obj)._default_manager.filter(pk=obj.pk)
-        return not writable_queryset(self.request.user, records, self.access_site_field).exists()
+        if not writable_queryset(self.request.user, records, self.access_site_field).exists():
+            return True
+        from nanopore import study_lock
+        block = study_lock.edit_block(self.request.user, self.access_form, obj) if obj.pk else None
+        if block:
+            self.request.record_notice = block  # shown at the top of the form (base.html)
+            return True
+        return False
 
     def limit_choices(self, form):
         """Restrict a form's screening/site dropdowns so out-of-scope values fail validation."""

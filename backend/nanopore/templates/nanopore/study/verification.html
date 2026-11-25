@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Verification · Dream Fund - Nanopore{% endblock %}
+{% block content %}
+<div class="fs">
+    <section class="fs-hero"><div>
+        <div class="fs-eyebrow">Data quality</div>
+        <h1 class="fs-title">Verification</h1>
+        <div class="fs-meta">Records checked by a data specialist or data manager. A verified record is read only until a verifier unlocks it with a reason.
+            To verify a record, open its View page and press <strong>Mark verified</strong>; a record with open queries can't be verified.</div>
+    </div></section>
+    <section class="fs-card">
+        <div class="fs-card-head"><strong>Progress</strong></div>
+        <div class="table-responsive"><table class="table fs-table mb-0">
+            <thead><tr><th>Form</th><th class="text-end">Records</th><th class="text-end">Verified</th><th>%</th></tr></thead>
+            <tbody>{% for row in progress %}
+                <tr><td data-label="Form">{{ row.label }}</td><td class="text-end" data-label="Records">{{ row.total|intcomma }}</td>
+                    <td class="text-end" data-label="Verified">{{ row.verified|intcomma }}</td>
+                    <td data-label="%"><div class="vf-bar"><div style="width: {{ row.percent }}%"></div></div> {{ row.percent }}%</td></tr>
+            {% endfor %}</tbody>
+        </table></div>
+    </section>
+    <section class="fs-card">
+        <div class="fs-card-head"><strong>Latest verify and unlock</strong></div>
+        {% if events %}
+        <div class="table-responsive"><table class="table fs-table mb-0">
+            <thead><tr><th>When</th><th>PID</th><th>Form</th><th>Action</th><th>By</th><th>Reason</th><th></th></tr></thead>
+            <tbody>{% for row in events %}
+                <tr><td data-label="When">{{ row.event.at|date:"d M Y H:i" }}</td><td class="fs-pid" data-label="PID">{{ row.event.screening.pid }}</td>
+                    <td data-label="Form">{{ row.label }}</td><td data-label="Action">{{ row.event.get_action_display }}</td>
+                    <td data-label="By">{{ row.event.by.get_full_name|default:row.event.by.username }}</td><td data-label="Reason">{{ row.event.reason|default:"—" }}</td>
+                    <td class="text-end">{% if row.url %}<a href="{{ row.url }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a>{% endif %}</td></tr>
+            {% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="fs-empty"><i class="fas fa-circle-info"></i><p>No record verified yet.</p></div>{% endif %}
+    </section>
+</div>
+{% include "nanopore/partials/_list_styles.html" %}
+<style>.vf-bar { display: inline-block; width: 120px; height: 8px; border-radius: 4px; background: #e9ecef; vertical-align: middle; overflow: hidden; } .vf-bar div { height: 100%; background: #198754; }</style>
+{% endblock %}

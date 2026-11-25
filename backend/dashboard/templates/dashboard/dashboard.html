@@ -252,7 +252,7 @@
         <!-- ── Quick actions ──────────────────────────────────── -->
         <section class="dash-card dash-actions">
             <header class="dash-card-head"><h2><i class="fas fa-bolt"></i> Quick actions</h2></header>
-            {% if access.edit.screening and system_control.enable_new_screening %}
+            {% if access.add.screening %}
             <a href="{% url 'nanopore:screening-create' %}" class="dash-action dash-action-primary">
                 <i class="fas fa-plus"></i><span>Add new screening</span>
             </a>

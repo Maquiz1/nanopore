@@ -8,3 +8,5 @@ class NanoporeConfig(AppConfig):
     def ready(self):
         from nanopore import history
         history.connect()
+        from nanopore import study_lock
+        study_lock.connect()

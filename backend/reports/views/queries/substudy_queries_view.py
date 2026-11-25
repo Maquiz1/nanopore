@@ -34,8 +34,9 @@ class SubstudyQueriesView(LoginRequiredMixin, View):
             key = next((query.key for query, count in tabs if count), queries[0].key)
         selected = QUERIES_BY_KEY[key]
 
+        show_accepted = request.GET.get("show") == "accepted"
         records = (
-            substudy_query_qs(request.user, selected, zone_id, site_id)
+            substudy_query_qs(request.user, selected, zone_id, site_id, accepted=show_accepted)
             .select_related(
                 "site__district__region__zone",
                 "clinic_laboratory__xpert_mtb_rif_conducted",
@@ -48,10 +49,21 @@ class SubstudyQueriesView(LoginRequiredMixin, View):
             .order_by("site__district__region__zone__name", "site__name", "pid")
         )
         page = Paginator(records, self.paginate_by).get_page(request.GET.get("page"))
+        from reports.services.accepted import SUBSTUDY, holding, lapsed
+        from reports.services.substudy_queries import substudy_values
+        on_page = list(page.object_list)
+        found = holding(SUBSTUDY, selected.key, on_page, substudy_values) if show_accepted else {}
+        changed = set() if show_accepted else lapsed(SUBSTUDY, selected.key, on_page, substudy_values)
+        for obj in on_page:
+            obj.accepted_item, obj.accept_lapsed = found.get(str(obj.pk)), str(obj.pk) in changed
 
         filters = request.GET.copy()
         filters.pop("page", None)
+        base = filters.copy()
+        base.pop("show", None)
         return render(request, self.template_name, {
+            "show_accepted": show_accepted, "accept_base": base.urlencode(),
+            "accepted_total": substudy_query_qs(request.user, selected, zone_id, site_id, accepted=True).count(),
             "tabs": tabs,
             # Substudy 2 / 4 queries, then the uncategorized ones on their own row
             "tab_rows": [row for row in (

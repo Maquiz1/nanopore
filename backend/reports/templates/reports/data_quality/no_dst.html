@@ -10,7 +10,8 @@
             <div class="fs-eyebrow">Data quality · For information</div>
             <h1 class="fs-title">Positive culture, no DST</h1>
             <div class="fs-meta">Positive cultures for which TB-LIS has no phenotypic DST. These are not queries: not every positive culture gets DST.
-                The study team can decide whether DST is needed and ask CTRL to do it and record it in TB-LIS; the next upload brings it in and the record leaves this list.</div>
+                The study team can decide whether DST is needed and ask CTRL to do it and record it in TB-LIS; the next upload brings it in and the record leaves this list.
+                If DST is not needed or not possible, <strong>Accept</strong> it with the reason; TB-LIS uploads then leave the record as it is.</div>
         </div>
     </section>
 
@@ -49,6 +50,7 @@
         </div>
     </form>
 
+    {% include "reports/partials/_accept_switch.html" with base=accept_base %}
     <section class="fs-card">
         <div class="fs-card-head">
             <strong>{{ page_obj.paginator.count|intcomma }} participant{{ page_obj.paginator.count|pluralize }}</strong>
@@ -79,6 +81,7 @@
                             {% else %}
                             <a href="{% url 'nanopore:zonal-laboratory-detail' r.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a>
                             {% endif %}
+                            {% include "reports/partials/_accept.html" with list="no_dst" check=group oid=r.pk accepted=r.accepted_item lapsed=r.accept_lapsed %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -86,7 +89,7 @@
             </table>
         </div>
         {% else %}
-        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>None: every positive culture here has its DST.</p></div>
+        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>{% if show_accepted %}Nothing accepted here.{% else %}None: every positive culture here has its DST.{% endif %}</p></div>
         {% endif %}
         {% if page_obj.has_other_pages %}
         <nav class="fs-pager" aria-label="Pages">
@@ -98,4 +101,5 @@
     </section>
 </div>
 {% include "nanopore/partials/_list_styles.html" %}
+{% include "reports/partials/_accept_styles.html" %}
 {% endblock %}

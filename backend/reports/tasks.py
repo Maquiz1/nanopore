@@ -6,6 +6,9 @@ from .tasks_export_models import export_model_raw_data_task, export_all_models_c
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, max_retries=3)
 def create_query_snapshot(self):
     """Save today's open query counts for the Query trends page (reports/services/query_snapshot.py)."""
+    from nanopore import study_lock
+    if not study_lock.job_allowed("Query snapshot"):
+        return "Skipped: the study is locked (the last snapshot was taken at the lock)"
     call_command("snapshot_queries")
     return "Query snapshot created"
 
