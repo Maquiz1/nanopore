@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Zonal Lab · {{ screening.pid }}{% endblock %}
+
+{% block content %}
+<div class="df">
+    <section class="df-hero">
+        <div>
+            <div class="df-eyebrow">Zonal Laboratory · by section</div>
+            <h1 class="df-title">{{ screening.pid }}</h1>
+            <div class="df-meta">
+                <span><i class="fas fa-location-dot"></i>{{ screening.site.name }}</span>
+                <span><i class="fas fa-vial"></i>Lab No. {{ object.unique_lab_no|default:"—" }}</span>
+                {% if cards.0.dar %}<span class="df-pill"><i class="fas fa-building"></i>Dar es Salaam (CTRL)</span>{% endif %}
+            </div>
+        </div>
+        <div class="df-hero-actions">
+            <a href="{% url 'nanopore:zonal-laboratory-list' %}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> Back</a>
+            {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" history_class="btn-light" %}
+            {% include "nanopore/partials/_edcs_link.html" with edcs_class="btn-light" %}
+            <a href="{% url 'nanopore:zonal-laboratory-detail' object.pk %}" class="btn btn-sm btn-light" title="Every question on one page, read only"><i class="fas fa-file-lines"></i> Whole form</a>
+        </div>
+    </section>
+
+    {% if cards.0.dar %}
+    <div class="df-zone-note"><i class="fas fa-circle-info"></i>Dar es Salaam: the lab number is entered here. Microscopy, culture, DST, Xpert XDR and the LPA results come from TB-LIS, matched by this lab number; CTRL enters Nanopore and the LPA bands on its own forms.</div>
+    {% endif %}
+
+    <div class="zh-grid">
+        {% for card in cards %}
+        {% with s=card.section %}
+        <article class="zh-card zh-{{ card.status }}">
+            <header>
+                <span class="df-step">{{ s.number }}</span>
+                <div class="zh-title">
+                    <h2>{{ s.title }}</h2>
+                    <p>{% if card.dar and card.status == "from_tblis" %}From TB-LIS{% elif card.dar %}CTRL{% else %}{{ s.entered_by }}{% endif %}</p>
+                </div>
+                <span class="zh-status"><i class="fas {% if card.status == 'complete' %}fa-circle-check{% elif card.status == 'in_progress' %}fa-circle-exclamation{% elif card.status == 'from_tblis' %}fa-cloud-arrow-down{% elif card.status == 'not_started' %}fa-circle{% else %}fa-hourglass-half{% endif %}"></i> {{ card.status_label }}</span>
+            </header>
+
+            {% if card.queries %}
+            <ul class="zh-queries">{% for label in card.queries %}<li>{{ label }}</li>{% endfor %}</ul>
+            {% elif card.status == "waiting_ctrl" %}
+            <p class="zh-note">Isolate sent. CTRL hasn't entered its isolate number yet.</p>
+            {% elif card.status == "waiting_dst" %}
+            <p class="zh-note">CTRL has the isolate. Waiting for the DST result from TB-LIS.</p>
+            {% elif s.key == "isolate" and not card.dar %}
+            <p class="zh-note">The isolate number is entered by CTRL; DST comes from TB-LIS.</p>
+            {% endif %}
+
+            <footer>
+                {% if card.ctrl_url %}
+                    <a href="{{ card.ctrl_url }}" class="btn btn-sm btn-outline-primary">Open CTRL form</a>
+                {% elif card.status == "from_tblis" %}
+                    <span class="zh-muted">See the EDCS/TBLIS record</span>
+                {% elif s.ready %}
+                    <a href="{% url 'nanopore:zonal-lab-section' object.pk s.key %}" class="btn btn-sm {% if can_edit %}btn-primary{% else %}btn-outline-primary{% endif %}">{% if not can_edit %}View{% elif card.status == "not_started" %}Start{% else %}Edit{% endif %}</a>
+                {% elif can_edit %}
+                    <a href="{% url 'nanopore:zonal-laboratory-update' object.pk %}" class="btn btn-sm btn-outline-secondary" title="This section gets its own form soon">Edit in full form</a>
+                {% else %}
+                    <a href="{% url 'nanopore:zonal-laboratory-detail' object.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+                {% endif %}
+            </footer>
+        </article>
+        {% endwith %}
+        {% endfor %}
+    </div>
+
+    <section class="df-card">
+        <header class="df-card-head"><div><h2>Remarks</h2></div></header>
+        <p class="mb-0">{{ object.remarks|default:"No remarks." }}</p>
+    </section>
+</div>
+
+{% include "nanopore/partials/_form_styles.html" %}
+<style>
+    .zh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-bottom: 14px; }
+    .zh-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .zh-card header { display: flex; align-items: flex-start; gap: 10px; }
+    .zh-title { flex: 1; min-width: 0; }
+    .zh-title h2 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .zh-title p { font-size: .76rem; color: var(--muted); margin: 2px 0 0; }
+    .zh-status { white-space: nowrap; font-size: .78rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--soft); color: var(--ink-2); }
+    .zh-queries { margin: 0; padding-left: 18px; font-size: .82rem; color: var(--warn); }
+    .zh-note { margin: 0; font-size: .82rem; color: var(--ink-2); }
+    .zh-muted { font-size: .8rem; color: var(--muted); }
+    .zh-card footer { margin-top: auto; }
+    .zh-complete { border-left-color: var(--good); }
+    .zh-complete .zh-status { background: #edf8f1; color: var(--good); }
+    .zh-in_progress { border-left-color: #e8a33d; }
+    .zh-in_progress .zh-status { background: var(--warn-soft); color: var(--warn); }
+    .zh-from_tblis { border-left-color: var(--accent); }
+    .zh-from_tblis .zh-status { background: var(--accent-soft); color: var(--accent); }
+    .zh-waiting_ctrl, .zh-waiting_dst { border-left-color: #8a94a8; }
+</style>
+{% endblock %}

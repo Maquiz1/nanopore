@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} · {{ screening.pid }}{% endblock %}
+
+{% block content %}
+<div class="df">
+    <section class="df-hero">
+        <div>
+            <div class="df-eyebrow">Zonal Laboratory · section {{ section.number }} of 7</div>
+            <h1 class="df-title">{{ screening.pid }}</h1>
+            <div class="df-meta">
+                <span><i class="fas fa-location-dot"></i>{{ screening.site.name }}</span>
+                {% if object %}<span><i class="fas fa-vial"></i>Lab No. {{ object.unique_lab_no|default:"—" }}</span>{% endif %}
+            </div>
+        </div>
+        <div class="df-hero-actions">
+            <a href="{{ back }}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> {% if object %}All sections{% else %}Back{% endif %}</a>
+            {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" history_class="btn-light" %}
+        </div>
+    </section>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if not object %}<input type="hidden" name="screening" value="{{ screening.pk }}">{% endif %}
+        {% include "nanopore/partials/form_error_summary.html" with form=form %}
+
+        <section class="df-card">
+            <header class="df-card-head">
+                <span class="df-step">{{ section.number }}</span>
+                <div><h2>{{ section.title }}</h2>{% if form.dar %}<p>Dar es Salaam: TB-LIS gives the date received, appearance and volume.</p>{% endif %}</div>
+            </header>
+            <div class="df-grid">
+                {% for field in form %}{% if field.name != "reason_for_change" %}{% include "nanopore/partials/_field.html" with field=field %}{% endif %}{% endfor %}
+            </div>
+        </section>
+
+        {% include "nanopore/partials/_reason_for_change.html" %}
+        <div class="df-savebar">
+            <a href="{{ back }}" class="btn btn-outline-secondary">Cancel</a>
+            {% if access.edit.zonal_lab and not read_only %}
+                {% if system_control.enable_form_submissions %}
+                <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save</button>
+                {% else %}
+                <button type="button" class="btn btn-secondary" disabled><i class="fas fa-ban"></i> Submissions disabled</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+{% include "nanopore/partials/_form_styles.html" %}
+{% endblock %}
