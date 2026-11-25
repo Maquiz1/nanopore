@@ -61,6 +61,7 @@ DECISIONS = [
     ("D17", "2026-11", "Access", "Who changes records?", "Within their assigned zones or sites (admins everywhere). Reviewers read every zone but write only where assigned. Coordinators and statisticians read and export, without writing."),
     ("D18", "2026-11", "Exports", "What do exports contain?", "Codes from the codebook; Full adds a _label column; multiple answers joined with ';'; one Screening row per regimen change; remarks included; file names end with the date in Tanzania."),
     ("D19", "2026-11", "History", "Change history?", "Every form keeps who changed which answer, when, from where and why. Correcting a saved answer needs a reason; filling an empty one doesn't."),
+    ("D20", "2026-11", "Merge", "Sputum row with GeneXpert 'Not Provided' but with microscopy or culture results?", "Not merged; the rule in D01 stays. The row is listed under TB-LIS follow-up (GeneXpert: Not Provided) for CTRL to enter the GeneXpert result in TB-LIS, and merges at the next upload. Until then the EDCS record is queried."),
 ]
 
 CHANGE_LOG = [
