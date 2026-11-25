@@ -5,6 +5,7 @@ Substudy queries: participants whose forms don't fit their substudy (nanopore/su
   ss4_with_zonal              Substudy 4 with a Zonal Lab form (Substudy 4 never goes to the zonal lab)
   ss2_no_outcome              Substudy 2 enrolled without a treatment outcome
   ss4_with_outcome            Substudy 4 with a treatment outcome (only Substudy 2 is followed up)
+  uncategorized               No Xpert result yet, so the substudy can't be decided
   uncategorized_with_outcome  No Xpert result yet, but a treatment outcome is recorded
 
 Usually either the Clinic Lab Xpert result is wrong (it decides the substudy), or the
@@ -59,6 +60,14 @@ QUERIES = (
         "Xpert result, or remove the outcome from the Diagnosis form.",
         (access.DIAGNOSIS, access.CLINIC_LAB),
         substudy_q(SUBSTUDY_4) & HAS_OUTCOME,
+    ),
+    SubstudyQuery(
+        "uncategorized", "Uncategorized (no Xpert result)",
+        "These participants have no Clinic Lab form, or no Xpert MTB/RIF result on it, so their "
+        "substudy can't be decided, nor whether they need a Zonal Lab form or an outcome. Complete "
+        "the Clinic Lab form.",
+        (access.CLINIC_LAB,),
+        substudy_q(UNCATEGORIZED),
     ),
     SubstudyQuery(
         "uncategorized_with_outcome", "Uncategorized with outcome",

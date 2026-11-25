@@ -40,8 +40,10 @@
         </div>
     </form>
 
+    {# Substudy 2 and 4 queries on the first row, the uncategorized ones on the second; each row fills the width #}
+    {% for row in tab_rows %}
     <nav class="sq-tabs">
-        {% for query, count in tabs %}
+        {% for query, count in row %}
         <a href="{% url 'reports:substudy_queries' query.key %}{% if filter_query %}?{{ filter_query }}{% endif %}"
            class="sq-tab {% if query.key == selected.key %}active{% endif %}">
             <span class="sq-tab-count {% if not count %}zero{% endif %}">{{ count|intcomma }}</span>
@@ -49,6 +51,7 @@
         </a>
         {% endfor %}
     </nav>
+    {% endfor %}
 
     <div class="sq-card">
         <div class="sq-card-head">
@@ -168,7 +171,9 @@
     .sq-filters > div { min-width: 180px; }
     .sq-filters .form-label { font-size: .75rem; color: var(--muted); margin-bottom: 3px; }
     .sq-filter-actions { display: flex; gap: 8px; margin-left: auto; min-width: 0 !important; }
-    .sq-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .sq-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .sq-tabs > .sq-tab { flex: 1 1 0; min-width: 190px; }
+    .sq-tabs:last-of-type { margin-bottom: 14px; }
     .sq-tab {
         display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--line);
         border-radius: 12px; background: var(--surface); color: var(--ink-2); text-decoration: none; font-size: .86rem;

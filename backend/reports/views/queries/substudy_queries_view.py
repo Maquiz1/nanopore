@@ -53,6 +53,11 @@ class SubstudyQueriesView(LoginRequiredMixin, View):
         filters.pop("page", None)
         return render(request, self.template_name, {
             "tabs": tabs,
+            # Substudy 2 / 4 queries, then the uncategorized ones on their own row
+            "tab_rows": [row for row in (
+                [t for t in tabs if not t[0].key.startswith("uncategorized")],
+                [t for t in tabs if t[0].key.startswith("uncategorized")],
+            ) if row],
             "selected": selected,
             "page_obj": page,
             "zones": zones,

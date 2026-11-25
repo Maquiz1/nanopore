@@ -31,7 +31,8 @@ class SubstudyQueriesTests(SubstudyConsistencyTests):
     def test_sidebar_has_its_own_link(self):
         page = self.client.get(reverse("dashboard:dashboard"))
         self.assertContains(page, reverse("reports:substudy_queries"))
-        self.assertEqual(page.context["context_substudy_queries_total"], 4)
+        # 6 at site A1, plus the base A2 and B1 participants: no Clinic Lab, so uncategorized
+        self.assertEqual(page.context["context_substudy_queries_total"], 8)
 
     def test_each_query_finds_its_participants(self):
         admin = self.make_user("boss", [access.ADMIN])
@@ -41,6 +42,7 @@ class SubstudyQueriesTests(SubstudyConsistencyTests):
             "ss4_with_zonal": 1,               # 003
             "ss2_no_outcome": 1,               # 001: enrolled, no Diagnosis yet
             "ss4_with_outcome": 1,             # 002
+            "uncategorized": 2,                # 004, 005: no Xpert result
             "uncategorized_with_outcome": 1,   # 005
         })
 
