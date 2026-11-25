@@ -23,6 +23,7 @@ from nanopore.forms.laboratory.edcs_tblis.edcs_tblis_lab_form import EdcsTblisZo
 from nanopore.forms.laboratory.zonal.zonallabform import ZonalLaboratoryForm
 from nanopore.forms.regimen.regimenform import RegimenChangesForm
 from nanopore.forms.screening.screeningform import ScreeningForm
+from nanopore.nanopore_runs import RunForm
 
 # key -> (title, form class). Order = order of the study forms.
 CODEBOOK_FORMS = {
@@ -30,12 +31,26 @@ CODEBOOK_FORMS = {
     "enrollment": ("Enrollment", EnrollmentForm),
     "clinic_lab": ("Clinic Laboratory", ClinicLaboratoryForm),
     "zonal_lab": ("Zonal Laboratory", ZonalLaboratoryForm),
+    "nanopore_runs": ("Nanopore Runs", RunForm),
     "edcs_tblis": ("EDCS / TBLIS", EdcsTblisZonalForm),
     "diagnosis": ("Diagnosis", DiagnosisForm),
     "regimen": ("Regimen Changes", RegimenChangesForm),
 }
 
 COLUMNS = ["Form", "Q#", "Variable name", "Question label", "Type", "Required", "Values", "Notes"]
+
+# Export columns worked out from other records (not stored on the form's table).
+DERIVED_ROWS = {
+    "zonal_lab": (
+        ("nanopore_runs", "Number of Nanopore sequencing runs (Nanopore Runs table)", "Integer"),
+        ("nanopore_first_run_date", "Date of the first Nanopore run", "Date"),
+        ("nanopore_final_run_date", "Date of the final run: the latest that didn't fail, else the latest", "Date"),
+    ),
+    "nanopore_runs": (
+        ("pid", "Participant ID (from the Zonal Lab form the run belongs to)", "Text"),
+        ("attempt", "Attempt number: runs of a participant numbered 1, 2, 3 by date", "Integer"),
+    ),
+}
 
 # Bookkeeping fields that are not study questions.
 SYSTEM_FIELDS = {
@@ -140,6 +155,9 @@ def form_codebook(key):
             "Type": field_type, "Required": "", "Values": values,
             "Notes": "Set by the system (not asked on the form)",
         })
+    for name, label, field_type in DERIVED_ROWS.get(key, ()):
+        rows.append({"Form": title, "Q#": "", "Variable name": name, "Question label": label, "Type": field_type,
+                     "Required": "", "Values": "", "Notes": "Export column worked out by the system"})
     return rows
 
 

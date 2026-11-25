@@ -289,3 +289,45 @@ class FormLockTests(DataSafetyBase):
         self.client.post(reverse("nanopore:system-controls"), {"action": "unlock_form", "form": access.ZONAL_LAB, "reason": "Late result"})
         self.assertFalse(study_lock.form_locked(access.ZONAL_LAB))
         self.assertEqual(StudyLockEvent.objects.filter(form=access.ZONAL_LAB).count(), 2)
+
+
+class VerifyAllTests(DataSafetyBase):
+    def test_verify_all_forms_is_all_or_nothing(self):
+        screening = self.screenings["A1"]  # Screening and Zonal Lab forms
+        user = self.make_user("ds_verify_all", [access.DATA_SPECIALIST], zones=[self.zone_a])
+        self.client.force_login(user)
+        page = self.client.get(reverse("nanopore:form-status-list"))
+        self.assertContains(page, "Verify all")
+        data = {"form": access.SCREENING, "pk": screening.pk, "action": "verify_all"}
+        with mock.patch("nanopore.verification.open_queries", side_effect=lambda u, form, obj: 2 if form == access.ZONAL_LAB else 0):
+            self.client.post(reverse("nanopore:record-verify"), data)
+        self.assertFalse(RecordVerification.objects.exists())  # one form had queries: nothing verified
+        with mock.patch("nanopore.verification.open_queries", return_value=0):
+            self.client.post(reverse("nanopore:record-verify"), data)
+        self.assertEqual(set(RecordVerification.objects.values_list("form", flat=True)), {access.SCREENING, access.ZONAL_LAB})
+        self.assertEqual(verification.participant_status([screening])[screening.pk], (2, 2))
+        self.assertContains(self.client.get(reverse("nanopore:form-status-list")), "2/2")
+
+    def test_participants_filter_by_verified(self):
+        a1, a2 = self.screenings["A1"], self.screenings["A2"]
+        user = self.make_user("ds_verified_filter", [access.DATA_SPECIALIST], zones=[self.zone_a])
+        RecordVerification.objects.create(form=access.SCREENING, object_id=a1.pk, screening=a1, verified_by=user)
+        RecordVerification.objects.create(form=access.ZONAL_LAB, object_id=self.zonal_labs["A1"].pk, screening=a1, verified_by=user)
+        RecordVerification.objects.create(form=access.SCREENING, object_id=a2.pk, screening=a2, verified_by=user)
+        self.client.force_login(user)
+        found = lambda key: {s.pk for s in self.client.get(reverse("nanopore:form-status-list") + f"?verified={key}").context["screenings"]}  # noqa: E731
+        self.assertIn(a1.pk, found("all"))
+        self.assertNotIn(a2.pk, found("all"))
+        self.assertIn(a2.pk, found("partly"))
+        self.assertNotIn(a1.pk, found("none") | found("partly"))
+        self.assertTrue(found("none").isdisjoint({a1.pk, a2.pk}))
+
+
+class DictionaryTests(DataSafetyBase):
+    def test_nanopore_runs_are_in_the_codebook(self):
+        from reports.codebook import form_codebook
+        names = {row["Variable name"] for row in form_codebook("nanopore_runs")}
+        self.assertTrue({"pid", "attempt", "run_date", "run_number", "nanopore_results", "failure_reason"} <= names)
+        zonal = {row["Variable name"] for row in form_codebook("zonal_lab")}
+        self.assertTrue({"nanopore_runs", "nanopore_first_run_date", "nanopore_final_run_date",
+                         "nanopore_rerun_not_planned", "nanopore_rerun_not_planned_reason"} <= zonal)

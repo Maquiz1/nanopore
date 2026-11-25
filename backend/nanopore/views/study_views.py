@@ -38,6 +38,17 @@ class RecordVerifyView(FeatureAccessMixin, View):
         obj = access.scope_queryset(request.user, verification.model_of(form).objects.filter(pk=pk), site).first()
         if obj is None:
             raise PermissionDenied
+        if request.POST.get("action") == "verify_all":
+            if form != access.SCREENING:
+                raise PermissionDenied
+            count, problems = verification.verify_all(request.user, obj)
+            if problems:
+                messages.error(request, f"{obj.pid} not verified: " + "; ".join(problems) + ". Fix or accept them first.")
+            elif count:
+                messages.success(request, f"{obj.pid}: {count} form{'s' if count != 1 else ''} verified. All their forms are read only now.")
+            else:
+                messages.info(request, f"{obj.pid}: every form was already verified.")
+            return _back(request, reverse("nanopore:form-status-list"))
         if request.POST.get("action") == "unlock":
             error = verification.unlock(request.user, form, obj, request.POST.get("reason", "").strip()[:500])
             done = "Unlocked: the record can be corrected now. Verify it again when it is done."

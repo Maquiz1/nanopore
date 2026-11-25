@@ -24,7 +24,23 @@ LIST_TYPE_Q = {
     # Completed = Substudy 2 enrolled with a treatment outcome (nanopore/substudy.py)
     "completed": substudy_q(SUBSTUDY_2) & Q(enrollment__isnull=False, diagnosis__tb_outcome2__in=OUTCOMES),
 }
-FILTER_KEYS = ("zone", "site", "pid", "unique_lab_no", "start_date", "end_date", "status", "substudy")
+FILTER_KEYS = ("zone", "site", "pid", "unique_lab_no", "start_date", "end_date", "status", "substudy", "verified")
+VERIFIED_FILTERS = {"all": "All forms verified", "partly": "Partly verified", "none": "Not verified"}
+
+
+def verified_annotations():
+    """forms_n: the participant's forms that exist (Screening, Enrollment, Clinic Lab, Zonal Lab, Diagnosis);
+    verified_n: how many of them are verified (nanopore/verification.py)."""
+    from django.db.models import Case, IntegerField, OuterRef, Subquery, Value, When
+    from django.db.models.functions import Coalesce
+    from nanopore.models import RecordVerification
+    exists = lambda rel: Case(When(**{f"{rel}__isnull": False}, then=Value(1)), default=Value(0), output_field=IntegerField())  # noqa: E731
+    verified = (RecordVerification.objects.filter(screening=OuterRef("pk")).order_by()
+                .values("screening").annotate(n=Count("pk")).values("n"))
+    return {
+        "forms_n": Value(1) + exists("enrollment") + exists("clinic_laboratory") + exists("zonal_laboratory") + exists("diagnosis"),
+        "verified_n": Coalesce(Subquery(verified, output_field=IntegerField()), Value(0)),
+    }
 
 
 class FormStatusListView(AnyFormAccessMixin, ListView):
@@ -72,6 +88,12 @@ class FormStatusListView(AnyFormAccessMixin, ListView):
             qs = qs.filter(eligible=False)
         if get("substudy") in SUBSTUDY_KEYS:
             qs = qs.filter(substudy_q(SUBSTUDY_KEYS[get("substudy")]))
+        if get("verified") in VERIFIED_FILTERS:
+            from django.db.models import F
+            qs = qs.annotate(**verified_annotations())
+            qs = {"all": qs.filter(verified_n__gte=F("forms_n")),
+                  "partly": qs.filter(verified_n__gt=0, verified_n__lt=F("forms_n")),
+                  "none": qs.filter(verified_n=0)}[get("verified")]
         return qs
 
     def get_queryset(self):
@@ -108,4 +130,14 @@ class FormStatusListView(AnyFormAccessMixin, ListView):
         context["filter_params"] = urlencode(filters)
         context["query_params"] = urlencode({**filters, "list_type": list_type})
         context["show_location_filter"] = context["sites"].count() > 1 if hasattr(context["sites"], "count") else len(context["sites"]) > 1
+        if access.has_feature(self.request.user, access.VERIFY_RECORDS):
+            # Verified forms per participant, and the Verify all forms button (nanopore/verification.py)
+            from nanopore import study_lock, verification
+            rows = list(context.get("screenings") or [])
+            status = verification.participant_status(rows)
+            for s in rows:
+                s.verified_forms, s.total_forms = status[s.pk]
+            context["show_verified"] = True
+            context["verified_filters"] = VERIFIED_FILTERS
+            context["may_verify"] = not study_lock.is_locked()
         return context

@@ -15,8 +15,8 @@ from pathlib import Path
 
 from django.conf import settings
 
-VERSION = "0.3"  # built from the system when downloaded (reports/dictionary_builder.py)
-VERSION_DATE = "2026-11-23"
+VERSION = "0.4"  # built from the system when downloaded (reports/dictionary_builder.py)
+VERSION_DATE = "2026-11-26"
 EDITED_VERSION = "0.2"  # the last version made by correcting the study team's workbook (issue())
 PREFIX = "Tanzania_Data_Dictionary_v"
 SHEET = "EDCS"

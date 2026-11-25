@@ -104,3 +104,54 @@ def progress(user):
         rows.append({"form": form, "label": label, "total": total, "verified": done,
                      "percent": round(100 * done / total) if total else 0})
     return rows
+
+
+def participant_forms(screening):
+    """[(form, record)] of the participant's forms that exist: Screening, Enrollment, Clinic Lab, Zonal Lab, Diagnosis."""
+    found = [(access.SCREENING, screening)]
+    for form, accessor in ((access.ENROLLMENT, "enrollment"), (access.CLINIC_LAB, "clinic_laboratory"),
+                           (access.ZONAL_LAB, "zonal_laboratory"), (access.DIAGNOSIS, "diagnosis")):
+        try:
+            record = getattr(screening, accessor)
+        except Exception:  # no such form yet
+            record = None
+        if record is not None:
+            found.append((form, record))
+    return found
+
+
+def verify_all(user, screening):
+    """Verify every form of a participant, all or nothing. Returns (number verified now, problems)."""
+    from nanopore.models import RecordVerification, VerificationEvent
+    if study_lock.is_locked():
+        return 0, ["The study is locked."]
+    forms = [(form, record) for form, record in participant_forms(screening) if not study_lock.is_verified(form, record.pk)]
+    problems = []
+    for form, record in forms:
+        found = open_queries(user, form, record)
+        if found:
+            problems.append(f"{MODELS[form][1]} has {found} open quer{'y' if found == 1 else 'ies'}")
+    if problems:
+        return 0, problems
+    with transaction.atomic():
+        for form, record in forms:
+            RecordVerification.objects.create(form=form, object_id=record.pk, screening_id=screening.pk, verified_by=user)
+            VerificationEvent.objects.create(form=form, object_id=record.pk, screening_id=screening.pk,
+                                             action=VerificationEvent.VERIFY, reason="Verify all forms", by=user)
+    return len(forms), []
+
+
+def participant_status(screenings):
+    """{screening pk: (verified, forms)} for a page of participants."""
+    from nanopore.models import RecordVerification
+    screenings = list(screenings)
+    verified = {}
+    for form, pk, screening_id in RecordVerification.objects.filter(
+            screening_id__in=[s.pk for s in screenings]).values_list("form", "object_id", "screening_id"):
+        verified.setdefault(screening_id, set()).add((form, pk))
+    status = {}
+    for s in screenings:
+        forms = participant_forms(s)
+        done = sum((form, record.pk) in verified.get(s.pk, set()) for form, record in forms)
+        status[s.pk] = (done, len(forms))
+    return status

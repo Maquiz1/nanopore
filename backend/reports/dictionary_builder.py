@@ -28,6 +28,8 @@ FORMS = {
                   "Sputum sent to the zonal laboratory (Substudy 2)"),
     "edcs_tblis": ("EDCS / TBLIS", "Nobody: rebuilt by the system from the Zonal Lab form and TB-LIS",
                    f"{DAR}: TB-LIS results by lab number. {OTHERS}: copy of the Zonal Lab form with the DST from TB-LIS"),
+    "nanopore_runs": ("Nanopore Runs", f"{DAR}: CTRL (Nanopore form). {OTHERS}: the zone's laboratory",
+                      "Each Nanopore sequencing attempt of a Zonal Lab record, failed ones included"),
     "diagnosis": ("Diagnosis", "Clinician", "Diagnosis, treatment and outcome"),
     "regimen": ("Regimen Changes", "Clinician (from the Diagnosis form)", "Each change of TB regimen"),
 }
@@ -62,7 +64,13 @@ DECISIONS = [
     ("D18", "2026-11", "Exports", "What do exports contain?", "Codes from the codebook; Full adds a _label column; multiple answers joined with ';'; one Screening row per regimen change; remarks included; file names end with the date in Tanzania."),
     ("D19", "2026-11", "History", "Change history?", "Every form keeps who changed which answer, when, from where and why. Correcting a saved answer needs a reason; filling an empty one doesn't."),
     ("D20", "2026-11", "Merge", "Sputum row with GeneXpert 'Not Provided' but with microscopy or culture results?", "Not merged; the rule in D01 stays. The row is listed under TB-LIS follow-up (GeneXpert: Not Provided) for CTRL to enter the GeneXpert result in TB-LIS, and merges at the next upload. Until then the EDCS record is queried."),
-    ("D21", "2026-11", "Nanopore", "A Nanopore run fails and is repeated?", "Every run is recorded in the Sequencing runs table with its own 20(b)-21(h): its date, the lab's run number (NN/YY, restarting each year; its year must match the run date), an optional run / flow cell ID, its EPI2ME analysis, its result (Failed means the run failed, with the reason) and any delay. Attempts are numbered 1, 2, 3 by date. The final run (the latest that didn't fail, else the latest) gives the Zonal Lab's 20(b)-21(h); 22 is answered once, for it. Exports add nanopore_runs, nanopore_first_run_date and nanopore_final_run_date; the Nanopore runs export has one row per run with all its answers. Counted from 25 Nov 2026."),
+    ("D21", "2026-11", "Nanopore", "A Nanopore run fails and is repeated?", "Every run is recorded in the Sequencing runs table with its own 20(b)-21(h): its date, the lab's run number (NN/YY, restarting each year; its year must match the run date), an optional run / flow cell ID, its EPI2ME analysis, its result (Failed means the run failed, with the reason) and any delay. Attempts are numbered 1, 2, 3 by date. The final run (the latest that didn't fail, else the latest) gives the Zonal Lab's 20(b)-21(h); 22 is answered once, for it. Exports add nanopore_runs, nanopore_first_run_date, nanopore_final_run_date, nanopore_rerun_not_planned and nanopore_rerun_not_planned_reason (one row per participant, not one per run); the Nanopore Runs export has one row per run (pid, attempt, then every answer) and its variables are in the codebook's Nanopore Runs section. A participant whose runs all failed is listed on Failed runs (info) until a re-run with a result is saved or the team marks 'No re-run planned' with a reason (undo possible). Counted from 25 Nov 2026."),
+    ("D22", "2026-11", "Checks", "A check flags data that is right as it is?", "A data specialist, data manager or admin Accepts it with a reason on Date issues, DS / DR checks, Outcome without treatment, Positive culture no DST, TB-LIS follow-up or Substudy queries. It moves to the Accepted tab (Undo possible) and leaves the counts. The acceptance holds while the values it was about stay the same: if they change, the item comes back. Form queries (missing answers) are fixed, not accepted."),
+    ("D23", "2026-11", "Verification", "When is a record verified?", "When a data specialist, data manager or admin has checked it against the source and it has no open queries: Mark verified on its View or Edit page, or Verify all forms on the participant's row in Participants (all or nothing). A verified record is read only and can't be deleted; a verifier unlocks it with a reason, it is corrected and verified again. EDCS/TBLIS and Nanopore runs belong to the Zonal Lab record, regimen changes to the Diagnosis record."),
+    ("D24", "2026-11", "Merge", "Does a TB-LIS upload change verified or accepted records?", "No. Verified Zonal Lab records, records with an accepted lab check, and every Zonal Lab record while the Zonal Lab form is locked are left as they are by uploads and the nightly sync. Their lab numbers are saved with the upload and listed on the EDCS / TB-LIS card 'Left as is in latest upload'. To take TB-LIS's values, unlock the record or undo the acceptance."),
+    ("D25", "2026-11", "System Controls", "Closing a form to new records?", "'Allow new <form>' off: the form's Add buttons disappear, its create page refuses and its missing-forms count stops; saved records stay editable."),
+    ("D26", "2026-11", "Database lock", "Locking a form or the study?", "An admin locks one form, or the whole study, with a reason (the study also needs LOCK typed). Locked: read and export only, no new records, changes, deletes or restores; a locked study also stops uploads, the nightly sync, the query snapshot and the weekly emails (a last snapshot is taken at the lock). Only a superuser unlocks, with a reason; every lock and unlock is logged."),
+    ("D27", "2026-11", "Database lock", "Correcting data after a lock?", "A superuser opens a correction window on one participant with a reason (30 days, or until closed). Every change in it is saved in the history as 'Post-lock correction: <reason>' and listed on the Post-lock corrections page."),
 ]
 
 CHANGE_LOG = [
@@ -71,6 +79,10 @@ CHANGE_LOG = [
     ("0.3", "2026-11-23", "Built from the system in the layout of the other study dictionaries: Summary, Forms, Data Dictionary, Choices, "
      "Mapping (Zonal Lab and TB-LIS), Decisions and Change log. Adds every form, who fills each variable, the merge rules, "
      "the decisions taken and change history."),
+    ("0.4", "2026-11-26", "Adds the Nanopore Runs form (one row per sequencing run, with pid and attempt) and the Zonal Lab's run "
+     "columns (nanopore_runs, first and final run dates, no re-run planned and its reason). Decisions D21 updated and "
+     "D22-D27 added: accepted checks, record verification, uploads leaving verified / accepted records as they are, "
+     "closing forms to new records, form and study lock, post-lock corrections."),
 ]
 
 

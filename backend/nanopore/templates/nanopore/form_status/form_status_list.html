@@ -96,6 +96,15 @@
                 <option value="uncategorized" {% if selected_substudy == "uncategorized" %}selected{% endif %}>Uncategorized</option>
             </select>
         </div>
+        {% if show_verified %}
+        <div>
+            <label class="form-label" for="fs-verified">Verified</label>
+            <select name="verified" id="fs-verified" class="form-select form-select-sm">
+                <option value="">All</option>
+                {% for key, label in verified_filters.items %}<option value="{{ key }}" {% if selected_verified == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        {% endif %}
         <div class="fs-filter-actions">
             <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
             {% if filters_active %}<a href="?list_type={{ list_type }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
@@ -124,6 +133,7 @@
                         {% if access.view.clinic_lab %}<th>Clinic Lab</th>{% endif %}
                         {% if access.view.diagnosis %}<th>Diagnosis</th>{% endif %}
                         {% if access.view.zonal_lab %}<th>Zonal Lab</th>{% endif %}
+                        {% if show_verified %}<th>Verified</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -187,6 +197,21 @@
                                 {% else %}<span class="fs-chip miss">Missing</span>{% endif %}
                             {% elif s.substudy_case == "Substudy 4" %}<span class="fs-chip na" title="Only Substudy 2 goes to the zonal lab">N/A</span>
                             {% else %}<span class="fs-chip wait" title="The Clinic Lab Xpert result decides the substudy">Waiting for Clinic Lab</span>{% endif %}
+                        </td>
+                        {% endif %}
+                        {% if show_verified %}
+                        <td data-label="Verified" class="text-nowrap">
+                            {% if s.verified_forms == s.total_forms %}<span class="fs-chip ok" title="Every form of this participant is verified (read only)"><i class="fas fa-user-check"></i> {{ s.verified_forms }}/{{ s.total_forms }}</span>
+                            {% else %}
+                            <span class="fs-muted">{{ s.verified_forms }}/{{ s.total_forms }}</span>
+                            {% if may_verify %}
+                            <form method="post" action="{% url 'nanopore:record-verify' %}" class="d-inline">{% csrf_token %}
+                                <input type="hidden" name="form" value="screening"><input type="hidden" name="pk" value="{{ s.pk }}">
+                                <input type="hidden" name="action" value="verify_all"><input type="hidden" name="back" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Verify all of this participant's forms (only if none has open queries)">Verify all</button>
+                            </form>
+                            {% endif %}
+                            {% endif %}
                         </td>
                         {% endif %}
                     </tr>

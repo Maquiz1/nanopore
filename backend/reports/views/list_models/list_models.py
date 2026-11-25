@@ -13,13 +13,14 @@ from nanopore.models.clinic_lab import ClinicLaboratory
 from nanopore.models.diagnosis import Diagnosis
 from nanopore.models.zonal_lab import ZonalLaboratory
 from nanopore.models.regimen_changes import RegimenChanges
+from nanopore.models.nanopore_run import NanoporeRun
 
 from nanopore.models.edcs_tblis_zonal import EdcsTblisZonal
 
 
 # @staff_member_required
 def _scoped(request, model):
-    site_field = "site" if model is Screening else "screening__site"
+    site_field = {Screening: "site", NanoporeRun: "zonal_lab__screening__site"}.get(model, "screening__site")
     return export_queryset(request.user, model.objects.all(), site_field)
 
 
@@ -74,6 +75,14 @@ def list_models_view(request):
             "download_url": reverse("reports:download_model_data", args=["RegimenChanges"]),
             "labels_url": reverse("reports:download_model_labels", args=["RegimenChanges"]),
             "fields_url": reverse("reports:download_model_fields", args=["RegimenChanges"]),
+        },
+        {
+            "name": "NanoporeRun",
+            "count": _scoped(request, NanoporeRun).count(),
+            "description": "Every Nanopore sequencing run (one row per run, with the participant's PID)",
+            "download_url": reverse("reports:download_model_data", args=["NanoporeRun"]),
+            "labels_url": reverse("reports:download_model_labels", args=["NanoporeRun"]),
+            "fields_url": reverse("reports:download_model_fields", args=["NanoporeRun"]),
         },
         {
             "name": "EdcsTblisZonal",
