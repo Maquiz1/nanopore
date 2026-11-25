@@ -30,6 +30,7 @@ from options.models import (
     NanoporeSequencingResults, NanoporeSequencingDelayedReasons
 )
 
+from nanopore.substudy4_set_aside import set_aside_lab_numbers
 from nanopore.tblis_file import (
     FILTER_REASONS, MAX_REPORTED_PROBLEMS, TblisFileError, filter_reason, filter_rows, follow_up_rows, is_isolate,
     read_tblis_file,
@@ -820,6 +821,8 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
 
     # Clear previous discrepancies for a fresh start per upload session
     TblisNotInEdcs.objects.all().delete()
+    set_aside = set_aside_lab_numbers()  # Substudy 4 Zonal Lab forms in the Recycle Bin
+    set_aside_rows = 0
     EdcsNotInTblis.objects.all().delete()
     EdcsTblisMismatch.objects.all().delete()
     _save_left_out(file_rows, upload_batch)
@@ -860,6 +863,10 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
 
                 # 2. Find matching ZonalLaboratory record
                 z_lab = ZonalLaboratory.objects.filter(unique_lab_no=labno).first()
+
+                if not z_lab and labno in set_aside:
+                    set_aside_rows += 1  # Substudy 4, set aside in the Recycle Bin: expected
+                    continue
 
                 if not z_lab:
                     # TBLIS row not in ZonalLaboratory
@@ -978,6 +985,7 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
         "upload_batch_id": upload_batch.id,
         "edcs_not_in_tblis_count": edcs_not_in_tblis_count,
         "tblis_not_in_edcs_count": tblis_not_in_edcs_count,
+        "set_aside_substudy4_count": set_aside_rows,
         "mismatches_count": mismatches_count,
     }
 

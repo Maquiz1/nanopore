@@ -182,7 +182,7 @@
             <h2><i class="fas fa-microscope"></i> Zonal laboratory pipeline</h2>
             <a href="{% url 'nanopore:zonal-laboratory-list' %}" class="dash-link">View zonal lab records <i class="fas fa-arrow-right"></i></a>
         </header>
-        <p class="dash-card-sub">Each step is counted against the step before it, so a drop shows where samples are waiting.</p>
+        <p class="dash-card-sub">Substudy 2 enrolled participants. Each step is counted against the step before it, so a drop shows where samples are waiting.</p>
         <div class="dash-pipeline">
             {% include "dashboard/partials/meter.html" with step="1" label="Zonal lab results entered" note="of Substudy 2 enrolled" done=zonal_completed_count total=substudy2_enrolled_count pct=zonal_progress %}
             {% include "dashboard/partials/meter.html" with step="2" label="Culture performed" note="of zonal lab results" done=culture_completed_count total=zonal_completed_count pct=culture_progress %}
@@ -200,6 +200,7 @@
                 {% include "dashboard/partials/meter.html" with label="First-line LPA" note="of LPA done · MTBDRplus: rifampicin, isoniazid" done=first_line_lpa_count total=lpa_completed_count pct=first_line_lpa_progress %}
                 {% include "dashboard/partials/meter.html" with label="Second-line LPA" note="of LPA done · MTBDRsl: fluoroquinolones, aminoglycosides" done=second_line_lpa_count total=lpa_completed_count pct=second_line_lpa_progress %}
             </div>
+        <p class="dash-s4-line"><i class="fas fa-flask"></i> Substudy 4: <strong>{{ substudy4_enrolled_count|intcomma }}</strong> enrolled, not entered in Zonal Lab{% if substudy4_set_aside_count %} · {{ substudy4_set_aside_count|intcomma }} set aside in the Recycle Bin{% endif %}{% if substudy4_zonal_count %} · {{ substudy4_zonal_count|intcomma }} Zonal Lab form{{ substudy4_zonal_count|pluralize }} still entered{% endif %}</p>
             {% include "dashboard/partials/meter.html" with label="Nanopore sequencing" done=nanopore_completed_count total=total_substudy_counts pct=nanopore_progress %}
         </div>
     </section>
@@ -285,6 +286,8 @@
     .dash-meter { padding: 9px 0; border-top: 1px solid var(--line); }
     .dash-meter:first-of-type { border-top: 0; }
     /* First- and second-line LPA, under the LPA row */
+    .dash-s4-line { margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: .86rem; color: var(--ink-2, #4a5872); }
+    .dash-s4-line i { color: var(--muted, #7d8aa3); margin-right: 4px; }
     .dash-meter-sub { margin-left: 22px; padding-left: 12px; border-left: 2px solid var(--line); }
     .dash-meter-sub .dash-meter { padding: 6px 0; }
     .dash-meter-sub .dash-meter-label { font-size: .9em; font-weight: 500; }

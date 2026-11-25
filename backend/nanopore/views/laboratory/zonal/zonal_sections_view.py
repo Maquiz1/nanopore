@@ -17,6 +17,7 @@ from nanopore.models import Screening, ZonalLaboratory
 from nanopore.tasks_tblis_raw import sync_with_latest_tblis
 from nanopore.zonal_sections import BY_KEY, DAR_CTRL_FORMS, section_cards
 from nanopore.zonal_rules import is_lab_number_only
+from nanopore.substudy4_set_aside import may_start_for
 from utils import access
 from utils.access_mixins import FormAccessMixin
 
@@ -71,6 +72,8 @@ class ZonalLabSectionView(FormAccessMixin, View):
             raise Http404("A Zonal Lab record starts with sample reception.")
         screening_id = self.request.GET.get("screening") or self.request.POST.get("screening")
         screening = get_object_or_404(self.scope(Screening.objects.all(), "site"), pk=screening_id)
+        if not hasattr(screening, "zonal_laboratory") and not may_start_for(self.request.user, screening):
+            raise PermissionDenied(f"{screening.pid} is Substudy 4: the Zonal Lab is not entered for Substudy 4.")
         return None, screening
 
     def page(self, form, record, screening, read_only):

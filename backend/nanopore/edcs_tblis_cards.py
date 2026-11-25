@@ -88,6 +88,8 @@ def card_queryset(key, batch=None):
             ZonalLaboratory = apps.get_model("nanopore", "ZonalLaboratory")
             qs = qs.exclude(labno__in=ZonalLaboratory.objects.values("unique_lab_no")).exclude(
                 labno__in=ZonalLaboratory.objects.filter(isolate_unique_lab_no__isnull=False).values("isolate_unique_lab_no"))
+            from nanopore.substudy4_set_aside import set_aside_lab_numbers
+            qs = qs.exclude(labno__in=set_aside_lab_numbers())  # Substudy 4, set aside
         return qs.order_by("labno")
 
     model = apps.get_model("nanopore", "ZonalLaboratory" if card.source == "zonal" else "EdcsTblisZonal")

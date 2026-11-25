@@ -3,6 +3,7 @@ from urllib.parse import parse_qsl, urlencode
 from django.http import HttpResponseNotAllowed
 
 from nanopore.zonal_sections import BY_KEY, by_section
+from nanopore.substudy4_set_aside import may_start_for
 import logging
 
 from django.db import transaction
@@ -70,11 +71,24 @@ class ZonalLabFormView(FormAccessMixin, View):
                             + "?" + urlencode({"screening": screening_id, **dict(parse_qsl(keep))}))
         return None  # no participant chosen yet: the full form picks one
 
+    def refuse_substudy4(self, request, obj):
+        """The Zonal Lab follows Substudy 2: no new form for a Substudy 4 participant (nanopore/substudy4_set_aside.py)."""
+        if obj is not None:
+            return None
+        screening = self.get_screening_instance()
+        if screening is not None and not may_start_for(request.user, screening):
+            messages.info(request, f"{screening.pid} is Substudy 4: the Zonal Lab is not entered for Substudy 4.")
+            return redirect("nanopore:form-status-list")
+        return None
+
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
         moved = self.by_section_redirect(request, obj)
         if moved:
             return moved
+        refused = self.refuse_substudy4(request, obj)
+        if refused:
+            return refused
         next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
 
         screening_instance = self.get_screening_instance()
@@ -100,6 +114,9 @@ class ZonalLabFormView(FormAccessMixin, View):
         if self.view_only:
             return HttpResponseNotAllowed(["GET"])
         obj = self.get_object()
+        refused = self.refuse_substudy4(request, obj)
+        if refused:
+            return refused
         screening_instance = self.get_screening_instance()
 
         form = ZonalLaboratoryForm(

@@ -1,3 +1,4 @@
+from nanopore.substudy4_set_aside import set_aside_entries
 from nanopore.models import EdcsTblisZonal
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
 from nanopore.zonal_sections import POSITIVE_LJ, POSITIVE_MGIT
@@ -460,7 +461,12 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         # ==================================================
         # ZONAL LAB PROGRESS (ALL SUBSTUDIES)
         # ==================================================
-        zonal_qs = ZonalLaboratory.objects.filter(screening__in=qs)
+        # The pipeline covers Substudy 2 enrolled participants, the total it is counted against
+        substudy2_screenings = qs.filter(enrollment__in=substudy2_enrolled_qs)
+        zonal_qs = ZonalLaboratory.objects.filter(screening__in=substudy2_screenings)
+        # Substudy 4 is shown on its own line under the pipeline
+        substudy4_zonal_count = ZonalLaboratory.objects.filter(screening__in=qs.filter(enrollment__in=substudy4_enrolled_qs)).count()
+        substudy4_set_aside_count = set_aside_entries().filter(pid__in=qs.values("pid")).count()
         total_substudy_counts = substudy2_enrolled_count
         zonal_completed_count = zonal_qs.count()
         zonal_progress = round(
@@ -470,7 +476,7 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         # Lab results from the merged EDCS/TBLIS records: other zones' are copies of their
         # Zonal Lab forms, Dar es Salaam's carry the TB-LIS results (its Zonal Lab form holds
         # only the lab number). Step 1 above still counts the Zonal Lab forms themselves.
-        results = EdcsTblisZonal.objects.filter(screening__in=qs, screening__zonal_laboratory__isnull=False)
+        results = EdcsTblisZonal.objects.filter(screening__in=substudy2_screenings, screening__zonal_laboratory__isnull=False)
         pct = lambda part, whole: round(part / whole * 100, 1) if whole else 0
 
         cultures = results.filter(culture_performed=1)
@@ -569,6 +575,8 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
             "xpert_xdr_progress": xpert_xdr_progress,
             "lpa_completed_count": lpa_completed_count,
             "lpa_progress": lpa_progress,
+            "substudy4_zonal_count": substudy4_zonal_count,
+            "substudy4_set_aside_count": substudy4_set_aside_count,
             "culture_positive_count": culture_positive_count,
             "culture_positive_progress": culture_positive_progress,
             "first_line_lpa_count": first_line_lpa_count,
