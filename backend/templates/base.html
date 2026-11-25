@@ -31,6 +31,13 @@
         {% include "partials/navbar.html" %}
 
         <div class="container">
+            {% block back_button %}{% if request.resolver_match.url_name != "dashboard" %}
+            <div class="page-back">
+                <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm page-back-btn" onclick="return goBack(event)" title="Back to the page you came from">
+                    <i class="fas fa-arrow-left"></i> Go back
+                </a>
+            </div>
+            {% endif %}{% endblock %}
             {% if messages %}
             <div class="messages">
                 {% for message in messages %}
@@ -170,6 +177,24 @@
     </script>
 
 
+    <script>
+        // Go back: the previous page of this site, or the dashboard when there is none (a link opened in a new tab)
+        function goBack(event) {
+            let cameFromHere = false;
+            try { cameFromHere = document.referrer && new URL(document.referrer).origin === window.location.origin; } catch (e) {}
+            if (cameFromHere && window.history.length > 1) {
+                event.preventDefault();
+                window.history.back();
+                return false;
+            }
+            return true;  // follow the link to the dashboard
+        }
+    </script>
+    <style>
+        .page-back { margin: 14px 0 -6px; }
+        .page-back-btn { color: #134074; background: #fff; border: 1px solid #d5dcea; border-radius: 9px; font-weight: 600; }
+        .page-back-btn:hover { color: #fff; background: #134074; border-color: #134074; }
+    </style>
     {% block extra_scripts %}{% endblock %}
 
 </body>
