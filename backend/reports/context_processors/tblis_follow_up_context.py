@@ -27,5 +27,8 @@ def follow_up_participants(user):
 def tblis_follow_up_total(request):
     user = request.user
     if not user.is_authenticated or not access.has_feature(user, access.TBLIS_FOLLOW_UP):
-        return {"context_tblis_follow_up_total": 0}
-    return {"context_tblis_follow_up_total": len(follow_up_participants(user))}
+        return {"context_tblis_follow_up_total": 0, "context_no_dst_total": 0}
+    from reports.services.no_dst import no_dst_counts
+    return {"context_tblis_follow_up_total": len(follow_up_participants(user)),
+            # Positive culture, no DST: information, outside the query totals too
+            "context_no_dst_total": sum(no_dst_counts(user).values())}

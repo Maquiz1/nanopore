@@ -1,3 +1,4 @@
+from reports.views.queries.no_dst_view import NoDstView
 from django.urls import path
 from django.views.generic import RedirectView
 from reports.views.snapshots.query_trends_view import query_trends
@@ -190,6 +191,7 @@ urlpatterns = [
     path("dsdr-checks/", DsDrChecksView.as_view(), name="dsdr_checks"),
     path("dsdr-checks/<slug:key>/", DsDrChecksView.as_view(), name="dsdr_checks"),
     path("outcome-without-treatment/", OutcomeWithoutTreatmentView.as_view(), name="outcome_without_treatment"),
+    path("positive-culture-no-dst/", NoDstView.as_view(), name="no_dst"),
     path("substudy-queries/", SubstudyQueriesView.as_view(), name="substudy_queries"),
     path("substudy-queries/<slug:key>/", SubstudyQueriesView.as_view(), name="substudy_queries"),
 

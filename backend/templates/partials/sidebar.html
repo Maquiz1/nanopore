@@ -169,6 +169,13 @@
         {% endif %}
 
         {% if access.tblis_follow_up %}
+        <a href="{% url 'reports:no_dst' %}" class="sb-link" title="Positive culture, no DST (information)">
+            <i class="fas fa-vial-circle-check"></i><span>Positive culture, no DST</span>
+            {% if context_no_dst_total %}<span class="sb-badge sb-badge-sm sb-badge-info" title="For information, not queries">{{ context_no_dst_total|intcomma }}</span>{% endif %}
+        </a>
+        {% endif %}
+
+        {% if access.tblis_follow_up %}
         <a href="{% url 'nanopore:tblis-follow-up' %}" class="sb-link" title="TB-LIS follow-up">
             <i class="fas fa-list-check"></i><span>TB-LIS follow-up</span>
             {% if context_tblis_follow_up_total %}<span class="sb-badge sb-badge-sm" title="Participants to follow up in TB-LIS">{{ context_tblis_follow_up_total|intcomma }}</span>{% endif %}
@@ -476,6 +483,7 @@
         text-align: center;
     }
     #sidebar .sb-badge-sm { padding: 1px 6px; font-size: 0.66rem; background: rgba(229, 72, 77, 0.85); }
+    #sidebar .sb-badge-info { background: rgba(29, 111, 214, 0.85); }  /* information, not queries */
     #sidebar .sb-toggle .sb-badge + .sb-chevron { margin-left: 6px; }
 
     /* Collapsed (hamburger in the top bar): icons only */

@@ -47,7 +47,7 @@ class CtrlDarFormsTests(AccessTestBase):
         with self.assertRaises(NoReverseMatch):
             self.url("isolate")
         page = self.client.get(reverse("reports:ctrl_dar_work"))
-        self.assertEqual([t["key"] for t in page.context["tabs"]], ["nanopore", "lpa", "no_dst"])  # no_dst: information
+        self.assertEqual([t["key"] for t in page.context["tabs"]], ["nanopore", "lpa"])
         self.assertEqual(page.context["tab"], "nanopore")
 
     def test_dar_zonal_form_links_to_ctrl_forms_also_once_answered(self):
@@ -80,7 +80,7 @@ class CtrlDarFormsTests(AccessTestBase):
         admin = self.make_user("admin_dst", [access.ADMIN])
         self.assertNotIn("missing_phenotypic_performed", get_zonal_counts(admin, EdcsTblisZonal)[0])  # never a query (D05)
         record = EdcsTblisZonal.objects.filter(pk=self.edcs.pk)
-        count = lambda: len(self.rows("no_dst"))
+        count = lambda: self.client.get(reverse("reports:no_dst"), {"group": "dar"}).context["page_obj"].paginator.count
         self.assertEqual(count(), 0)  # no positive culture
         positive = MGITCultureResult.objects.create(pk=1, name="Positive", value=1)
         negative = MGITCultureResult.objects.create(pk=2, name="Negative", value=2)

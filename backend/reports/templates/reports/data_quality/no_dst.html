@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Positive culture, no DST · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="fs">
+    <section class="fs-hero">
+        <div>
+            <div class="fs-eyebrow">Data quality · For information</div>
+            <h1 class="fs-title">Positive culture, no DST</h1>
+            <div class="fs-meta">Positive cultures for which TB-LIS has no phenotypic DST. These are not queries: not every positive culture gets DST.
+                The study team can decide whether DST is needed and ask CTRL to do it and record it in TB-LIS; the next upload brings it in and the record leaves this list.</div>
+        </div>
+    </section>
+
+    <nav class="fs-tabs">
+        {% for g in groups %}
+        <a href="?group={{ g.key }}" class="fs-tab {% if group == g.key %}active{% endif %}">
+            <span class="fs-tab-label">{{ g.label }}</span>
+            <span class="fs-tab-num">{{ g.count|intcomma }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <form method="get" class="fs-filters">
+        <input type="hidden" name="group" value="{{ group }}">
+        <div>
+            <label class="form-label" for="nd-q">PID or lab no.</label>
+            <input type="search" name="q" id="nd-q" class="form-control form-control-sm" value="{{ search }}">
+        </div>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            {% if search %}<a href="?group={{ group }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+        </div>
+    </form>
+
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ page_obj.paginator.count|intcomma }} participant{{ page_obj.paginator.count|pluralize }}</strong>
+            {% if page_obj.has_other_pages %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead><tr>
+                    <th>PID</th><th>Site</th><th>Zone</th><th>Lab No.</th>{% if group == "others" %}<th>Isolate No.</th>{% endif %}<th>Culture</th><th></th>
+                </tr></thead>
+                <tbody>
+                    {% for r in page_obj %}
+                    <tr>
+                        <td class="fs-pid" data-label="PID">{{ r.screening.pid }}</td>
+                        <td data-label="Site">{{ r.screening.site.name }}</td>
+                        <td data-label="Zone">{{ r.screening.site.district.region.zone.name }}</td>
+                        <td data-label="Lab No.">{{ r.unique_lab_no|default:"—" }}</td>
+                        {% if group == "others" %}<td data-label="Isolate No.">{{ r.isolate_unique_lab_no|default:"—" }}</td>{% endif %}
+                        <td data-label="Culture">
+                            {% if r.lj_results %}LJ {{ r.lj_results }}{% if r.lj_results_date %} · {{ r.lj_results_date|date:"d M Y" }}{% endif %}{% endif %}
+                            {% if r.lj_results and r.mgit_results %}<br>{% endif %}
+                            {% if r.mgit_results %}MGIT {{ r.mgit_results }}{% if r.mgit_results_date %} · {{ r.mgit_results_date|date:"d M Y" }}{% endif %}{% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if group == "dar" %}
+                            <a href="{% url 'nanopore:edcs-tblis-laboratory-view' r.pk %}#section-isolate" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a>
+                            {% else %}
+                            <a href="{% url 'nanopore:zonal-laboratory-detail' r.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>None: every positive culture here has its DST.</p></div>
+        {% endif %}
+        {% if page_obj.has_other_pages %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?group={{ group }}&page={{ page_obj.previous_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?group={{ group }}&page={{ page_obj.next_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% include "nanopore/partials/_list_styles.html" %}
+{% endblock %}

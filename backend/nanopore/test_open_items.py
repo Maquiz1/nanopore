@@ -131,3 +131,23 @@ class ExportRequestTests(DataSafetyBase):
             page = client.get(reverse("nanopore:edcs-tblis-laboratory-list"))
             token = page.cookies["csrftoken"].value
             self.assertEqual(client.post(url, "{}", content_type="application/json", HTTP_X_CSRFTOKEN=token).status_code, 200)
+
+
+class NoDstPageTests(DataSafetyBase):
+    """Positive culture, no DST: its own page above TB-LIS follow-up, for information."""
+
+    def test_page_lists_both_groups_and_stays_out_of_the_totals(self):
+        from nanopore.models import EdcsTblisZonal, ZonalLaboratory
+        from options.models import MGITCultureResult, YesNoNA
+        positive = MGITCultureResult.objects.create(pk=1, name="Positive", value=1)
+        ZonalLaboratory.objects.create(screening=self.dar, unique_lab_no="30001")
+        EdcsTblisZonal.objects.create(screening=self.dar, unique_lab_no="30001", mgit_results=positive)
+        ZonalLaboratory.objects.filter(pk=self.zonal_labs["B1"].pk).update(
+            culture_isolate=YesNoNA.objects.create(pk=1, name="Yes", value=1), isolate_unique_lab_no="50001")
+        self.client.force_login(self.make_user("ds_nodst", [access.ADMIN]))
+        page = self.client.get(reverse("reports:no_dst"))
+        self.assertEqual({g["key"]: g["count"] for g in page.context["groups"]}, {"dar": 1, "others": 1})
+        self.assertEqual(page.context["context_no_dst_total"], 2)
+        self.assertContains(page, reverse("reports:no_dst"))  # in the sidebar
+        self.client.force_login(self.make_user("nurse_nodst", [access.NURSE], sites=[self.a1]))
+        self.assertEqual(self.client.get(reverse("reports:no_dst")).status_code, 403)
