@@ -15,7 +15,8 @@
             </div>
         </div>
         <div class="df-hero-actions">
-            <a href="{{ back }}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> {% if object %}All sections{% else %}Back{% endif %}</a>
+            <a href="{{ back }}" class="btn btn-sm btn-light"><i class="fas fa-arrow-left"></i> {% if next %}Back{% elif object %}All sections{% else %}Back{% endif %}</a>
+            {% if next and object %}<a href="{% url 'nanopore:zonal-lab-hub' object.pk %}" class="btn btn-sm btn-light"><i class="fas fa-table-cells-large"></i> All sections</a>{% endif %}
             {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" history_class="btn-light" %}
         </div>
     </section>
@@ -23,6 +24,7 @@
     <form method="post" novalidate>
         {% csrf_token %}
         {% if not object %}<input type="hidden" name="screening" value="{{ screening.pk }}">{% endif %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
         {% include "nanopore/partials/form_error_summary.html" with form=form %}
 
         <section class="df-card">

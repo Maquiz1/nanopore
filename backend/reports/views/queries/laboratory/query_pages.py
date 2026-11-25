@@ -39,7 +39,7 @@ class QueryPagesMixin:
         filters = {k: v for k, v in (("zone", zone_id), ("site", site_id)) if v}
         return render(request, self.list_template_name, {
             "label": query_label(key), "key": key, "page_obj": page,
-            "rows": serialize_rows(page.object_list, key, self.row_link),
+            "rows": serialize_rows(page.object_list, key, None if self.row_link is None else (lambda item: self.row_link(item, key))),
             "form_label": self.form_label, "report_url": reverse(self.report_url_name), "show_isolate": self.show_isolate,
             "zones": zones, "sites": sites, "selected_zone": zone_id, "selected_site": site_id,
             "filter_query": urlencode({"query": key, **filters}), "back_query": urlencode(filters),

@@ -9,7 +9,11 @@ class SystemControl(models.Model):
         default=True,
         help_text="If unchecked, the 'New Screening' button will be hidden from the dashboard."
     )
-    
+    zonal_lab_by_section = models.BooleanField(
+        default=True,
+        help_text="If checked, Zonal Lab records open section by section; if unchecked, as the single full form.",
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

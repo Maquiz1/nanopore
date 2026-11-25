@@ -172,3 +172,31 @@ def section_cards(record, screening):
             "dar": dar, "ctrl_url": ctrl_url,
         })
     return cards
+
+
+# --- Where Zonal Lab links go (System Controls: "Zonal Lab by section") ---
+
+def by_section():
+    """The admin switch; on unless an admin turned it off."""
+    from nanopore.models.system_control import SystemControl
+    control = SystemControl.objects.only("zonal_lab_by_section").first()
+    return True if control is None else control.zonal_lab_by_section
+
+
+def query_section(key):
+    """The section whose form answers a query (None: not a Zonal Lab question)."""
+    from reports.constants.zona_mapping import ZONAL_DQ_FIELD_MAPPING
+    names = ZONAL_DQ_FIELD_MAPPING.get(key)
+    if not names:
+        return None
+    return next((section.key for section in SECTIONS if names[0] in section.fields), None)
+
+
+def zonal_edit_url(pk, key=None, switch=None):
+    """Edit a Zonal Lab: its section for a query, else the hub; the full form when the switch is off."""
+    if not (by_section() if switch is None else switch):
+        return reverse("nanopore:zonal-laboratory-update", args=[pk])
+    section = query_section(key) if key else None
+    if section:
+        return reverse("nanopore:zonal-lab-section", args=[pk, section])
+    return reverse("nanopore:zonal-lab-hub", args=[pk])

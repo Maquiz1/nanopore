@@ -50,7 +50,7 @@
                     {% for item in rows %}
                     <tr>
                         <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
-                        <td class="fs-pid">{% if item.fix_url %}<a href="{{ item.fix_url }}?next={{ request.get_full_path|urlencode }}">{{ item.pid }}</a>{% else %}{{ item.pid }}{% endif %}</td>
+                        <td class="fs-pid">{% if item.fix_url %}<a href="{{ item.fix_url }}{% if "?" in item.fix_url %}&{% else %}?{% endif %}next={{ request.get_full_path|urlencode }}">{{ item.pid }}</a>{% else %}{{ item.pid }}{% endif %}</td>
                         <td>{{ item.lab_no|default:"—" }}</td>
                         {% if show_isolate %}<td>{{ item.isolate_no }}</td>{% endif %}
                         <td>{{ item.zone_name }}</td>

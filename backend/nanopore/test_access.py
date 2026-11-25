@@ -21,6 +21,9 @@ from utils.access import can_edit, can_view, get_accessible_sites, scope_queryse
 class AccessTestBase(TestCase):
     @classmethod
     def setUpTestData(cls):
+        # The full Zonal Lab form is what these tests check; nanopore/test_zonal_sections.py turns sections on
+        from nanopore.models.system_control import SystemControl
+        SystemControl.objects.create(zonal_lab_by_section=False)
         for name in access.ALL_ROLES:
             Group.objects.create(name=name)
         local = SiteLevel.objects.create(name="Local", code="local")

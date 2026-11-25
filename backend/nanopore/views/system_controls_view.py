@@ -27,6 +27,7 @@ class SystemControlsView(UserPassesTestMixin, View):
         # If not present in request.POST, they are False.
         control.enable_form_submissions = request.POST.get("enable_form_submissions") == "on"
         control.enable_new_screening = request.POST.get("enable_new_screening") == "on"
+        control.zonal_lab_by_section = request.POST.get("zonal_lab_by_section") == "on"
         control.save()
 
         messages.success(request, "System Controls updated successfully.")

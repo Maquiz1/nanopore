@@ -19,7 +19,7 @@
             {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" history_class="btn-light" %}
             {% include "nanopore/partials/_edcs_link.html" with edcs_class="btn-light" %}
             <a href="{% url 'nanopore:zonal-laboratory-detail' object.pk %}" class="btn btn-sm btn-light" title="Every question on one page, read only"><i class="fas fa-file-lines"></i> Whole form</a>
-            {% if edit_all %}<a href="{% url 'nanopore:zonal-laboratory-update' object.pk %}" class="btn btn-sm btn-warning" title="Every section on one page, for entering a whole paper form"><i class="fas fa-pen-to-square"></i> Edit all sections</a>{% endif %}
+            {% if edit_all %}<a href="{% url 'nanopore:zonal-laboratory-update' object.pk %}?all=1" class="btn btn-sm btn-warning" title="Every section on one page, for entering a whole paper form"><i class="fas fa-pen-to-square"></i> Edit all sections</a>{% endif %}
         </div>
     </section>
 

@@ -32,6 +32,16 @@
                             <input class="form-check-input" type="checkbox" name="enable_new_screening" id="enableNewScreening" {% if control.enable_new_screening %}checked{% endif %}>
                         </div>
                     </div>
+
+                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <h5 class="mb-1">Zonal Lab by section</h5>
+                            <small class="text-muted">If turned on, Edit opens a participant's Zonal Lab as seven sections (reception, microscopy, culture, isolate, Xpert XDR, LPA, Nanopore) and query links open the section that fixes them. Turn it off to go back to the single full form for everyone; admins, data managers and data specialists can always use "Edit all sections".</small>
+                        </div>
+                        <div class="form-check form-switch fs-4">
+                            <input class="form-check-input" type="checkbox" name="zonal_lab_by_section" id="zonalLabBySection" {% if control.zonal_lab_by_section %}checked{% endif %}>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-end">

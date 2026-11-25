@@ -210,3 +210,49 @@ class SectionFormsTests(DataSafetyBase):
     def statuses(self):
         lab = self.fresh()
         return {card["section"].key: card["status"] for card in section_cards(lab, lab.screening)}
+
+
+class BySectionSwitchTests(DataSafetyBase):
+    """System Controls "Zonal Lab by section": where Edit and query links go."""
+
+    def setUp(self):
+        super().setUp()
+        from nanopore.models.system_control import SystemControl
+        self.control = SystemControl.objects.get()
+        self.control.zonal_lab_by_section = True
+        self.control.save()
+        self.lab = self.zonal_labs["A1"]
+        self.client.force_login(self.make_user("lab_switch", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        self.edit = reverse("nanopore:zonal-laboratory-update", args=[self.lab.pk])
+
+    def test_edit_opens_the_sections(self):
+        self.assertRedirects(self.client.get(self.edit), reverse("nanopore:zonal-lab-hub", args=[self.lab.pk]), fetch_redirect_response=False)
+        self.assertRedirects(self.client.get(self.edit + "?section=culture&next=/x/"),
+                             reverse("nanopore:zonal-lab-section", args=[self.lab.pk, "culture"]) + "?next=%2Fx%2F",
+                             fetch_redirect_response=False)
+        self.assertEqual(self.client.get(self.edit + "?all=1").status_code, 200)  # Edit all sections
+        new = Screening.objects.create(screening_date=date(2025, 3, 2), pid1="010", pid2="010", site=self.a1, eligible=True)
+        start = self.client.get(reverse("nanopore:zonal-laboratory-create") + f"?screening={new.pk}")
+        self.assertRedirects(start, reverse("nanopore:zonal-lab-section-new", args=["reception"]) + f"?screening={new.pk}",
+                             fetch_redirect_response=False)
+
+    def test_switch_off_keeps_the_full_form(self):
+        self.control.zonal_lab_by_section = False
+        self.control.save()
+        self.assertEqual(self.client.get(self.edit).status_code, 200)
+
+    def test_query_links_open_the_section_and_come_back(self):
+        listing = self.client.get(reverse("reports:zonal_quality_report") + "?query=missing_date_sputum_received")
+        self.assertContains(listing, f"{self.edit}?section=reception&next=")
+        back = reverse("reports:zonal_quality_report") + "?query=missing_date_sputum_received"
+        SampleAppearance.objects.create(pk=1, name="Purulent", value=1)
+        saved = self.client.post(reverse("nanopore:zonal-lab-section", args=[self.lab.pk, "reception"]),
+                                 {"unique_lab_no": "LAB-A1", "date_sputum_received": "2025-03-03", "appearance": 1,
+                                  "sample_volume": "2", "next": back, "reason_for_change": "Filled from the register"})
+        self.assertRedirects(saved, back, fetch_redirect_response=False)
+
+    def test_admin_turns_it_off(self):
+        self.client.force_login(self.make_user("admin_switch", [access.ADMIN]))
+        self.client.post(reverse("nanopore:system-controls"), {"enable_form_submissions": "on", "enable_new_screening": "on"})
+        self.control.refresh_from_db()
+        self.assertFalse(self.control.zonal_lab_by_section)

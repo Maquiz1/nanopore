@@ -7,6 +7,8 @@ from django.shortcuts import render
 from django.apps import apps
 from django.urls import reverse
 
+from nanopore.zonal_sections import query_section
+
 from reports.services.zonal_dq import get_zonal_dq
 from reports.services.substudy_queries import substudy_query_qs, visible_queries
 from reports.views.queries.laboratory.query_pages import PREVIEW_ROWS, QueryPagesMixin
@@ -17,8 +19,10 @@ class ZonalDataQualityView(QueryPagesMixin, AnyFormAccessMixin, View):
     access_forms = (access.ZONAL_LAB,)
     form_label, report_url_name, show_isolate = "Zonal Lab", "reports:zonal_quality_report", True
 
-    def row_link(self, item):
-        return reverse("nanopore:zonal-laboratory-update", args=[item["id"]])
+    def row_link(self, item, key=None):
+        # The old Edit address: with "Zonal Lab by section" on, it opens the section that fixes the query
+        section = query_section(key) if key else None
+        return reverse("nanopore:zonal-laboratory-update", args=[item["id"]]) + (f"?section={section}" if section else "")
 
     template_name = "reports/data_quality/laboratory/zonal/data_zonal_quality_report.html"
 

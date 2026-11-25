@@ -8,6 +8,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
 from nanopore import history
@@ -78,8 +79,16 @@ class ZonalLabSectionView(FormAccessMixin, View):
                 form_field.disabled = True
         return render(self.request, self.template_name, {
             "form": form, "object": record, "screening": screening, "section": self.section,
-            "read_only": read_only, "back": hub_url(record) if record else reverse("nanopore:form-status-list"),
+            "read_only": read_only, "back": self.next_url() or (hub_url(record) if record else reverse("nanopore:form-status-list")),
+            "next": self.next_url() or "",
         })
+
+    def next_url(self):
+        """Where the user came from (a query list), to go back to after saving."""
+        url = self.request.POST.get("next") or self.request.GET.get("next")
+        if url and url_has_allowed_host_and_scheme(url, allowed_hosts={self.request.get_host()}):
+            return url
+        return None
 
     def dar_elsewhere(self, record, screening):
         """Dar es Salaam: only the lab number is entered here; the rest is TB-LIS's or CTRL's."""
@@ -133,4 +142,4 @@ class ZonalLabSectionView(FormAccessMixin, View):
         except Exception:  # the nightly sync tries again
             logger.exception("Could not sync Zonal Lab %s to EDCS/TBLIS", saved.pk)
         messages.success(request, f"{self.section.title} saved for {screening.pid}.")
-        return redirect(hub_url(saved))
+        return redirect(self.next_url() or hub_url(saved))

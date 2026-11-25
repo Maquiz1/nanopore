@@ -1,4 +1,8 @@
+from urllib.parse import parse_qsl, urlencode
+
 from django.http import HttpResponseNotAllowed
+
+from nanopore.zonal_sections import BY_KEY, by_section
 import logging
 
 from django.db import transaction
@@ -9,7 +13,7 @@ from utils.access_mixins import FormAccessMixin
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import UpdateView
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.shortcuts import redirect
 
 from nanopore.models import ZonalLaboratory
@@ -19,7 +23,7 @@ from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 
 from nanopore.models import ZonalLaboratory, Screening
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -50,8 +54,27 @@ class ZonalLabFormView(FormAccessMixin, View):
             return get_object_or_404(self.scope(Screening.objects.all(), "site"), pk=screening_id)
         return None
 
+    def by_section_redirect(self, request, obj):
+        """System Controls "Zonal Lab by section": Edit opens the sections; ?all=1 keeps the full form."""
+        if self.view_only or request.GET.get("all") == "1" or not by_section():
+            return None
+        keep = urlencode({k: request.GET[k] for k in ("next",) if request.GET.get(k)})
+        if obj is not None:
+            section = BY_KEY.get(request.GET.get("section"))
+            url = (reverse("nanopore:zonal-lab-section", args=[obj.pk, section.key]) if section
+                   else reverse("nanopore:zonal-lab-hub", args=[obj.pk]))
+            return redirect(url + (f"?{keep}" if keep else ""))
+        screening_id = request.GET.get("screening")
+        if screening_id:
+            return redirect(reverse("nanopore:zonal-lab-section-new", args=["reception"])
+                            + "?" + urlencode({"screening": screening_id, **dict(parse_qsl(keep))}))
+        return None  # no participant chosen yet: the full form picks one
+
     def get(self, request, *args, **kwargs):
         obj = self.get_object()
+        moved = self.by_section_redirect(request, obj)
+        if moved:
+            return moved
         next_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
 
         screening_instance = self.get_screening_instance()
