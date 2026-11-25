@@ -16,7 +16,7 @@
 
     <nav class="fs-tabs">
         {% for g in groups %}
-        <a href="?group={{ g.key }}" class="fs-tab {% if group == g.key %}active{% endif %}">
+        <a href="?group={{ g.key }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="fs-tab {% if group == g.key %}active{% endif %}">
             <span class="fs-tab-label">{{ g.label }}</span>
             <span class="fs-tab-num">{{ g.count|intcomma }}</span>
         </a>
@@ -26,12 +26,26 @@
     <form method="get" class="fs-filters">
         <input type="hidden" name="group" value="{{ group }}">
         <div>
+            <label class="form-label" for="f-zone">Zone</label>
+            <select name="zone" id="f-zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for pk, name in zones.items %}<option value="{{ pk }}" {% if selected_zone == pk %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="f-site">Site</label>
+            <select name="site" id="f-site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for pk, name in sites.items %}<option value="{{ pk }}" {% if selected_site == pk %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
             <label class="form-label" for="nd-q">PID or lab no.</label>
             <input type="search" name="q" id="nd-q" class="form-control form-control-sm" value="{{ search }}">
         </div>
         <div class="fs-filter-actions">
             <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
-            {% if search %}<a href="?group={{ group }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+            {% if filter_query %}<a href="?group={{ group }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
         </div>
     </form>
 
@@ -76,9 +90,9 @@
         {% endif %}
         {% if page_obj.has_other_pages %}
         <nav class="fs-pager" aria-label="Pages">
-            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?group={{ group }}&page={{ page_obj.previous_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?group={{ group }}&page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
             <span class="fs-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?group={{ group }}&page={{ page_obj.next_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?group={{ group }}&page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
         </nav>
         {% endif %}
     </section>

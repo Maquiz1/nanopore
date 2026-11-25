@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Nanopore failed · Dream Fund - Nanopore{% endblock %}
+
+{% block content %}
+<div class="fs">
+    <section class="fs-hero">
+        <div>
+            <div class="fs-eyebrow">Data quality · For information</div>
+            <h1 class="fs-title">Nanopore failed</h1>
+            <div class="fs-meta">Participants whose Nanopore runs have all failed so far. These are not queries: the record is complete.
+                A participant leaves the list when a re-run with a result is saved, or when the team decides no re-run is planned. Longest wait first.</div>
+        </div>
+    </section>
+
+    <nav class="fs-tabs">
+        {% for t in tabs %}
+        <a href="?tab={{ t.key }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="fs-tab {% if tab == t.key %}active{% endif %}">
+            <span class="fs-tab-label">{{ t.label }}</span>
+            <span class="fs-tab-num">{{ t.count|intcomma }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <form method="get" class="fs-filters">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <div>
+            <label class="form-label" for="f-zone">Zone</label>
+            <select name="zone" id="f-zone" class="form-select form-select-sm">
+                <option value="">All zones</option>
+                {% for pk, name in zones.items %}<option value="{{ pk }}" {% if selected_zone == pk %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="f-site">Site</label>
+            <select name="site" id="f-site" class="form-select form-select-sm">
+                <option value="">All sites</option>
+                {% for pk, name in sites.items %}<option value="{{ pk }}" {% if selected_site == pk %}selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="nf-q">PID or lab no.</label>
+            <input type="search" name="q" id="nf-q" class="form-control form-control-sm" value="{{ search }}">
+        </div>
+        <div class="fs-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            {% if filter_query %}<a href="?tab={{ tab }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+        </div>
+    </form>
+
+    <section class="fs-card">
+        <div class="fs-card-head">
+            <strong>{{ page_obj.paginator.count|intcomma }} participant{{ page_obj.paginator.count|pluralize }}</strong>
+            {% if page_obj.has_other_pages %}<span class="fs-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</span>{% endif %}
+        </div>
+        {% if rows %}
+        <div class="table-responsive">
+            <table class="table fs-table mb-0">
+                <thead><tr>
+                    <th>PID</th><th>Site</th><th>Zone</th><th>Runs</th><th>Last run</th><th>Why it failed</th>
+                    <th>{% if tab == "closed" %}Why no re-run{% else %}Waiting{% endif %}</th><th></th>
+                </tr></thead>
+                <tbody>
+                    {% for r in rows %}
+                    <tr>
+                        <td class="fs-pid" data-label="PID">{{ r.lab.screening.pid }}</td>
+                        <td data-label="Site">{{ r.lab.screening.site.name }}</td>
+                        <td data-label="Zone">{{ r.lab.screening.site.district.region.zone.name }}</td>
+                        <td data-label="Runs">{% if r.lab.runs %}{{ r.lab.runs }}{% else %}<span class="fs-muted">before runs</span>{% endif %}</td>
+                        <td data-label="Last run">{{ r.lab.last_run|date:"d M Y"|default:"—" }}{% if r.last.run_number %}<span class="fs-muted"> · {{ r.last.run_number }}</span>{% endif %}</td>
+                        <td data-label="Why it failed">{% if r.last %}{{ r.last.get_failure_reason_display|default:"—" }}{% if r.last.failure_other %}: {{ r.last.failure_other }}{% endif %}{% else %}—{% endif %}</td>
+                        <td data-label="{% if tab == 'closed' %}Why no re-run{% else %}Waiting{% endif %}">
+                            {% if tab == "closed" %}{{ r.lab.nanopore_rerun_not_planned_reason }}
+                            {% elif r.days is not None %}{{ r.days }} day{{ r.days|pluralize }}{% else %}—{% endif %}
+                        </td>
+                        <td class="text-end nf-actions">
+                            <a href="{{ r.view }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a>
+                            {% if r.may_close %}
+                                {% if tab == "closed" %}
+                                <form method="post" class="d-inline">{% csrf_token %}
+                                    <input type="hidden" name="lab" value="{{ r.lab.pk }}"><input type="hidden" name="action" value="reopen">
+                                    <input type="hidden" name="back" value="{{ request.get_full_path }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Put it back on the list: a re-run is planned after all">Undo</button>
+                                </form>
+                                {% else %}
+                                <details class="nf-close">
+                                    <summary class="btn btn-sm btn-outline-danger">No re-run planned</summary>
+                                    <form method="post" class="nf-close-form">{% csrf_token %}
+                                        <input type="hidden" name="lab" value="{{ r.lab.pk }}"><input type="hidden" name="action" value="close">
+                                        <input type="hidden" name="back" value="{{ request.get_full_path }}">
+                                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Why? (e.g. no sample left)" required maxlength="255">
+                                        <button type="submit" class="btn btn-sm btn-danger">Confirm</button>
+                                    </form>
+                                </details>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>{% if tab == "closed" %}None marked "no re-run planned".{% else %}None: no participant is waiting for a Nanopore re-run here.{% endif %}</p></div>
+        {% endif %}
+        {% if page_obj.has_other_pages %}
+        <nav class="fs-pager" aria-label="Pages">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}"><i class="fas fa-chevron-left"></i> Previous</a>{% else %}<span></span>{% endif %}
+            <span class="fs-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">Next <i class="fas fa-chevron-right"></i></a>{% else %}<span></span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% include "nanopore/partials/_list_styles.html" %}
+<style>
+    .nf-actions { white-space: nowrap; }
+    .nf-close { display: inline-block; vertical-align: middle; }
+    .nf-close summary { list-style: none; display: inline-block; }
+    .nf-close summary::-webkit-details-marker { display: none; }
+    .nf-close-form { display: flex; gap: 6px; margin-top: 6px; min-width: 300px; }
+</style>
+{% endblock %}

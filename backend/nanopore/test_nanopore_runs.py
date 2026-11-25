@@ -69,7 +69,7 @@ class NanoporeRunsTests(NanoporeRunsBase):
         runs = list(NanoporeRun.objects.all())
         self.assertEqual([(r.number, r.outcome) for r in runs], [(1, FAILED), (2, PASSED)])
         self.assertEqual(runs[0].epi_to_me_version, "EPI2ME 5.1")
-        self.assertEqual(export_columns(lab), [2, date(2025, 11, 3), date(2025, 11, 17)])
+        self.assertEqual(export_columns(lab), [2, date(2025, 11, 3), date(2025, 11, 17), "", ""])  # + no re-run planned, reason
 
     def test_each_run_is_checked(self):
         page = self.post([self.a_run("2025-11-03", "28/26", self.failed, epi_to_me=self.yes.pk, sequencing_delayed=self.yes.pk)])
@@ -215,3 +215,63 @@ class RegimenReasonTests(DataSafetyBase):
         self.assertEqual(response.status_code, 200)
         row.refresh_from_db()
         self.assertEqual((row.drug, row.history.first().history_change_reason), ("RH", "Typed wrongly"))
+
+
+class NanoporeFailedListTests(NanoporeRunsBase):
+    """Nanopore failed (info): every run failed so far; leaves the list when a re-run has a result."""
+
+    def test_listed_until_a_run_has_a_result(self):
+        url = reverse("reports:nanopore_failed")
+        self.client.force_login(self.make_user("ds_nf", [access.DATA_SPECIALIST], zones=[self.zone_a]))
+        self.assertEqual(self.client.get(url).context["page_obj"].paginator.count, 0)
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(nanopore_done=self.yes, nanopore_results=self.failed,
+                                                              nanopore_sequencing_date=date(2025, 11, 3))
+        NanoporeRun.objects.create(zonal_lab=self.lab, run_date=date(2025, 11, 3), run_number="28/25", outcome=FAILED,
+                                   failure_reason="low_dna", nanopore_results=self.failed)
+        from django.core.cache import cache
+        cache.clear()  # the sidebar badge is cached for a few minutes
+        page = self.client.get(url)
+        row = page.context["rows"][0]
+        self.assertEqual((row["lab"].pk, row["lab"].runs, row["last"].run_number), (self.lab.pk, 1, "28/25"))
+        self.assertEqual(page.context["context_nanopore_failed_total"], 1)
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(nanopore_results=self.none_found)
+        self.assertEqual(self.client.get(url).context["page_obj"].paginator.count, 0)
+        self.client.force_login(self.make_user("nurse_nf", [access.NURSE], sites=[self.a1]))
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+
+class NanoporeFailedTabsTests(NanoporeRunsBase):
+    def setUp(self):
+        super().setUp()
+        from django.core.cache import cache
+        cache.clear()
+        ZonalLaboratory.objects.filter(pk=self.lab.pk).update(nanopore_done=self.yes, nanopore_results=self.failed,
+                                                              nanopore_sequencing_date=date(2025, 3, 5))
+        self.url = reverse("reports:nanopore_failed")
+
+    def counts(self):
+        return {t["key"]: t["count"] for t in self.client.get(self.url).context["tabs"]}
+
+    def test_before_runs_then_no_rerun_planned_then_undo(self):
+        self.client.force_login(self.make_user("lab_nf", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        self.client.logout()
+        self.client.force_login(self.make_user("ds_nf2", [access.DATA_SPECIALIST], zones=[self.zone_a]))
+        self.assertEqual(self.counts(), {"since": 0, "before": 1, "closed": 0})
+        # A reason is needed
+        self.client.post(self.url, {"lab": self.lab.pk, "action": "close", "reason": ""})
+        self.assertFalse(self.fresh().nanopore_rerun_not_planned)
+        self.client.post(self.url, {"lab": self.lab.pk, "action": "close", "reason": "No sample left"})
+        lab = self.fresh()
+        self.assertEqual((lab.nanopore_rerun_not_planned, lab.nanopore_rerun_not_planned_reason), (True, "No sample left"))
+        self.assertEqual(lab.history.first().history_change_reason, "No re-run planned: No sample left")
+        self.assertEqual(self.counts(), {"since": 0, "before": 0, "closed": 1})
+        self.client.post(self.url, {"lab": self.lab.pk, "action": "reopen"})
+        self.assertEqual(self.counts(), {"since": 0, "before": 1, "closed": 0})
+
+    def test_read_only_roles_cannot_close_and_filters_work(self):
+        self.client.force_login(self.make_user("stat_nf", [access.STATISTICIAN], zones=[self.zone_a]))
+        page = self.client.get(self.url, {"tab": "before"})
+        self.assertFalse(page.context["rows"][0]["may_close"])
+        self.assertEqual(self.client.post(self.url, {"lab": self.lab.pk, "action": "close", "reason": "x"}).status_code, 403)
+        self.assertEqual(self.client.get(self.url, {"tab": "before", "site": self.a1.pk}).context["page_obj"].paginator.count, 1)
+        self.assertEqual(self.client.get(self.url, {"tab": "before", "zone": self.zone_b.pk}).context["page_obj"].paginator.count, 1)  # not one of theirs: ignored

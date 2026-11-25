@@ -240,13 +240,15 @@ def save_runs(formset, record, user, reason=""):
 def export_columns(record):
     """Per-participant export columns: number of runs, first and final run dates."""
     if record is None:
-        return ["", "", ""]
+        return ["", "", "", "", ""]
+    not_planned = [1 if record.nanopore_rerun_not_planned else "", record.nanopore_rerun_not_planned_reason or ""]
     runs = list(record.nanopore_runs.all())
     if not runs:
-        return ["", "", ""]
+        return ["", "", ""] + not_planned
     dates = sorted(r.run_date for r in runs)
     passed = sorted(r.run_date for r in runs if r.outcome == PASSED)
-    return [len(runs), dates[0], (passed or dates)[-1]]
+    return [len(runs), dates[0], (passed or dates)[-1]] + not_planned
 
 
-EXPORT_HEADER = ["nanopore_runs", "nanopore_first_run_date", "nanopore_final_run_date"]
+EXPORT_HEADER = ["nanopore_runs", "nanopore_first_run_date", "nanopore_final_run_date",
+                 "nanopore_rerun_not_planned", "nanopore_rerun_not_planned_reason"]

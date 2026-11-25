@@ -135,6 +135,8 @@ def work_groups(request, compare_to=None):
                            context.get("context_tblis_follow_up_total", 0), note="Participants to follow up in TB-LIS"))
         follow.append(Tile("No DST (information)", reverse("reports:no_dst"), "fa-vial-circle-check",
                            context.get("context_no_dst_total", 0), tone="info", note="Positive cultures without DST"))
+        follow.append(Tile("Nanopore failed (information)", reverse("reports:nanopore_failed"), "fa-dna",
+                           context.get("context_nanopore_failed_total", 0), tone="info", note="Runs all failed so far: re-run owed"))
     if flags.tblis_upload or flags.tblis_follow_up:
         follow.append(last_upload_tile(can_upload=bool(flags.tblis_upload)))
     groups.append(("Follow-up", follow))

@@ -177,6 +177,9 @@ class ZonalLaboratory(models.Model):
     # # nano_para_aminosalicylic_acid = models.ForeignKey(NanoporeResults, on_delete=models.PROTECT, related_name="enrollment_cough2weeks")
     
     # ADDITIONAL FIELDS
+    # Nanopore failed (information list): every run failed and the team decided not to re-run
+    nanopore_rerun_not_planned = models.BooleanField("Nanopore re-run not planned", default=False)
+    nanopore_rerun_not_planned_reason = models.CharField("Why no re-run is planned", max_length=255, blank=True)
     remarks = models.TextField(blank=True, null=True)
     
     # Auditing

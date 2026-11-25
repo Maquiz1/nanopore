@@ -661,7 +661,8 @@ def _rebuild_edcs(e_zonal, z_lab, clean_row):
     e_zonal.unique_lab_no = z_lab.unique_lab_no or f"SYNC-{z_lab.screening.pid}"
     
     # Copy all standard fields exactly as-is
-    exclude_fields = ['id', 'screening', 'created_at', 'created_by', 'updated_at', 'updated_by']
+    exclude_fields = ['id', 'screening', 'created_at', 'created_by', 'updated_at', 'updated_by',
+                      'nanopore_rerun_not_planned', 'nanopore_rerun_not_planned_reason']  # Zonal Lab only
     for field in ZonalLaboratory._meta.fields:
         if field.name not in exclude_fields:
             val = getattr(z_lab, field.name)

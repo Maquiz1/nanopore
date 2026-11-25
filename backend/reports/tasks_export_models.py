@@ -62,6 +62,7 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
         'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks',
         'enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes',
         'tblis_laboratory', 'missingformsdqsnapshot', 'nanopore_runs',
+        'nanopore_rerun_not_planned', 'nanopore_rerun_not_planned_reason',  # with the run columns, at the end
     ]
 
     # Determine fields
@@ -222,6 +223,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
         'id', 'created_at', 'updated_at', 'created_by', 'updated_by',
         'screening', 'enrollment', 'clinic_laboratory', 'zonal_laboratory',
         'diagnosis', 'regimen_changes', 'nanopore_runs',
+        'nanopore_rerun_not_planned', 'nanopore_rerun_not_planned_reason',  # with the run columns, at the end
         'pid', 'pid1', 'pid2',  # exported once as the first columns
         'phenotypic_date_performed',  # replaced by the first- and second-line dates
     ]
