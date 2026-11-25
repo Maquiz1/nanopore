@@ -7,9 +7,10 @@ from utils.permissions import filter_queryset_by_user_role
 from utils.roles import get_role_context
 
 
-def get_missing_forms_counts(user, zone_id=None, site_id=None):
+def get_missing_forms_counts(user, zone_id=None, site_id=None, screened_before=None):
     """
     Returns role-aware missing form counts for dashboards & detail views.
+    screened_before: only participants screened before that date (the dashboard's "waiting over 30 days").
     """
 
     Screening = apps.get_model("nanopore", "Screening")
@@ -41,6 +42,8 @@ def get_missing_forms_counts(user, zone_id=None, site_id=None):
         qs = qs.filter(site__district__region__zone_id=zone_id)
     if site_id:
         qs = qs.filter(site_id=site_id)
+    if screened_before:
+        qs = qs.filter(screening_date__lt=screened_before)
 
     # ── Missing counts ─────────────────────────────────────────────
     missing_enrollment_count = qs.filter(enrollment__isnull=True).count()

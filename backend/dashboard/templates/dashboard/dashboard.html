@@ -64,7 +64,14 @@
     <section class="dash-card dash-work">
         <header class="dash-card-head">
             <h2><i class="fas fa-list-check"></i> Your work today</h2>
-            <span class="dash-work-hint">Each number opens its list · ✓ means nothing waiting</span>
+            <span class="dash-work-hint">
+                {% if work_since %}
+                    {% if work_since.change < 0 %}<span class="dash-change down">▼ {{ work_since.change|stringformat:"d"|slice:"1:" }} fewer</span>
+                    {% elif work_since.change > 0 %}<span class="dash-change up">▲ {{ work_since.change }} more</span>
+                    {% else %}No change{% endif %}
+                    open items since your last visit ({{ work_since.date|date:"d M" }}) ·
+                {% endif %}
+                Each number opens its list · ✓ means nothing waiting</span>
         </header>
         {% for title, tiles in work_groups %}
         <div class="dash-work-group">
@@ -76,9 +83,12 @@
                     <span class="dash-work-text">
                         <span class="dash-work-label">{{ t.label }}</span>
                         {% if t.note %}<span class="dash-work-note">{{ t.note }}</span>{% endif %}
+                        {% if t.waiting %}<span class="dash-work-waiting"><i class="fas fa-hourglass-half"></i> {{ t.waiting|intcomma }} {{ t.waiting_note }}</span>{% endif %}
                     </span>
                     {% if t.count is not None %}
-                    <span class="dash-work-count">{% if t.count %}{{ t.count|intcomma }}{% else %}<i class="fas fa-check"></i>{% endif %}</span>
+                    <span class="dash-work-count">{% if t.count %}{{ t.count|intcomma }}{% else %}<i class="fas fa-check"></i>{% endif %}
+                        {% if t.change %}<span class="dash-change {% if t.change < 0 %}down{% else %}up{% endif %}" title="Since your last visit">{% if t.change < 0 %}▼ {{ t.change|stringformat:"d"|slice:"1:" }}{% else %}▲ {{ t.change }}{% endif %}</span>{% endif %}
+                    </span>
                     {% else %}
                     <i class="fas fa-arrow-right dash-work-go"></i>
                     {% endif %}
@@ -336,6 +346,11 @@
     .dash-work-note { font-size: .74rem; color: var(--muted, #7d8aa3); }
     .dash-work-count { font-size: 1.25rem; font-weight: 700; white-space: nowrap; }
     .dash-work-go { color: #1d6fd6; }
+    .dash-work-count { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+    .dash-work-waiting { font-size: .74rem; color: #a15c00; margin-top: 2px; }
+    .dash-change { font-size: .72rem; font-weight: 700; }
+    .dash-change.down { color: #1f8a4c; }
+    .dash-change.up { color: #b42318; }
     .dash-work-tile.tone-todo { border-left-color: #e5484d; }
     .dash-work-tile.tone-todo .dash-work-count { color: #b42318; }
     .dash-work-tile.tone-done { border-left-color: #1f8a4c; }

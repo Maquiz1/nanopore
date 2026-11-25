@@ -47,3 +47,43 @@ class WorkPanelTests(DataSafetyBase):
         done = [t for t in tiles.values() if t.count == 0]
         self.assertTrue(all(t.tone == "done" for t in done if t.tone != "info"))
         self.assertContains(page, "Your work today")
+
+
+class SinceLastVisitTests(DataSafetyBase):
+    """Ages from the records' own dates, and the change since the last visit from the daily query snapshot."""
+
+    def test_last_visit_is_kept_for_the_whole_day(self):
+        import datetime
+        from dashboard.work import remember_visit
+        from django.utils import timezone
+        user = self.make_user("ds_visit", [access.DATA_SPECIALIST], zones=[self.zone_a])
+        self.assertIsNone(remember_visit(user))  # first visit
+        profile = user.profile
+        profile.dashboard_seen_on = timezone.localdate() - datetime.timedelta(days=3)
+        profile.save()
+        self.assertEqual(remember_visit(user), timezone.localdate() - datetime.timedelta(days=3))
+        self.assertEqual(remember_visit(user), timezone.localdate() - datetime.timedelta(days=3))  # same day: unchanged
+
+    def test_change_since_the_last_visit_and_waiting(self):
+        import datetime
+        from django.utils import timezone
+        from reports.models import QueryCount, QuerySnapshotRun
+        user = self.make_user("ds_change", [access.DATA_SPECIALIST], zones=[self.zone_a])
+        cache.clear()
+        self.client.force_login(user)
+        live = {t.label: t for _, ts in self.client.get(reverse("dashboard:dashboard")).context["work_groups"] for t in ts}
+        zonal_now = live["Zonal Lab queries"].count
+        # Three days ago there were 5 more Zonal Lab queries at site A1
+        day = timezone.localdate() - datetime.timedelta(days=3)
+        run = QuerySnapshotRun.objects.create(snapshot_date=day)
+        QueryCount.objects.create(run=run, zone=self.zone_a, site=self.a1, form=access.ZONAL_LAB, query="missing_x", count=zonal_now + 5)
+        profile = user.profile
+        profile.dashboard_seen_on = day
+        profile.save()
+        cache.clear()
+        page = self.client.get(reverse("dashboard:dashboard"))
+        tiles = {t.label: t for _, ts in page.context["work_groups"] for t in ts}
+        self.assertEqual(tiles["Zonal Lab queries"].change, -5)
+        self.assertEqual(page.context["work_since"]["date"], day)
+        # The base participants were screened on 1 Mar 2025: their missing forms have waited over 30 days
+        self.assertEqual(tiles["Enrollment forms missing"].waiting, tiles["Enrollment forms missing"].count)

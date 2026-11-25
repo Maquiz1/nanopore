@@ -33,6 +33,11 @@ class Profile(models.Model):
     # NEW FIELDS
     middle_name = models.CharField(max_length=50, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+
+    # Dashboard "since your last visit" (dashboard/work.py): the day last seen, and the earlier
+    # visit today's changes are compared with (kept for the whole day)
+    dashboard_seen_on = models.DateField(null=True, blank=True)
+    dashboard_compare_to = models.DateField(null=True, blank=True)
     
     def __str__(self):
         display_name = f"{self.prefix.name + ' ' if self.prefix else ''}{self.user.username}"
