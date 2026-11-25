@@ -5,7 +5,7 @@
     <section class="fs-hero"><div>
         <div class="fs-eyebrow">Administration · Superusers</div>
         <h1 class="fs-title">Post-lock corrections</h1>
-        <div class="fs-meta">After the study is locked, a superuser can correct one participant by opening a correction window with a reason.
+        <div class="fs-meta">After the study (or a form) is locked, a superuser can correct one participant by opening a correction window with a reason.
             For {{ days }} days (or until it is closed) the superuser can change that participant's forms; every change is saved in the history as
             "Post-lock correction: &lt;reason&gt;" and listed below.</div>
     </div></section>
@@ -21,7 +21,7 @@
         </form>
     </section>
     {% else %}
-    <div class="alert alert-info">The study is active: records are corrected as usual. Correction windows are only needed after the study is locked.</div>
+    <div class="alert alert-info">Neither the study nor any form is locked: records are corrected as usual. Correction windows are only needed for locked records.</div>
     {% endif %}
 
     <section class="fs-card">

@@ -17,6 +17,7 @@ CORRECTION_DAYS = 30
 class StudyLockEvent(models.Model):
     LOCK, REOPEN = "lock", "reopen"
     action = models.CharField(max_length=10, choices=((LOCK, "Locked"), (REOPEN, "Reopened")))
+    form = models.CharField(max_length=30, blank=True, help_text="Blank: the whole study; else the form locked / reopened")
     reason = models.TextField()
     by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     at = models.DateTimeField(default=timezone.now)

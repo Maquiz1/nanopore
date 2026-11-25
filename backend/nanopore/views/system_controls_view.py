@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth.models import User
 from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.views.generic import View
@@ -36,6 +37,9 @@ class SystemControlsView(UserPassesTestMixin, View):
             "last_upload": TblisUploadBatch.objects.first(),
             "open_windows": PostLockCorrection.objects.open().count(),
             "events": StudyLockEvent.objects.select_related("by")[:10],
+            "form_locks": [{"form": form, "label": study_lock.form_label(form), "lock": control.locked_forms.get(form),
+                            "by": User.objects.filter(pk=(control.locked_forms.get(form) or {}).get("by")).first()}
+                           for form in study_lock.LOCKABLE_FORMS],
             "lock_word": LOCK_WORD,
         }
 
@@ -54,6 +58,21 @@ class SystemControlsView(UserPassesTestMixin, View):
             else:
                 study_lock.lock_study(request.user, reason[:2000])
                 messages.success(request, "The study is locked: read and export only. The nightly jobs and uploads have stopped.")
+            return redirect("nanopore:system-controls")
+        if action in ("lock_form", "unlock_form"):
+            form = request.POST.get("form")
+            if form not in study_lock.LOCKABLE_FORMS:
+                messages.error(request, "Unknown form.")
+            elif not reason:
+                messages.error(request, "Give the reason.")
+            elif action == "lock_form":
+                study_lock.lock_form(request.user, form, reason[:2000])
+                messages.success(request, f"The {study_lock.form_label(form)} form is locked: read only, no new records.")
+            elif not request.user.is_superuser:
+                messages.error(request, "Only a superuser can unlock a form.")
+            else:
+                study_lock.unlock_form(request.user, form, reason[:2000])
+                messages.success(request, f"The {study_lock.form_label(form)} form is open again.")
             return redirect("nanopore:system-controls")
         if action == "reopen":
             if not request.user.is_superuser:

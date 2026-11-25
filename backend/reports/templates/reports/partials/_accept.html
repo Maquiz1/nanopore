@@ -1,5 +1,5 @@
-{# Accept / Undo for one item of a check list (reports/services/accepted.py).
-   with list=<list key> check=<check key> oid=<record id> accepted=<AcceptedCheck or None> lapsed=<bool> #}
+{% comment %}Accept / Undo for one item of a check list (reports/services/accepted.py).
+   with list=<list key> check=<check key> oid=<record id> accepted=<AcceptedCheck or None> lapsed=<bool>{% endcomment %}
 {% if accepted %}
 <div class="acc-note"><i class="fas fa-circle-check"></i> Accepted by {{ accepted.accepted_by.get_full_name|default:accepted.accepted_by.username }} · {{ accepted.accepted_at|date:"d M Y" }}<br><span class="acc-reason">{{ accepted.reason }}</span></div>
 {% if access.accept_checks and not system_control.study_locked %}

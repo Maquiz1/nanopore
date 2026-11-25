@@ -10,6 +10,9 @@ class TblisUploadBatch(models.Model):
     source_file_name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    # Lab numbers of this file's rows not applied: their Zonal Lab is verified, or a lab check
+    # on it is accepted (nanopore/study_lock.py). The "Left as is" card lists them.
+    skipped_frozen = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

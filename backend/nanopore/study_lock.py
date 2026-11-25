@@ -92,10 +92,45 @@ def is_locked():
     return control().study_locked
 
 
+LOCKABLE_FORMS = (access.SCREENING, access.ENROLLMENT, access.CLINIC_LAB, access.ZONAL_LAB, access.DIAGNOSIS, access.REGIMEN)
+
+
+def locked_forms():
+    """{form key: {"at", "by", "reason"}} of the forms locked on their own (System Controls)."""
+    return control().locked_forms or {}
+
+
+def form_locked(form):
+    if form == NANOPORE_RUN:
+        form = access.ZONAL_LAB
+    return form in locked_forms()
+
+
+def record_forms(instance):
+    """The forms a saved record belongs to (EDCS/TBLIS and Nanopore runs: Zonal Lab; regimen rows: Regimen and Diagnosis)."""
+    from nanopore.models import RegimenChanges
+    form = owner(instance)[0]
+    forms = {form} if form else set()
+    if isinstance(instance, RegimenChanges):
+        forms.add(access.REGIMEN)
+    return forms
+
+
+def lock_text(forms):
+    """Why records of these forms can't be changed now (None when they can)."""
+    if is_locked():
+        return "The study is locked: records can be viewed and exported, not changed."
+    for form in forms:
+        found = locked_forms().get(form)
+        if found:
+            return f"The {form_label(form)} form is locked (since {found.get('at', '')[:10]}): read only."
+    return None
+
+
 def allows_new(form):
-    """May new records of this form be added now? (study active and the form's switch on)"""
+    """May new records of this form be added now? (study active, form not locked, its switch on)"""
     c = control()
-    if c.study_locked:
+    if c.study_locked or form_locked(form):
         return False
     field = FORM_SWITCHES.get(form, (None,))[0]
     return getattr(c, field, True) if field else True
@@ -154,8 +189,14 @@ def open_correction(screening_id):
 
 def frozen_screening_ids(screening_ids=None):
     """Participants TB-LIS uploads and the nightly sync must leave as they are: their Zonal Lab
-    is verified, or a lab check on it is accepted (reports/services/accepted.py)."""
+    is verified, or a lab check on it is accepted (reports/services/accepted.py), or the whole
+    Zonal Lab form is locked."""
     from nanopore.models import AcceptedCheck, RecordVerification, ZonalLaboratory
+    if form_locked(access.ZONAL_LAB):
+        labs = ZonalLaboratory.objects.all()
+        if screening_ids is not None:
+            labs = labs.filter(screening_id__in=screening_ids)
+        return set(labs.values_list("screening_id", flat=True))
     verified = RecordVerification.objects.filter(form=access.ZONAL_LAB).values_list("object_id", flat=True)
     labs = ZonalLaboratory.objects.filter(pk__in=verified)
     if screening_ids is not None:
@@ -175,10 +216,14 @@ def is_frozen(lab):
 def edit_block(user, form, obj):
     """Why this saved record opens read only for this user (None when it may be changed)."""
     pk = getattr(obj, "pk", None)
-    if is_locked():
+    forms = record_forms(obj) if obj is not None else set()
+    if form in LOCKABLE_FORMS:
+        forms.add(form)
+    locked = lock_text(forms)
+    if locked:
         if getattr(user, "is_superuser", False) and obj is not None and open_correction(owner(obj)[2]):
             return None
-        return "The study is locked: records can be viewed and exported, not changed."
+        return locked
     if form == access.EDCS_TBLIS or form == access.CTRL_ISOLATES:
         form, pk = access.ZONAL_LAB, owner(obj)[1] if obj is not None else None
     if obj is not None and form not in VERIFIABLE_FORMS:
@@ -196,11 +241,12 @@ def guard(sender, instance, **kwargs):
     if kwargs.get("raw") or getattr(instance, "_study_guard_off", False):
         return
     form, pk, screening_id = owner(instance)
-    if is_locked():
+    locked = lock_text(record_forms(instance))
+    if locked:
         user = _actor.get()
         correction = open_correction(screening_id) if getattr(user, "is_superuser", False) else None
         if correction is None:
-            raise StudyLocked("The study is locked: records can't be added, changed or deleted.")
+            raise StudyLocked(locked.replace("not changed", "not added, changed or deleted"))
         note = f"Post-lock correction: {correction.reason}"
         given = getattr(instance, "_change_reason", "")
         instance._change_reason = f"{note} | {given}" if given and note not in given else (given or note)
@@ -315,6 +361,45 @@ def reopen_study(user, reason):
     c.study_locked = False
     c.save()
     StudyLockEvent.objects.create(action=StudyLockEvent.REOPEN, reason=reason, by=user)
+
+
+def lock_form(user, form, reason):
+    from nanopore.models import StudyLockEvent
+    c = control()
+    forms = dict(c.locked_forms or {})
+    forms[form] = {"at": timezone.now().isoformat(), "by": user.pk, "reason": reason}
+    c.locked_forms = forms
+    c.save()
+    StudyLockEvent.objects.create(action=StudyLockEvent.LOCK, form=form, reason=reason, by=user)
+
+
+def unlock_form(user, form, reason):
+    from nanopore.models import StudyLockEvent
+    c = control()
+    forms = dict(c.locked_forms or {})
+    forms.pop(form, None)
+    c.locked_forms = forms
+    c.save()
+    StudyLockEvent.objects.create(action=StudyLockEvent.REOPEN, form=form, reason=reason, by=user)
+
+
+def delete_block(user, objects):
+    """Why these records (a record and what depends on it) can't be deleted now, or None."""
+    for instance in objects:
+        if getattr(instance, "pk", None) is None or not record_forms(instance):
+            continue
+        form, pk, screening_id = owner(instance)
+        locked = lock_text(record_forms(instance))
+        if locked and not (getattr(user, "is_superuser", False) and open_correction(screening_id)):
+            return locked
+        if form and pk and is_verified(form, pk):
+            return (f"Can't delete: the {form_label(form)} record of this participant is verified. "
+                    "A verifier must unlock it (with a reason) first.")
+    return None
+
+
+def anything_locked():
+    return is_locked() or bool(locked_forms())
 
 
 def open_correction_window(user, screening, reason, days=None):

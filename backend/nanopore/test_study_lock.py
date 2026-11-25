@@ -236,3 +236,56 @@ class PagesRenderTests(DataSafetyBase):
         page = self.client.get(reverse("nanopore:system-controls"))
         self.assertContains(page, "Reopen the study")
         self.assertContains(self.client.get(reverse("dashboard:dashboard")), "The study is locked")
+
+
+class DeleteLockedTests(DataSafetyBase):
+    def test_verified_record_and_its_participant_cannot_be_deleted(self):
+        from nanopore.recycle_bin import soft_delete
+        lab = self.zonal_labs["A1"]
+        user = User.objects.create_superuser("root_delete", password="pw")
+        RecordVerification.objects.create(form=access.ZONAL_LAB, object_id=lab.pk, screening=lab.screening, verified_by=user)
+        with self.assertRaises(study_lock.RecordLocked):
+            soft_delete(lab, user)
+        with self.assertRaises(study_lock.RecordLocked):
+            soft_delete(Screening.objects.get(pk=lab.screening_id), user)
+        self.assertTrue(type(lab).objects.filter(pk=lab.pk).exists())
+
+    def test_delete_page_refuses_a_verified_record(self):
+        lab = self.zonal_labs["A1"]
+        user = User.objects.create_superuser("root_delete_page", password="pw")
+        RecordVerification.objects.create(form=access.ZONAL_LAB, object_id=lab.pk, screening=lab.screening, verified_by=user)
+        self.client.force_login(user)
+        for url in (reverse("nanopore:zonal-laboratory-delete", args=[lab.pk]), reverse("nanopore:screening-delete", args=[lab.screening_id])):
+            self.assertEqual(self.client.get(url).status_code, 302, url)
+            self.assertEqual(self.client.post(url, {"reason": "x"}).status_code, 302, url)
+        self.assertTrue(type(lab).objects.filter(pk=lab.pk).exists())
+
+
+class FormLockTests(DataSafetyBase):
+    def test_a_locked_form_is_read_only_while_the_rest_goes_on(self):
+        admin = User.objects.create_superuser("root_form_lock", password="pw")
+        self.client.force_login(admin)
+        self.client.post(reverse("nanopore:system-controls"), {"action": "lock_form", "form": access.ZONAL_LAB, "reason": "Cleaned"})
+        self.assertTrue(study_lock.form_locked(access.ZONAL_LAB))
+        self.assertFalse(study_lock.allows_new(access.ZONAL_LAB))
+        self.assertFalse(study_lock.allows_new(study_lock.NANOPORE_RUN))
+        self.assertTrue(study_lock.allows_new(access.DIAGNOSIS))
+        lab = type(self.zonal_labs["A1"]).objects.get(pk=self.zonal_labs["A1"].pk)
+        with self.assertRaises(study_lock.StudyLocked):
+            lab.save()
+        screening = Screening.objects.get(pk=lab.screening_id)
+        screening.save()  # other forms stay open
+        # Uploads and the sync leave every Zonal Lab record as it is
+        self.assertIn(lab.screening_id, study_lock.frozen_screening_ids())
+        user = self.make_user("ds_form_lock", [access.DATA_SPECIALIST], zones=[self.zone_a])
+        self.client.force_login(user)
+        page = self.client.get(reverse("nanopore:zonal-laboratory-update", args=[lab.pk]))
+        self.assertContains(page, "Zonal Lab form is locked")
+        # Only a superuser unlocks
+        self.client.force_login(self.make_user("admin_form_lock", [access.ADMIN]))
+        self.client.post(reverse("nanopore:system-controls"), {"action": "unlock_form", "form": access.ZONAL_LAB, "reason": "x"})
+        self.assertTrue(study_lock.form_locked(access.ZONAL_LAB))
+        self.client.force_login(admin)
+        self.client.post(reverse("nanopore:system-controls"), {"action": "unlock_form", "form": access.ZONAL_LAB, "reason": "Late result"})
+        self.assertFalse(study_lock.form_locked(access.ZONAL_LAB))
+        self.assertEqual(StudyLockEvent.objects.filter(form=access.ZONAL_LAB).count(), 2)

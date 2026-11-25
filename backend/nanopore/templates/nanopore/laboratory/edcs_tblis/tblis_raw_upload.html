@@ -166,6 +166,11 @@ function showMergeSummary(data) {
         }
         extraHtml += `</ul></div>`;
     }
+    if (data.skipped_frozen_count > 0) {
+        extraHtml += `<div class="alert alert-info mt-3 mb-0"><i class="fas fa-user-check"></i>
+            Left as they are: <strong>${data.skipped_frozen_count}</strong> records are verified or have an accepted check, so their TB-LIS values were not applied.
+            The card "Left as is (verified / accepted)" on the EDCS / TB-LIS page lists them until the next upload.</div>`;
+    }
     if (data.set_aside_substudy4_count > 0) {
         extraHtml += `<div class="alert alert-secondary mt-3 mb-0"><i class="fas fa-box-archive"></i>
             Set aside (Substudy 4): <strong>${data.set_aside_substudy4_count}</strong> TB-LIS rows match Zonal Lab forms set aside in the Recycle Bin. Expected, not merged.</div>`;

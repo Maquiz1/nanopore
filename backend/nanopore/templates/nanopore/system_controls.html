@@ -67,10 +67,42 @@
         {% endif %}
         {% if events %}
         <div class="sc-events">
-            {% for e in events %}<div><strong>{{ e.get_action_display }}</strong> {{ e.at|date:"d M Y H:i" }} · {{ e.by.get_full_name|default:e.by.username }}: {{ e.reason }}</div>{% endfor %}
+            {% for e in events %}<div><strong>{% if e.form %}{{ e.form }} form {{ e.get_action_display|lower }}{% else %}Study {{ e.get_action_display|lower }}{% endif %}</strong> {{ e.at|date:"d M Y H:i" }} · {{ e.by.get_full_name|default:e.by.username }}: {{ e.reason }}</div>{% endfor %}
         </div>
         {% endif %}
     </section>
+
+    <!-- Form locks -->
+    {% if not control.study_locked %}
+    <section class="sc-card">
+        <div class="sc-card-head"><h2>Lock a form</h2></div>
+        <p class="sc-muted">A locked form is read only for everyone: no new records and no changes, while the rest of the study goes on.
+            A locked Zonal Lab also stops TB-LIS uploads and the nightly sync changing its records. Only a superuser can unlock a form;
+            a superuser can still correct one participant through a <a href="{% url 'nanopore:post-lock-corrections' %}">correction window</a>.</p>
+        <div class="sc-form-locks">
+            {% for f in form_locks %}
+            <div class="sc-form-lock {% if f.lock %}is-locked{% endif %}">
+                <div><strong>{{ f.label }}</strong><br>
+                    {% if f.lock %}<small><i class="fas fa-lock"></i> Locked {{ f.lock.at|slice:":10" }}{% if f.by %} · {{ f.by.get_full_name|default:f.by.username }}{% endif %}: {{ f.lock.reason }}</small>
+                    {% else %}<small class="sc-muted">Open</small>{% endif %}</div>
+                {% if not f.lock %}
+                <details class="sc-danger"><summary class="btn btn-sm btn-outline-danger"><i class="fas fa-lock"></i> Lock</summary>
+                    <form method="post" class="sc-inline">{% csrf_token %}<input type="hidden" name="action" value="lock_form"><input type="hidden" name="form" value="{{ f.form }}">
+                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Why? e.g. all {{ f.label }} forms cleaned" required maxlength="2000">
+                        <button type="submit" class="btn btn-sm btn-danger">Lock</button></form>
+                </details>
+                {% elif request.user.is_superuser %}
+                <details class="sc-danger"><summary class="btn btn-sm btn-outline-secondary"><i class="fas fa-lock-open"></i> Unlock</summary>
+                    <form method="post" class="sc-inline">{% csrf_token %}<input type="hidden" name="action" value="unlock_form"><input type="hidden" name="form" value="{{ f.form }}">
+                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Why is it reopened?" required maxlength="2000">
+                        <button type="submit" class="btn btn-sm btn-secondary">Unlock</button></form>
+                </details>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
     <!-- Switches -->
     <form method="POST">
@@ -136,6 +168,9 @@
     .sc-inline { display: flex; gap: 6px; margin-top: 8px; max-width: 560px; }
     .sc-lock-form { margin-top: 10px; max-width: 480px; }
     .sc-events { margin-top: 12px; border-top: 1px solid #dee2e6; padding-top: 8px; font-size: .82rem; color: #495057; }
+    .sc-form-locks { display: grid; gap: 8px; }
+    .sc-form-lock { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid #dee2e6; border-radius: 10px; padding: 10px 12px; }
+    .sc-form-lock.is-locked { border-color: #dc3545; background: #fff8f8; }
     .sc-switches { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; }
     .sc-switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid #dee2e6; border-radius: 10px; padding: 10px 12px; cursor: pointer; margin-bottom: 0; }
     .sc-switch-wide { margin-bottom: 8px; }

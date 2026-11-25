@@ -28,6 +28,8 @@ class SystemControl(models.Model):
     study_locked_at = models.DateTimeField(null=True, blank=True)
     study_locked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
     study_lock_reason = models.TextField(blank=True)
+    # Form-level locks: {form key: {"at": ISO time, "by": user id, "reason": text}} (nanopore/study_lock.py)
+    locked_forms = models.JSONField(default=dict, blank=True)
 
     updated_at = models.DateTimeField(auto_now=True)
 

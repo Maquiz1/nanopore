@@ -96,7 +96,7 @@ class PostLockCorrectionsView(SuperuserRequiredMixin, View):
             row["pid"] = pids.get(row["screening_id"], "")
         windows = PostLockCorrection.objects.select_related("screening", "opened_by", "closed_by")[:200]
         return render(request, self.template_name, {
-            "windows": windows, "changes": changes, "locked": study_lock.is_locked(), "days": 30})
+            "windows": windows, "changes": changes, "locked": study_lock.anything_locked(), "days": 30})
 
     def post(self, request):
         from nanopore.models import PostLockCorrection, Screening
@@ -105,8 +105,8 @@ class PostLockCorrectionsView(SuperuserRequiredMixin, View):
         if action == "open":
             pid, reason = request.POST.get("pid", "").strip(), request.POST.get("reason", "").strip()
             screening = Screening.objects.filter(pid__iexact=pid).first()
-            if not study_lock.is_locked():
-                messages.error(request, "The study is not locked: records can be edited as usual.")
+            if not study_lock.anything_locked():
+                messages.error(request, "Neither the study nor any form is locked: records can be edited as usual.")
             elif screening is None:
                 messages.error(request, f"No participant with PID {pid}.")
             elif not reason:

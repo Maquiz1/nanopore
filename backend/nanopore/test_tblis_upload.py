@@ -186,6 +186,19 @@ class UploadTaskTests(AccessTestBase):
         # MGIT first-line DST result date alone now counts as "performed"
         self.assertEqual(edcs.first_line_dst_performed_id, 1)
 
+    def test_verified_record_is_left_as_it_is_and_listed(self):
+        from django.contrib.auth.models import User
+        from nanopore.edcs_tblis_cards import card_queryset
+        from nanopore.models import RecordVerification
+        user = User.objects.create_user("verifier_upload")
+        RecordVerification.objects.create(form="zonal_lab", object_id=self.zonal.pk, screening=self.screening, verified_by=user)
+        result = self.run_upload(dry_run=False)
+        self.assertEqual(result["skipped_frozen_count"], 1)
+        self.assertEqual(result["updated"], 0)
+        self.assertFalse(EdcsTblisZonal.objects.filter(screening=self.screening).exists())  # nothing applied
+        self.assertEqual(TblisUploadBatch.objects.first().skipped_frozen, [self.zonal.unique_lab_no])
+        self.assertEqual(list(card_queryset("left_as_is").values_list("pk", flat=True)), [self.zonal.pk])
+
     def test_same_volume_written_differently_is_not_a_mismatch(self):
         self.run_upload(dry_run=False)
         self.run_upload(dry_run=False)  # EDCS now holds 2.0, the file says "2"

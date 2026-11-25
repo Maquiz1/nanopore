@@ -121,10 +121,24 @@ class TblisFollowUpView(FeatureAccessMixin, ListView):
             qs = qs.filter(region=self.param("region"))
         return qs
 
+    def list_counts(self):
+        """Rows still to follow up on each list (accepted ones left out), for the cards."""
+        labs = _visible_labs(self.request.user)
+        found = tblis_status.record_statuses(labs)
+        counts = {}
+        for key, state in RECORD_LISTS.items():
+            on_list = labs.filter(screening_id__in=[pk for pk, one in found.items() if one.state == state])
+            counts[key] = on_list.count() - len(accepted_labs(key, on_list, found))
+        rows = list(TblisFollowUp.objects.all())
+        counts[NOT_RECORDED] = len(rows) - len(accepted_rows(rows))
+        return counts
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         shown = self.selected_list()
-        context.update({"lists": LISTS, "shown": shown, "show_accepted": self.show_accepted(),
+        counts = self.list_counts()
+        context.update({"lists": [(key, label, counts.get(key, 0)) for key, label in LISTS],
+                        "shown": shown, "show_accepted": self.show_accepted(),
                         "accepted_total": getattr(self, "accepted_total", 0)})
         if shown in RECORD_LISTS:
             selected = {"q": self.param("q")}

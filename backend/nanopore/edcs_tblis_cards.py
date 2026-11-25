@@ -43,6 +43,7 @@ SECTIONS = (
         Card("total_tblis", "TB-LIS rows in latest upload", "tblis"),
         Card("tblis_not_in_edcs", "TB-LIS rows not in EDCS", "tblis", tone="bad"),
         Card("missing_culture", "EDCS records missing culture performed", "edcs", tone="warn"),
+        Card("left_as_is", "Left as is in latest upload (verified / accepted)", "zonal"),
     )),
     ("Dar es Salaam: merged with TB-LIS", "CTRL records found in the latest TB-LIS upload", (
         Card("merged", "Merged", "edcs", tone="good", share_of="ctrl"),
@@ -100,7 +101,11 @@ def card_queryset(key, batch=None):
         "culture_performed",
     ).annotate(substudy_group=substudy_case(TO_CLINIC_LAB))
 
-    if key == "ctrl":
+    if key == "left_as_is":
+        # The latest upload's rows not applied: the record is verified, or a lab check on it accepted
+        skipped = batch.skipped_frozen if batch else []
+        qs = qs.filter(Q(unique_lab_no__in=skipped) | Q(isolate_unique_lab_no__in=skipped))
+    elif key == "ctrl":
         qs = qs.filter(ctrl_q())
     elif key.startswith("other_zones"):
         qs = qs.exclude(ctrl_q())

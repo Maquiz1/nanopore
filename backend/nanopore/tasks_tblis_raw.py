@@ -958,6 +958,9 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
     if edcs_missing_objs:
         EdcsNotInTblis.objects.bulk_create(edcs_missing_objs, batch_size=1000)
 
+    upload_batch.skipped_frozen = sorted(set(skipped_frozen))
+    upload_batch.save(update_fields=["skipped_frozen"])
+
     # 6. Create Merge Summary for UI Dashboard
     edcs_not_in_tblis_count = EdcsNotInTblis.objects.count()
     tblis_not_in_edcs_count = TblisNotInEdcs.objects.count()
@@ -1005,8 +1008,7 @@ def _merge_tblis_rows(task, rows, columns, user_id, source_filename, file_rows):
         "tblis_not_in_edcs_count": tblis_not_in_edcs_count,
         "set_aside_substudy4_count": set_aside_rows,
         "mismatches_count": mismatches_count,
-        "skipped_frozen_count": len(skipped_frozen),
-        "skipped_frozen": skipped_frozen[:200],
+        "skipped_frozen_count": len(set(skipped_frozen)),
     }
 
 

@@ -20,8 +20,8 @@
     </section>
 
     <nav class="fs-tabs">
-        {% for key, label in lists %}
-        <a href="?list={{ key }}" class="fs-tab {% if shown == key %}active{% endif %}"><span class="fs-tab-label">{{ label }}</span></a>
+        {% for key, label, count in lists %}
+        <a href="?list={{ key }}" class="fs-tab {% if shown == key %}active{% endif %}"><span class="fs-tab-label">{{ label }}</span><span class="fs-tab-num">{{ count|intcomma }}</span></a>
         {% endfor %}
     </nav>
 

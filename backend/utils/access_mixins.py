@@ -46,7 +46,8 @@ class FormAccessMixin(AccessMixin):
             if request.method not in SAFE_METHODS:
                 return HttpResponseNotAllowed(["GET"])
             request.view_edit_url = self.view_edit_url(kwargs.get("pk"))
-            request.verify_panel = self.verify_panel(kwargs.get("pk"))
+        if request.method in SAFE_METHODS and kwargs.get("pk") and (self.view_only or self.access_is_form):
+            request.verify_panel = self.verify_panel(kwargs.get("pk"))  # View and Edit pages
         return super().dispatch(request, *args, **kwargs)
 
     new_form = None  # the "allow new" switch of a create page (default: access_form)
@@ -69,12 +70,14 @@ class FormAccessMixin(AccessMixin):
         return study_lock._back(request, lists.get(form, "dashboard:dashboard"))
 
     def verify_panel(self, pk):
-        """Verified badge and the Verify / Unlock buttons of a View page (nanopore/views/verification_view.py)."""
+        """Verified badge and the Verify / Unlock buttons of a View or Edit page (nanopore/views/study_views.py)."""
         from nanopore import study_lock
         from utils.access import VERIFY_RECORDS
         if not pk or self.access_form not in study_lock.VERIFIABLE_FORMS:
             return None
-        records = scope_queryset(self.request.user, self.view_model._default_manager.filter(pk=pk), self.access_site_field) if self.view_model else None
+        from nanopore.verification import model_of
+        model = model_of(self.access_form)
+        records = scope_queryset(self.request.user, model._default_manager.filter(pk=pk), self.access_site_field)
         if records is None or not records.exists():
             return None
         found = study_lock.verification(self.access_form, pk)
@@ -214,6 +217,15 @@ class SoftDeleteMixin(FormAccessMixin):
     def has_form_access(self, request, kwargs):
         from utils.access import DELETE_RECORDS
         return has_feature(request.user, DELETE_RECORDS) and can_view(request.user, self.access_form)
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        from nanopore import study_lock
+        from nanopore.recycle_bin import collect
+        block = study_lock.delete_block(self.request.user, collect(obj))
+        if block:
+            raise study_lock.RecordLocked(block)  # the middleware shows it and goes back
+        return obj
 
     def get_context_data(self, **kwargs):
         from nanopore.recycle_bin import collect, summarize
