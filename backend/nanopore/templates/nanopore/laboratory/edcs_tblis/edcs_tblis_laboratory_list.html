@@ -284,7 +284,9 @@
     .et-section-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 4px 2px 8px; }
     .et-section-head h2 { font-size: .95rem; font-weight: 700; margin: 0; }
     /* Same columns in every section so the cards line up: 6 / 4 / 2 across */
-    .et-cards { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+    /* Each row's cards share the full width, however many there are */
+    .et-cards { display: flex; flex-wrap: wrap; gap: 10px; }
+    .et-cards > .et-stat { flex: 1 1 0; min-width: 150px; }
     .et-stat {
         position: relative; display: flex; flex-direction: column; min-height: 112px;
         padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
@@ -320,10 +322,10 @@
     .et-pill.warn { background: var(--warn-soft); color: var(--warn); }
     .et-empty { text-align: center; color: var(--muted); padding: 24px !important; }
     .et-pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    @media (max-width: 1199.98px) { .et-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
     @media (max-width: 767.98px) {
         .et { margin-top: 14px; }
-        .et-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .et-cards { gap: 8px; }
+        .et-cards > .et-stat { min-width: calc(50% - 4px); }
         .et-stat { min-height: 96px; padding: 12px; }
         .et-stat-value { font-size: 1.35rem; }
         .et-hero { padding: 16px 18px; }
