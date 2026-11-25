@@ -509,6 +509,10 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
         lpa_progress = round(
             lpa_completed_count / total_substudy_counts * 100, 1
         ) if total_substudy_counts else 0
+        first_line_lpa_count = zonal_qs.filter(first_line_lpa=1).count()
+        second_line_lpa_count = zonal_qs.filter(second_line_lpa=1).count()
+        first_line_lpa_progress = round(first_line_lpa_count / total_substudy_counts * 100, 1) if total_substudy_counts else 0
+        second_line_lpa_progress = round(second_line_lpa_count / total_substudy_counts * 100, 1) if total_substudy_counts else 0
         
         nanopore_completed_count = zonal_qs.filter(nanopore_done=1).count()
         nanopore_progress = round(
@@ -572,6 +576,10 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
             "xpert_xdr_progress": xpert_xdr_progress,
             "lpa_completed_count": lpa_completed_count,
             "lpa_progress": lpa_progress,
+            "first_line_lpa_count": first_line_lpa_count,
+            "first_line_lpa_progress": first_line_lpa_progress,
+            "second_line_lpa_count": second_line_lpa_count,
+            "second_line_lpa_progress": second_line_lpa_progress,
             "nanopore_completed_count": nanopore_completed_count,
             "nanopore_progress": nanopore_progress,
         })

@@ -15,7 +15,9 @@
     .fs-meta { font-size: .9rem; opacity: .9; }
     .fs-hero-actions { display: flex; gap: 8px; }
 
-    .fs-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+    /* Tab cards share the full width, however many there are */
+    .fs-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+    .fs-tabs > .fs-tab { flex: 1 1 0; min-width: 160px; }
     .fs-tab {
         display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid var(--line);
         border-radius: 12px; background: var(--surface); color: var(--ink-2); text-decoration: none;
@@ -66,7 +68,8 @@
     @media (max-width: 767.98px) {
         .fs { margin-top: 12px; }
         .fs-hero { padding: 18px; }
-        .fs-tabs { grid-template-columns: 1fr 1fr; gap: 6px; }
+        .fs-tabs { gap: 6px; }
+        .fs-tabs > .fs-tab { min-width: calc(50% - 3px); }
         .fs-tab { flex-direction: column; padding: 10px; gap: 0; }
         .fs-tab-num { font-size: 1.15rem; }
         .fs-filter-wrap > summary { display: inline-block; margin-bottom: 10px; list-style: none; }
