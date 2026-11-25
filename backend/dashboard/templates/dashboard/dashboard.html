@@ -196,8 +196,8 @@
             {% include "dashboard/partials/meter.html" with label="Xpert XDR" done=xpert_xdr_completed_count total=total_substudy_counts pct=xpert_xdr_progress %}
             {% include "dashboard/partials/meter.html" with label="Line probe assay (LPA)" done=lpa_completed_count total=total_substudy_counts pct=lpa_progress %}
             <div class="dash-meter-sub">
-                {% include "dashboard/partials/meter.html" with label="First-line LPA" note="MTBDRplus: rifampicin, isoniazid" done=first_line_lpa_count total=total_substudy_counts pct=first_line_lpa_progress %}
-                {% include "dashboard/partials/meter.html" with label="Second-line LPA" note="MTBDRsl: fluoroquinolones, aminoglycosides" done=second_line_lpa_count total=total_substudy_counts pct=second_line_lpa_progress %}
+                {% include "dashboard/partials/meter.html" with label="First-line LPA" note="of LPA done · MTBDRplus: rifampicin, isoniazid" done=first_line_lpa_count total=lpa_completed_count pct=first_line_lpa_progress %}
+                {% include "dashboard/partials/meter.html" with label="Second-line LPA" note="of LPA done · MTBDRsl: fluoroquinolones, aminoglycosides" done=second_line_lpa_count total=lpa_completed_count pct=second_line_lpa_progress %}
             </div>
             {% include "dashboard/partials/meter.html" with label="Nanopore sequencing" done=nanopore_completed_count total=total_substudy_counts pct=nanopore_progress %}
         </div>
