@@ -111,7 +111,8 @@ class ZonalLabSectionView(FormAccessMixin, View):
         if existing:  # already started: open it instead of a second record
             return redirect(reverse("nanopore:zonal-lab-section", args=[existing.pk, self.section.key]))
         form = self.form_class(instance=record, screening=screening)
-        return self.page(form, record, screening, record is not None and self.is_read_only(record))
+        viewing = record is not None and self.request.GET.get("view") == "1"  # the card's View button
+        return self.page(form, record, screening, record is not None and (viewing or self.is_read_only(record)))
 
     def post(self, request, *args, **kwargs):
         record, screening = self.get_record_and_screening()

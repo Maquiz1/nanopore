@@ -35,6 +35,9 @@
         </div>
     </form>
 
+    {% if info_tab %}
+    <div class="alert alert-info py-2 small">For information, not a query: positive cultures (LJ or MGIT) for which TB-LIS has no phenotypic DST yet. Not every positive culture gets DST; a record leaves this list when an upload brings its DST.</div>
+    {% endif %}
     <section class="fs-card">
         <div class="fs-card-head">
             <strong>{{ page_obj.paginator.count|intcomma }} record{{ page_obj.paginator.count|pluralize }}</strong>
@@ -43,21 +46,26 @@
         {% if page_obj.object_list %}
         <div class="table-responsive">
             <table class="table fs-table mb-0">
-                <thead><tr><th>PID</th><th>Lab No.</th><th>Site</th><th></th></tr></thead>
+                <thead><tr><th>PID</th><th>Lab No.</th><th>Site</th>{% if info_tab %}<th>Culture</th>{% endif %}<th></th></tr></thead>
                 <tbody>
                     {% for record in page_obj %}
                     <tr>
                         <td class="fs-pid" data-label="PID">{{ record.screening.pid }}</td>
                         <td data-label="Lab No.">{{ record.unique_lab_no|default:"—" }}</td>
                         <td data-label="Site">{{ record.screening.site.name }}</td>
+                        {% if info_tab %}
+                        <td data-label="Culture">{% if record.lj_results %}LJ {{ record.lj_results }}{% if record.lj_results_date %} · {{ record.lj_results_date|date:"d M Y" }}{% endif %}{% endif %}{% if record.lj_results and record.mgit_results %}<br>{% endif %}{% if record.mgit_results %}MGIT {{ record.mgit_results }}{% if record.mgit_results_date %} · {{ record.mgit_results_date|date:"d M Y" }}{% endif %}{% endif %}</td>
+                        <td><a href="{% url 'nanopore:edcs-tblis-laboratory-view' record.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a></td>
+                        {% else %}
                         <td><a href="{% url form_url record.screening.zonal_laboratory.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary">{% if can_edit %}Enter{% else %}View{% endif %}</a></td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% else %}
-        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>Nothing to do here.</p></div>
+        <div class="fs-empty"><i class="fas fa-circle-check"></i><p>{% if info_tab %}None: every positive culture has its DST.{% else %}Nothing to do here.{% endif %}</p></div>
         {% endif %}
         {% if page_obj.has_other_pages %}
         <nav class="fs-pager" aria-label="Pages">

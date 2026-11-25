@@ -8,6 +8,7 @@ from utils import access
 from utils.access_mixins import AnyFormAccessMixin
 
 FORM_URLS = {"nanopore": "nanopore:ctrl-dar-nanopore", "lpa": "nanopore:ctrl-dar-lpa"}
+INFO_TABS = {"no_dst"}  # listed for information; the row opens the EDCS/TBLIS record
 
 
 class CtrlDarWorkView(AnyFormAccessMixin, View):
@@ -28,7 +29,7 @@ class CtrlDarWorkView(AnyFormAccessMixin, View):
             tabs.append({"key": key, "label": label, "count": qs.count()})
         page = Paginator(work[tab][1], self.paginate_by).get_page(request.GET.get("page"))
         return render(request, self.template_name, {
-            "tabs": tabs, "tab": tab, "page_obj": page, "search": search, "form_url": FORM_URLS[tab],
+            "tabs": tabs, "tab": tab, "page_obj": page, "search": search, "form_url": FORM_URLS.get(tab), "info_tab": tab in INFO_TABS,
             "can_edit": access.can_edit(request.user, access.CTRL_ISOLATES),
             "query_total": sum(get_ctrl_dar_counts(request.user).values()),
         })

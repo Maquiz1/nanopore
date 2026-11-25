@@ -8,12 +8,13 @@ from nanopore.models import TblisRawData
 from nanopore.zonal_rules import ctrl_records
 from reports.constants.zona_mapping import CTRL_QUERIES
 from reports.services.zonal_dq import get_ctrl_isolate_counts, get_ctrl_isolates_queryset, to_complete_q
+from reports.services.zonal_dq.filters import waiting_for_dst_filter
 from reports.services.zonal_dq.filters import get_ctrl_isolate_filters
 from reports.services.zonal_dq.serializers import isolate_number
 from utils import access
 from utils.access_mixins import AnyFormAccessMixin
 
-TO_COMPLETE, COMPLETE, NOT_IN_TBLIS = "to-complete", "complete", "not-in-tblis"
+TO_COMPLETE, COMPLETE, NOT_IN_TBLIS, WAITING_DST = "to-complete", "complete", "not-in-tblis", "waiting-dst"
 
 
 class CtrlIsolatesView(AnyFormAccessMixin, View):
@@ -42,17 +43,20 @@ class CtrlIsolatesView(AnyFormAccessMixin, View):
         filters = get_ctrl_isolate_filters()
         counts = get_ctrl_isolate_counts(user, zone_id, site_id)
         to_complete = qs.filter(to_complete_q())
-        complete = qs.filter(culture_isolate=1).exclude(pk__in=to_complete.values("pk"))
+        # Waiting for DST: CTRL has done its part, TB-LIS has no DST yet. Information, not a query (D06)
+        waiting_dst = qs.filter(waiting_for_dst_filter(dar=False)).exclude(pk__in=to_complete.values("pk"))
+        complete = qs.filter(culture_isolate=1).exclude(pk__in=to_complete.values("pk")).exclude(pk__in=waiting_dst.values("pk"))
         # A number with no isolate row in TB-LIS: not uploaded yet, or mistyped
         not_in_tblis = (qs.exclude(isolate_unique_lab_no__isnull=True).exclude(isolate_unique_lab_no="")
                         .exclude(isolate_unique_lab_no__in=TblisRawData.objects.filter(raw_data__spectype__iexact="isolate").values("labno")))
-        tab = get("tab") if get("tab") in (*CTRL_QUERIES, COMPLETE, NOT_IN_TBLIS) else TO_COMPLETE
-        records = {COMPLETE: complete, NOT_IN_TBLIS: not_in_tblis, TO_COMPLETE: to_complete}.get(tab)
+        tab = get("tab") if get("tab") in (*CTRL_QUERIES, COMPLETE, NOT_IN_TBLIS, WAITING_DST) else TO_COMPLETE
+        records = {COMPLETE: complete, NOT_IN_TBLIS: not_in_tblis, TO_COMPLETE: to_complete, WAITING_DST: waiting_dst}.get(tab)
         if records is None:
             records = qs.filter(filters[tab])
 
         tabs = [{"key": TO_COMPLETE, "label": "To complete", "count": to_complete.count()},
                 {"key": NOT_IN_TBLIS, "label": "Number not in TB-LIS", "count": not_in_tblis.count()},
+                {"key": WAITING_DST, "label": "Waiting for DST (information)", "count": waiting_dst.count()},
                 {"key": COMPLETE, "label": "Complete", "count": complete.count()}]
         checks = [{"key": key, "label": label, "count": counts[key]} for key, label in CTRL_QUERIES.items() if counts[key]]
 

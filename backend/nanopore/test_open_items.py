@@ -45,15 +45,16 @@ class CtrlIsolateQueryTests(DataSafetyBase):
         page = self.client.get(reverse("reports:ctrl_isolates"), {"tab": "complete"})
         return self.lab.pk in [row["z"].pk for row in page.context["rows"]]
 
-    def test_dst_no_stays_a_query(self):
+    def test_dst_no_is_waiting_for_dst_not_a_query(self):
         ZonalLaboratory.objects.filter(pk=self.lab.pk).update(phenotypic_performed=self.no)
-        self.assertEqual(get_ctrl_isolate_counts(self.admin)["missing_phenotypic_performed"], 1)
+        self.assertNotIn("missing_phenotypic_performed", get_ctrl_isolate_counts(self.admin))  # information (D06)
         self.assertFalse(self.complete())
+        page = self.client.get(reverse("reports:ctrl_isolates"), {"tab": "waiting-dst"})
+        self.assertIn(self.lab.pk, [row["z"].pk for row in page.context["rows"]])
 
     def test_dst_yes_is_complete(self):
         ZonalLaboratory.objects.filter(pk=self.lab.pk).update(phenotypic_performed=self.yes, first_line_dst_performed=self.no,
                                                               second_line_dst_performed=self.no)
-        self.assertEqual(get_ctrl_isolate_counts(self.admin)["missing_phenotypic_performed"], 0)
         self.assertTrue(self.complete())
 
     def test_form_says_where_the_dst_comes_from(self):

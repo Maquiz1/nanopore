@@ -256,3 +256,32 @@ class BySectionSwitchTests(DataSafetyBase):
         self.client.post(reverse("nanopore:system-controls"), {"enable_form_submissions": "on", "enable_new_screening": "on"})
         self.control.refresh_from_db()
         self.assertFalse(self.control.zonal_lab_by_section)
+
+
+class HubCardsTests(DataSafetyBase):
+    """View on every card; Dar es Salaam's TB-LIS sections open the EDCS/TBLIS record at that section."""
+
+    def test_dar_cards_point_to_the_record_and_ctrl(self):
+        lab = ZonalLaboratory.objects.create(screening=self.dar, unique_lab_no="30001")
+        edcs = EdcsTblisZonal.objects.create(screening=self.dar, unique_lab_no="30001")
+        cards = {card["section"].key: card for card in section_cards(lab, self.dar)}
+        view = reverse("nanopore:edcs-tblis-laboratory-view", args=[edcs.pk])
+        self.assertEqual(cards["culture"]["edcs_url"], view + "#section-culture")
+        self.assertEqual(cards["xpert"]["edcs_url"], view + "#section-xpert")
+        self.assertEqual((cards["nanopore"]["source"], cards["lpa"]["source"], cards["culture"]["source"]),
+                         ("CTRL", "TB-LIS + CTRL", "From TB-LIS"))
+        self.assertEqual(cards["nanopore"]["status"], "not_started")
+        EdcsTblisZonal.objects.filter(pk=edcs.pk).update(nanopore_done=self.no)
+        self.assertEqual({c["section"].key: c for c in section_cards(lab, self.dar)}["nanopore"]["status"], "complete")
+        self.client.force_login(self.make_user("ctrl_cards", [access.LABORATORY_TECHNICIAN], sites=[self.ctrl]))
+        self.assertContains(self.client.get(reverse("nanopore:zonal-lab-hub", args=[lab.pk])), view + "#section-culture")
+
+    def test_editors_get_view_next_to_edit_and_view_is_read_only(self):
+        lab = self.zonal_labs["A1"]
+        self.client.force_login(self.make_user("lab_cards", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        url = reverse("nanopore:zonal-lab-section", args=[lab.pk, "culture"])
+        self.assertContains(self.client.get(reverse("nanopore:zonal-lab-hub", args=[lab.pk])), url + "?view=1")
+        page = self.client.get(url + "?view=1")
+        self.assertTrue(all(f.disabled for f in page.context["form"].fields.values()))
+        self.assertNotContains(page, "fa-floppy-disk")
+        self.assertFalse(self.client.get(url).context["read_only"])

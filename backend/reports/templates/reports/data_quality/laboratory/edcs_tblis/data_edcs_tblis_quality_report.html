@@ -3,7 +3,7 @@
 {% block content %}
 <div class="dq dq-report">
     {% include "reports/data_quality/_report_head.html" with form_label="EDCS / TB-LIS" records_label="EDCS / TB-LIS records checked" %}
-    <div class="alert alert-info py-2 small">Dar es Salaam records only; other zones' queries are on the <a href="{% url 'reports:zonal_quality_report' %}">Zonal Lab</a> page. A PID opens the form that fixes it: CTRL's Nanopore or LPA form, or the Zonal Lab form to correct a lab number before uploading TB-LIS again. A positive culture without DST stays listed until TB-LIS has its DST.</div>
+    <div class="alert alert-info py-2 small">Dar es Salaam records only; other zones' queries are on the <a href="{% url 'reports:zonal_quality_report' %}">Zonal Lab</a> page. A PID opens the form that fixes it: CTRL's Nanopore or LPA form, or the Zonal Lab form to correct a lab number before uploading TB-LIS again. Positive cultures still waiting for TB-LIS DST are not queries: see CTRL work (Dar) &gt; Positive culture, no DST yet.</div>
 
     {% if total_issues %}
     <div class="accordion" id="zonalIssuesAccordion">

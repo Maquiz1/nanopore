@@ -145,31 +145,61 @@ def _isolate_waiting(record):
     return None
 
 
+# Dar es Salaam: where each section's answers are, on the merged EDCS/TBLIS record
+DAR_SOURCES = {"microscopy": "From TB-LIS", "culture": "From TB-LIS", "isolate": "From TB-LIS",
+               "xpert": "From TB-LIS", "lpa": "TB-LIS + CTRL", "nanopore": "CTRL"}
+EDCS_ANCHORS = {"microscopy": "section-culture", "culture": "section-culture", "isolate": "section-isolate",
+                "xpert": "section-xpert", "lpa": "section-lpa"}
+
+
+def _dar_ctrl_status(section, edcs):
+    """Dar es Salaam Nanopore and LPA: CTRL's answers on the EDCS/TBLIS record and their open queries."""
+    from reports.constants.zona_mapping import ZONAL_DQ_FIELD_MAPPING
+    from reports.services.zonal_dq.filters import get_ctrl_dar_filters
+    from reports.services.zonal_dq.problem_lists import query_label
+
+    if edcs is None or not any(_answered(edcs, name) for name in section.fields):
+        return NOT_STARTED, []
+    filters = {key: q for key, q in get_ctrl_dar_filters().items() if ZONAL_DQ_FIELD_MAPPING[key][0] in section.fields}
+    one = type(edcs).objects.filter(pk=edcs.pk)
+    hits = one.aggregate(**{key: Count("pk", filter=q, distinct=True) for key, q in filters.items()}) if filters else {}
+    open_ones = [query_label(key) for key in filters if hits.get(key)]
+    return (IN_PROGRESS if open_ones else COMPLETE), open_ones
+
+
 def section_cards(record, screening):
     """The hub's cards: each section with its status, open queries and what to show."""
+    from nanopore.models import EdcsTblisZonal
+
     dar = is_lab_number_only(screening)
     queries = open_queries(record)
+    edcs = EdcsTblisZonal.objects.filter(screening=screening).first() if dar else None
     cards = []
     for section in SECTIONS:
         fields = DAR_FIELDS.get(section.key, ()) if dar else section.fields
-        if dar and not fields:
+        card_queries = []
+        if dar and section.key in DAR_CTRL_FORMS:
+            status, card_queries = _dar_ctrl_status(section, edcs)
+        elif dar and not fields:
             status = FROM_TBLIS
         elif not dar and _not_applicable(section.key, record):
             status = NOT_APPLICABLE
         elif not any(_answered(record, name) for name in fields):
             status = NOT_STARTED
         elif queries.get(section.key):
-            status = IN_PROGRESS
+            status, card_queries = IN_PROGRESS, queries[section.key]
         else:
             status = (section.key == "isolate" and _isolate_waiting(record)) or COMPLETE
-        if dar and section.key in DAR_CTRL_FORMS and record.pk:
-            ctrl_url = reverse(DAR_CTRL_FORMS[section.key], args=[record.pk])
-        else:
-            ctrl_url = None
+        ctrl_url = reverse(DAR_CTRL_FORMS[section.key], args=[record.pk]) if dar and section.key in DAR_CTRL_FORMS and record.pk else None
+        # Dar es Salaam: TB-LIS sections are seen on the EDCS/TBLIS record, at that section
+        edcs_url = None
+        if dar and edcs is not None and section.key in EDCS_ANCHORS:
+            edcs_url = reverse("nanopore:edcs-tblis-laboratory-view", args=[edcs.pk]) + "#" + EDCS_ANCHORS[section.key]
         cards.append({
             "section": section, "status": status, "status_label": STATUS_LABELS[status],
-            "queries": queries.get(section.key, []) if status == IN_PROGRESS else [],
-            "dar": dar, "ctrl_url": ctrl_url,
+            "queries": card_queries if status == IN_PROGRESS else [],
+            "dar": dar, "ctrl_url": ctrl_url, "edcs_url": edcs_url,
+            "source": DAR_SOURCES.get(section.key, "CTRL") if dar else section.entered_by,
         })
     return cards
 

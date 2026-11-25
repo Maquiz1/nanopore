@@ -61,6 +61,9 @@
         {% for c in checks %}<a href="?tab={{ c.key }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="ci-check {% if tab == c.key %}active{% endif %}">{{ c.label }} <strong>{{ c.count|intcomma }}</strong></a>{% endfor %}
     </div>
     {% endif %}
+    {% if tab == "waiting-dst" %}
+    <div class="alert alert-info py-2 small">For information, not a query: CTRL has the isolate and its number, and TB-LIS has no phenotypic DST for it yet. It moves to Complete when an upload brings the DST.</div>
+    {% endif %}
 
     <!-- Table -->
     <section class="fs-card">

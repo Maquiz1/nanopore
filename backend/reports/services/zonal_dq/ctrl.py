@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from nanopore.models import EdcsTblisZonal
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q, ctrl_records
 from utils.access import is_ctrl_lab, is_unscoped, scope_queryset
-from .filters import get_ctrl_dar_filters, get_ctrl_isolate_filters
+from .filters import get_ctrl_dar_filters, get_ctrl_isolate_filters, waiting_for_dst_filter
 
 
 def get_ctrl_isolates_queryset(user, zone_id=None, site_id=None):
@@ -66,4 +66,6 @@ def get_dar_work(user):
     return {
         "nanopore": ("Needs Nanopore", qs.filter(nanopore).distinct().order_by(*order)),
         "lpa": ("Needs LPA checkboxes", qs.filter(lpa).distinct().order_by(*order)),
+        # Information, not a query (data dictionary D05): TB-LIS has no DST for these yet
+        "no_dst": ("Positive culture, no DST yet", qs.filter(waiting_for_dst_filter(dar=True)).order_by(*order)),
     }

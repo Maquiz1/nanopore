@@ -35,7 +35,7 @@
                 <span class="df-step">{{ s.number }}</span>
                 <div class="zh-title">
                     <h2>{{ s.title }}</h2>
-                    <p>{% if card.dar and card.status == "from_tblis" %}From TB-LIS{% elif card.dar %}CTRL{% else %}{{ s.entered_by }}{% endif %}</p>
+                    <p>{{ card.source }}</p>
                 </div>
                 <span class="zh-status"><i class="fas {% if card.status == 'complete' %}fa-circle-check{% elif card.status == 'in_progress' %}fa-circle-exclamation{% elif card.status == 'from_tblis' %}fa-cloud-arrow-down{% elif card.status == 'not_started' %}fa-circle{% else %}fa-hourglass-half{% endif %}"></i> {{ card.status_label }}</span>
             </header>
@@ -52,13 +52,18 @@
 
             <footer>
                 {% if card.ctrl_url %}
-                    <a href="{{ card.ctrl_url }}" class="btn btn-sm btn-outline-primary">Open CTRL form</a>
+                    {# Dar es Salaam Nanopore / LPA: CTRL's own form (read only for those who can't enter it) #}
+                    <a href="{{ card.ctrl_url }}" class="btn btn-sm btn-outline-primary">{% if access.edit.ctrl_isolates %}Open CTRL form{% else %}<i class="fas fa-eye"></i> View{% endif %}</a>
+                    {% if card.edcs_url %}<a href="{{ card.edcs_url }}" class="btn btn-sm btn-outline-secondary" title="TB-LIS's results on the EDCS/TBLIS record"><i class="fas fa-eye"></i> View</a>{% endif %}
                 {% elif card.status == "from_tblis" %}
-                    <span class="zh-muted">See the EDCS/TBLIS record</span>
+                    {% if card.edcs_url %}<a href="{{ card.edcs_url }}" class="btn btn-sm btn-outline-secondary" title="This section on the EDCS/TBLIS record"><i class="fas fa-eye"></i> View</a>
+                    {% else %}<span class="zh-muted">No EDCS/TBLIS record yet</span>{% endif %}
                 {% elif card.status == "not_applicable" %}
                     <span class="zh-muted">{% if s.key == "microscopy" %}Culture was not performed{% else %}No positive culture{% endif %}</span>
                 {% else %}
-                    <a href="{% url 'nanopore:zonal-lab-section' object.pk s.key %}" class="btn btn-sm {% if can_edit %}btn-primary{% else %}btn-outline-primary{% endif %}">{% if not can_edit %}<i class="fas fa-eye"></i> View{% elif card.status == "not_started" %}Start{% else %}Edit{% endif %}</a>
+                    {% url 'nanopore:zonal-lab-section' object.pk s.key as section_url %}
+                    {% if can_edit %}<a href="{{ section_url }}" class="btn btn-sm btn-primary">{% if card.status == "not_started" %}Start{% else %}Edit{% endif %}</a>{% endif %}
+                    {% if card.status != "not_started" or not can_edit %}<a href="{{ section_url }}?view=1" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a>{% endif %}
                 {% endif %}
             </footer>
         </article>
@@ -84,7 +89,7 @@
     .zh-queries { margin: 0; padding-left: 18px; font-size: .82rem; color: var(--warn); }
     .zh-note { margin: 0; font-size: .82rem; color: var(--ink-2); }
     .zh-muted { font-size: .8rem; color: var(--muted); }
-    .zh-card footer { margin-top: auto; }
+    .zh-card footer { margin-top: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
     .zh-complete { border-left-color: var(--good); }
     .zh-complete .zh-status { background: #edf8f1; color: var(--good); }
     .zh-in_progress { border-left-color: #e8a33d; }

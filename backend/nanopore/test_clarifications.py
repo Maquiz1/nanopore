@@ -24,9 +24,7 @@ class DstAfterNoTests(DataSafetyBase):
             culture_isolate=YesNoNA.objects.create(pk=1, name="Yes", value=1), isolate_unique_lab_no="50001",
             phenotypic_performed=self.no, first_line_dst_performed=self.yes, rifampicin=resistant)
         counts = get_ctrl_isolate_counts(admin)
-        follow_on = {key: n for key, n in counts.items() if n and key != "missing_phenotypic_performed"}
-        self.assertEqual(follow_on, {})
-        self.assertEqual(counts["missing_phenotypic_performed"], 1)  # the No itself stays a query
+        self.assertEqual({key: n for key, n in counts.items() if n}, {})  # waiting for DST is information (D06)
 
     def test_dar_no_more_dst_questions_after_no(self):
         EdcsTblisZonal.objects.create(screening=self.dar, unique_lab_no="30001", phenotypic_performed=self.no,

@@ -47,7 +47,7 @@ class CtrlDarFormsTests(AccessTestBase):
         with self.assertRaises(NoReverseMatch):
             self.url("isolate")
         page = self.client.get(reverse("reports:ctrl_dar_work"))
-        self.assertEqual([t["key"] for t in page.context["tabs"]], ["nanopore", "lpa"])
+        self.assertEqual([t["key"] for t in page.context["tabs"]], ["nanopore", "lpa", "no_dst"])  # no_dst: information
         self.assertEqual(page.context["tab"], "nanopore")
 
     def test_dar_zonal_form_links_to_ctrl_forms_also_once_answered(self):
@@ -75,11 +75,12 @@ class CtrlDarFormsTests(AccessTestBase):
         for key in ("missing_culture_isolate", "missing_isolate_date", "missing_isolate_unique_lab_no", "isolate_no_not_submitted"):
             self.assertNotIn(key, stats)
 
-    def test_positive_culture_stays_a_query_until_dst_is_done(self):
+    def test_positive_culture_without_dst_is_listed_for_information_not_queried(self):
         from reports.services.zonal_dq import get_zonal_counts
         admin = self.make_user("admin_dst", [access.ADMIN])
+        self.assertNotIn("missing_phenotypic_performed", get_zonal_counts(admin, EdcsTblisZonal)[0])  # never a query (D05)
         record = EdcsTblisZonal.objects.filter(pk=self.edcs.pk)
-        count = lambda: get_zonal_counts(admin, EdcsTblisZonal)[0]["missing_phenotypic_performed"]
+        count = lambda: len(self.rows("no_dst"))
         self.assertEqual(count(), 0)  # no positive culture
         positive = MGITCultureResult.objects.create(pk=1, name="Positive", value=1)
         negative = MGITCultureResult.objects.create(pk=2, name="Negative", value=2)

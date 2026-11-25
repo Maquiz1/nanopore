@@ -1,5 +1,5 @@
 from django.db.models import Q
-from reports.constants.zona_mapping import CTRL_QUERIES, ZONAL_DQ_FIELD_MAPPING
+from reports.constants.zona_mapping import CTRL_QUERIES, WAITING_FOR_DST, ZONAL_DQ_FIELD_MAPPING
 from nanopore.models import EdcsTblisZonal, ZonalLaboratory
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q, NANOPORE_PREFIXES
 
@@ -23,13 +23,12 @@ def get_zonal_dq_filters(model):
     once, on the CTRL isolates page, not on these forms.
     """
     filters = _all_filters(model)
+    del filters[WAITING_FOR_DST]  # information, not a query: waiting_for_dst_filter()
     if model is ZonalLaboratory:
         return {key: q for key, q in filters.items() if key not in CTRL_QUERIES}
-    # Dar es Salaam has no isolate questions: every positive culture should have DST, and
-    # the upload fills "No" when TBLIS has none, so a No stays a query until TBLIS has it.
+    # Dar es Salaam has no isolate questions (question 11 is Na)
     for key in ("missing_culture_isolate", "missing_isolate_date", "missing_isolate_unique_lab_no", "isolate_no_not_submitted"):
         del filters[key]
-    filters["missing_phenotypic_performed"] = (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)) & ~Q(phenotypic_performed=1)
     # CTRL's own Dar es Salaam forms answer these: counted once, under CTRL work (Dar)
     return {key: q for key, q in filters.items() if not is_ctrl_dar_query(key)}
 
@@ -37,6 +36,12 @@ def get_zonal_dq_filters(model):
 def get_ctrl_dar_filters():
     """The Dar es Salaam queries CTRL answers on its Nanopore and LPA forms (CTRL work, Dar)."""
     return {key: q for key, q in _all_filters(EdcsTblisZonal).items() if is_ctrl_dar_query(key)}
+
+
+def waiting_for_dst_filter(dar):
+    """Positive culture (Dar es Salaam) or isolate sent to CTRL (other zones) with no DST yet: information only."""
+    positive = Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)
+    return (positive if dar else Q(culture_isolate=1)) & ~Q(phenotypic_performed=1)
 
 
 def get_ctrl_isolate_filters():

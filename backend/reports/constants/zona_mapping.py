@@ -106,10 +106,13 @@ ZONAL_DQ_FIELD_MAPPING = {
     ],
 }
 
+# A positive culture (Dar es Salaam) or an isolate sent to CTRL (other zones) whose DST isn't
+# done yet: listed for information (CTRL work, CTRL isolates), never a query (data dictionary D05/D06).
+WAITING_FOR_DST = "missing_phenotypic_performed"
+
 # Queries CTRL answers for other zones (reports/services/zonal_dq/ctrl.py), with the page's labels.
 CTRL_QUERIES = {
     "missing_isolate_unique_lab_no": "Isolate lab number",
-    "missing_phenotypic_performed": "Phenotypic DST not done yet",
     "missing_first_line_dst_performed": "First-line DST performed",
     "missing_first_line_dst_performed_date": "First-line date performed",
     "missing_first_line_dst_results_date": "First-line results date",
