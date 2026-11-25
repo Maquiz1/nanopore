@@ -62,8 +62,10 @@ class DarEsSalaamZonalLabTests(AccessTestBase):
         self.client.force_login(self.make_user("admin_link", [access.ADMIN]))
         page = self.client.get(reverse("reports:edcs_tblis_quality_report"))
         self.assertContains(page, reverse("nanopore:zonal-laboratory-update", args=[lab.pk]))  # a lab-number query
-        self.assertContains(page, reverse("nanopore:ctrl-dar-nanopore", args=[lab.pk]))
         self.assertNotContains(page, "/edcs-tblis/edcs-tblis-laboratory/form")
+        # Nanopore is CTRL's: listed on CTRL work (Dar), which opens CTRL's Nanopore form
+        self.assertNotContains(page, reverse("nanopore:ctrl-dar-nanopore", args=[lab.pk]))
+        self.assertContains(self.client.get(reverse("reports:ctrl_dar_work")), reverse("nanopore:ctrl-dar-nanopore", args=[lab.pk]))
 
     def test_other_zones_keep_the_full_form(self):
         form = ZonalLaboratoryForm(screening_instance=self.screenings["A1"])

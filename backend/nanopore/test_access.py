@@ -360,7 +360,7 @@ class ExportRolesTests(AccessTestBase):
         self.client.force_login(stat)
         page = self.client.get(reverse("reports:all_queries_overview"))
         self.assertEqual(page.status_code, 200)
-        self.assertEqual({f["key"] for f in page.context["forms"]}, set(access.ALL_FORMS))
+        self.assertEqual({f["key"] for f in page.context["forms"]}, set(access.ALL_FORMS) | {"ctrl_dar_work"})
         self.assertEqual(page.context["grand_total"], page.context["context_total_issues"])
         self.assertEqual(self.client.get(reverse("reports:date_issues")).status_code, 200)
 

@@ -1,6 +1,6 @@
 from django.db.models import Q
 from reports.constants.zona_mapping import CTRL_QUERIES, ZONAL_DQ_FIELD_MAPPING
-from nanopore.models import ZonalLaboratory
+from nanopore.models import EdcsTblisZonal, ZonalLaboratory
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q, NANOPORE_PREFIXES
 
 DST_AFTER_12A = (
@@ -8,6 +8,12 @@ DST_AFTER_12A = (
     "missing_first_line_dst_results", "missing_second_line_dst_performed", "missing_second_line_dst_performed_date",
     "missing_second_line_dst_results_date", "missing_second_line_dst_results",
 )
+
+
+def is_ctrl_dar_query(key):
+    """What CTRL enters for Dar es Salaam on its own forms: Nanopore, and the LPA band checkboxes."""
+    return key in ("missing_first_line_drugs", "missing_second_line_drugs") or \
+        ZONAL_DQ_FIELD_MAPPING[key][0].startswith(NANOPORE_PREFIXES)
 
 
 def get_zonal_dq_filters(model):
@@ -24,7 +30,13 @@ def get_zonal_dq_filters(model):
     for key in ("missing_culture_isolate", "missing_isolate_date", "missing_isolate_unique_lab_no", "isolate_no_not_submitted"):
         del filters[key]
     filters["missing_phenotypic_performed"] = (Q(lj_results__in=[1, 2, 3, 4]) | Q(mgit_results=1)) & ~Q(phenotypic_performed=1)
-    return filters
+    # CTRL's own Dar es Salaam forms answer these: counted once, under CTRL work (Dar)
+    return {key: q for key, q in filters.items() if not is_ctrl_dar_query(key)}
+
+
+def get_ctrl_dar_filters():
+    """The Dar es Salaam queries CTRL answers on its Nanopore and LPA forms (CTRL work, Dar)."""
+    return {key: q for key, q in _all_filters(EdcsTblisZonal).items() if is_ctrl_dar_query(key)}
 
 
 def get_ctrl_isolate_filters():

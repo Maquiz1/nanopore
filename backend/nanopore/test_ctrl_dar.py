@@ -62,7 +62,7 @@ class CtrlDarFormsTests(AccessTestBase):
         EdcsTblisZonal.objects.filter(pk=self.edcs.pk).update(first_line_lpa=self.yes)
         cache.clear()
         self.assertEqual(badge(), 2)  # and LPA checkboxes
-        self.assertContains(self.client.get(reverse("reports:ctrl_dar_work")), '<span class="sb-badge">2</span>', html=True)
+        self.assertContains(self.client.get(reverse("reports:ctrl_dar_work")), '<span class="sb-badge sb-badge-sm">2</span>', html=True)
         EdcsTblisZonal.objects.filter(pk=self.edcs.pk).update(first_line_lpa=self.no, nanopore_done=self.no)
         cache.clear()
         page = self.client.get(reverse("reports:ctrl_dar_work"))
@@ -155,19 +155,19 @@ class CtrlDarFormsTests(AccessTestBase):
         self.assertEqual(self.client.get(self.url("nanopore")).status_code, 403)
 
     def test_answered_no_is_never_a_query_only_blank_is(self):
-        from reports.services.zonal_dq import get_zonal_counts
+        from reports.services.zonal_dq.ctrl import get_ctrl_dar_counts  # counted under CTRL work (Dar)
         admin = self.make_user("admin_no", [access.ADMIN])
-        blank = get_zonal_counts(admin, EdcsTblisZonal)[0]
+        blank = get_ctrl_dar_counts(admin)
         self.assertEqual(blank["missing_nanopore_done"], 1)
         # Old answers left behind a No don't raise anything
         EdcsTblisZonal.objects.filter(pk=self.edcs.pk).update(nanopore_done=self.no, epi_to_me=self.yes, sequencing_delayed=self.yes,
                                                               nanopore_results=NanoporeSequencingResults.objects.create(pk=1, name="R", value=1))
-        stats = get_zonal_counts(admin, EdcsTblisZonal)[0]
+        stats = get_ctrl_dar_counts(admin)
         nano = {k: v for k, v in stats.items() if v and any(w in k for w in ("nano", "epi", "sequencing"))}
         self.assertEqual(nano, {})
         # A Yes still asks what it opens
         EdcsTblisZonal.objects.filter(pk=self.edcs.pk).update(nanopore_done=self.yes)
-        stats = get_zonal_counts(admin, EdcsTblisZonal)[0]
+        stats = get_ctrl_dar_counts(admin)
         self.assertEqual((stats["missing_nanopore_sequencing_date"], stats["missing_epi_to_me_date"]), (1, 1))
 
     def test_zonal_form_clears_what_a_no_hides(self):

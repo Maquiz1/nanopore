@@ -31,6 +31,7 @@ FORMS = {
     access.CLINIC_LAB: ("Clinic Lab", "Samples, AFB and Xpert results", "reports:clinic_quality_report", "clinic"),
     access.ZONAL_LAB: ("Zonal Lab", "Receipt, culture, LPA, DST, sequencing", "reports:zonal_quality_report", "zonal"),
     access.CTRL_ISOLATES: ("CTRL isolates", "Isolate numbers and DST of other zones", "reports:ctrl_isolates", None),
+    "ctrl_dar_work": ("CTRL work (Dar)", "Nanopore and LPA checkboxes CTRL enters for Dar es Salaam", "reports:ctrl_dar_work", None),
     access.EDCS_TBLIS: ("EDCS / TB-LIS", "Results imported from TB-LIS", "reports:edcs_tblis_quality_report", None),
     access.DIAGNOSIS: ("Diagnosis", "Diagnosis, treatment and outcome", "reports:diagnosis_quality_report", "diagnosis"),
     access.REGIMEN: ("Regimen", "Regimen changes: date, drug, reason", "reports:regimen_quality_report", "regimen"),
@@ -42,11 +43,18 @@ PROCESSORS = {
     access.CLINIC_LAB: (clinic_report_total, "context_clinic_report_total"),
     access.ZONAL_LAB: (zonal_report_total, "context_zonal_report_total"),
     access.CTRL_ISOLATES: (zonal_report_total, "context_ctrl_isolates_report_total"),
+    "ctrl_dar_work": (zonal_report_total, "context_ctrl_dar_work_total"),
     access.EDCS_TBLIS: (edcs_tblis_report_total, "context_edcs_tblis_report_total"),
     access.DIAGNOSIS: (diagnosis_report_total, "context_diagnosis_report_total"),
     access.REGIMEN: (regimen_report_total, "context_regimen_report_total"),
 }
 COUNTERS = {form: counter for form, _, counter in SOURCES}
+# Who sees a row: CTRL work (Dar) follows the CTRL isolates rule
+SEEN_AS = {"ctrl_dar_work": access.CTRL_ISOLATES}
+
+
+def _sees(user, form):
+    return can_see_queries(user, SEEN_AS.get(form, form))
 
 
 def _unfiltered(request):
@@ -61,7 +69,7 @@ def _filtered(user, zone_id, site_id):
     cached = cache.get(key)
     if cached is None:
         queries = {form: sum(COUNTERS[form](user, site_id, zone_id).values())
-                   for form in FORMS if can_see_queries(user, form)}
+                   for form in FORMS if _sees(user, form)}
         counts = get_missing_forms_counts(user, zone_id=zone_id, site_id=site_id)
         missing = {k: counts.get(f"missing_{k}_count", 0) for k in access.MISSING_FORM_TYPES}
         cached = (queries, missing)
@@ -74,7 +82,7 @@ def queries_overview(request, zone_id=None, site_id=None):
     queries, missing = _filtered(user, zone_id, site_id) if (zone_id or site_id) else _unfiltered(request)
     forms = []
     for form, (label, description, report_url, missing_key) in FORMS.items():
-        if not can_see_queries(user, form):
+        if not _sees(user, form):
             continue
         forms.append({
             "key": form, "label": label, "description": description, "report_url": report_url,

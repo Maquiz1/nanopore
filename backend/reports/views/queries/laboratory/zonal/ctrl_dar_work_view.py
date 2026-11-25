@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.views import View
 
-from reports.services.zonal_dq.ctrl import get_dar_work
+from reports.services.zonal_dq.ctrl import get_dar_work, get_ctrl_dar_counts
 from utils import access
 from utils.access_mixins import AnyFormAccessMixin
 
@@ -30,4 +30,5 @@ class CtrlDarWorkView(AnyFormAccessMixin, View):
         return render(request, self.template_name, {
             "tabs": tabs, "tab": tab, "page_obj": page, "search": search, "form_url": FORM_URLS[tab],
             "can_edit": access.can_edit(request.user, access.CTRL_ISOLATES),
+            "query_total": sum(get_ctrl_dar_counts(request.user).values()),
         })

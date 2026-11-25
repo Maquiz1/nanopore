@@ -21,6 +21,7 @@ from reports.services.missing_form_dq_counts import get_missing_forms_counts
 from reports.services.regimen_dq import get_regimen_dq, get_regimen_queryset
 from reports.services.screening_dq import get_screening_dq, get_screening_queryset
 from reports.services.zonal_dq import get_ctrl_isolate_counts, get_zonal_counts
+from reports.services.zonal_dq.ctrl import get_ctrl_dar_counts
 from utils import access
 
 # Queries the live pages count but leave out of their totals.
@@ -66,6 +67,7 @@ SOURCES = (
     ("zonal_lab", "Zonal Lab",
      lambda u, s, z=None: get_zonal_counts(u, apps.get_model("nanopore", "ZonalLaboratory"), z, s)[0]),
     ("ctrl_isolates", "CTRL isolates", lambda u, s, z=None: get_ctrl_isolate_counts(u, z, s)),
+    ("ctrl_dar_work", "CTRL work (Dar)", lambda u, s, z=None: get_ctrl_dar_counts(u, z, s)),
     ("edcs_tblis", "EDCS / TBLIS",
      lambda u, s, z=None: get_zonal_counts(u, apps.get_model("nanopore", "EdcsTblisZonal"), z, s)[0]),
     ("missing_forms", "Missing forms", _missing_forms),

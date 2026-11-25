@@ -129,6 +129,8 @@
                 {% if access.queries.ctrl_isolates %}
                 <a href="{% url 'reports:ctrl_isolates' %}"><span>CTRL isolates</span>
                     {% if context_ctrl_isolates_report_total %}<span class="sb-badge sb-badge-sm">{{ context_ctrl_isolates_report_total|intcomma }}</span>{% endif %}</a>
+                <a href="{% url 'reports:ctrl_dar_work' %}" title="Nanopore and LPA checkboxes CTRL enters for Dar es Salaam"><span>CTRL work (Dar)</span>
+                    {% if context_ctrl_dar_work_total %}<span class="sb-badge sb-badge-sm">{{ context_ctrl_dar_work_total|intcomma }}</span>{% endif %}</a>
                 {% endif %}
                 {% if access.queries.edcs_tblis and context_edcs_tblis_report_total %}
                 <a href="{% url 'reports:edcs_tblis_quality_report' %}"><span>EDCS / TBLIS</span>
@@ -180,16 +182,10 @@
         </div>
         {% endif %}
 
-        {% if access.queries.ctrl_isolates %}
-        <a href="{% url 'reports:ctrl_dar_work' %}" class="sb-link" title="CTRL work, Dar es Salaam">
-            <i class="fas fa-microscope"></i><span>CTRL work (Dar)</span>
-            {% if context_ctrl_dar_work_total %}<span class="sb-badge">{{ context_ctrl_dar_work_total|intcomma }}</span>{% endif %}
-        </a>
-        {% endif %}
-
         {% if access.tblis_follow_up %}
         <a href="{% url 'nanopore:tblis-follow-up' %}" class="sb-link" title="TB-LIS follow-up">
             <i class="fas fa-list-check"></i><span>TB-LIS follow-up</span>
+            {% if context_tblis_follow_up_total %}<span class="sb-badge sb-badge-sm" title="Participants to follow up in TB-LIS">{{ context_tblis_follow_up_total|intcomma }}</span>{% endif %}
         </a>
         {% endif %}
 

@@ -20,7 +20,7 @@ class QueriesOverviewTests(AccessTestBase):
         self.client.force_login(admin)
         page = self.client.get(reverse("reports:all_queries_overview"))
         self.assertEqual(page.context["grand_total"], page.context["context_total_issues"])
-        self.assertEqual({f["key"] for f in page.context["forms"]}, set(access.ALL_FORMS))
+        self.assertEqual({f["key"] for f in page.context["forms"]}, set(access.ALL_FORMS) | {"ctrl_dar_work"})
         # A zone filter counts only that zone
         zone = self.client.get(reverse("reports:all_queries_overview"), {"zone": self.zone_b.pk})
         self.assertLessEqual(zone.context["grand_total"], page.context["grand_total"])

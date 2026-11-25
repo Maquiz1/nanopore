@@ -28,7 +28,7 @@ class QueryListTests(DataSafetyBase):
                                                  site=self.dar_site, eligible=True)
             EdcsTblisZonal.objects.create(screening=screening, unique_lab_no=f"D{i}")
         lists = get_zonal_problem_lists(EdcsTblisZonal.objects.all(), [])
-        self.assertEqual(len(lists["missing_nanopore_done"]), 15)
+        self.assertEqual(len(lists["missing_date_sputum_received"]), 15)
 
 
 class CtrlIsolateQueryTests(DataSafetyBase):
