@@ -296,3 +296,37 @@ class DarLabNumberTests(DataSafetyBase):
         from django.contrib.auth.models import User
         return User.objects.create_superuser("super_csv", "super@example.org", "x")
 
+
+
+class ViewPagesTests(DataSafetyBase):
+    """The Zonal Lab View button and the Dar EDCS/TBLIS view."""
+
+    def test_zonal_view_is_the_whole_form_read_only(self):
+        lab = self.zonal_labs["A1"]
+        self.client.force_login(self.make_user("lab_view", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        url = reverse("nanopore:zonal-laboratory-detail", args=[lab.pk])
+        page = self.client.get(url)
+        self.assertEqual(page.status_code, 200)
+        self.assertTrue(page.context["read_only"])
+        self.assertTrue(all(field.disabled for field in page.context["form"].fields.values()))
+        self.assertNotContains(page, "Save Zonal Laboratory")
+        self.assertEqual(self.client.post(url, {"screening": lab.screening_id}).status_code, 405)
+
+    def test_zonal_list_has_no_empty_columns(self):
+        self.client.force_login(self.make_user("lab_list", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        page = self.client.get(reverse("nanopore:zonal-laboratory-list"))
+        self.assertNotContains(page, "Test Name")
+        self.assertNotContains(page, "Test Date")
+        self.assertContains(page, "Lab No.")
+
+    def test_dar_edcs_view_asks_dst_without_isolate(self):
+        ZonalLaboratory.objects.create(screening=self.dar, unique_lab_no="30001")
+        sync_with_latest_tblis(ZonalLaboratory.objects.get(screening=self.dar))
+        self.client.force_login(self.make_user("admin_view", [access.ADMIN]))
+        dar = EdcsTblisZonal.objects.get(screening=self.dar)
+        self.assertContains(self.client.get(reverse("nanopore:edcs-tblis-laboratory-view", args=[dar.pk])),
+                            'data-dst-without-isolate="1"')
+        other = EdcsTblisZonal.objects.create(screening=self.screenings["A1"])
+        self.assertContains(self.client.get(reverse("nanopore:edcs-tblis-laboratory-view", args=[other.pk])),
+                            'data-dst-without-isolate=""')
+

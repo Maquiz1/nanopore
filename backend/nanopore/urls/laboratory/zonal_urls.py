@@ -2,7 +2,6 @@
 from django.urls import path
 from nanopore.views import (
     ZonalLaboratoryListView,
-    ZonalLaboratoryDetailView,
     ZonalLaboratoryDeleteView,
     ZonalLabFormView,
     ZonalLabCsvUploadView
@@ -12,7 +11,7 @@ from nanopore.views.laboratory.zonal.ctrl_isolate_form_view import CtrlIsolateFo
 
 urlpatterns = [
     path("", ZonalLaboratoryListView.as_view(), name="zonal-laboratory-list"),
-    path("zonal-lab/<int:pk>/", ZonalLaboratoryDetailView.as_view(), name="zonal-laboratory-detail"),
+    path("zonal-lab/<int:pk>/", ZonalLabFormView.as_view(view_only=True), name="zonal-laboratory-detail"),
     path("zonal-lab/form/", ZonalLabFormView.as_view(), name="zonal-laboratory-create"),
     path("zonal-lab/form/<int:pk>/", ZonalLabFormView.as_view(), name="zonal-laboratory-update"),
     path("zonal-lab/ctrl/<int:pk>/", CtrlIsolateFormView.as_view(), name="ctrl-isolate-update"),

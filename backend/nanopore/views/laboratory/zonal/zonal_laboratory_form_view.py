@@ -1,3 +1,4 @@
+from django.http import HttpResponseNotAllowed
 import logging
 
 from django.db import transaction
@@ -32,6 +33,7 @@ class ZonalLabFormView(FormAccessMixin, View):
     access_is_form = True
     template_name = "nanopore/laboratory/zonal/zonal_laboratory_form.html"
     success_url = reverse_lazy("nanopore:form-status-list")
+    view_only = False  # the View button: the whole form, greyed out, whatever the user may change
 
     def get_object(self):
         pk = self.kwargs.get("pk")
@@ -59,7 +61,7 @@ class ZonalLabFormView(FormAccessMixin, View):
             initial={"screening": screening_instance},
             screening_instance=screening_instance
         )
-        read_only = self.is_read_only(obj)
+        read_only = self.view_only or self.is_read_only(obj)
         if read_only:
             for field in form.fields.values():
                 field.disabled = True
@@ -67,10 +69,13 @@ class ZonalLabFormView(FormAccessMixin, View):
         return render(
             request,
             self.template_name,
-            {"form": form, "object": obj, "screening": screening_instance, "next": next_url, "read_only": read_only}
+            {"form": form, "object": obj, "screening": screening_instance, "next": next_url, "read_only": read_only,
+             "edit_link": self.view_only and obj is not None and not self.is_read_only(obj)}
         )
 
     def post(self, request, *args, **kwargs):
+        if self.view_only:
+            return HttpResponseNotAllowed(["GET"])
         obj = self.get_object()
         screening_instance = self.get_screening_instance()
 

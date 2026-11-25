@@ -124,7 +124,7 @@
                             <h5 class="mb-0">Culture Isolate</h5>
                         </div>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4" id="culture-isolate" style="display:none;">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
+                            <div class="col-md-4" id="culture-isolate" style="display:none;" data-dst-without-isolate="{% if dst_without_isolate %}1{% endif %}">{{ form.culture_isolate.label_tag }}{{ form.culture_isolate }}</div>
                             <div class="col-md-4" id="isolate-date" style="display:none;">{{ form.isolate_date.label_tag }}{{ form.isolate_date }}</div>
                             <div class="col-md-4" id="isolate-unique-lab-no" style="display:none;">{{ form.isolate_unique_lab_no.label_tag }}{{ form.isolate_unique_lab_no }}</div>
                         </div>

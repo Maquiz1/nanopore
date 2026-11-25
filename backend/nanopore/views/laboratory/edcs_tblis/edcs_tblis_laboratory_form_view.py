@@ -4,6 +4,7 @@ from django.views import View
 from nanopore.forms.laboratory.edcs_tblis.edcs_tblis_lab_form import EdcsTblisZonalForm
 from nanopore.models import EdcsTblisZonal
 from nanopore.tblis_status import record_statuses
+from nanopore.zonal_rules import is_lab_number_only
 from utils import access
 from utils.access_mixins import FormAccessMixin
 
@@ -25,5 +26,6 @@ class EdcsTblisFormView(FormAccessMixin, View):
         return render(request, self.template_name, {
             "form": form, "object": obj, "screening": obj.screening,
             "zonal_lab": getattr(obj.screening, "zonal_laboratory", None),
+            "dst_without_isolate": is_lab_number_only(obj.screening),
             "tblis": record_statuses(EdcsTblisZonal.objects.filter(pk=obj.pk)).get(obj.screening_id),
         })
