@@ -168,20 +168,6 @@
         </a>
         {% endif %}
 
-        {% if access.is_admin or "STATISTICIAN" in access.roles or "REVIEWER" in access.roles or "COORDINATOR" in access.roles %}
-        <div class="sb-group">
-            <button type="button" class="sb-link sb-toggle" title="Substudy downloads">
-                <i class="fas fa-file-excel"></i><span>Substudy downloads</span><i class="fas fa-chevron-right sb-chevron"></i>
-            </button>
-            <div class="sb-submenu">
-                <a href="{% url 'reports:substudy_download' 'substudy2' %}"><span>Substudy 2</span>
-                    {% if context_substudy2_count %}<span class="sb-badge sb-badge-sm">{{ context_substudy2_count|intcomma }}</span>{% endif %}</a>
-                <a href="{% url 'reports:substudy_download' 'substudy4' %}"><span>Substudy 4</span>
-                    {% if context_substudy4_count %}<span class="sb-badge sb-badge-sm">{{ context_substudy4_count|intcomma }}</span>{% endif %}</a>
-            </div>
-        </div>
-        {% endif %}
-
         {% if access.tblis_follow_up %}
         <a href="{% url 'nanopore:tblis-follow-up' %}" class="sb-link" title="TB-LIS follow-up">
             <i class="fas fa-list-check"></i><span>TB-LIS follow-up</span>

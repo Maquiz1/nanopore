@@ -124,7 +124,7 @@ class QueryTrendsAccessTests(AccessTestBase):
             page = self.client.get(reverse("dashboard:dashboard"))
             self.assertContains(page, "Data quality")
             self.assertContains(page, trends)
-            self.assertContains(page, download)
+            self.assertNotContains(page, download)  # no longer in the sidebar; the address still works
             self.assertContains(page, reverse("reports:substudy_queries"))
             self.assertContains(page, reverse("reports:date_issues"))
             self.assertEqual(self.client.get(download).status_code, 200, user.username)
