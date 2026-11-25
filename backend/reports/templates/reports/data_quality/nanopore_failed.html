@@ -76,6 +76,7 @@
                         </td>
                         <td class="text-end nf-actions">
                             <a href="{{ r.view }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i> View</a>
+                            {% if r.edit %}<a href="{{ r.edit }}" class="btn btn-sm btn-primary" title="Open the Nanopore form to add the re-run"><i class="fas fa-pen-to-square"></i> Edit</a>{% endif %}
                             {% if r.may_close %}
                                 {% if tab == "closed" %}
                                 <form method="post" class="d-inline">{% csrf_token %}

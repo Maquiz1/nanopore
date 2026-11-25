@@ -275,3 +275,18 @@ class NanoporeFailedTabsTests(NanoporeRunsBase):
         self.assertEqual(self.client.post(self.url, {"lab": self.lab.pk, "action": "close", "reason": "x"}).status_code, 403)
         self.assertEqual(self.client.get(self.url, {"tab": "before", "site": self.a1.pk}).context["page_obj"].paginator.count, 1)
         self.assertEqual(self.client.get(self.url, {"tab": "before", "zone": self.zone_b.pk}).context["page_obj"].paginator.count, 1)  # not one of theirs: ignored
+
+
+class FailedListButtonsTests(NanoporeFailedTabsTests):
+    test_before_runs_then_no_rerun_planned_then_undo = test_read_only_roles_cannot_close_and_filters_work = None
+
+    def test_edit_for_those_who_may_change_and_view_for_all(self):
+        self.client.force_login(self.make_user("lab_edit_nf", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        self.client.force_login(self.make_user("ds_edit_nf", [access.DATA_SPECIALIST], zones=[self.zone_a]))
+        row = self.client.get(self.url, {"tab": "before"}).context["rows"][0]
+        edit = self.client.get(row["edit"])
+        self.assertFalse(edit.context["read_only"])
+        self.assertTrue(edit.context["next"].startswith(self.url))  # Save comes back to the list
+        self.assertTrue(self.client.get(row["view"]).context["read_only"])
+        self.client.force_login(self.make_user("stat_edit_nf", [access.STATISTICIAN], zones=[self.zone_a]))
+        self.assertIsNone(self.client.get(self.url, {"tab": "before"}).context["rows"][0]["edit"])

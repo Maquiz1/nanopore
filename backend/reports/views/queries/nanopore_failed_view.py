@@ -37,12 +37,16 @@ class NanoporeFailedView(FeatureAccessMixin, View):
         rows = []
         for lab in page:
             dar = is_lab_number_only(lab.screening)
+            form = (reverse("nanopore:ctrl-dar-nanopore", args=[lab.pk]) if dar
+                    else reverse("nanopore:zonal-lab-section", args=[lab.pk, "nanopore"]))
+            may_change = may_close(request.user, lab)
             rows.append({
                 "lab": lab, "last": lab.nanopore_runs.order_by("-run_date", "-pk").first(),
                 "days": (today - lab.last_run).days if lab.last_run else None,
-                "view": (reverse("nanopore:ctrl-dar-nanopore", args=[lab.pk]) if dar
-                         else reverse("nanopore:zonal-lab-section", args=[lab.pk, "nanopore"])) + "?view=1",
-                "may_close": may_close(request.user, lab),
+                "view": form + "?view=1",
+                # Edit: add the re-run on the Nanopore form; Save comes back to this list
+                "edit": form + "?" + urlencode({"next": request.get_full_path()}) if may_change else None,
+                "may_close": may_change,
             })
         return render(request, self.template_name, {
             "rows": rows, "page_obj": page, "search": search, "tab": tab,
