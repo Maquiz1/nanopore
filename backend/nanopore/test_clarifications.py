@@ -330,3 +330,46 @@ class ViewPagesTests(DataSafetyBase):
         self.assertContains(self.client.get(reverse("nanopore:edcs-tblis-laboratory-view", args=[other.pk])),
                             'data-dst-without-isolate=""')
 
+
+
+class EdcsButtonTests(DataSafetyBase):
+    """View EDCS/TBLIS on the Zonal Lab and CTRL forms."""
+
+    def edcs_url(self, record):
+        return reverse("nanopore:edcs-tblis-laboratory-view", args=[record.pk])
+
+    def test_zonal_form_links_to_its_record_or_says_not_built(self):
+        lab = self.zonal_labs["A1"]
+        self.client.force_login(self.make_user("lab_btn", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        form_url = reverse("nanopore:zonal-laboratory-update", args=[lab.pk])
+        EdcsTblisZonal.objects.filter(screening=lab.screening).delete()
+        self.assertContains(self.client.get(form_url), "EDCS/TBLIS record not built yet")
+        record = EdcsTblisZonal.objects.create(screening=lab.screening)
+        for url in (form_url, reverse("nanopore:zonal-laboratory-detail", args=[lab.pk])):
+            self.assertContains(self.client.get(url), self.edcs_url(record))
+        self.assertEqual(self.client.get(self.edcs_url(record)).status_code, 200)
+
+    def test_new_form_has_no_button(self):
+        self.client.force_login(self.make_user("lab_new", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        page = self.client.get(reverse("nanopore:zonal-laboratory-create") + f"?screening={self.screenings['A1'].pk}")
+        self.assertNotContains(page, "View EDCS/TBLIS")
+        self.assertNotContains(page, "not built yet")
+
+    def test_ctrl_forms_link_to_every_zone(self):
+        ctrl = self.make_user("ctrl_btn", [access.LABORATORY_TECHNICIAN], sites=[self.ctrl])
+        self.client.force_login(ctrl)
+        other = self.zonal_labs["B1"]
+        record = EdcsTblisZonal.objects.get_or_create(screening=other.screening)[0]
+        self.assertContains(self.client.get(reverse("nanopore:ctrl-isolate-update", args=[other.pk])), self.edcs_url(record))
+        self.assertEqual(self.client.get(self.edcs_url(record)).status_code, 200)
+        dar_lab = ZonalLaboratory.objects.create(screening=self.dar, unique_lab_no="30001")
+        sync_with_latest_tblis(dar_lab)
+        dar = EdcsTblisZonal.objects.get(screening=self.dar)
+        self.assertContains(self.client.get(reverse("nanopore:ctrl-dar-nanopore", args=[dar_lab.pk])), self.edcs_url(dar))
+
+    def test_others_still_limited_to_their_sites(self):
+        record = EdcsTblisZonal.objects.get_or_create(screening=self.zonal_labs["B1"].screening)[0]
+        self.client.force_login(self.make_user("lab_a_only", [access.LABORATORY_TECHNICIAN], sites=[self.a1]))
+        self.assertEqual(self.client.get(self.edcs_url(record)).status_code, 404)
+        self.client.force_login(self.make_user("nurse_btn", [access.NURSE], sites=[self.a1]))
+        self.assertEqual(self.client.get(self.edcs_url(record)).status_code, 403)

@@ -10,6 +10,7 @@
             <div class="d-flex justify-content-between mb-3 gap-2">
                 <a href="{% if access.view.zonal_lab %}{% url 'nanopore:form-status-list' %}{% else %}{% url 'nanopore:zonal-laboratory-list' %}{% endif %}" class="btn btn-secondary flex-grow-1">🔙 Back to List</a>
                 {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" %}
+                {% include "nanopore/partials/_edcs_link.html" %}
                 <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary flex-grow-1">🏠 Dashboard</a>
             </div>
 

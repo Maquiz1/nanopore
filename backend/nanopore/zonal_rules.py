@@ -75,3 +75,16 @@ def is_lab_number_only(screening):
     region = getattr(getattr(site, "district", None), "region", None)
     zone = getattr(region, "zone", None)
     return bool(zone and zone.name.strip().lower() == LAB_NUMBER_ONLY_ZONE)
+
+
+def viewable_edcs_records(user):
+    """EDCS/TBLIS records the user may open read only: CTRL covers every zone, others their assigned sites."""
+    from utils.access import EDCS_TBLIS, can_view, scope_queryset
+    EdcsTblisZonal = apps.get_model("nanopore", "EdcsTblisZonal")
+    qs = EdcsTblisZonal.objects.all()
+    if getattr(user, "is_superuser", False) or is_ctrl_lab(user):
+        return qs
+    if not can_view(user, EDCS_TBLIS):
+        return qs.none()
+    return scope_queryset(user, qs, "screening__site")
+

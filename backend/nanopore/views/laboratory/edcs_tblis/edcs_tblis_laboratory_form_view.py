@@ -4,7 +4,7 @@ from django.views import View
 from nanopore.forms.laboratory.edcs_tblis.edcs_tblis_lab_form import EdcsTblisZonalForm
 from nanopore.models import EdcsTblisZonal
 from nanopore.tblis_status import record_statuses
-from nanopore.zonal_rules import is_lab_number_only
+from nanopore.zonal_rules import is_lab_number_only, viewable_edcs_records
 from utils import access
 from utils.access_mixins import FormAccessMixin
 
@@ -18,8 +18,12 @@ class EdcsTblisFormView(FormAccessMixin, View):
     access_form = access.EDCS_TBLIS
     template_name = "nanopore/laboratory/edcs_tblis/edcs_tblis_laboratory_form.html"
 
+    def has_form_access(self, request, kwargs):
+        # CTRL reads every zone's record from its own forms
+        return super().has_form_access(request, kwargs) or access.is_ctrl_lab(request.user)
+
     def get(self, request, *args, **kwargs):
-        obj = get_object_or_404(self.scope(EdcsTblisZonal.objects.all()), pk=kwargs["pk"])
+        obj = get_object_or_404(viewable_edcs_records(request.user), pk=kwargs["pk"])
         form = EdcsTblisZonalForm(instance=obj, screening_instance=obj.screening)
         for field in form.fields.values():
             field.disabled = True
