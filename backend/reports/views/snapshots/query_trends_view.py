@@ -6,7 +6,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 
 from reports.models import QueryCount, QuerySnapshotRun
-from reports.services.query_snapshot import FORM_LABELS, is_visible
+from reports.services.query_snapshot import FORM_LABELS, LIST_SOURCES, is_visible
 from utils import access
 from utils.access import get_accessible_sites, is_unscoped
 from utils.access_mixins import require_feature
@@ -33,6 +33,32 @@ def category(form, query):
 
 
 DEFAULT_DAYS = 30
+# The list the page counts: the queries (forms' queries and missing forms, as the Queries badge), or another list
+LISTS = {"queries": "Queries", **{key: label for key, label, _, _ in LIST_SOURCES}}
+INFO_LISTS = {key for key, _, _, is_query in LIST_SOURCES if not is_query}
+# Days the way of counting changed: the chart marks them so a drop isn't read as queries fixed
+RULE_CHANGES = {
+    "queries": [(datetime.date(2026, 11, 25), "Counting rules changed: Waiting for DST and other zones' isolate items "
+                                              "became information, CTRL's work counted on its own")],
+}
+
+
+def check_labels(list_key):
+    """The checks of a list (the query key saved each night -> its name)."""
+    if list_key == "date_issues":
+        from reports.services.date_issues import FORMS, build_checks
+        return {c.key: f"{FORMS[c.form][0]}: {c.label}" for c in build_checks()}
+    if list_key == "dsdr":
+        from reports.services import dsdr_checks
+        return {c.key: c.label for c in dsdr_checks.build_checks()}
+    if list_key == "substudy":
+        from reports.services.substudy_queries import QUERIES
+        return {q.key: q.title for q in QUERIES}
+    if list_key == "no_dst":
+        from reports.services.no_dst import GROUPS as NO_DST_GROUPS
+        return dict(NO_DST_GROUPS)
+    return {"outcome_without_treatment": "Outcome without treatment", "waiting": "Waiting for a re-run",
+            "participants": "Participants to follow up"}
 # Category: what the chart's lines (and the table's rows) are split by
 CATEGORY_CHOICES = {"total": "All open queries (one line)", "type": "Query type", "form": "Form", "zone": "Zone",
                     "site": "Site", "kind": "Kind of query"}
@@ -69,12 +95,20 @@ def query_trends(request):
         return int(value) if value.isdigit() and int(value) in allowed else None
 
     zone_id, site_id = pick("zone", zones), pick("site", sites)
-    query_type = request.GET.get("type") if request.GET.get("type") in QUERY_TYPES else ""
+    list_key = request.GET.get("list") if request.GET.get("list") in LISTS else "queries"
+    is_queries = list_key == "queries"
+    list_forms = set(FORM_LABELS) if is_queries else {list_key}
+    # Query type, form and kind only mean something for the queries; the other lists split per check
+    query_type = request.GET.get("type") if is_queries and request.GET.get("type") in QUERY_TYPES else ""
     forms = {k: v for k, v in FORM_LABELS.items() if k != "missing_forms"}
-    form = request.GET.get("form") if request.GET.get("form") in forms else ""
-    lines = request.GET.get("category") if request.GET.get("category") in CATEGORY_CHOICES else "total"
+    form = request.GET.get("form") if is_queries and request.GET.get("form") in forms else ""
+    groups = GROUPS if is_queries else {"zone": "Zone", "site": "Site", "check": "Check"}
+    choices = CATEGORY_CHOICES if is_queries else {"total": f"All {LISTS[list_key]} (one line)", "check": "Check",
+                                                   "zone": "Zone", "site": "Site"}
+    labels_of = {} if is_queries else check_labels(list_key)
+    lines = request.GET.get("category") if request.GET.get("category") in choices else "total"
     # The table follows the category unless "Show per" was chosen
-    group = request.GET.get("group") if request.GET.get("group") in GROUPS else (lines if lines != "total" else "zone")
+    group = request.GET.get("group") if request.GET.get("group") in groups else (lines if lines != "total" else "zone")
 
     last_run = QuerySnapshotRun.objects.order_by("-snapshot_date").values_list("snapshot_date", flat=True).first()
     end = _date(request.GET.get("end")) or last_run or datetime.date.today()
@@ -103,7 +137,7 @@ def query_trends(request):
     def allowed(f, q):
         if (f, q) not in visible:
             visible[(f, q)] = is_visible(user, f, q)
-        return (visible[(f, q)]
+        return (f in list_forms and visible[(f, q)]
                 and (not query_type or _type(f) == query_type)
                 and (not form or _form_of(f, q) == form))
 
@@ -128,6 +162,8 @@ def query_trends(request):
                 label = f'{r["site__name"]} ({r["zone__name"]})' if r["zone__name"] else r["site__name"]
             elif group == "form":
                 label = FORM_LABELS.get(_form_of(r["form"], r["query"]), r["query"])
+            elif group == "check":
+                label = labels_of.get(r["query"], r["query"])
             elif group == "kind":
                 label = KINDS[category(r["form"], r["query"])]
             else:
@@ -179,12 +215,21 @@ def query_trends(request):
     )
     table_total = [sum(row["days"][i] for row in table) for i in range(len(days))]
 
+    # Marks on the chart where the counting rules changed (at the first count on or after that day)
+    markers = []
+    for day, text in RULE_CHANGES.get(list_key, []):
+        index = next((i for i, d in enumerate(dates) if d >= day), None)
+        if index is not None and index > 0:
+            markers.append({"index": index, "text": text, "day": day.isoformat()})
+
     return render(request, "snapshots/query_trends.html", {
-        "zones": zones, "sites": sites, "query_types": QUERY_TYPES, "groups": GROUPS, "forms": forms,
+        "zones": zones, "sites": sites, "query_types": QUERY_TYPES, "groups": groups,
+        "lists": LISTS, "selected_list": list_key, "is_queries": is_queries, "is_info": list_key in INFO_LISTS,
+        "list_label": LISTS[list_key], "markers": markers, "forms": forms,
         "selected_zone": zone_id, "selected_site": site_id, "selected_type": query_type,
-        "selected_form": form, "selected_group": group, "categories": CATEGORY_CHOICES, "selected_category": lines, "start": start, "end": end,
+        "selected_form": form, "selected_group": group, "categories": choices, "selected_category": lines, "start": start, "end": end,
         "runs": runs, "latest": latest, "previous": previous, "first": first if previous else None, "kpis": kpis,
-        "days": days, "table": table, "table_total": table_total, "group_label": GROUPS[group],
-        "chart": {"labels": [d.isoformat() for d in dates], "total": total_line, "lines": chart_lines},
-        "selected_lines": lines, "category_label": CATEGORY_CHOICES[lines],
+        "days": days, "table": table, "table_total": table_total, "group_label": groups[group],
+        "chart": {"labels": [d.isoformat() for d in dates], "total": total_line, "lines": chart_lines, "markers": markers},
+        "selected_lines": lines, "category_label": choices[lines],
     })

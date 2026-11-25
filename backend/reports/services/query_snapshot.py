@@ -75,6 +75,68 @@ SOURCES = (
 FORM_LABELS = {form: label for form, label, _ in SOURCES}
 
 
+# ── The other lists, counted the same nights (kept apart from the query totals) ──
+def _date_issues(u, s, z=None):
+    from reports.services.date_issues import date_issue_counts
+    return date_issue_counts(u, z, s)
+
+
+def _dsdr(u, s, z=None):
+    from reports.services import dsdr_checks
+    from reports.services.date_issues import date_issue_counts
+    return date_issue_counts(u, z, s, builder=dsdr_checks.build_checks)
+
+
+def _substudy(u, s, z=None):
+    from reports.services.substudy_queries import substudy_query_counts
+    return substudy_query_counts(u, z, s)
+
+
+def _untreated(u, s, z=None):
+    from reports.views.queries.date_issues_view import OutcomeWithoutTreatmentView
+    qs = OutcomeWithoutTreatmentView.records(u)
+    return {"outcome_without_treatment": qs.filter(site_id=s).count() if s else qs.count()}
+
+
+def _no_dst(u, s, z=None):
+    from reports.services.no_dst import no_dst_counts
+    return no_dst_counts(u, z, s)
+
+
+def _failed_runs(u, s, z=None):
+    from reports.services.nanopore_failed import nanopore_failed_records
+    return {"waiting": nanopore_failed_records(u, site_id=s).count()}
+
+
+_follow_up_cache = {}
+
+
+def _tblis_follow_up(u, s, z=None):
+    """Participants on TB-LIS follow-up: worked out once per count, then split by site."""
+    from reports.context_processors.tblis_follow_up_context import follow_up_participants
+    if "sites" not in _follow_up_cache:
+        ids = follow_up_participants(u)
+        Screening = apps.get_model("nanopore", "Screening")
+        by_site = {}
+        for site_id in Screening.objects.filter(pk__in=ids).values_list("site_id", flat=True):
+            by_site[site_id] = by_site.get(site_id, 0) + 1
+        _follow_up_cache["sites"] = by_site
+    by_site = _follow_up_cache["sites"]
+    return {"participants": by_site.get(s, 0) if s else sum(by_site.values())}
+
+
+# (list key, label, counter, is it a query list); the queries are SOURCES above
+LIST_SOURCES = (
+    ("date_issues", "Date issues", _date_issues, True),
+    ("dsdr", "DS / DR checks", _dsdr, True),
+    ("substudy", "Substudy queries", _substudy, True),
+    ("untreated", "Untreated outcomes", _untreated, True),
+    ("no_dst", "No DST (info)", _no_dst, False),
+    ("nanopore_failed", "Failed runs (info)", _failed_runs, False),
+    ("tblis_follow_up", "TB-LIS follow-up", _tblis_follow_up, False),
+)
+
+
 def _system_user():
     """An unsaved superuser: sees every site, like the counts an admin gets."""
     return get_user_model()(username="query-snapshot", is_superuser=True)
@@ -92,10 +154,12 @@ def take_snapshot(snapshot_date=None):
         .select_related("district__region").order_by("name")
     )
     rows = []
+    _follow_up_cache.clear()
+    counters = [(form, counter) for form, _, counter in SOURCES] + [(key, counter) for key, _, counter, _ in LIST_SOURCES]
     for site in [None] + sites:
         site_id = site.id if site else None
         zone_id = site.district.region.zone_id if site else None
-        for form, _, counter in SOURCES:
+        for form, counter in counters:
             for query, n in counter(user, site_id).items():
                 if n:
                     rows.append(QueryCount(zone_id=zone_id, site_id=site_id, form=form, query=query, count=n))

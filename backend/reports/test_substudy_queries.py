@@ -72,10 +72,15 @@ class SubstudyQueriesTests(SubstudyConsistencyTests):
         take_snapshot()
         run, _ = take_snapshot()  # same day again: replaced, not added
         self.assertEqual(QuerySnapshotRun.objects.count(), 1)
-        all_sites = sum(QueryCount.objects.filter(run=run, site__isnull=True).values_list("count", flat=True))
-        self.assertEqual(all_sites, sidebar_total)
+        from reports.services.query_snapshot import FORM_LABELS
+        all_sites = sum(QueryCount.objects.filter(run=run, site__isnull=True, form__in=FORM_LABELS).values_list("count", flat=True))
+        self.assertEqual(all_sites, sidebar_total)  # the queries alone: the other lists are counted apart
         self.assertTrue(QueryCount.objects.filter(run=run, site=self.a1, form="missing_forms", query="clinic_lab").exists())
-        self.assertFalse(QueryCount.objects.filter(form="substudy").exists())  # a list, not a trend
+        substudy = sum(QueryCount.objects.filter(run=run, site__isnull=True, form="substudy").values_list("count", flat=True))
+        from reports.services.query_snapshot import _system_user
+        self.assertEqual(substudy, sum(substudy_query_counts(_system_user()).values()))
+        page = self.client.get(reverse("reports:query_trends") + "?list=substudy")
+        self.assertEqual(page.context["kpis"]["latest"], substudy)
 
     def test_trends_page_shows_the_change(self):
         take_snapshot(datetime.date.today() - datetime.timedelta(days=1))

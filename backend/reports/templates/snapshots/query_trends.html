@@ -16,13 +16,13 @@
     <form method="get" class="qt-filters">
         <input type="hidden" name="group" value="{{ selected_group }}">
         <div>
-            <label class="form-label">From</label>
-            <input type="date" name="start" value="{{ start|date:'Y-m-d' }}" class="form-control form-control-sm">
+            <label class="form-label">List</label>
+            <select name="list" class="form-select form-select-sm"
+                    onchange="['type','form','category','group'].forEach(n => { const f = this.form.elements[n]; if (f) f.value = ''; }); this.form.submit()">
+                {% for key, label in lists.items %}<option value="{{ key }}" {% if selected_list == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
         </div>
-        <div>
-            <label class="form-label">To</label>
-            <input type="date" name="end" value="{{ end|date:'Y-m-d' }}" class="form-control form-control-sm">
-        </div>
+        {% if is_queries %}
         <div>
             <label class="form-label">Query type</label>
             <select name="type" class="form-select form-select-sm">
@@ -41,6 +41,7 @@
                 {% endfor %}
             </select>
         </div>
+        {% endif %}
         <div>
             <label class="form-label">Category</label>
             <select name="category" class="form-select form-select-sm" onchange="this.form.submit()" title="What the chart's lines and the table's rows are split by">
@@ -67,6 +68,14 @@
                 {% endfor %}
             </select>
         </div>
+        <div>
+            <label class="form-label">From</label>
+            <input type="date" name="start" value="{{ start|date:'Y-m-d' }}" class="form-control form-control-sm">
+        </div>
+        <div>
+            <label class="form-label">To</label>
+            <input type="date" name="end" value="{{ end|date:'Y-m-d' }}" class="form-control form-control-sm">
+        </div>
         <div class="qt-filter-actions">
             <button type="submit" class="btn btn-primary btn-sm">Apply</button>
             <a href="{% url 'reports:query_trends' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
@@ -82,7 +91,7 @@
 
     <div class="qt-kpis">
         <div class="qt-kpi">
-            <div class="qt-kpi-label">Open queries</div>
+            <div class="qt-kpi-label">{% if is_queries %}Open queries{% else %}{{ list_label }}{% endif %}</div>
             <div class="qt-kpi-value">{{ kpis.latest|intcomma }}</div>
             <div class="qt-kpi-sub">on {{ latest|date:"d M Y" }}</div>
         </div>
@@ -97,9 +106,10 @@
 
     <div class="qt-card">
         <div class="qt-card-head">
-            <h2>Open queries per day</h2>
+            <h2>{% if is_queries %}Open queries{% else %}{{ list_label }}{% endif %} per day</h2>
         </div>
-        <p class="qt-muted mb-2">Going down = queries being resolved faster than new ones appear.{% if selected_lines != "total" %} One line per {{ category_label|lower }}; above 8, the largest on the last day are drawn and the rest are added up as "Other".{% endif %}</p>
+        <p class="qt-muted mb-2">{% if is_info %}For information, not queries: these are not in the query totals.{% else %}Going down = queries being resolved faster than new ones appear.{% endif %}{% if not is_queries %} Counted every night since the November 2026 update (no earlier days); accepted items are left out, as on the list itself.{% endif %}{% if markers %} The dashed line marks a change in how queries are counted, not queries fixed.{% endif %}{% if selected_lines != "total" %} One line per {{ category_label|lower }}; above 8, the largest on the last day are drawn and the rest are added up as "Other".{% endif %}</p>
+        {% for m in markers %}<div class="qt-marker-note"><i class="fas fa-ruler-vertical"></i> {{ m.day }}: {{ m.text }}.</div>{% endfor %}
         <div class="qt-chart"><canvas id="qt-total" aria-label="Open queries per day" role="img"></canvas></div>
     </div>
 
@@ -146,7 +156,7 @@
         </div>
         <p class="qt-muted mt-2 mb-0">The last {{ days|length }} daily counts, latest first (the chart shows the whole range). Change = latest day compared with the oldest day shown.</p>
         {% else %}
-        <p class="qt-muted mb-0">No open queries for these filters.</p>
+        <p class="qt-muted mb-0">Nothing counted for these filters.</p>
         {% endif %}
     </div>
     {% endif %}
@@ -181,8 +191,27 @@ document.addEventListener("DOMContentLoaded", function () {
             backgroundColor: accent + "1f", fill: true, tension: 0.25,
             pointRadius: radius, pointHoverRadius: 5, pointBackgroundColor: accent,
         }];
+    // A dashed line, with its note, on the days the counting rules changed
+    const markers = {
+        id: "markers",
+        afterDatasetsDraw(chart) {
+            const { ctx, chartArea, scales } = chart;
+            (data.markers || []).forEach((m) => {
+                const x = scales.x.getPixelForValue(m.index);
+                ctx.save();
+                ctx.strokeStyle = "#b45309"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+                ctx.beginPath(); ctx.moveTo(x, chartArea.top); ctx.lineTo(x, chartArea.bottom); ctx.stroke();
+                ctx.setLineDash([]); ctx.fillStyle = "#b45309"; ctx.font = "600 11px system-ui, sans-serif";
+                const text = "Counting rules changed";
+                const width = ctx.measureText(text).width;
+                ctx.fillText(text, Math.min(x + 6, chartArea.right - width), chartArea.top + 12);
+                ctx.restore();
+            });
+        },
+    };
     new Chart(canvas, {
         type: "line",
+        plugins: [markers],
         data: { labels: data.labels, datasets: datasets },
         options: {
             maintainAspectRatio: false,
@@ -232,6 +261,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .qt-card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
     .qt-card-head h2 { font-size: 1.05rem; font-weight: 700; margin: 0; }
     .qt-chart { position: relative; height: 320px; contain: inline-size; }
+    .qt-marker-note { font-size: .8rem; color: #b45309; margin-bottom: 6px; }
     .qt-lines { display: flex; align-items: center; gap: 8px; }
     .qt-lines select { width: auto; min-width: 190px; }
     .qt-chart canvas { max-width: 100%; }
