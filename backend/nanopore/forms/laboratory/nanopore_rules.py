@@ -31,7 +31,7 @@ def _is_empty(cleaned, name):
     return value in (None, "") or (hasattr(value, "exists") and not value.exists())
 
 
-def settle_nanopore(form, cleaned, require=False):
+def settle_nanopore(form, cleaned, require=False, not_required=()):
     """
     Hidden answers are cleared, so a No leaves nothing behind. With require=True the
     questions a Yes opens must be answered (the CTRL form).
@@ -42,7 +42,7 @@ def settle_nanopore(form, cleaned, require=False):
         for name in children:
             if not _answered_yes(cleaned, parent):
                 _clear(form, cleaned, name)
-            elif require and _is_empty(cleaned, name) and name not in form.errors:
+            elif require and name not in not_required and _is_empty(cleaned, name) and name not in form.errors:
                 form.add_error(name, "Required.")
     reasons = cleaned.get("sequencing_delayed_reasons")
     other = reasons is not None and reasons.filter(value=OTHER_REASON).exists()

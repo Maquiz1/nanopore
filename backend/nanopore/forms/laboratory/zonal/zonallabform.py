@@ -299,6 +299,11 @@ class ZonalLaboratoryForm(ReasonForChangeMixin, forms.ModelForm):
         # Keep readonly display in template
         self.readonly_screening = screening_instance
 
+        # With runs recorded (section 7), the sequencing date comes from them
+        if self.instance.pk and "nanopore_sequencing_date" in self.fields and self.instance.nanopore_runs.exists():
+            self.fields["nanopore_sequencing_date"].disabled = True
+            self.fields["nanopore_sequencing_date"].help_text = "From the Nanopore runs (section 7)."
+
         # Dar es Salaam (CTRL): only the Unique Lab Number and Remarks are entered
         # here; results come from the TBLIS upload and CTRL's own forms. Fields left
         # out of the form are not touched on save.

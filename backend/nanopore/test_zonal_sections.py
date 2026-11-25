@@ -183,8 +183,9 @@ class SectionFormsTests(DataSafetyBase):
 
     def test_nanopore_uses_the_ctrl_rules(self):
         NanoporeSequencingResults.objects.create(pk=1, name="MTBC", value=1)
-        self.assertIn("nanopore_sequencing_date", self.post("nanopore", nanopore_done=self.yes.pk).context["form"].errors)
-        self.post("nanopore", nanopore_done=self.no.pk)
+        no_runs = {"runs-TOTAL_FORMS": 0, "runs-INITIAL_FORMS": 0, "runs-MIN_NUM_FORMS": 0, "runs-MAX_NUM_FORMS": 1000}
+        self.assertTrue(self.post("nanopore", nanopore_done=self.yes.pk, **no_runs).context["form"].non_field_errors())
+        self.post("nanopore", nanopore_done=self.no.pk, **no_runs)
         self.assertEqual(self.fresh().nanopore_done, self.no)
 
     def test_dar_sections_go_to_tblis_or_ctrl(self):

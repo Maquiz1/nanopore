@@ -98,12 +98,14 @@ class CtrlDarFormsTests(AccessTestBase):
         self.assertNotContains(self.client.get(reverse("reports:edcs_tblis_quality_report")), "Isolate Lab No.")
 
     def test_nanopore_demands_what_each_answer_opens(self):
-        page = self.client.post(self.url("nanopore"), {})
+        no_runs = {"runs-TOTAL_FORMS": 0, "runs-INITIAL_FORMS": 0, "runs-MIN_NUM_FORMS": 0, "runs-MAX_NUM_FORMS": 1000}
+        page = self.client.post(self.url("nanopore"), no_runs)
         self.assertIn("nanopore_done", page.context["form"].errors)
-        page = self.client.post(self.url("nanopore"), {"nanopore_done": self.yes.pk})
-        for name in ("nanopore_sequencing_date", "epi_to_me", "nanopore_results", "sequencing_delayed"):
+        page = self.client.post(self.url("nanopore"), {**no_runs, "nanopore_done": self.yes.pk})
+        for name in ("epi_to_me", "nanopore_results", "sequencing_delayed"):
             self.assertIn(name, page.context["form"].errors)
-        response = self.client.post(self.url("nanopore"), {"nanopore_done": self.no.pk, "nanopore_sequencing_date": "2025-05-01"})
+        self.assertTrue(page.context["form"].non_field_errors())  # 20(b): add the run (the date comes from it)
+        response = self.client.post(self.url("nanopore"), {**no_runs, "nanopore_done": self.no.pk, "nanopore_sequencing_date": "2025-05-01"})
         self.assertEqual(response.status_code, 302)
         lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
         self.assertEqual(lab.nanopore_done, self.no)
@@ -114,11 +116,14 @@ class CtrlDarFormsTests(AccessTestBase):
     def test_nanopore_yes_saves_when_complete(self):
         result = NanoporeSequencingResults.objects.create(pk=2, name="None", value=2)
         response = self.client.post(self.url("nanopore"), {
-            "nanopore_done": self.yes.pk, "nanopore_sequencing_date": "2025-05-01", "epi_to_me": self.no.pk,
-            "nanopore_results": result.pk, "sequencing_delayed": self.no.pk,
+            "runs-TOTAL_FORMS": 1, "runs-INITIAL_FORMS": 0, "runs-MIN_NUM_FORMS": 0, "runs-MAX_NUM_FORMS": 1000,
+            "runs-0-run_date": "2025-05-01", "runs-0-run_number": "0225", "runs-0-outcome": "passed",
+            "nanopore_done": self.yes.pk, "epi_to_me": self.no.pk, "nanopore_results": result.pk, "sequencing_delayed": self.no.pk,
         })
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(ZonalLaboratory.objects.get(pk=self.lab.pk).nanopore_results, result)
+        lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
+        self.assertEqual((lab.nanopore_results, str(lab.nanopore_sequencing_date)), (result, "2025-05-01"))
+        self.assertEqual(lab.nanopore_runs.get().run_number, "02/25")  # typed without the slash
 
     def test_lpa_form_shows_only_lines_tblis_says_were_done(self):
         band1 = FirstLineDrugs.objects.create(name="rpoB", value=1)

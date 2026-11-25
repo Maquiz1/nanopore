@@ -212,6 +212,10 @@ def _all_filters(model):
         if fields[0].startswith(NANOPORE_PREFIXES) and key != "missing_nanopore_done":
             q &= Q(nanopore_done=1)
 
+        # Every run failed so far (result "Failed", waiting for a re-run): nothing to analyse in EPI2ME yet
+        if key in ("missing_epi_to_me", "missing_epi_to_me_date", "missing_epi_to_me_version", "missing_sequencing_results"):
+            q &= ~Q(nanopore_results__value=4)
+
         # Nanopore drug results
         if key == "missing_nanopore_drug_results":
             q &= Q(nanopore_results=1)

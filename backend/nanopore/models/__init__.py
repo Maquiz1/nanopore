@@ -4,6 +4,7 @@ from .clinic_lab import ClinicLaboratory
 from .zonal_lab import ZonalLaboratory
 from .diagnosis import Diagnosis
 from .regimen_changes import RegimenChanges
+from .nanopore_run import NanoporeRun
 from .edcs_tblis_zonal import EdcsTblisZonal
 from .tblis_raw_data import TblisRawData, TblisUploadBatch
 from .discrepancies import TblisFollowUp, TblisNotInEdcs, EdcsNotInTblis, EdcsTblisMismatch, TblisLeftOut, TblisIsolateDst

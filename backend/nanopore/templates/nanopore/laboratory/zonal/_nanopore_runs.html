@@ -1,0 +1,91 @@
+{# 20(b) Nanopore runs: every attempt, numbered by date (nanopore/nanopore_runs.py). Needs runs_formset. #}
+<div class="nano-group nano-runs" data-nano-when="done">
+    <h6 class="nano-title">20(b). Sequencing runs</h6>
+    <p class="nano-runs-help">Add every run, including failed ones. Type the run number's digits (e.g. 3026): the slash is added for you (30/26). The run that passes gives the sequencing date, and its EPI2ME analysis and results are answered below.
+        While every run has failed, the result is "Failed" until a re-run passes.</p>
+    {{ runs_formset.management_form }}
+    {% for error in runs_formset.non_form_errors %}<div class="df-error">{{ error }}</div>{% endfor %}
+    <div class="table-responsive">
+        <table class="table table-sm align-middle nano-runs-table mb-2">
+            <thead><tr><th>Attempt</th><th>Date of run</th><th>Run number</th><th>Outcome</th><th>Why it failed</th><th>Run ID / flow cell ID <span class="text-muted">(optional)</span></th><th></th></tr></thead>
+            <tbody data-runs-body>
+                {% for run in runs_formset %}
+                <tr class="nano-run{% if run.errors %} has-error{% endif %}" data-run>
+                    <td class="nano-run-no">{{ forloop.counter }}{% for hidden in run.hidden_fields %}{{ hidden }}{% endfor %}</td>
+                    <td>{{ run.run_date }}{% for e in run.run_date.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</td>
+                    <td>{{ run.run_number }}{% for e in run.run_number.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</td>
+                    <td>{{ run.outcome }}{% for e in run.outcome.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</td>
+                    <td>{{ run.failure_reason }}{% for e in run.failure_reason.errors %}<div class="df-error">{{ e }}</div>{% endfor %}
+                        <div class="run-other-wrap">{{ run.failure_other }}{% for e in run.failure_other.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</div></td>
+                    <td>{{ run.run_id }}</td>
+                    <td class="text-end">{% if run.instance.pk and not read_only %}<label class="nano-run-del" title="Remove this run (entered by mistake)">{{ run.DELETE }} Remove</label>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if not read_only %}
+    <button type="button" class="btn btn-sm btn-outline-primary" data-add-run><i class="fas fa-plus"></i> Add run</button>
+    <template data-run-template>
+        <tr class="nano-run" data-run>
+            <td class="nano-run-no"></td>
+            {% with f=runs_formset.empty_form %}
+            <td>{{ f.run_date }}</td><td>{{ f.run_number }}</td><td>{{ f.outcome }}</td>
+            <td>{{ f.failure_reason }}<div class="run-other-wrap">{{ f.failure_other }}</div></td>
+            <td>{{ f.run_id }}{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}</td><td></td>
+            {% endwith %}
+        </tr>
+    </template>
+    {% endif %}
+</div>
+
+<style>
+    .nano-runs-help { font-size: .8rem; color: #7d8aa3; margin: -4px 0 10px; }
+    .nano-runs-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #7d8aa3; font-weight: 600; white-space: nowrap; }
+    .nano-run-no { font-weight: 700; color: #1d6fd6; width: 48px; }
+    .nano-run-del { font-size: .8rem; color: #b42318; cursor: pointer; white-space: nowrap; }
+    .run-other-wrap { margin-top: 4px; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const box = document.querySelector(".nano-runs");
+    if (!box) return;
+    const body = box.querySelector("[data-runs-body]");
+    const total = box.querySelector('input[name="runs-TOTAL_FORMS"]');
+
+    function settle(row) {
+        // "Why it failed" only for a failed run; "Other reason" only for Other
+        const outcome = row.querySelector(".run-outcome"), reason = row.querySelector(".run-reason"), other = row.querySelector(".run-other");
+        if (!outcome || !reason) return;
+        const failed = outcome.value === "failed";
+        reason.hidden = !failed;
+        if (other) other.closest(".run-other-wrap").hidden = !(failed && reason.value === "other");
+    }
+    function number() {
+        body.querySelectorAll("[data-run]").forEach((row, i) => { row.querySelector(".nano-run-no").firstChild.textContent = i + 1; });
+    }
+    body.querySelectorAll("[data-run]").forEach(settle);
+
+    // Run number NN/YY: digits only, the slash goes in after the first two
+    box.addEventListener("input", function (e) {
+        if (!e.target.classList.contains("run-number")) return;
+        const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+        e.target.value = digits.length > 2 ? digits.slice(0, 2) + "/" + digits.slice(2) : digits;
+    });
+    box.addEventListener("change", e => { const row = e.target.closest("[data-run]"); if (row) settle(row); });
+
+    const add = box.querySelector("[data-add-run]"), template = box.querySelector("[data-run-template]");
+    if (add && template && total) {
+        add.addEventListener("click", function () {
+            const index = parseInt(total.value, 10);
+            const html = template.innerHTML.replace(/__prefix__/g, index);
+            body.insertAdjacentHTML("beforeend", html);
+            total.value = index + 1;
+            const row = body.lastElementChild;
+            row.querySelector(".nano-run-no").textContent = index + 1;
+            settle(row);
+            number();
+        });
+    }
+});
+</script>

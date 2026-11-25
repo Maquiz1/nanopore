@@ -7,6 +7,8 @@
         </div>
     </div>
 
+    {% if runs_formset %}{% include "nanopore/laboratory/zonal/_nanopore_runs.html" %}{% endif %}
+
     <div class="nano-group" data-nano-when="done">
         <h6 class="nano-title">EPI2ME analysis</h6>
         <div class="row g-3">

@@ -26,6 +26,7 @@ EXPORT_FORMS = [
     ("EdcsTblisZonal", "EDCS / TBLIS"),
     ("Diagnosis", "Diagnosis"),
     ("RegimenChanges", "Regimen Changes"),
+    ("NanoporeRun", "Nanopore runs (one row per run)"),
 ]
 
 
@@ -75,7 +76,7 @@ class DataExportView(FeatureAccessMixin, TemplateView):
         context["export_forms"] = []
         for model_name, title in EXPORT_FORMS:
             model = apps.get_model("nanopore", model_name)
-            site_field = "site" if model_name == "Screening" else "screening__site"
+            site_field = {"Screening": "site", "NanoporeRun": "zonal_lab__screening__site"}.get(model_name, "screening__site")
             count = export_queryset(user, model.objects.all(), site_field).count()
             context["export_forms"].append((model_name, title, count))
         return context

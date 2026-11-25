@@ -12,6 +12,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
 from nanopore import history
+from nanopore.nanopore_runs import runs_formset, save_runs, summary_from_formset
 from nanopore.forms.laboratory.zonal.section_forms import SECTION_FORMS
 from nanopore.models import Screening, ZonalLaboratory
 from nanopore.tasks_tblis_raw import sync_with_latest_tblis
@@ -76,7 +77,7 @@ class ZonalLabSectionView(FormAccessMixin, View):
             raise PermissionDenied(f"{screening.pid} is Substudy 4: the Zonal Lab is not entered for Substudy 4.")
         return None, screening
 
-    def page(self, form, record, screening, read_only):
+    def page(self, form, record, screening, read_only, runs=None):
         if read_only:
             for form_field in form.fields.values():
                 form_field.disabled = True
@@ -84,6 +85,8 @@ class ZonalLabSectionView(FormAccessMixin, View):
             "form": form, "object": record, "screening": screening, "section": self.section,
             "read_only": read_only, "back": self.next_url() or (hub_url(record) if record else reverse("nanopore:form-status-list")),
             "next": self.next_url() or "",
+            "runs_formset": runs if runs is not None else (
+                runs_formset(record, read_only=read_only) if self.section.key == "nanopore" and record is not None else None),
         })
 
     def next_url(self):
@@ -124,11 +127,17 @@ class ZonalLabSectionView(FormAccessMixin, View):
         elsewhere = self.dar_elsewhere(record, screening)
         if elsewhere:
             return elsewhere
-        form = self.form_class(request.POST, instance=record, screening=screening)
+        runs = None
+        if self.section.key == "nanopore":
+            runs = runs_formset(record, request.POST)
+            form = self.form_class(request.POST, instance=record, screening=screening,
+                                   runs=summary_from_formset(runs) if runs.is_valid() else None)
+        else:
+            form = self.form_class(request.POST, instance=record, screening=screening)
         if not form.has_answers:
             return redirect(hub_url(record))
-        if not form.is_valid():
-            return self.page(form, record, screening, False)
+        if not form.is_valid() or (runs is not None and not runs.is_valid()):
+            return self.page(form, record, screening, False, runs)
 
         saved = form.save(commit=False)
         saved.updated_by = request.user
@@ -140,6 +149,8 @@ class ZonalLabSectionView(FormAccessMixin, View):
         with history.source(source):
             form.apply_change_reason(saved).save()
             form.save_m2m()
+            if runs is not None:
+                save_runs(runs, saved, request.user)
         try:
             with transaction.atomic(), history.source(source):
                 sync_with_latest_tblis(saved)

@@ -9,6 +9,7 @@ from django.views import View
 
 from nanopore.forms.laboratory.zonal.ctrl_dar_forms import DarLpaForm, DarNanoporeForm
 from nanopore import history
+from nanopore.nanopore_runs import runs_formset, save_runs, summary_from_formset
 from nanopore.tasks_tblis_raw import sync_with_latest_tblis
 from nanopore.zonal_rules import ctrl_dar_records
 from utils import access
@@ -35,11 +36,13 @@ class CtrlDarFormView(FormAccessMixin, View):
             return url
         return reverse("reports:ctrl_dar_work") + f"?tab={self.section}"
 
-    def page(self, request, form, obj):
+    def page(self, request, form, obj, runs=None):
+        read_only = not ctrl_dar_records(request.user, write=True).filter(pk=obj.pk).exists()
+        if self.section == "nanopore" and runs is None:
+            runs = runs_formset(obj, read_only=read_only)
         return render(request, self.template_name, {
             "form": form, "object": obj, "screening": obj.screening, "next": self.next_url(),
-            "section": self.section, "title": self.title,
-            "read_only": not ctrl_dar_records(request.user, write=True).filter(pk=obj.pk).exists(),
+            "section": self.section, "title": self.title, "read_only": read_only, "runs_formset": runs,
         })
 
     def get(self, request, *args, **kwargs):
@@ -48,15 +51,22 @@ class CtrlDarFormView(FormAccessMixin, View):
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
-        form = self.form_class(request.POST, instance=obj)
-        if not form.is_valid():
-            return self.page(request, form, obj)
+        runs = None
+        if self.section == "nanopore":
+            runs = runs_formset(obj, request.POST)
+            form = self.form_class(request.POST, instance=obj, runs=summary_from_formset(runs) if runs.is_valid() else None)
+        else:
+            form = self.form_class(request.POST, instance=obj)
+        if not form.is_valid() or (runs is not None and not runs.is_valid()):
+            return self.page(request, form, obj, runs)
         record = form.save(commit=False)
         record.updated_by = request.user
         record.updated_at = timezone.now()
         record._history_source = f"CTRL {self.title} form"
         form.apply_change_reason(record).save()
         form.save_m2m()
+        if runs is not None:
+            save_runs(runs, record, request.user)
         try:
             with history.source(f"CTRL {self.title} form"):
                 sync_with_latest_tblis(record)

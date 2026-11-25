@@ -8,6 +8,9 @@ from django.conf import settings
 from django.apps import apps
 from django.utils import timezone
 
+from nanopore.nanopore_runs import EXPORT_HEADER as RUN_HEADER, export_columns as run_columns
+
+
 def sanitize_text(val):
     if isinstance(val, str):
         return val.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ').strip()
@@ -34,6 +37,8 @@ def _scope_for_user(model, qs, user_id):
         return scope_queryset(user, qs, "site")
     if "screening" in field_names:
         return scope_queryset(user, qs, "screening__site")
+    if "zonal_lab" in field_names:  # Nanopore runs
+        return scope_queryset(user, qs, "zonal_lab__screening__site")
     return qs.none()  # no site to scope by (e.g. raw TBLIS rows)
 
 
@@ -56,7 +61,7 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
     exclude_fields = [
         'id', 'pid1', 'pid2', 'created_at', 'updated_at', 'created_by', 'updated_by', 'remarks',
         'enrollment', 'clinic_laboratory', 'zonal_laboratory', 'diagnosis', 'regimen_changes',
-        'tblis_laboratory', 'missingformsdqsnapshot',
+        'tblis_laboratory', 'missingformsdqsnapshot', 'nanopore_runs',
     ]
 
     # Determine fields
@@ -70,6 +75,8 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
             continue
         if model_name == 'RegimenChanges' and f.name == 'screening':
             continue
+        if model_name == 'NanoporeRun' and f.name == 'zonal_lab':
+            continue  # the participant's PID and the run number go first
 
         fields.append(f)
 
@@ -85,6 +92,12 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
 
     remarks_field_name = f"{model_name.lower()}_remarks"
     header.append(remarks_field_name)
+    if model_name == 'NanoporeRun':
+        header[:0] = ['pid', 'attempt']
+        select_related_fields.append('zonal_lab__screening')
+    if model_name == 'ZonalLaboratory':
+        header.extend(RUN_HEADER)
+        prefetch_related_fields.append('nanopore_runs')
 
     base_qs = _scope_for_user(model, model.objects.all(), user_id)
     total = base_qs.count()
@@ -120,6 +133,16 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
         
         # We also need to update 'total' because it was computed earlier as model.objects.count()
         total = qs.count()
+
+    run_numbers = {}
+    if model_name == 'NanoporeRun':
+        # Attempt 1, 2, 3... per participant, by date (as on the form); run_number is the lab's NN/YY
+        counter, last_lab = 0, None
+        for lab_id, run_id in qs.order_by('zonal_lab_id', 'run_date', 'pk').values_list('zonal_lab_id', 'pk'):
+            counter = counter + 1 if lab_id == last_lab else 1
+            last_lab = lab_id
+            run_numbers[run_id] = counter
+        qs = qs.order_by('zonal_lab__screening__pid', 'run_date', 'pk')
 
     # Apply consistent ordering
     if model_name in ('EdcsTblisZonal', 'ZonalLaboratory'):
@@ -169,6 +192,10 @@ def export_model_raw_data_task(self, model_name, filename=None, user_id=None):
 
             remarks_value = getattr(obj, 'remarks', '')
             row.append(sanitize_text(remarks_value if remarks_value else ''))
+            if model_name == 'NanoporeRun':
+                row[:0] = [sanitize_text(obj.zonal_lab.screening.pid), run_numbers.get(obj.pk, '')]
+            if model_name == 'ZonalLaboratory':
+                row.extend(sanitize_text(v) for v in run_columns(obj))
 
             writer.writerow(row)
 
@@ -194,7 +221,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
     exclude_fields = [
         'id', 'created_at', 'updated_at', 'created_by', 'updated_by',
         'screening', 'enrollment', 'clinic_laboratory', 'zonal_laboratory',
-        'diagnosis', 'regimen_changes',
+        'diagnosis', 'regimen_changes', 'nanopore_runs',
         'pid', 'pid1', 'pid2',  # exported once as the first columns
         'phenotypic_date_performed',  # replaced by the first- and second-line dates
     ]
@@ -274,6 +301,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
         headers.append(f"regimen_{f}")
     if mode == "edcs":
         headers.append("tblis_status")
+    headers.extend(RUN_HEADER)  # Nanopore runs: number, first and final run dates (last, so earlier columns keep their place)
 
     screenings = _scope_for_user(Screening, Screening.objects.all(), user_id)
     total = screenings.count()
@@ -287,7 +315,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
     qs = screenings.select_related(
         'enrollment', 'diagnosis', 'clinic_laboratory'
     ).prefetch_related(
-        'regimen_changes',
+        'regimen_changes', 'zonal_laboratory__nanopore_runs',
         *(f"enrollment__{f.name}" for f in models["enrollment"]._meta.many_to_many),
         *(f"diagnosis__{f.name}" for f in models["diagnosis"]._meta.many_to_many),
         *(f"clinic_laboratory__{f.name}" for f in models["clinic"]._meta.many_to_many),
@@ -370,6 +398,7 @@ def export_all_models_combined_task(self, mode="zonal", filename=None, user_id=N
                 if mode == "edcs":
                     found = found_by_screening.get(screening.pk)
                     row.append(found.label if found else "")
+                row.extend(sanitize_text(v) for v in run_columns(getattr(screening, "zonal_laboratory", None)))
 
                 writer.writerow(row)
             
