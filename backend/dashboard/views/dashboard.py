@@ -1,3 +1,5 @@
+from django.core.cache import cache
+from dashboard.sites import shows_sites, sites_at_a_glance
 from dashboard.work import remember_visit, work_groups
 from nanopore.substudy4_set_aside import set_aside_entries
 from nanopore.models import EdcsTblisZonal
@@ -590,4 +592,9 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
 
         # "Your work today": each person's own work first (dashboard/work.py)
         context["work_groups"], context["work_since"] = work_groups(self.request, remember_visit(self.request.user))
+        # "Sites at a glance": for those who follow several sites (dashboard/sites.py)
+        if shows_sites(self.request.user):
+            user = self.request.user
+            context["site_rows"], context["site_snapshot_date"] = cache.get_or_set(
+                f"dashboard_sites:{user.pk}", lambda: sites_at_a_glance(user), 600)  # 10 minutes
         return context

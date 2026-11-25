@@ -100,6 +100,56 @@
     </section>
     {% endif %}
 
+    {% if site_rows %}
+    <!-- ── Sites at a glance ─────────────────────────────────── -->
+    <section class="dash-card dash-sites">
+        <header class="dash-card-head">
+            <h2><i class="fas fa-hospital"></i> Sites at a glance</h2>
+            <a href="{% url 'dashboard:site-targets' %}" class="dash-link">Targets <i class="fas fa-arrow-right"></i></a>
+        </header>
+        <p class="dash-card-sub">Substudy 2 per site; the sites that need attention first. Zonal Lab and outcomes are out of Substudy 2 enrolled.
+            {% if site_snapshot_date %}Missing forms and open queries as of {{ site_snapshot_date|date:"d M Y" }} (daily snapshot).{% endif %}</p>
+        <div class="table-responsive">
+            <table class="table dash-sites-table mb-0">
+                <thead><tr><th>Site</th><th class="dash-num">Enrolled / target</th><th class="dash-num">Zonal Lab</th><th class="dash-num">Outcomes</th><th class="dash-num">Missing forms</th><th class="dash-num">Open queries</th></tr></thead>
+                <tbody>
+                    {% for r in site_rows|slice:":8" %}
+                    <tr>
+                        <td><a href="{% url 'nanopore:form-status-list' %}?site={{ r.site_id }}" class="dash-site-name">{{ r.name }}</a><span class="dash-site-zone">{{ r.zone }}</span>
+                            {% for label, why in r.flags %}<span class="dash-flag" title="{{ why }}"><i class="fas fa-circle-exclamation"></i> {{ label }}</span>{% endfor %}</td>
+                        <td class="dash-num">{{ r.enrolled|intcomma }}{% if r.target %} <span class="dash-of">/ {{ r.target|intcomma }}</span>
+                            <div class="dash-mini"><div style="width: {% if r.enrolled_pct > 100 %}100{% else %}{{ r.enrolled_pct }}{% endif %}%"></div></div>{% endif %}</td>
+                        <td class="dash-num">{% if r.enrolled %}{{ r.zonal_pct }}%<span class="dash-of"> · {{ r.zonal|intcomma }}</span>{% else %}—{% endif %}</td>
+                        <td class="dash-num">{% if r.enrolled %}{{ r.outcomes_pct }}%<span class="dash-of"> · {{ r.outcomes|intcomma }}</span>{% else %}—{% endif %}</td>
+                        <td class="dash-num">{% if r.missing %}<a href="{% url 'reports:all_queries_overview' %}?site={{ r.site_id }}">{{ r.missing|intcomma }}</a>{% else %}<i class="fas fa-check dash-ok"></i>{% endif %}</td>
+                        <td class="dash-num">{% if r.queries %}<a href="{% url 'reports:all_queries_overview' %}?site={{ r.site_id }}">{{ r.queries|intcomma }}</a>{% else %}<i class="fas fa-check dash-ok"></i>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if site_rows|length > 8 %}
+                <tbody class="dash-sites-more" hidden>
+                    {% for r in site_rows|slice:"8:" %}
+                    <tr>
+                        <td><a href="{% url 'nanopore:form-status-list' %}?site={{ r.site_id }}" class="dash-site-name">{{ r.name }}</a><span class="dash-site-zone">{{ r.zone }}</span>
+                            {% for label, why in r.flags %}<span class="dash-flag" title="{{ why }}"><i class="fas fa-circle-exclamation"></i> {{ label }}</span>{% endfor %}</td>
+                        <td class="dash-num">{{ r.enrolled|intcomma }}{% if r.target %} <span class="dash-of">/ {{ r.target|intcomma }}</span>
+                            <div class="dash-mini"><div style="width: {% if r.enrolled_pct > 100 %}100{% else %}{{ r.enrolled_pct }}{% endif %}%"></div></div>{% endif %}</td>
+                        <td class="dash-num">{% if r.enrolled %}{{ r.zonal_pct }}%<span class="dash-of"> · {{ r.zonal|intcomma }}</span>{% else %}—{% endif %}</td>
+                        <td class="dash-num">{% if r.enrolled %}{{ r.outcomes_pct }}%<span class="dash-of"> · {{ r.outcomes|intcomma }}</span>{% else %}—{% endif %}</td>
+                        <td class="dash-num">{% if r.missing %}<a href="{% url 'reports:all_queries_overview' %}?site={{ r.site_id }}">{{ r.missing|intcomma }}</a>{% else %}<i class="fas fa-check dash-ok"></i>{% endif %}</td>
+                        <td class="dash-num">{% if r.queries %}<a href="{% url 'reports:all_queries_overview' %}?site={{ r.site_id }}">{{ r.queries|intcomma }}</a>{% else %}<i class="fas fa-check dash-ok"></i>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% endif %}
+            </table>
+        </div>
+        {% if site_rows|length > 8 %}
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="var m=this.closest('section').querySelector('.dash-sites-more'); m.hidden=!m.hidden; this.textContent=m.hidden?'Show all {{ site_rows|length }} sites':'Show fewer sites';">Show all {{ site_rows|length }} sites</button>
+        {% endif %}
+    </section>
+    {% endif %}
+
     <form method="get" class="dash-filters">
         {% if is_admin or is_national_lab %}
         <div>
@@ -329,6 +379,18 @@
     /* First- and second-line LPA, under the LPA row */
     .dash-s4-line { margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: .86rem; color: var(--ink-2, #4a5872); }
     .dash-s4-line i { color: var(--muted, #7d8aa3); margin-right: 4px; }
+    /* Sites at a glance */
+    .dash-sites { margin-bottom: 16px; }
+    .dash-sites-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted, #7d8aa3); font-weight: 600; white-space: nowrap; }
+    .dash-sites-table td { font-size: .88rem; vertical-align: middle; }
+    .dash-num { text-align: right; white-space: nowrap; }
+    .dash-site-name { font-weight: 600; color: var(--ink, #14213d); text-decoration: none; }
+    .dash-site-zone { display: block; font-size: .74rem; color: var(--muted, #7d8aa3); }
+    .dash-of { color: var(--muted, #7d8aa3); font-size: .8rem; }
+    .dash-mini { height: 5px; margin-top: 4px; border-radius: 3px; background: var(--line, #e6eaf2); min-width: 80px; }
+    .dash-mini > div { height: 100%; border-radius: 3px; background: #1d6fd6; }
+    .dash-flag { display: inline-flex; align-items: center; gap: 4px; margin: 3px 4px 0 0; padding: 1px 8px; border-radius: 999px; font-size: .72rem; background: #fff4e5; color: #a15c00; cursor: help; }
+    .dash-ok { color: #1f8a4c; }
     /* Your work today */
     .dash-work { margin-bottom: 16px; }
     .dash-work-hint { font-size: .78rem; color: var(--muted, #7d8aa3); }

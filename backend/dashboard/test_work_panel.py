@@ -87,3 +87,25 @@ class SinceLastVisitTests(DataSafetyBase):
         self.assertEqual(page.context["work_since"]["date"], day)
         # The base participants were screened on 1 Mar 2025: their missing forms have waited over 30 days
         self.assertEqual(tiles["Enrollment forms missing"].waiting, tiles["Enrollment forms missing"].count)
+
+
+class SitesAtAGlanceTests(DataSafetyBase):
+    def test_who_sees_it(self):
+        cache.clear()
+        self.client.force_login(self.make_user("coord_sites", [access.COORDINATOR], zones=[self.zone_a]))
+        page = self.client.get(reverse("dashboard:dashboard"))
+        self.assertIn("site_rows", page.context)
+        self.assertEqual({r.name for r in page.context["site_rows"]}, {"A1", "A2"})  # their zone's sites with participants
+        cache.clear()
+        self.client.force_login(self.make_user("nurse_sites", [access.NURSE], sites=[self.a1]))
+        self.assertNotIn("site_rows", self.client.get(reverse("dashboard:dashboard")).context)
+
+    def test_flags_a_site_well_behind(self):
+        from dashboard.sites import SiteRow
+        from locations.models import Site
+        Site.objects.filter(pk__in=[self.a1.pk, self.a2.pk]).update(substudy2Target=10)
+        admin = self.make_user("admin_sites", [access.ADMIN])
+        from dashboard.sites import sites_at_a_glance
+        rows, _ = sites_at_a_glance(admin)
+        self.assertTrue(all(isinstance(r, SiteRow) for r in rows))
+        self.assertEqual({r.name: r.target for r in rows if r.name in ("A1", "A2")}, {"A1": 10, "A2": 10})
