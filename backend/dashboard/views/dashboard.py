@@ -1,3 +1,4 @@
+from dashboard.work import work_groups
 from nanopore.substudy4_set_aside import set_aside_entries
 from nanopore.models import EdcsTblisZonal
 from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
@@ -587,4 +588,6 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
             "nanopore_progress": nanopore_progress,
         })
 
+        # "Your work today": each person's own work first (dashboard/work.py)
+        context["work_groups"] = work_groups(self.request)
         return context

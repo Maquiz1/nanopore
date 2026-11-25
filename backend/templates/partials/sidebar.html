@@ -170,7 +170,7 @@
 
         {% if access.tblis_follow_up %}
         <a href="{% url 'reports:no_dst' %}" class="sb-link" title="Positive culture, no DST (information)">
-            <i class="fas fa-vial-circle-check"></i><span>Positive culture, no DST</span>
+            <i class="fas fa-vial-circle-check"></i><span>No DST (info)</span>
             {% if context_no_dst_total %}<span class="sb-badge sb-badge-sm sb-badge-info" title="For information, not queries">{{ context_no_dst_total|intcomma }}</span>{% endif %}
         </a>
         {% endif %}
