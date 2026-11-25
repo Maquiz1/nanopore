@@ -261,7 +261,7 @@ Run this on your dev machine:
 
 To create a new Expo project, run the following in your terminal:
 
-npx create-expo-app nanopore-mobile
+npx create-expo-app mobile
 
 OR 
 
@@ -272,12 +272,12 @@ Choose the blank (JavaScript) template.
 
 2. ✅ To start the development server, run the following command:TO Terminal
 
-cd nanopore-mobile
+cd mobile
 
 npx expo start
 
 3. ✅ Project Structure
-nanopore-mobile/
+mobile/
  ├── App.js
  ├── api/
  │    └── client.js

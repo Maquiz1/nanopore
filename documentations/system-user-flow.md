@@ -4,7 +4,7 @@ DREAM is a Django web application (`backend/`) for the Nanopore TB study. It rec
 participant's journey from screening, through clinic and zonal laboratory testing, to diagnosis
 and treatment, and gives reviewers dashboards, data-quality queries and exports.
 
-> `frontend/` is empty and `nanopore-mobile/` is an Expo (React Native) starter app with only
+> `frontend/` is empty and `mobile/` is an Expo (React Native) starter app with only
 > home and settings tabs. All real user flows are served by the Django backend templates.
 
 ---
