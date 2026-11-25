@@ -4,7 +4,7 @@ from nanopore.forms.reason_for_change import ReasonForChangeMixin
 
 from common.labels.laboratory.zonal.zonal_labels import ZONAL_LABELS
 from nanopore.forms.laboratory.nanopore_rules import _answered_yes, settle_nanopore
-from nanopore.nanopore_runs import FAILED_RESULT_VALUE, summarize
+from nanopore.nanopore_runs import COPIED_FIELDS, final_answers, summarize
 from nanopore.forms.laboratory.zonal.zonallabform import ZonalLaboratoryForm
 from nanopore.models import ZonalLaboratory
 from nanopore.zonal_rules import NANOPORE_PREFIXES, lpa_lines_done
@@ -30,7 +30,8 @@ class DarNanoporeForm(ReasonForChangeMixin, forms.ModelForm):
     """
     Meta = type("Meta", (), _meta(NANOPORE_FIELDS))
 
-    def __init__(self, *args, runs=None, **kwargs):
+    def __init__(self, *args, runs=None, runs_changed=False, **kwargs):
+        self.runs_changed = runs_changed  # a saved run changed or removed: needs a reason too
         super().__init__(*args, **kwargs)
         self.fields["nanopore_done"].required = True
         self.fields["nanopore_results"].queryset = NanoporeSequencingResults.objects.order_by("value")
@@ -38,29 +39,32 @@ class DarNanoporeForm(ReasonForChangeMixin, forms.ModelForm):
         if runs is None and self.instance.pk:
             runs = summarize(self.instance.nanopore_runs.all())
         self.runs = runs or summarize([])
-        # 20(b) comes from the runs now; a record sequenced before runs existed keeps its date
-        date = self.fields["nanopore_sequencing_date"]
-        date.disabled, date.required = True, False
-        date.help_text = "From the runs: the date of the run that passed."
+        # 20(b)-21(h) are answered on each run; the final run's are copied here (read only).
+        # A record sequenced before runs existed keeps what was typed until a run is added.
+        self.legacy = bool(self.instance.pk and self.instance.nanopore_sequencing_date and not self.runs["count"])
+        # Not shown on these pages (the runs carry them): locked, so saving keeps what is saved
+        for name in COPIED_FIELDS:
+            self.fields[name].disabled, self.fields[name].required = True, False
+        self.fields["nanopore_sequencing_date"].help_text = "From the final run (the latest that didn't fail, else the latest)."
+
+    def changed_answers(self):
+        changed = super().changed_answers()
+        return changed + ["nanopore runs"] if self.runs_changed else changed
 
     def clean(self):
         cleaned = super().clean()
         runs = self.runs
-        not_required = ()
         if _answered_yes(cleaned, "nanopore_done"):
             if runs["count"]:
-                cleaned["nanopore_sequencing_date"] = runs["passed"] or runs["latest"]
-                if runs["passed"] is None:
-                    # Every run so far failed: waiting for a re-run, nothing analysed yet
-                    cleaned["nanopore_results"] = NanoporeSequencingResults.objects.filter(value=FAILED_RESULT_VALUE).first()
-                    not_required = ("epi_to_me",)
-                elif getattr(cleaned.get("nanopore_results"), "value", None) == FAILED_RESULT_VALUE:
-                    self.add_error("nanopore_results", "A run passed: choose its result.")
-            elif not self.instance.nanopore_sequencing_date:
-                self.add_error(None, "Add the run under 20(b): its date and whether it passed.")
+                cleaned.update(final_answers(runs))
+                for name in COPIED_FIELDS:
+                    self.errors.pop(name, None)
+            else:
+                # Every Yes has its run(s), older records too (their first run card is filled from their answers)
+                self.add_error(None, "Add the run under Sequencing runs: 20(b) to 21(h), with its run number.")
         elif runs["count"]:
-            self.add_error("nanopore_done", "Runs are recorded under 20(b): answer Yes, or remove them.")
-        settle_nanopore(self, cleaned, require=True, not_required=not_required)
+            self.add_error("nanopore_done", "Runs are recorded under Sequencing runs: answer Yes, or remove them.")
+        settle_nanopore(self, cleaned, require=True)
         return cleaned
 
     has_answers = True

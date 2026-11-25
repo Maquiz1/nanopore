@@ -54,9 +54,11 @@
                 {% if card.ctrl_url %}
                     {# Dar es Salaam Nanopore / LPA: CTRL's own form (read only for those who can't enter it) #}
                     <a href="{{ card.ctrl_url }}" class="btn btn-sm btn-outline-primary">{% if access.edit.ctrl_isolates %}Open CTRL form{% else %}<i class="fas fa-eye"></i> View{% endif %}</a>
-                    {% if card.edcs_url %}<a href="{{ card.edcs_url }}" class="btn btn-sm btn-outline-secondary" title="TB-LIS's results on the EDCS/TBLIS record"><i class="fas fa-eye"></i> View</a>{% endif %}
+                    {% if card.edcs_url %}<a href="{{ card.edcs_url }}" class="btn btn-sm btn-outline-secondary" title="TB-LIS's results on the EDCS/TBLIS record"><i class="fas fa-eye"></i> View</a>
+                    {% else %}<a href="{{ card.ctrl_url }}?view=1" class="btn btn-sm btn-outline-secondary" title="CTRL's form, read only"><i class="fas fa-eye"></i> View</a>{% endif %}
                 {% elif card.status == "from_tblis" %}
                     {% if card.edcs_url %}<a href="{{ card.edcs_url }}" class="btn btn-sm btn-outline-secondary" title="This section on the EDCS/TBLIS record"><i class="fas fa-eye"></i> View</a>
+                    <span class="zh-muted" title="These answers come from the TB-LIS upload: a correction is made in TB-LIS, and the next upload brings it in"><i class="fas fa-circle-info"></i> Correct in TB-LIS</span>
                     {% else %}<span class="zh-muted">No EDCS/TBLIS record yet</span>{% endif %}
                 {% elif card.status == "not_applicable" %}
                     <span class="zh-muted">{% if s.key == "microscopy" %}Culture was not performed{% else %}No positive culture{% endif %}</span>

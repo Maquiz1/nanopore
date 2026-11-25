@@ -12,7 +12,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 
 from nanopore import history
-from nanopore.nanopore_runs import runs_formset, save_runs, summary_from_formset
+from nanopore.nanopore_runs import option_ids, runs_formset, save_runs, saved_runs_changed, summary_from_formset
 from nanopore.forms.laboratory.zonal.section_forms import SECTION_FORMS
 from nanopore.models import Screening, ZonalLaboratory
 from nanopore.tasks_tblis_raw import sync_with_latest_tblis
@@ -20,6 +20,7 @@ from nanopore.zonal_sections import BY_KEY, DAR_CTRL_FORMS, section_cards
 from nanopore.zonal_rules import is_lab_number_only
 from nanopore.substudy4_set_aside import may_start_for
 from utils import access
+from utils.next_url import came_from
 from utils.access_mixins import FormAccessMixin
 
 logger = logging.getLogger(__name__)
@@ -85,16 +86,14 @@ class ZonalLabSectionView(FormAccessMixin, View):
             "form": form, "object": record, "screening": screening, "section": self.section,
             "read_only": read_only, "back": self.next_url() or (hub_url(record) if record else reverse("nanopore:form-status-list")),
             "next": self.next_url() or "",
+            "run_options": option_ids() if self.section.key == "nanopore" else None,
             "runs_formset": runs if runs is not None else (
                 runs_formset(record, read_only=read_only) if self.section.key == "nanopore" and record is not None else None),
         })
 
     def next_url(self):
         """Where the user came from (a query list), to go back to after saving."""
-        url = self.request.POST.get("next") or self.request.GET.get("next")
-        if url and url_has_allowed_host_and_scheme(url, allowed_hosts={self.request.get_host()}):
-            return url
-        return None
+        return came_from(self.request)
 
     def dar_elsewhere(self, record, screening):
         """Dar es Salaam: only the lab number is entered here; the rest is TB-LIS's or CTRL's."""
@@ -131,7 +130,8 @@ class ZonalLabSectionView(FormAccessMixin, View):
         if self.section.key == "nanopore":
             runs = runs_formset(record, request.POST)
             form = self.form_class(request.POST, instance=record, screening=screening,
-                                   runs=summary_from_formset(runs) if runs.is_valid() else None)
+                                   runs=summary_from_formset(runs) if runs.is_valid() else None,
+                                   runs_changed=saved_runs_changed(runs))
         else:
             form = self.form_class(request.POST, instance=record, screening=screening)
         if not form.has_answers:
@@ -150,7 +150,7 @@ class ZonalLabSectionView(FormAccessMixin, View):
             form.apply_change_reason(saved).save()
             form.save_m2m()
             if runs is not None:
-                save_runs(runs, saved, request.user)
+                save_runs(runs, saved, request.user, form.cleaned_data.get("reason_for_change", ""))
         try:
             with transaction.atomic(), history.source(source):
                 sync_with_latest_tblis(saved)

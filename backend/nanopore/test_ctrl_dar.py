@@ -117,8 +117,9 @@ class CtrlDarFormsTests(AccessTestBase):
         result = NanoporeSequencingResults.objects.create(pk=2, name="None", value=2)
         response = self.client.post(self.url("nanopore"), {
             "runs-TOTAL_FORMS": 1, "runs-INITIAL_FORMS": 0, "runs-MIN_NUM_FORMS": 0, "runs-MAX_NUM_FORMS": 1000,
-            "runs-0-run_date": "2025-05-01", "runs-0-run_number": "0225", "runs-0-outcome": "passed",
-            "nanopore_done": self.yes.pk, "epi_to_me": self.no.pk, "nanopore_results": result.pk, "sequencing_delayed": self.no.pk,
+            "runs-0-run_date": "2025-05-01", "runs-0-run_number": "0225", "runs-0-epi_to_me": self.no.pk,
+            "runs-0-nanopore_results": result.pk, "runs-0-sequencing_delayed": self.no.pk,
+            "nanopore_done": self.yes.pk,
         })
         self.assertEqual(response.status_code, 302)
         lab = ZonalLaboratory.objects.get(pk=self.lab.pk)
@@ -191,6 +192,8 @@ class CtrlDarFormsTests(AccessTestBase):
         page = self.client.get(self.url("nanopore")).content.decode()
         self.assertIn("data-nano-section", page)
         self.assertIn("custom_js/nanopore_section.js", page)
-        for rule in ("done", "epi", "results", "delayed", "other-reason"):
+        for rule in ("done", "results"):
             self.assertIn(f'data-nano-when="{rule}"', page)
-        self.assertEqual(len(re.findall(r'class="[^"]*\bnano-q\b', page)), 27)  # 11 questions + 16 drugs
+        # 20(a) and the 16 drugs of 22; 20(b)-21(h) are on each run's card
+        self.assertEqual(len(re.findall(r'class="[^"]*\bnano-q\b', page)), 17)
+        self.assertIn("Sequencing runs", page)

@@ -15,6 +15,7 @@ from nanopore.tasks_tblis_raw import (
 )
 from nanopore.zonal_rules import CTRL_FIELDS, ctrl_answers, ctrl_records
 from utils import access
+from utils.next_url import came_from
 from utils.access_mixins import FormAccessMixin
 
 logger = logging.getLogger(__name__)
@@ -30,8 +31,8 @@ class CtrlIsolateFormView(FormAccessMixin, View):
         return get_object_or_404(ctrl_records(self.request.user, write=True), pk=self.kwargs["pk"])
 
     def next_url(self):
-        url = self.request.POST.get("next") or self.request.GET.get("next")
-        if url and url_has_allowed_host_and_scheme(url, allowed_hosts={self.request.get_host()}):
+        url = came_from(self.request)
+        if url:
             return url
         return reverse("reports:ctrl_isolates")
 

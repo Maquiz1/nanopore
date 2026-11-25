@@ -9,10 +9,11 @@ from django.views import View
 
 from nanopore.forms.laboratory.zonal.ctrl_dar_forms import DarLpaForm, DarNanoporeForm
 from nanopore import history
-from nanopore.nanopore_runs import runs_formset, save_runs, summary_from_formset
+from nanopore.nanopore_runs import option_ids, runs_formset, save_runs, saved_runs_changed, summary_from_formset
 from nanopore.tasks_tblis_raw import sync_with_latest_tblis
 from nanopore.zonal_rules import ctrl_dar_records
 from utils import access
+from utils.next_url import came_from
 from utils.access_mixins import FormAccessMixin
 
 logger = logging.getLogger(__name__)
@@ -31,18 +32,23 @@ class CtrlDarFormView(FormAccessMixin, View):
         return get_object_or_404(ctrl_dar_records(self.request.user, write=write), pk=self.kwargs["pk"])
 
     def next_url(self):
-        url = self.request.POST.get("next") or self.request.GET.get("next")
-        if url and url_has_allowed_host_and_scheme(url, allowed_hosts={self.request.get_host()}):
+        url = came_from(self.request)
+        if url:
             return url
         return reverse("reports:ctrl_dar_work") + f"?tab={self.section}"
 
     def page(self, request, form, obj, runs=None):
-        read_only = not ctrl_dar_records(request.user, write=True).filter(pk=obj.pk).exists()
+        # ?view=1: the card's View button, read only for everyone
+        read_only = request.GET.get("view") == "1" or not ctrl_dar_records(request.user, write=True).filter(pk=obj.pk).exists()
+        if read_only:
+            for field in form.fields.values():
+                field.disabled = True
         if self.section == "nanopore" and runs is None:
             runs = runs_formset(obj, read_only=read_only)
         return render(request, self.template_name, {
             "form": form, "object": obj, "screening": obj.screening, "next": self.next_url(),
             "section": self.section, "title": self.title, "read_only": read_only, "runs_formset": runs,
+            "run_options": option_ids() if runs is not None else None,
         })
 
     def get(self, request, *args, **kwargs):
@@ -54,7 +60,8 @@ class CtrlDarFormView(FormAccessMixin, View):
         runs = None
         if self.section == "nanopore":
             runs = runs_formset(obj, request.POST)
-            form = self.form_class(request.POST, instance=obj, runs=summary_from_formset(runs) if runs.is_valid() else None)
+            form = self.form_class(request.POST, instance=obj, runs=summary_from_formset(runs) if runs.is_valid() else None,
+                                   runs_changed=saved_runs_changed(runs))
         else:
             form = self.form_class(request.POST, instance=obj)
         if not form.is_valid() or (runs is not None and not runs.is_valid()):
@@ -66,7 +73,7 @@ class CtrlDarFormView(FormAccessMixin, View):
         form.apply_change_reason(record).save()
         form.save_m2m()
         if runs is not None:
-            save_runs(runs, record, request.user)
+            save_runs(runs, record, request.user, form.cleaned_data.get("reason_for_change", ""))
         try:
             with history.source(f"CTRL {self.title} form"):
                 sync_with_latest_tblis(record)

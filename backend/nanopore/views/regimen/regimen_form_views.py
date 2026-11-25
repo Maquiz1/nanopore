@@ -41,7 +41,7 @@ class RegimenChangesFormView(FormAccessMixin, View):
                 regimen.created_by = request.user
             # Always update metadata
             regimen.updated_by = request.user
-            regimen.save()
+            form.apply_change_reason(regimen).save()
             
             # Return all relevant data for JS to update modal/table
             return JsonResponse({

@@ -88,7 +88,7 @@
 
 {% block extra_scripts %}
 {% if section.key == "nanopore" %}
-<script src="{% static 'custom_js/nanopore_section.js' %}"></script>
+<script src="{% static 'custom_js/nanopore_section.js' %}?v=runs2"></script>
 {% else %}
 <script src="{% static 'custom_js/zonal_section.js' %}"></script>
 {% endif %}

@@ -17,7 +17,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         toggle('[data-nano-when="done"]', done);
         toggle('[data-nano-when="epi"]', epi);
-        toggle('[data-nano-when="results"]', done && isYes("nanopore_results"));
+        // With runs, the final run's 21(e) is on the run cards (the runs script keeps data-final-result up to date)
+        const mtbc = "finalResult" in section.dataset ? section.dataset.finalResult === "1" : isYes("nanopore_results");
+        toggle('[data-nano-when="results"]', done && mtbc);
+        toggle('[data-nano-when-not-results]', done && !mtbc);
         toggle('[data-nano-when="delayed"]', delayed);
         toggle('[data-nano-when="other-reason"]', delayed && otherReasonChecked());
     }

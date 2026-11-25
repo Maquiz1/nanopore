@@ -1,50 +1,109 @@
-{# 20(b) Nanopore runs: every attempt, numbered by date (nanopore/nanopore_runs.py). Needs runs_formset. #}
-<div class="nano-group nano-runs" data-nano-when="done">
-    <h6 class="nano-title">20(b). Sequencing runs</h6>
-    <p class="nano-runs-help">Add every run, including failed ones. Type the run number's digits (e.g. 3026): the slash is added for you (30/26). The run that passes gives the sequencing date, and its EPI2ME analysis and results are answered below.
-        While every run has failed, the result is "Failed" until a re-run passes.</p>
+{# Sequencing runs: every attempt, numbered by date, each with its own 20(b)-21(h) (nanopore/nanopore_runs.py). Needs runs_formset. #}
+<div class="nano-group nano-runs" data-nano-when="done" data-failed="{{ run_options.failed }}" data-yes="{{ run_options.yes }}" data-other="{{ run_options.other }}">
+    <h6 class="nano-title">Sequencing runs (gives the 20(b) date)</h6>
+    <p class="nano-runs-help">Add every run, including failed ones, and answer 20(b) to 21(h) for each. Type the run number's digits (e.g. 3026): the slash is added for you (30/26).
+        A run whose result is "Failed" failed. The final run (the latest that didn't fail, else the latest) is the participant's result; 22 below is answered once, for it.</p>
     {{ runs_formset.management_form }}
     {% for error in runs_formset.non_form_errors %}<div class="df-error">{{ error }}</div>{% endfor %}
-    <div class="table-responsive">
-        <table class="table table-sm align-middle nano-runs-table mb-2">
-            <thead><tr><th>Attempt</th><th>Date of run</th><th>Run number</th><th>Outcome</th><th>Why it failed</th><th>Run ID / flow cell ID <span class="text-muted">(optional)</span></th><th></th></tr></thead>
-            <tbody data-runs-body>
-                {% for run in runs_formset %}
-                <tr class="nano-run{% if run.errors %} has-error{% endif %}" data-run>
-                    <td class="nano-run-no">{{ forloop.counter }}{% for hidden in run.hidden_fields %}{{ hidden }}{% endfor %}</td>
-                    <td>{{ run.run_date }}{% for e in run.run_date.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</td>
-                    <td>{{ run.run_number }}{% for e in run.run_number.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</td>
-                    <td>{{ run.outcome }}{% for e in run.outcome.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</td>
-                    <td>{{ run.failure_reason }}{% for e in run.failure_reason.errors %}<div class="df-error">{{ e }}</div>{% endfor %}
-                        <div class="run-other-wrap">{{ run.failure_other }}{% for e in run.failure_other.errors %}<div class="df-error">{{ e }}</div>{% endfor %}</div></td>
-                    <td>{{ run.run_id }}</td>
-                    <td class="text-end">{% if run.instance.pk and not read_only %}<label class="nano-run-del" title="Remove this run (entered by mistake)">{{ run.DELETE }} Remove</label>{% endif %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="nano-run-list" data-runs-body>
+        {% for run in runs_formset %}
+        <div class="nano-run{% if run.errors %} has-error{% endif %}" data-run>
+            {% for hidden in run.hidden_fields %}{{ hidden }}{% endfor %}
+            <div class="nano-run-head">
+                <span class="nano-run-no">Attempt <b data-run-no>{{ forloop.counter }}</b></span>
+                {% if not read_only %}{% if run.instance.pk %}<label class="nano-run-del" title="Remove this saved run (entered by mistake)">{{ run.DELETE }} Remove</label>{% else %}<button type="button" class="btn btn-link btn-sm nano-run-del p-0" data-remove-run title="Remove this run (not saved yet)"><i class="fas fa-xmark"></i> Remove</button>{% endif %}{% endif %}
+            </div>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.run_date %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.run_number %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.run_id %}
+            </div>
+            <div class="nano-run-part"><span class="nano-run-part-title">EPI2ME analysis</span>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.epi_to_me %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.epi_to_me_date css="run-when-epi" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.epi_to_me_version css="run-when-epi" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_results css="run-when-epi" %}
+            </div></div>
+            <div class="nano-run-part"><span class="nano-run-part-title">Result</span>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.nanopore_results %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.failure_reason css="run-when-failed" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.failure_other css="run-when-failed-other" %}
+            </div></div>
+            <div class="nano-run-part"><span class="nano-run-part-title">Delay</span>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed_days css="run-when-delayed" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed_reasons css="run-when-delayed nano-run-wide nano-run-reasons" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed_others css="run-when-delay-other nano-run-wide" %}
+            </div></div>
+        </div>
+        {% endfor %}
     </div>
     {% if not read_only %}
     <button type="button" class="btn btn-sm btn-outline-primary" data-add-run><i class="fas fa-plus"></i> Add run</button>
+    <p class="nano-runs-help" data-runs-done hidden><i class="fas fa-circle-check"></i> A run has a result, so no further run is needed. To add one, set that run's result to Failed first.</p>
     <template data-run-template>
-        <tr class="nano-run" data-run>
-            <td class="nano-run-no"></td>
-            {% with f=runs_formset.empty_form %}
-            <td>{{ f.run_date }}</td><td>{{ f.run_number }}</td><td>{{ f.outcome }}</td>
-            <td>{{ f.failure_reason }}<div class="run-other-wrap">{{ f.failure_other }}</div></td>
-            <td>{{ f.run_id }}{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}</td><td></td>
-            {% endwith %}
-        </tr>
+        {% with run=runs_formset.empty_form %}
+        <div class="nano-run" data-run>
+            {% for hidden in run.hidden_fields %}{{ hidden }}{% endfor %}
+            <div class="nano-run-head">
+                <span class="nano-run-no">Attempt <b data-run-no></b></span>
+                <button type="button" class="btn btn-link btn-sm nano-run-del p-0" data-remove-run title="Remove this run (not saved yet)"><i class="fas fa-xmark"></i> Remove</button>
+            </div>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.run_date %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.run_number %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.run_id %}
+            </div>
+            <div class="nano-run-part"><span class="nano-run-part-title">EPI2ME analysis</span>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.epi_to_me %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.epi_to_me_date css="run-when-epi" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.epi_to_me_version css="run-when-epi" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_results css="run-when-epi" %}
+            </div></div>
+            <div class="nano-run-part"><span class="nano-run-part-title">Result</span>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.nanopore_results %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.failure_reason css="run-when-failed" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.failure_other css="run-when-failed-other" %}
+            </div></div>
+            <div class="nano-run-part"><span class="nano-run-part-title">Delay</span>
+            <div class="nano-run-grid">
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed_days css="run-when-delayed" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed_reasons css="run-when-delayed nano-run-wide nano-run-reasons" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_run_field.html" with field=run.sequencing_delayed_others css="run-when-delay-other nano-run-wide" %}
+            </div></div>
+        </div>
+        {% endwith %}
     </template>
     {% endif %}
 </div>
 
 <style>
     .nano-runs-help { font-size: .8rem; color: #7d8aa3; margin: -4px 0 10px; }
-    .nano-runs-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #7d8aa3; font-weight: 600; white-space: nowrap; }
-    .nano-run-no { font-weight: 700; color: #1d6fd6; width: 48px; }
-    .nano-run-del { font-size: .8rem; color: #b42318; cursor: pointer; white-space: nowrap; }
-    .run-other-wrap { margin-top: 4px; }
+    .nano-run-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+    .nano-run { border: 1px solid #e6eaf2; border-left: 4px solid #1d6fd6; border-radius: 10px; padding: 10px 12px; background: #fbfcfe; }
+    .nano-run.has-error { border-left-color: #b42318; }
+    .nano-run-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .nano-run-no { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #7d8aa3; }
+    .nano-run-no b { color: #1d6fd6; font-size: .95rem; }
+    /* Each line's questions share the full width; they wrap on narrow screens */
+    .nano-run-grid { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+    .nano-run-field { flex: 1 1 200px; min-width: 0; }
+    .nano-run-field[hidden] { display: none; }
+    .nano-run-field .form-control, .nano-run-field .form-select { width: 100%; }
+    .nano-run-part { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e6eaf2; }
+    .nano-run-part-title { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #7d8aa3; margin-bottom: 4px; }
+    .nano-run-wide { flex-basis: 100%; }
+    .nano-run-reasons ul, .nano-run-reasons > div { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2px 12px; }
+    .nano-run-reasons label { font-weight: 400 !important; font-size: .84rem !important; color: #14213d !important; display: flex !important; gap: 6px; align-items: center; }
+    .nano-run-field label { display: block; font-size: .74rem; font-weight: 600; color: #4a5872; margin-bottom: 2px; }
+    .nano-req { color: #b42318; font-weight: 700; }
+    .nano-run-del { font-size: .8rem; color: #b42318; cursor: pointer; white-space: nowrap; text-decoration: none; }
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -53,18 +112,45 @@ document.addEventListener("DOMContentLoaded", function () {
     const body = box.querySelector("[data-runs-body]");
     const total = box.querySelector('input[name="runs-TOTAL_FORMS"]');
 
+    function show(row, selector, on) { row.querySelectorAll(selector).forEach(el => { el.hidden = !on; }); }
     function settle(row) {
-        // "Why it failed" only for a failed run; "Other reason" only for Other
-        const outcome = row.querySelector(".run-outcome"), reason = row.querySelector(".run-reason"), other = row.querySelector(".run-other");
-        if (!outcome || !reason) return;
-        const failed = outcome.value === "failed";
-        reason.hidden = !failed;
-        if (other) other.closest(".run-other-wrap").hidden = !(failed && reason.value === "other");
+        // Why it failed: a Failed result; EPI2ME details: EPI2ME Yes; delay days and reasons: delay Yes
+        const value = sel => (row.querySelector(sel) || {}).value || "";
+        const failed = value(".run-result") === box.dataset.failed;
+        const other = Array.from(row.querySelectorAll(".run-delay-reason input:checked, input.run-delay-reason:checked")).some(i => i.value === box.dataset.other);
+        show(row, ".run-when-epi", value(".run-epi") === box.dataset.yes);
+        show(row, ".run-when-failed", failed);
+        show(row, ".run-when-failed-other", failed && value(".run-reason") === "other");
+        show(row, ".run-when-delayed", value(".run-delayed") === box.dataset.yes);
+        show(row, ".run-when-delay-other", value(".run-delayed") === box.dataset.yes && other);
+    }
+    // The final run: the latest (by date) whose result isn't Failed, else the latest; its result opens 22
+    const section = box.closest("[data-nano-section]");
+    function final() {
+        if (!section) return;
+        const runs = Array.from(body.querySelectorAll("[data-run]")).filter(row => !row.hidden).map(row => ({
+            date: (row.querySelector('input[type="date"][name$="-run_date"]') || {}).value || "",
+            result: (row.querySelector(".run-result") || {}).value || "",
+        })).filter(run => run.date && run.result).sort((a, b) => a.date.localeCompare(b.date));
+        const passed = runs.filter(run => run.result !== box.dataset.failed);
+        const last = (passed.length ? passed : runs).slice(-1)[0];
+        section.dataset.finalResult = last ? last.result : "";
+        // A run with a result (not Failed) ends the sequencing: no further run to add
+        const adder = box.querySelector("[data-add-run]");
+        if (adder) adder.hidden = passed.length > 0;
+        const done = box.querySelector("[data-runs-done]");
+        if (done) done.hidden = passed.length === 0;
+        section.dispatchEvent(new Event("change", { bubbles: true }));
     }
     function number() {
-        body.querySelectorAll("[data-run]").forEach((row, i) => { row.querySelector(".nano-run-no").firstChild.textContent = i + 1; });
+        // Attempts 1, 2, 3... over the runs still shown
+        Array.from(body.querySelectorAll("[data-run]")).filter(row => !row.hidden).forEach((row, i) => {
+            row.querySelector("[data-run-no]").textContent = i + 1;
+        });
     }
     body.querySelectorAll("[data-run]").forEach(settle);
+    box.addEventListener("change", e => { const row = e.target.closest("[data-run]"); if (row) { settle(row); final(); } });
+    final();
 
     // Run number NN/YY: digits only, the slash goes in after the first two
     box.addEventListener("input", function (e) {
@@ -72,18 +158,26 @@ document.addEventListener("DOMContentLoaded", function () {
         const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
         e.target.value = digits.length > 2 ? digits.slice(0, 2) + "/" + digits.slice(2) : digits;
     });
-    box.addEventListener("change", e => { const row = e.target.closest("[data-run]"); if (row) settle(row); });
+
+    // Remove a run not saved yet: emptied and hidden, so saving ignores it
+    box.addEventListener("click", function (e) {
+        const button = e.target.closest("[data-remove-run]");
+        if (!button) return;
+        const row = button.closest("[data-run]");
+        row.querySelectorAll("input:not([type=hidden]):not([type=checkbox]), select").forEach(input => { input.value = ""; });
+        row.querySelectorAll("input[type=checkbox]").forEach(input => { input.checked = false; });
+        row.hidden = true;
+        number();
+        final();
+    });
 
     const add = box.querySelector("[data-add-run]"), template = box.querySelector("[data-run-template]");
     if (add && template && total) {
         add.addEventListener("click", function () {
             const index = parseInt(total.value, 10);
-            const html = template.innerHTML.replace(/__prefix__/g, index);
-            body.insertAdjacentHTML("beforeend", html);
+            body.insertAdjacentHTML("beforeend", template.innerHTML.replace(/__prefix__/g, index));
             total.value = index + 1;
-            const row = body.lastElementChild;
-            row.querySelector(".nano-run-no").textContent = index + 1;
-            settle(row);
+            settle(body.lastElementChild);
             number();
         });
     }

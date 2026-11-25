@@ -1,7 +1,8 @@
+from nanopore.forms.reason_for_change import REASON, ReasonForChangeMixin
 from django import forms
 from nanopore.models import RegimenChanges
 
-class RegimenChangesForm(forms.ModelForm):
+class RegimenChangesForm(ReasonForChangeMixin, forms.ModelForm):
     class Meta:
         model = RegimenChanges
         fields = ["date", "drug", "changes", "reason", "specify"]
@@ -29,3 +30,9 @@ class RegimenChangesForm(forms.ModelForm):
         else:
             cleaned["specify"] = None
         return cleaned
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Not 4(e) (why the regimen changed): why a saved row is being corrected
+        self.fields[REASON].label = "Why are you correcting this saved row?"
+

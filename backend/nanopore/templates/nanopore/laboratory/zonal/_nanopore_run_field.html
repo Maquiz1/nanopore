@@ -1,0 +1,6 @@
+{# One question of a Nanopore run card: label, input and its errors. css: when it shows (run-when-*). #}
+<div class="nano-run-field {{ css }}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="nano-req" title="Required">*</span>{% endif %}</label>
+    {{ field }}
+    {% for error in field.errors %}<div class="df-error">{{ error }}</div>{% endfor %}
+</div>

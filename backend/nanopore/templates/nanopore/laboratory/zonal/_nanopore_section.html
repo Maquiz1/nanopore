@@ -1,14 +1,15 @@
 {# Nanopore questions of the Zonal Lab, EDCS/TBLIS and CTRL forms. Showing and hiding: static/custom_js/nanopore_section.js #}
-<div class="nano" data-nano-section>
+<div class="nano" data-nano-section{% if runs_formset %} data-final-result=""{% endif %}>
     <div class="nano-group">
         <div class="row g-3">
             {% include "nanopore/laboratory/zonal/_nanopore_q.html" with field=form.nanopore_done %}
-            {% include "nanopore/laboratory/zonal/_nanopore_q.html" with field=form.nanopore_sequencing_date when="done" %}
+            {% if not runs_formset %}{% include "nanopore/laboratory/zonal/_nanopore_q.html" with field=form.nanopore_sequencing_date when="done" %}{% endif %}
         </div>
     </div>
 
     {% if runs_formset %}{% include "nanopore/laboratory/zonal/_nanopore_runs.html" %}{% endif %}
 
+    {% if not runs_formset %}
     <div class="nano-group" data-nano-when="done">
         <h6 class="nano-title">EPI2ME analysis</h6>
         <div class="row g-3">
@@ -18,12 +19,17 @@
             {% include "nanopore/laboratory/zonal/_nanopore_q.html" with field=form.sequencing_results when="epi" %}
         </div>
     </div>
+    {% endif %}
 
     <div class="nano-group" data-nano-when="done">
-        <h6 class="nano-title">Results</h6>
+        <h6 class="nano-title">{% if runs_formset %}22. Results by drug (final run){% else %}Results{% endif %}</h6>
+        {% if not runs_formset %}
         <div class="row g-3">
             {% include "nanopore/laboratory/zonal/_nanopore_q.html" with field=form.nanopore_results %}
         </div>
+        {% else %}
+        <p class="nano-runs-help" data-nano-when-not-results>Asked when the final run's result (21(e)) is MTBC.</p>
+        {% endif %}
         <div class="nano-drugs" data-nano-when="results">
             <h6 class="nano-title">Nanopore sequencing results by drug</h6>
             <div class="row g-3">
@@ -34,6 +40,7 @@
         </div>
     </div>
 
+    {% if not runs_formset %}
     <div class="nano-group" data-nano-when="done">
         <h6 class="nano-title">Delay</h6>
         <div class="row g-3">
@@ -43,6 +50,7 @@
             {% include "nanopore/laboratory/zonal/_nanopore_q.html" with field=form.sequencing_delayed_others when="other-reason" width="col-12" %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 <style>
