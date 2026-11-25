@@ -42,12 +42,15 @@
                     <td>{{ enrollment.screening.site.name }}</td>
                     <td>{{ enrollment.screening.site.district.region.zone.name }}</td>
                     <td>{{ enrollment.remarks|default:"-" }}</td>
-                    <td>
+                    <td class="list-actions-cell">
+                        <div class="list-actions">
                         <a href="{% url 'nanopore:enrollment-detail' enrollment.pk %}" class="btn btn-sm btn-primary">View</a>
                         <a href="{% url 'nanopore:enrollment-update' enrollment.pk %}" class="btn btn-sm btn-warning">{% if access.edit.enrollment %}Edit{% else %}Full form{% endif %}</a>
                         {% if access.delete_records %}
                         <a href="{% url 'nanopore:enrollment-delete' enrollment.pk %}" class="btn btn-sm btn-danger">Delete</a>
                         {% endif %}
+                        <a href="{% url 'nanopore:record-history' 'enrollment' enrollment.pk %}" class="btn btn-sm btn-outline-secondary" title="Who changed what, when and why">History</a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
@@ -61,4 +64,10 @@
 
     {% include "partials/pagination.html" %}
 </div>
+<style>
+    .list-actions-cell { width: 1%; }
+    .list-actions { display: flex; gap: 6px; }
+    .list-actions .btn { flex: 1 1 0; white-space: nowrap; min-width: 64px; }
+    @media (max-width: 767.98px) { .list-actions { flex-wrap: wrap; } }
+</style>
 {% endblock %}
