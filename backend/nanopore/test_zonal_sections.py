@@ -7,7 +7,8 @@ from nanopore.forms.laboratory.zonal.zonallabform import ZonalLaboratoryForm
 from nanopore.models import EdcsTblisZonal, Screening, ZonalLaboratory
 from nanopore.test_data_safety import DataSafetyBase
 from nanopore.zonal_sections import SECTIONS, section_cards
-from options.models import SampleAppearance, YesNoNA
+from options.models import (CultureMethod, LJCultureResult, CultureMicroscopyResults, MicroscopyType, NanoporeSequencingResults,
+                             SampleAppearance, YesNo, YesNoNA)
 from utils import access
 
 
@@ -102,10 +103,110 @@ class ZonalSectionsTests(DataSafetyBase):
         self.client.force_login(self.make_user("nurse_sections", [access.NURSE], sites=[self.a1]))
         self.assertEqual(self.client.get(hub).status_code, 403)
         self.client.force_login(self.lab_tech)
-        self.assertEqual(self.client.get(reverse("nanopore:zonal-lab-section", args=[lab.pk, "culture"])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("nanopore:zonal-lab-section", args=[lab.pk, "unknown"])).status_code, 404)
 
     def test_starting_again_opens_the_existing_record(self):
         self.client.force_login(self.lab_tech)
         url = reverse("nanopore:zonal-lab-section-new", args=["reception"]) + f"?screening={self.screenings['A1'].pk}"
         self.assertRedirects(self.client.get(url), reverse("nanopore:zonal-lab-section", args=[self.zonal_labs["A1"].pk, "reception"]),
                              fetch_redirect_response=False)
+
+
+class SectionFormsTests(DataSafetyBase):
+    """Sections 2-7: gates, cleared answers, the isolate rule and who sees what."""
+
+    def setUp(self):
+        super().setUp()
+        self.lab = ZonalLaboratory.objects.get(pk=self.zonal_labs["A1"].pk)
+        self.lab_tech = self.make_user("lab_s27", [access.LABORATORY_TECHNICIAN], sites=[self.a1])
+        self.client.force_login(self.lab_tech)
+        self.lj = CultureMethod.objects.create(pk=1, name="Lj", value=1)
+        self.mgit = CultureMethod.objects.create(pk=2, name="Mgit", value=2)
+
+    def post(self, key, **data):
+        return self.client.post(reverse("nanopore:zonal-lab-section", args=[self.lab.pk, key]), data)
+
+    def fresh(self):
+        return ZonalLaboratory.objects.get(pk=self.lab.pk)
+
+    def test_microscopy_needs_all_three(self):
+        page = self.post("microscopy", microscopy_type=MicroscopyType.objects.create(name="Direct sputum", value=1).pk)
+        self.assertEqual(set(page.context["form"].errors), {"microscopy_date", "microscopy_results"})
+        self.post("microscopy", microscopy_type=1, microscopy_date="2025-03-04",
+                  microscopy_results=CultureMicroscopyResults.objects.create(name="1+", value=2).pk)
+        self.assertEqual(self.fresh().microscopy_date, date(2025, 3, 4))
+
+    def test_culture_method_opens_its_results_and_clears_the_other(self):
+        self.assertIn("culture_method", self.post("culture", culture_performed=self.yes.pk).context["form"].errors)
+        self.post("culture", culture_performed=self.yes.pk, culture_method=[self.lj.pk, self.mgit.pk],
+                  lj_inoculation_date="2025-03-05", mgit_inoculation_date="2025-03-05", reason_for_change="First entry")
+        self.assertEqual(self.fresh().mgit_inoculation_date, date(2025, 3, 5))
+        self.post("culture", culture_performed=self.yes.pk, culture_method=[self.lj.pk],
+                  lj_inoculation_date="2025-03-05", mgit_inoculation_date="2025-03-05", reason_for_change="Only LJ was set up")
+        lab = self.fresh()
+        self.assertEqual((lab.lj_inoculation_date, lab.mgit_inoculation_date), (date(2025, 3, 5), None))
+
+    def test_isolate_is_asked_after_a_positive_culture(self):
+        url = reverse("nanopore:zonal-lab-section", args=[self.lab.pk, "isolate"])
+        self.assertFalse(self.client.get(url).context["form"].applicable)
+        self.assertEqual(self.statuses()["isolate"], "not_started")
+        self.lab.lj_results = LJCultureResult.objects.create(pk=2, name="1+", value=2)
+        self.lab.save()
+        form = self.client.get(url).context["form"]
+        self.assertEqual(list(form.fields), ["culture_isolate", "isolate_date", "reason_for_change"])
+        YesNoNA.objects.create(pk=1, name="Yes", value=1)
+        self.assertIn("isolate_date", self.post("isolate", culture_isolate=1).context["form"].errors)
+        self.post("isolate", culture_isolate=1, isolate_date="2025-04-01")
+        self.assertEqual(self.statuses()["isolate"], "waiting_ctrl")
+        self.lab.lj_results = LJCultureResult.objects.create(pk=5, name="Negative", value=5)
+        self.lab.save()
+        self.assertEqual(self.statuses()["isolate"], "not_applicable")
+
+    def test_microscopy_not_applicable_without_culture(self):
+        self.lab.culture_performed = self.no
+        self.lab.save()
+        self.assertEqual(self.statuses()["microscopy"], "not_applicable")
+
+    def test_a_no_clears_what_it_hid(self):
+        self.post("xpert", xpert_xdr_performed=self.yes.pk)
+        self.assertIn("xpert_xdr_date_performed", self.post("xpert", xpert_xdr_performed=self.yes.pk).context["form"].errors)
+        self.post("xpert", xpert_xdr_performed=self.yes.pk, xpert_xdr_date_performed="2025-05-01")
+        self.post("xpert", xpert_xdr_performed=self.no.pk, xpert_xdr_date_performed="2025-05-01", reason_for_change="Not run")
+        self.assertEqual((self.fresh().xpert_xdr_performed, self.fresh().xpert_xdr_date_performed), (self.no, None))
+
+    def test_lpa_lines_follow_lpa(self):
+        self.assertEqual(set(self.post("lpa", lpa=self.yes.pk).context["form"].errors), {"first_line_lpa", "second_line_lpa"})
+        self.post("lpa", lpa=self.yes.pk, first_line_lpa=self.yes.pk, second_line_lpa=self.no.pk,
+                  first_line_lpa_date="2025-05-02", second_line_lpa_date="2025-05-02")
+        lab = self.fresh()
+        self.assertEqual((lab.first_line_lpa_date, lab.second_line_lpa_date), (date(2025, 5, 2), None))
+
+    def test_nanopore_uses_the_ctrl_rules(self):
+        NanoporeSequencingResults.objects.create(pk=1, name="MTBC", value=1)
+        self.assertIn("nanopore_sequencing_date", self.post("nanopore", nanopore_done=self.yes.pk).context["form"].errors)
+        self.post("nanopore", nanopore_done=self.no.pk)
+        self.assertEqual(self.fresh().nanopore_done, self.no)
+
+    def test_dar_sections_go_to_tblis_or_ctrl(self):
+        dar_lab = ZonalLaboratory.objects.create(screening=self.dar, unique_lab_no="30001")
+        self.client.force_login(self.make_user("ctrl_s27", [access.LABORATORY_TECHNICIAN], sites=[self.ctrl]))
+        go = lambda key: self.client.get(reverse("nanopore:zonal-lab-section", args=[dar_lab.pk, key]))
+        self.assertRedirects(go("nanopore"), reverse("nanopore:ctrl-dar-nanopore", args=[dar_lab.pk]), fetch_redirect_response=False)
+        self.assertRedirects(go("culture"), reverse("nanopore:zonal-lab-hub", args=[dar_lab.pk]), fetch_redirect_response=False)
+
+    def test_view_only_users_and_edit_all(self):
+        hub = reverse("nanopore:zonal-lab-hub", args=[self.lab.pk])
+        self.assertNotContains(self.client.get(hub), "Edit all sections")
+        self.client.force_login(self.make_user("ds_s27", [access.DATA_SPECIALIST], zones=[self.zone_a]))
+        self.assertContains(self.client.get(hub), "Edit all sections")
+        self.client.force_login(self.make_user("stat_s27", [access.STATISTICIAN], zones=[self.zone_a]))
+        page = self.client.get(hub)
+        self.assertContains(page, "fa-eye")
+        self.assertNotContains(page, "Edit all sections")
+        section = reverse("nanopore:zonal-lab-section", args=[self.lab.pk, "culture"])
+        self.assertTrue(all(f.disabled for f in self.client.get(section).context["form"].fields.values()))
+        self.assertEqual(self.client.post(section, {"culture_performed": self.no.pk}).status_code, 403)
+
+    def statuses(self):
+        lab = self.fresh()
+        return {card["section"].key: card["status"] for card in section_cards(lab, lab.screening)}

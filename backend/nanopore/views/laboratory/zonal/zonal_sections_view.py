@@ -11,16 +11,22 @@ from django.utils import timezone
 from django.views import View
 
 from nanopore import history
-from nanopore.forms.laboratory.zonal.section_forms import ReceptionForm
+from nanopore.forms.laboratory.zonal.section_forms import SECTION_FORMS
 from nanopore.models import Screening, ZonalLaboratory
 from nanopore.tasks_tblis_raw import sync_with_latest_tblis
-from nanopore.zonal_sections import BY_KEY, section_cards
+from nanopore.zonal_sections import BY_KEY, DAR_CTRL_FORMS, section_cards
+from nanopore.zonal_rules import is_lab_number_only
 from utils import access
 from utils.access_mixins import FormAccessMixin
 
 logger = logging.getLogger(__name__)
 
-SECTION_FORMS = {"reception": ReceptionForm}
+EDIT_ALL_ROLES = (access.ADMIN, access.DATA_MANAGER, access.DATA_SPECIALIST)
+
+
+def can_edit_all(user):
+    """Back-entry of a whole paper form at once stays with the data team."""
+    return user.is_superuser or access.has_role(user, *EDIT_ALL_ROLES)
 
 
 def hub_url(record):
@@ -38,6 +44,7 @@ class ZonalLabHubView(FormAccessMixin, View):
             "object": record, "screening": record.screening,
             "cards": section_cards(record, record.screening),
             "can_edit": not self.is_read_only(record),
+            "edit_all": not self.is_read_only(record) and can_edit_all(request.user),
         })
 
 
@@ -74,8 +81,20 @@ class ZonalLabSectionView(FormAccessMixin, View):
             "read_only": read_only, "back": hub_url(record) if record else reverse("nanopore:form-status-list"),
         })
 
+    def dar_elsewhere(self, record, screening):
+        """Dar es Salaam: only the lab number is entered here; the rest is TB-LIS's or CTRL's."""
+        if self.section.key == "reception" or not is_lab_number_only(screening):
+            return None
+        if record is not None and self.section.key in DAR_CTRL_FORMS:
+            return redirect(reverse(DAR_CTRL_FORMS[self.section.key], args=[record.pk]))
+        messages.info(self.request, f"Dar es Salaam: {self.section.title} comes from TB-LIS (see the EDCS/TBLIS record).")
+        return redirect(hub_url(record)) if record else redirect(reverse("nanopore:form-status-list"))
+
     def get(self, request, *args, **kwargs):
         record, screening = self.get_record_and_screening()
+        elsewhere = self.dar_elsewhere(record, screening)
+        if elsewhere:
+            return elsewhere
         existing = getattr(screening, "zonal_laboratory", None) if record is None else None
         if existing:  # already started: open it instead of a second record
             return redirect(reverse("nanopore:zonal-lab-section", args=[existing.pk, self.section.key]))
@@ -89,7 +108,12 @@ class ZonalLabSectionView(FormAccessMixin, View):
         if record is None and hasattr(screening, "zonal_laboratory"):
             messages.error(request, f"{screening.pid} already has a Zonal Lab record.")
             return redirect(hub_url(screening.zonal_laboratory))
+        elsewhere = self.dar_elsewhere(record, screening)
+        if elsewhere:
+            return elsewhere
         form = self.form_class(request.POST, instance=record, screening=screening)
+        if not form.has_answers:
+            return redirect(hub_url(record))
         if not form.is_valid():
             return self.page(form, record, screening, False)
 

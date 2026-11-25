@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ section.title }} · {{ screening.pid }}{% endblock %}
 
@@ -27,17 +28,44 @@
         <section class="df-card">
             <header class="df-card-head">
                 <span class="df-step">{{ section.number }}</span>
-                <div><h2>{{ section.title }}</h2>{% if form.dar %}<p>Dar es Salaam: TB-LIS gives the date received, appearance and volume.</p>{% endif %}</div>
+                <div>
+                    <h2>{{ section.title }}</h2>
+                    {% if section.key == "reception" and form.dar %}<p>Dar es Salaam: TB-LIS gives the date received, appearance and volume.</p>
+                    {% elif section.key == "culture" %}<p>Results can be added later, when they are out.</p>
+                    {% elif section.key == "xpert" %}<p>Results can be added after the date it was run.</p>{% endif %}
+                </div>
             </header>
-            <div class="df-grid">
-                {% for field in form %}{% if field.name != "reason_for_change" %}{% include "nanopore/partials/_field.html" with field=field %}{% endif %}{% endfor %}
+
+            {% if section.key == "nanopore" %}
+                {% include "nanopore/laboratory/zonal/_nanopore_section.html" %}
+            {% elif section.key == "isolate" and not form.applicable %}
+                <p class="mb-0 text-muted">The isolate is asked when the LJ or MGIT culture is positive. There is no positive culture recorded yet.</p>
+            {% else %}
+                <div class="df-grid">
+                    {% for field, parent, opens_on in form.rows %}
+                    <div{% if parent %} data-when-field="{{ parent }}" data-when-in="{{ opens_on }}"{% endif %}>
+                        {% include "nanopore/partials/_field.html" with field=field %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if section.key == "isolate" %}
+            <div class="df-sub">
+                <h3><i class="fas fa-lock"></i>From CTRL and TB-LIS (read only)</h3>
+                {% if form.ctrl_values %}
+                <dl class="zs-read">{% for label, value in form.ctrl_values %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>
+                {% else %}
+                <p class="mb-0 text-muted">Nothing yet. CTRL enters the isolate number when it receives the isolate; DST comes from TB-LIS.</p>
+                {% endif %}
             </div>
+            {% endif %}
         </section>
 
         {% include "nanopore/partials/_reason_for_change.html" %}
         <div class="df-savebar">
             <a href="{{ back }}" class="btn btn-outline-secondary">Cancel</a>
-            {% if access.edit.zonal_lab and not read_only %}
+            {% if access.edit.zonal_lab and not read_only and form.has_answers %}
                 {% if system_control.enable_form_submissions %}
                 <button type="submit" class="btn btn-success"><i class="fas fa-floppy-disk"></i> Save</button>
                 {% else %}
@@ -49,4 +77,17 @@
 </div>
 
 {% include "nanopore/partials/_form_styles.html" %}
+<style>
+    .zs-read { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 18px; margin: 0; font-size: .87rem; }
+    .zs-read dt { font-weight: 600; color: var(--ink-2); }
+    .zs-read dd { margin: 0; }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if section.key == "nanopore" %}
+<script src="{% static 'custom_js/nanopore_section.js' %}"></script>
+{% else %}
+<script src="{% static 'custom_js/zonal_section.js' %}"></script>
+{% endif %}
 {% endblock %}

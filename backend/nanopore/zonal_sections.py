@@ -17,10 +17,11 @@ from django.urls import reverse
 from nanopore.models import ZonalLaboratory
 from nanopore.zonal_rules import is_lab_number_only
 
-NOT_STARTED, IN_PROGRESS, COMPLETE, FROM_TBLIS = "not_started", "in_progress", "complete", "from_tblis"
+NOT_STARTED, IN_PROGRESS, COMPLETE, FROM_TBLIS, NOT_APPLICABLE = "not_started", "in_progress", "complete", "from_tblis", "not_applicable"
 WAITING_CTRL, WAITING_DST = "waiting_ctrl", "waiting_dst"
 STATUS_LABELS = {
     NOT_STARTED: "Not started", IN_PROGRESS: "In progress", COMPLETE: "Complete", FROM_TBLIS: "From TB-LIS",
+    NOT_APPLICABLE: "Not applicable",
     WAITING_CTRL: "Waiting for CTRL", WAITING_DST: "Waiting for DST",
 }
 
@@ -32,7 +33,6 @@ class Section:
     title: str
     fields: tuple
     entered_by: str
-    ready: bool = False  # has its own form yet; the rest open the full form until they do
     read_only_fields: tuple = field(default=())  # shown to the zone, entered by CTRL or TB-LIS
 
 
@@ -50,7 +50,7 @@ ISOLATE_CTRL_FIELDS = (
 
 SECTIONS = (
     Section("reception", 1, "Sample reception",
-            ("unique_lab_no", "date_sputum_received", "appearance", "sample_volume"), "Zone lab", ready=True),
+            ("unique_lab_no", "date_sputum_received", "appearance", "sample_volume"), "Zone lab"),
     Section("microscopy", 2, "Microscopy", ("microscopy_type", "microscopy_date", "microscopy_results"), "Zone lab"),
     Section("culture", 3, "Culture (LJ and MGIT)",
             ("culture_performed", "culture_method", "lj_inoculation_date", "lj_results_date", "lj_results",
@@ -117,6 +117,24 @@ def open_queries(record):
     return found
 
 
+NO = 2
+POSITIVE_LJ, POSITIVE_MGIT = (1, 2, 3, 4), (1,)
+
+
+def culture_positive(record):
+    """The isolate is asked for a positive LJ or MGIT culture (as the query rules say)."""
+    return record.lj_results_id in POSITIVE_LJ or record.mgit_results_id in POSITIVE_MGIT
+
+
+def _not_applicable(section_key, record):
+    if section_key == "microscopy":
+        return record.culture_performed_id == NO
+    if section_key == "isolate":
+        culture_known = record.lj_results_id is not None or record.mgit_results_id is not None
+        return record.culture_performed_id == NO or (culture_known and not culture_positive(record))
+    return False
+
+
 def _isolate_waiting(record):
     """Other zones: where the isolate is between the zone, CTRL and TB-LIS."""
     sent = getattr(record.culture_isolate, "name", "") == "Yes"
@@ -136,6 +154,8 @@ def section_cards(record, screening):
         fields = DAR_FIELDS.get(section.key, ()) if dar else section.fields
         if dar and not fields:
             status = FROM_TBLIS
+        elif not dar and _not_applicable(section.key, record):
+            status = NOT_APPLICABLE
         elif not any(_answered(record, name) for name in fields):
             status = NOT_STARTED
         elif queries.get(section.key):

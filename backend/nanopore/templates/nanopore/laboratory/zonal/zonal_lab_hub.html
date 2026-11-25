@@ -19,6 +19,7 @@
             {% include "nanopore/partials/_history_link.html" with history_key="zonal_lab" history_class="btn-light" %}
             {% include "nanopore/partials/_edcs_link.html" with edcs_class="btn-light" %}
             <a href="{% url 'nanopore:zonal-laboratory-detail' object.pk %}" class="btn btn-sm btn-light" title="Every question on one page, read only"><i class="fas fa-file-lines"></i> Whole form</a>
+            {% if edit_all %}<a href="{% url 'nanopore:zonal-laboratory-update' object.pk %}" class="btn btn-sm btn-warning" title="Every section on one page, for entering a whole paper form"><i class="fas fa-pen-to-square"></i> Edit all sections</a>{% endif %}
         </div>
     </section>
 
@@ -54,12 +55,10 @@
                     <a href="{{ card.ctrl_url }}" class="btn btn-sm btn-outline-primary">Open CTRL form</a>
                 {% elif card.status == "from_tblis" %}
                     <span class="zh-muted">See the EDCS/TBLIS record</span>
-                {% elif s.ready %}
-                    <a href="{% url 'nanopore:zonal-lab-section' object.pk s.key %}" class="btn btn-sm {% if can_edit %}btn-primary{% else %}btn-outline-primary{% endif %}">{% if not can_edit %}View{% elif card.status == "not_started" %}Start{% else %}Edit{% endif %}</a>
-                {% elif can_edit %}
-                    <a href="{% url 'nanopore:zonal-laboratory-update' object.pk %}" class="btn btn-sm btn-outline-secondary" title="This section gets its own form soon">Edit in full form</a>
+                {% elif card.status == "not_applicable" %}
+                    <span class="zh-muted">{% if s.key == "microscopy" %}Culture was not performed{% else %}No positive culture{% endif %}</span>
                 {% else %}
-                    <a href="{% url 'nanopore:zonal-laboratory-detail' object.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+                    <a href="{% url 'nanopore:zonal-lab-section' object.pk s.key %}" class="btn btn-sm {% if can_edit %}btn-primary{% else %}btn-outline-primary{% endif %}">{% if not can_edit %}<i class="fas fa-eye"></i> View{% elif card.status == "not_started" %}Start{% else %}Edit{% endif %}</a>
                 {% endif %}
             </footer>
         </article>
@@ -93,5 +92,6 @@
     .zh-from_tblis { border-left-color: var(--accent); }
     .zh-from_tblis .zh-status { background: var(--accent-soft); color: var(--accent); }
     .zh-waiting_ctrl, .zh-waiting_dst { border-left-color: #8a94a8; }
+    .zh-not_applicable { opacity: .75; }
 </style>
 {% endblock %}
