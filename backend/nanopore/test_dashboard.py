@@ -194,3 +194,26 @@ class GraphsTests(AccessTestBase):
         self.assertEqual(page.context["group_word"], "site")
         self.assertEqual(page.context["chart"]["byGroup"]["labels"], ["A1", "A2"])
         self.assertEqual(self.client.get(reverse("dashboard:graphs"), {"start_date": "2025-03-02"}).context["total_screened"], 0)
+
+
+class PipelineFromMergedRecordsTests(SubstudyTwoOutcomesTests.__mro__[1]):
+    """The culture pipeline counts the merged EDCS/TBLIS records: Dar es Salaam's results come from TB-LIS."""
+
+    def test_dar_positive_culture_counts_as_an_isolate_for_dst(self):
+        from datetime import date
+        from django.urls import reverse
+        from locations.models import District, Region, Site, SiteLevel, Zone
+        from nanopore.models import EdcsTblisZonal, Screening, ZonalLaboratory
+        from options.models import LJCultureResult, YesNo
+        from utils import access
+        yes = YesNo.objects.get(pk=1)
+        dar = Zone.objects.create(name="Dar es salaam", country=self.zone_a.country)
+        district = District.objects.create(name="Temeke", region=Region.objects.create(name="Dar", country=dar.country, zone=dar))
+        site = Site.objects.create(name="Temeke H", district=district, pid_prefix="DF_TZ_SS2_18_", site_level=SiteLevel.objects.get(code="local"))
+        screening = Screening.objects.create(screening_date=date(2025, 3, 1), pid1="001", pid2="001", site=site, eligible=True)
+        ZonalLaboratory.objects.create(screening=screening, unique_lab_no="30001")  # lab number only
+        EdcsTblisZonal.objects.create(screening=screening, unique_lab_no="30001", culture_performed=yes,
+                                      lj_results=LJCultureResult.objects.create(pk=2, name="1+", value=2), phenotypic_performed=yes)
+        self.client.force_login(self.make_user("admin_pipe", [access.ADMIN]))
+        x = self.client.get(reverse("dashboard:dashboard")).context
+        self.assertEqual((x["culture_positive_count"], x["isolate_completed_count"], x["dst_completed_count"]), (1, 1, 1))

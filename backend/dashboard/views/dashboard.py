@@ -1,3 +1,6 @@
+from nanopore.models import EdcsTblisZonal
+from nanopore.zonal_rules import LAB_NUMBER_ONLY_Q
+from nanopore.zonal_sections import POSITIVE_LJ, POSITIVE_MGIT
 from nanopore.substudy import OUTCOMES, SUBSTUDY_2, SUBSTUDY_4, substudy_q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
@@ -464,61 +467,50 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
             zonal_completed_count / total_substudy_counts * 100, 1
         ) if total_substudy_counts else 0
 
-        # Individual test counts
-        culture_completed_count = zonal_qs.filter(culture_performed=1).count()
-        culture_progress = round(
-            culture_completed_count / zonal_completed_count * 100, 1
-        ) if zonal_completed_count else 0
-        
-        isolate_completed_count = zonal_qs.filter(culture_isolate=1).count()
-        isolate_progress = round(
-            isolate_completed_count / culture_completed_count * 100, 1
-        ) if culture_completed_count else 0
-        
-        dst_completed_count = zonal_qs.filter(phenotypic_performed=1).count()
-        dst_progress = round(
-            dst_completed_count / isolate_completed_count * 100, 1
-        ) if isolate_completed_count else 0
-        
-        first_line_dst_completed_count = zonal_qs.filter(first_line_dst_performed=1).count()
-        first_line_dst_progress = round(
-            first_line_dst_completed_count / dst_completed_count * 100, 1
-        ) if dst_completed_count else 0
-        
-        # second_line_dst_completed_count = zonal_qs.filter(
-        #     second_line_dst_performed=1
-        # ).filter(
-        #     Q(rifampicin=1) | Q(isoniazid=1) | Q(ethambutol=1)
-        # ).count()
-        second_line_dst_completed_required = zonal_qs.filter(
-            Q(rifampicin=1) | Q(isoniazid=1) | Q(ethambutol=1)
-        ).count()
-        second_line_dst_completed_count = zonal_qs.filter(second_line_dst_performed=1).count()
-        second_line_dst_progress = round(
-            second_line_dst_completed_count / second_line_dst_completed_required * 100, 1
-        ) if second_line_dst_completed_required else 0
-        
-        xpert_xdr_completed_count = zonal_qs.filter(xpert_xdr_performed=1).count()
-        xpert_xdr_progress = round(
-            xpert_xdr_completed_count / total_substudy_counts * 100, 1
-        ) if total_substudy_counts else 0
-        
-        lpa_completed_count = zonal_qs.filter(
-            Q(first_line_lpa=1) | Q(second_line_lpa=1)
-        ).distinct().count()
-        lpa_progress = round(
-            lpa_completed_count / total_substudy_counts * 100, 1
-        ) if total_substudy_counts else 0
-        first_line_lpa_count = zonal_qs.filter(first_line_lpa=1).count()
-        second_line_lpa_count = zonal_qs.filter(second_line_lpa=1).count()
+        # Lab results from the merged EDCS/TBLIS records: other zones' are copies of their
+        # Zonal Lab forms, Dar es Salaam's carry the TB-LIS results (its Zonal Lab form holds
+        # only the lab number). Step 1 above still counts the Zonal Lab forms themselves.
+        results = EdcsTblisZonal.objects.filter(screening__in=qs, screening__zonal_laboratory__isnull=False)
+        pct = lambda part, whole: round(part / whole * 100, 1) if whole else 0
+
+        cultures = results.filter(culture_performed=1)
+        culture_completed_count = cultures.count()
+        culture_progress = pct(culture_completed_count, zonal_completed_count)
+
+        positives = cultures.filter(Q(lj_results__in=POSITIVE_LJ) | Q(mgit_results__in=POSITIVE_MGIT))
+        culture_positive_count = positives.count()
+        culture_positive_progress = pct(culture_positive_count, culture_completed_count)
+
+        # An isolate for DST: Dar es Salaam's positive cultures are already at CTRL (question 11 = Na);
+        # other zones' count once the isolate was sent to CTRL (question 11 = Yes)
+        isolates = positives.filter(LAB_NUMBER_ONLY_Q | Q(culture_isolate=1))
+        isolate_completed_count = isolates.count()
+        isolate_progress = pct(isolate_completed_count, culture_positive_count)
+
+        dst = isolates.filter(phenotypic_performed=1)
+        dst_completed_count = dst.count()
+        dst_progress = pct(dst_completed_count, isolate_completed_count)
+
+        first_line_dst_completed_count = dst.filter(first_line_dst_performed=1).count()
+        first_line_dst_progress = pct(first_line_dst_completed_count, dst_completed_count)
+
+        second_line_dst_completed_required = results.filter(Q(rifampicin=1) | Q(isoniazid=1) | Q(ethambutol=1)).count()
+        second_line_dst_completed_count = results.filter(second_line_dst_performed=1).count()
+        second_line_dst_progress = pct(second_line_dst_completed_count, second_line_dst_completed_required)
+
+        xpert_xdr_completed_count = results.filter(xpert_xdr_performed=1).count()
+        xpert_xdr_progress = pct(xpert_xdr_completed_count, total_substudy_counts)
+
+        lpa_completed_count = results.filter(Q(first_line_lpa=1) | Q(second_line_lpa=1)).count()
+        lpa_progress = pct(lpa_completed_count, total_substudy_counts)
+        first_line_lpa_count = results.filter(first_line_lpa=1).count()
+        second_line_lpa_count = results.filter(second_line_lpa=1).count()
         # Out of the participants with any LPA done
-        first_line_lpa_progress = round(first_line_lpa_count / lpa_completed_count * 100, 1) if lpa_completed_count else 0
-        second_line_lpa_progress = round(second_line_lpa_count / lpa_completed_count * 100, 1) if lpa_completed_count else 0
-        
-        nanopore_completed_count = zonal_qs.filter(nanopore_done=1).count()
-        nanopore_progress = round(
-            nanopore_completed_count / total_substudy_counts * 100, 1
-        ) if total_substudy_counts else 0
+        first_line_lpa_progress = pct(first_line_lpa_count, lpa_completed_count)
+        second_line_lpa_progress = pct(second_line_lpa_count, lpa_completed_count)
+
+        nanopore_completed_count = results.filter(nanopore_done=1).count()
+        nanopore_progress = pct(nanopore_completed_count, total_substudy_counts)
 
         # Header: who is looking, and which records the numbers cover.
         assigned_zones, assigned_sites = assigned_locations(self.request.user)
@@ -577,6 +569,8 @@ class DashboardHomeView(LoginRequiredMixin, ListView):
             "xpert_xdr_progress": xpert_xdr_progress,
             "lpa_completed_count": lpa_completed_count,
             "lpa_progress": lpa_progress,
+            "culture_positive_count": culture_positive_count,
+            "culture_positive_progress": culture_positive_progress,
             "first_line_lpa_count": first_line_lpa_count,
             "first_line_lpa_progress": first_line_lpa_progress,
             "second_line_lpa_count": second_line_lpa_count,

@@ -186,10 +186,11 @@
         <div class="dash-pipeline">
             {% include "dashboard/partials/meter.html" with step="1" label="Zonal lab results entered" note="of Substudy 2 enrolled" done=zonal_completed_count total=substudy2_enrolled_count pct=zonal_progress %}
             {% include "dashboard/partials/meter.html" with step="2" label="Culture performed" note="of zonal lab results" done=culture_completed_count total=zonal_completed_count pct=culture_progress %}
-            {% include "dashboard/partials/meter.html" with step="3" label="Culture isolate sent" note="of cultures" done=isolate_completed_count total=culture_completed_count pct=isolate_progress %}
-            {% include "dashboard/partials/meter.html" with step="4" label="Phenotypic DST performed" note="of isolates" done=dst_completed_count total=isolate_completed_count pct=dst_progress %}
-            {% include "dashboard/partials/meter.html" with step="5" label="First-line DST" note="of DST" done=first_line_dst_completed_count total=dst_completed_count pct=first_line_dst_progress %}
-            {% include "dashboard/partials/meter.html" with step="6" label="Second-line DST" note="of first-line resistant" done=second_line_dst_completed_count total=second_line_dst_completed_required pct=second_line_dst_progress %}
+            {% include "dashboard/partials/meter.html" with step="3" label="Culture positive" note="of cultures · LJ or MGIT" done=culture_positive_count total=culture_completed_count pct=culture_positive_progress %}
+            {% include "dashboard/partials/meter.html" with step="4" label="Isolate for DST" note="of positive cultures · Dar es Salaam at CTRL, other zones sent to CTRL" done=isolate_completed_count total=culture_positive_count pct=isolate_progress %}
+            {% include "dashboard/partials/meter.html" with step="5" label="Phenotypic DST performed" note="of isolates" done=dst_completed_count total=isolate_completed_count pct=dst_progress %}
+            {% include "dashboard/partials/meter.html" with step="6" label="First-line DST" note="of DST" done=first_line_dst_completed_count total=dst_completed_count pct=first_line_dst_progress %}
+            {% include "dashboard/partials/meter.html" with step="7" label="Second-line DST" note="of first-line resistant" done=second_line_dst_completed_count total=second_line_dst_completed_required pct=second_line_dst_progress %}
         </div>
         <div class="dash-subhead">Molecular tests <span>of Substudy 2 enrolled</span></div>
         <div class="dash-pipeline">
