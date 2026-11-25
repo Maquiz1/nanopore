@@ -4,6 +4,8 @@ from functools import wraps
 from django.contrib.auth.mixins import AccessMixin
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseNotAllowed
+from django.urls import reverse
 
 from utils.access import can_edit, can_view, get_writable_sites, has_feature, scope_queryset, writable_queryset
 
@@ -19,19 +21,37 @@ class FormAccessMixin(AccessMixin):
     access_write       True for views that always change data (delete, upload)
     access_is_form     True for create/update views: opening one without a pk is a create
     access_safe_post   True when POST only reads data (e.g. queues an export)
+    view_only          as_view(view_only=True): the View button, the whole form greyed out
+    edit_url_name      with view_model, gives a View page an Edit button for those who may change the record
     """
     access_form = None
     access_site_field = "screening__site"
     access_write = False
     access_is_form = False
     access_safe_post = False
+    view_only = False
+    view_model = None
+    edit_url_name = None
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         if not self.has_form_access(request, kwargs):
             raise PermissionDenied
+        if self.view_only:
+            if request.method not in SAFE_METHODS:
+                return HttpResponseNotAllowed(["GET"])
+            request.view_edit_url = self.view_edit_url(kwargs.get("pk"))
         return super().dispatch(request, *args, **kwargs)
+
+    def view_edit_url(self, pk):
+        """The Edit button of a View page (base.html), when this user may change the record."""
+        if not (pk and self.view_model and self.edit_url_name and can_edit(self.request.user, self.access_form)):
+            return None
+        records = self.view_model._default_manager.filter(pk=pk)
+        if not writable_queryset(self.request.user, records, self.access_site_field).exists():
+            return None
+        return reverse(self.edit_url_name, args=[pk])
 
     def needs_edit(self, request, kwargs):
         return bool(
@@ -51,6 +71,8 @@ class FormAccessMixin(AccessMixin):
 
     def is_read_only(self, obj=None):
         """The form opens greyed out: no edit role, or a saved record outside the user's assignment."""
+        if self.view_only:
+            return True
         if not can_edit(self.request.user, self.access_form):
             return True
         if obj is None:

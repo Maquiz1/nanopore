@@ -14,7 +14,7 @@ class DiagnosisListView(FormAccessMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        qs = Diagnosis.objects.select_related("screening__site", "screening__sex")
+        qs = Diagnosis.objects.select_related("screening__site", "screening__sex", "tb_diagnosis")
         qs = filter_queryset_by_user_role(self.request.user, qs, site_field="screening__site")
         # Filters
         zone_id = self.request.GET.get("zone")

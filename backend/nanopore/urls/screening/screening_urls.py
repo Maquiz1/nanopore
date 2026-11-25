@@ -1,3 +1,4 @@
+from nanopore.models import Screening  # the View button opens the form read only
 from django.urls import path
 from nanopore.views import (
     ScreeningListView,
@@ -13,7 +14,7 @@ from nanopore.views import (
 
 urlpatterns = [
     path("", ScreeningListView.as_view(), name="screening-list"),
-    path("<int:pk>/", ScreeningDetailView.as_view(), name="screening-detail"),
+    path("<int:pk>/", ScreeningFormView.as_view(view_only=True, view_model=Screening, edit_url_name="nanopore:screening-update"), name="screening-detail"),
     # path("create/", ScreeningCreateView.as_view(), name="screening-create"),
     # path("<int:pk>/update/", ScreeningUpdateView.as_view(), name="screening-update"),
     path('screening/create/', ScreeningFormView.as_view(), name='screening-create'),

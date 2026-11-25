@@ -93,7 +93,7 @@ class ZonalLabFormView(FormAccessMixin, View):
             request,
             self.template_name,
             {"form": form, "object": obj, "screening": screening_instance, "next": next_url, "read_only": read_only,
-             "edit_link": self.view_only and obj is not None and not self.is_read_only(obj)}
+             "edit_link": getattr(request, "view_edit_url", None)}
         )
 
     def post(self, request, *args, **kwargs):

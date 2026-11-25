@@ -36,6 +36,7 @@
                 <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm page-back-btn" onclick="return goBack(event)" title="Back to the page you came from">
                     <i class="fas fa-arrow-left"></i> Go back
                 </a>
+                {% if request.view_edit_url %}<a href="{{ request.view_edit_url }}" class="btn btn-sm btn-warning page-edit-btn" title="Change this record"><i class="fas fa-pen-to-square"></i> Edit</a>{% endif %}
             </div>
             {% endif %}{% endblock %}
             {% if messages %}
@@ -191,7 +192,8 @@
         }
     </script>
     <style>
-        .page-back { margin: 14px 0 -6px; }
+        .page-back { margin: 14px 0 -6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .page-edit-btn { border-radius: 9px; font-weight: 600; }
         .page-back-btn { color: #134074; background: #fff; border: 1px solid #d5dcea; border-radius: 9px; font-weight: 600; }
         .page-back-btn:hover { color: #fff; background: #134074; border-color: #134074; }
     </style>

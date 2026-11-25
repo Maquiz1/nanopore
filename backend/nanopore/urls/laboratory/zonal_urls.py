@@ -1,3 +1,4 @@
+from nanopore.models import ZonalLaboratory  # the View button opens the form read only
 # nanopore/urls/zonal_laboratory_urls.py
 from django.urls import path
 from nanopore.views import (
@@ -12,7 +13,7 @@ from nanopore.views.laboratory.zonal.zonal_sections_view import ZonalLabHubView,
 
 urlpatterns = [
     path("", ZonalLaboratoryListView.as_view(), name="zonal-laboratory-list"),
-    path("zonal-lab/<int:pk>/", ZonalLabFormView.as_view(view_only=True), name="zonal-laboratory-detail"),
+    path("zonal-lab/<int:pk>/", ZonalLabFormView.as_view(view_only=True, view_model=ZonalLaboratory, edit_url_name="nanopore:zonal-laboratory-update"), name="zonal-laboratory-detail"),
     path("zonal-lab/form/", ZonalLabFormView.as_view(), name="zonal-laboratory-create"),
     path("zonal-lab/form/<int:pk>/", ZonalLabFormView.as_view(), name="zonal-laboratory-update"),
     path("zonal-lab/<int:pk>/sections/", ZonalLabHubView.as_view(), name="zonal-lab-hub"),

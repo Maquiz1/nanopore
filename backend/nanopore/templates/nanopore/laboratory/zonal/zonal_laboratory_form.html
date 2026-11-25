@@ -348,7 +348,7 @@
                         <div class="d-flex justify-content-between">
                             <a href="{% if access.view.zonal_lab %}{% url 'nanopore:form-status-list' %}{% else %}{% url 'nanopore:zonal-laboratory-list' %}{% endif %}" class="btn btn-danger me-2">❌ Cancel</a>
                             {% include "nanopore/partials/_reason_for_change.html" %}
-                            {% if edit_link %}<a href="{% url 'nanopore:zonal-laboratory-update' object.pk %}" class="btn btn-warning">✏️ Edit</a>{% endif %}
+                            {% if edit_link %}<a href="{{ edit_link }}" class="btn btn-warning">✏️ Edit</a>{% endif %}
                             {% if access.edit.zonal_lab and not read_only %}
                             {% if system_control.enable_form_submissions %}
                                 <button type="submit" class="btn btn-success">💾 Save Zonal Laboratory</button>

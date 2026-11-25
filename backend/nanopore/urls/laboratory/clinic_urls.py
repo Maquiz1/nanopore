@@ -1,3 +1,4 @@
+from nanopore.models import ClinicLaboratory  # the View button opens the form read only
 # nanopore/urls/clinic_laboratory_urls.py
 from django.urls import path
 from nanopore.views import (
@@ -12,7 +13,7 @@ from nanopore.views import (
 
 urlpatterns = [
     path("", ClinicLaboratoryListView.as_view(), name="clinic-laboratory-list"),
-    path("clinic-laboratory/<int:pk>/", ClinicLaboratoryDetailView.as_view(), name="clinic-laboratory-detail"),
+    path("clinic-laboratory/<int:pk>/", ClinicLaboratoryFormView.as_view(view_only=True, view_model=ClinicLaboratory, edit_url_name="nanopore:clinic-laboratory-update"), name="clinic-laboratory-detail"),
     path("clinic-laboratory/form/", ClinicLaboratoryFormView.as_view(), name="clinic-laboratory-create"),
     path("clinic-laboratory/form/<int:pk>/", ClinicLaboratoryFormView.as_view(), name="clinic-laboratory-update"),
     path("clinic-laboratory/<int:pk>/delete/", ClinicLaboratoryDeleteView.as_view(), name="clinic-laboratory-delete"),
